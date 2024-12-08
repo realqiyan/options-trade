@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Options Trade Tools</title>
+    <link rel="icon" href="data:image/ico;base64,aWNv">
+    <link rel="stylesheet" href="adminlte.min.css">
+    <link rel="stylesheet" href="jquery.jsonview.css"/>
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script src="adminlte.min.js"></script>
+    <script type="text/javascript" src="jquery.jsonview.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+</head>
+<body class="sidebar-mini skin-black-light">
+<div class="wrapper">
+    <!-- 导航 -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+        <div class="sidebar">
+            <nav class="mt-2">
+                <ul id="underlying" class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
+                    data-accordion="false">
+
+                </ul>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- 内容 -->
+    <div class="content-wrapper">
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">记录数据</h1>
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <button id="reload-btn" class="btn btn-info">重新加载</button>
+                </div>
+                <div class="row">
+                    <div id="output" style="width: 100%;">加载中...</div>
+                    <div id="json" style="width: 100%;"></div>
+                    <div id="result" style="width: 100%;"></div>
+                </div>
+                <!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+</div>
+</body>
+</html>

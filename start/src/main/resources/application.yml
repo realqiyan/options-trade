@@ -1,0 +1,33 @@
+# 数据源配置
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://10.0.12.220:3306/dev?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=CONVERT_TO_NULL&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=true
+    username: dev
+    password: dev
+
+
+
+  # FREEMARKER (FreeMarkerAutoConfiguration)
+  freemarker:
+    allow-request-override: false
+    cache: true
+    check-template-location: true
+    charset: UTF-8
+    content-type: text/html
+    expose-request-attributes: false
+    expose-session-attributes: false
+    expose-spring-macro-helpers: false
+    suffix: .ftl
+    template-loader-path: classpath:/templates/ #comma-separated list
+
+  resources:
+    static-locations: classpath:/static/
+
+
+  jackson:
+    generator:
+      write_numbers_as_strings: true
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
