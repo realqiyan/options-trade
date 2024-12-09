@@ -81,6 +81,7 @@ public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Respo
         data.setRho(optionExData.getRho());
         data.setImpliedVolatility(optionExData.getImpliedVolatility());
         data.setPremium(optionExData.getPremium());
+        data.setCurPrice(basicQot.getCurPrice());
         return data;
     }
 
@@ -91,6 +92,9 @@ public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Respo
 
         QotSub.C2S.Builder builder = QotSub.C2S.newBuilder();
         for (Security security : allSecurity) {
+            if (null == security) {
+                continue;
+            }
             QotCommon.Security sec = QotCommon.Security.newBuilder().setMarket(security.getMarket()).setCode(security.getCode()).build();
             builder.addSecurityList(sec);
         }
@@ -112,6 +116,9 @@ public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Respo
 
         QotGetBasicQot.C2S.Builder builder = QotGetBasicQot.C2S.newBuilder();
         for (Security security : allSecurity) {
+            if (null == security) {
+                continue;
+            }
             QotCommon.Security sec = QotCommon.Security.newBuilder().setMarket(security.getMarket()).setCode(security.getCode()).build();
             builder.addSecurityList(sec);
         }

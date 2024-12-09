@@ -43,8 +43,10 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
         var convertedData = result.optionList.map(item => {
             return {
                 "strikePrice": item.call.optionExData.strikePrice,
-                "callDelta": item.call.realtimeData.delta,
-                "putDelta": item.put.realtimeData.delta
+                "callDelta": item.call.realtimeData?item.call.realtimeData.delta:0,
+                "callCurPrice": item.call.realtimeData?item.call.realtimeData.curPrice:0,
+                "putDelta": item.put.realtimeData?item.put.realtimeData.delta:0,
+                "putCurPrice": item.put.realtimeData?item.put.realtimeData.curPrice:0,
             };
         });
 
@@ -54,7 +56,9 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
             elem: '#result',
             cols: [[
               {field: 'callDelta', title: 'CallDelta', width: 120},
+              {field: 'callCurPrice', title: 'CallPrice', width: 120},
               {field: 'strikePrice', title: '行权价', width: 120, sort: true},
+              {field: 'putCurPrice', title: 'PutPrice', width: 120},
               {field: 'putDelta', title: 'PutDelta', width: 120}
             ]],
             data: convertedData,

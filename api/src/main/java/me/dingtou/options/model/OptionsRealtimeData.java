@@ -45,5 +45,7 @@ public class OptionsRealtimeData {
     private Double impliedVolatility;
     //溢价（该字段为百分比字段，默认不展示 %，如 20 实际对应 20%）
     private Double premium;
+    //当前价格
+    private Double curPrice;
 
 }

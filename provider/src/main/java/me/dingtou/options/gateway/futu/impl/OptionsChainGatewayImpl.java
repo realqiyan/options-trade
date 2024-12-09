@@ -3,10 +3,10 @@ package me.dingtou.options.gateway.futu.impl;
 import me.dingtou.options.gateway.OptionsChainGateway;
 import me.dingtou.options.gateway.futu.BaseFuncExecutor;
 import me.dingtou.options.gateway.futu.FillBasicInfoExecutor;
-import me.dingtou.options.gateway.futu.func.*;
+import me.dingtou.options.gateway.futu.func.FuncGetOptionChain;
+import me.dingtou.options.gateway.futu.func.FuncGetOptionExpirationDate;
 import me.dingtou.options.model.*;
 import org.springframework.stereotype.Component;
-
 
 import java.util.*;
 
@@ -25,9 +25,13 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
         Set<Security> allSecurity = new HashSet<>();
         for (OptionsTuple optionsTuple : optionsChain.getOptionList()) {
             Security callSecurity = optionsTuple.getCall().getBasic().getSecurity();
+            if (null != callSecurity) {
+                allSecurity.add(callSecurity);
+            }
             Security putSecurity = optionsTuple.getPut().getBasic().getSecurity();
-            allSecurity.add(callSecurity);
-            allSecurity.add(putSecurity);
+            if (null != putSecurity) {
+                allSecurity.add(putSecurity);
+            }
         }
         List<OptionsRealtimeData> optionsBasicInfo = FillBasicInfoExecutor.fill(allSecurity);
         mergeRealtimeData(optionsChain, optionsBasicInfo);

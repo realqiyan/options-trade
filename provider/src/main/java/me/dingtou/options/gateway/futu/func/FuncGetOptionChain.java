@@ -1,19 +1,12 @@
 package me.dingtou.options.gateway.futu.func;
 
 import com.alibaba.fastjson.JSON;
-import com.futu.openapi.ProtoID;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionChain;
-import com.futu.openapi.pb.QotGetOptionExpirationDate;
-import com.google.protobuf.Descriptors;
 import me.dingtou.options.gateway.futu.BaseFuncExecutor;
 import me.dingtou.options.gateway.futu.FunctionCall;
 import me.dingtou.options.gateway.futu.ReqContext;
 import me.dingtou.options.model.OptionsChain;
-import me.dingtou.options.model.OptionsExpDate;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * 获取期权链
@@ -42,9 +35,11 @@ public class FuncGetOptionChain implements FunctionCall<BaseFuncExecutor<QotGetO
                 .build();
 
 
-        QotGetOptionChain.DataFilter dataFilter = QotGetOptionChain.DataFilter.newBuilder()
-                .build();
-        
+        QotGetOptionChain.DataFilter.Builder builder = QotGetOptionChain.DataFilter.newBuilder();
+        // builder.setDeltaMax(0.800).setDeltaMin(-0.800);
+
+        QotGetOptionChain.DataFilter dataFilter = builder.build();
+
         QotGetOptionChain.C2S c2s = QotGetOptionChain.C2S.newBuilder()
                 .setOwner(sec)
                 .setBeginTime(strikeTime)
