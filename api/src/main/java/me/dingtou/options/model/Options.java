@@ -19,4 +19,9 @@ public class Options {
      * 期权扩展信息
      */
     private OptionsExtData optionExData;
+
+    /**
+     * 期权实时数据
+     */
+    private OptionsRealtimeData realtimeData;
 }
