@@ -2,6 +2,8 @@ package me.dingtou.options.model;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * 期权行情数据
  * <p>
@@ -32,20 +34,20 @@ public class OptionsRealtimeData {
     //证券
     private Security security;
     //希腊值 Delta
-    private Double delta;
+    private BigDecimal delta;
     //希腊值 Gamma
-    private Double gamma;
+    private BigDecimal gamma;
     //希腊值 Theta
-    private Double theta;
+    private BigDecimal theta;
     //希腊值 Vega
-    private Double vega;
+    private BigDecimal vega;
     //希腊值 Rho
-    private Double rho;
+    private BigDecimal rho;
     //隐含波动率（该字段为百分比字段，默认不展示 %，如 20 实际对应 20%）
-    private Double impliedVolatility;
+    private BigDecimal impliedVolatility;
     //溢价（该字段为百分比字段，默认不展示 %，如 20 实际对应 20%）
-    private Double premium;
+    private BigDecimal premium;
     //当前价格
-    private Double curPrice;
+    private BigDecimal curPrice;
 
 }

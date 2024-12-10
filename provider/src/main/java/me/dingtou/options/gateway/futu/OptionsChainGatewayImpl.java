@@ -1,8 +1,6 @@
-package me.dingtou.options.gateway.futu.impl;
+package me.dingtou.options.gateway.futu;
 
 import me.dingtou.options.gateway.OptionsChainGateway;
-import me.dingtou.options.gateway.futu.BaseFuncExecutor;
-import me.dingtou.options.gateway.futu.FillBasicInfoExecutor;
 import me.dingtou.options.gateway.futu.func.FuncGetOptionChain;
 import me.dingtou.options.gateway.futu.func.FuncGetOptionExpirationDate;
 import me.dingtou.options.model.*;

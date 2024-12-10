@@ -14,7 +14,11 @@ public enum Market {
     /**
      * 香港
      */
-    HK(1);
+    HK(1),
+    /**
+     * 未知
+     */
+    UNKNOWN(-1);
 
     private final int code;
 
@@ -29,7 +33,7 @@ public enum Market {
                 return val;
             }
         }
-        throw new IllegalArgumentException(code + " not found.");
+        return UNKNOWN;
     }
 
     public int getCode() {

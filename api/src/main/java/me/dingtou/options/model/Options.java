@@ -24,4 +24,9 @@ public class Options {
      * 期权实时数据
      */
     private OptionsRealtimeData realtimeData;
+
+    /**
+     * 期权策略数据
+     */
+    private OptionsStrategyData strategyData;
 }

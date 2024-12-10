@@ -23,6 +23,11 @@ public class OptionsChain {
     private Long strikeTimestamp;
 
     /**
+     * 期权标的行情
+     */
+    private SecurityQuote securityQuote;
+
+    /**
      * 期权列表
      */
     private List<OptionsTuple> optionList;

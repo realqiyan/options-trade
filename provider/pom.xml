@@ -54,6 +54,10 @@
             <groupId>com.futunn.openapi</groupId>
             <artifactId>futu-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.longportapp</groupId>
+            <artifactId>openapi-sdk</artifactId>
+        </dependency>
     </dependencies>
 
 

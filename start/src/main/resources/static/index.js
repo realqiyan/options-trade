@@ -60,15 +60,21 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
         time: new Date().getTime()
       },
       success: function( result ) {
-        document.getElementById("title").innerHTML=currentCode + ' - ' + result.strikeTime + '(' + optionExpiryDateDistance + ')';
+        document.getElementById("title").innerHTML=currentCode + '(' + result.securityQuote.lastDone + ') - ' + result.strikeTime + '(' + optionExpiryDateDistance + ')';
 
         var convertedData = result.optionList.map(item => {
             return {
                 "strikePrice": item.call.optionExData.strikePrice,
-                "callDelta": item.call.realtimeData?item.call.realtimeData.delta:0,
-                "callCurPrice": item.call.realtimeData?item.call.realtimeData.curPrice:0,
                 "putDelta": item.put.realtimeData?item.put.realtimeData.delta:0,
+                "callDelta": item.call.realtimeData?item.call.realtimeData.delta:0,
+                "putGamma": item.put.realtimeData?item.put.realtimeData.gamma:0,
+                "callGamma": item.call.realtimeData?item.call.realtimeData.gamma:0,
+                "putTheta": item.put.realtimeData?item.put.realtimeData.theta:0,
+                "callTheta": item.call.realtimeData?item.call.realtimeData.theta:0,
                 "putCurPrice": item.put.realtimeData?item.put.realtimeData.curPrice:0,
+                "callCurPrice": item.call.realtimeData?item.call.realtimeData.curPrice:0,
+                "putSellAnnualYield": item.put.strategyData?item.put.strategyData.sellAnnualYield + '%' : '-',
+                "callSellAnnualYield": item.call.strategyData?item.call.strategyData.sellAnnualYield + '%' : '-',
             };
         });
 
@@ -77,11 +83,17 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
           var inst = table.render({
             elem: '#result',
             cols: [[
-              {field: 'callDelta', title: 'CallDelta', width: 120},
-              {field: 'callCurPrice', title: 'CallPrice', width: 120},
-              {field: 'strikePrice', title: '行权价', width: 120, sort: true},
-              {field: 'putCurPrice', title: 'PutPrice', width: 120},
-              {field: 'putDelta', title: 'PutDelta', width: 120}
+              {field: 'callGamma', title: 'Gamma', width: 100},
+              {field: 'callTheta', title: 'Theta', width: 100},
+              {field: 'callDelta', title: 'Delta', width: 100},
+              {field: 'callCurPrice', title: 'Price', width: 100},
+              {field: 'callSellAnnualYield', title: '年化', width: 100},
+              {field: 'strikePrice', title: '行权价', width: 100, sort: true},
+              {field: 'putSellAnnualYield', title: '年化', width: 100},
+              {field: 'putCurPrice', title: 'Price', width: 100},
+              {field: 'putDelta', title: 'Delta', width: 100},
+              {field: 'putTheta', title: 'Theta', width: 100},
+              {field: 'putGamma', title: 'Gamma', width: 100}
             ]],
             data: convertedData,
             //skin: 'line',

@@ -2,6 +2,8 @@ package me.dingtou.options.model;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 /**
  * 期权扩展数据
  *
@@ -37,7 +39,7 @@ public class OptionsExtData {
     /**
      * 行权价
      */
-    private Double strikePrice;
+    private BigDecimal strikePrice;
     /**
      * 是否停牌
      */

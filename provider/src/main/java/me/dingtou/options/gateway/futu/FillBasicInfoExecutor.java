@@ -6,6 +6,8 @@ import com.google.protobuf.GeneratedMessageV3;
 import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.Security;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -74,14 +76,23 @@ public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Respo
         security.setMarket(basicQot.getSecurity().getMarket());
         security.setCode(basicQot.getSecurity().getCode());
         data.setSecurity(security);
-        data.setDelta(optionExData.getDelta());
-        data.setGamma(optionExData.getGamma());
-        data.setTheta(optionExData.getTheta());
-        data.setVega(optionExData.getVega());
-        data.setRho(optionExData.getRho());
-        data.setImpliedVolatility(optionExData.getImpliedVolatility());
-        data.setPremium(optionExData.getPremium());
-        data.setCurPrice(basicQot.getCurPrice());
+        BigDecimal delta = new BigDecimal(String.valueOf(optionExData.getDelta()));
+        int newScale = 4;
+        data.setDelta(delta.setScale(newScale, RoundingMode.HALF_UP));
+        BigDecimal gamma = new BigDecimal(String.valueOf(optionExData.getGamma()));
+        data.setGamma(gamma.setScale(newScale, RoundingMode.HALF_UP));
+        BigDecimal theta = new BigDecimal(String.valueOf(optionExData.getTheta()));
+        data.setTheta(theta.setScale(newScale, RoundingMode.HALF_UP));
+        BigDecimal vega = new BigDecimal(String.valueOf(optionExData.getVega()));
+        data.setVega(vega.setScale(newScale, RoundingMode.HALF_UP));
+        BigDecimal rho = new BigDecimal(String.valueOf(optionExData.getRho()));
+        data.setRho(rho.setScale(newScale, RoundingMode.HALF_UP));
+        BigDecimal impliedVolatility = new BigDecimal(String.valueOf(optionExData.getImpliedVolatility()));
+        data.setImpliedVolatility(impliedVolatility.setScale(newScale, RoundingMode.HALF_UP));
+        BigDecimal premium = new BigDecimal(String.valueOf(optionExData.getPremium()));
+        data.setPremium(premium.setScale(newScale, RoundingMode.HALF_UP));
+        BigDecimal curPrice = new BigDecimal(String.valueOf(basicQot.getCurPrice()));
+        data.setCurPrice(curPrice.setScale(newScale, RoundingMode.HALF_UP));
         return data;
     }
 
