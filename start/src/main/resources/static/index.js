@@ -1,6 +1,22 @@
+//JS
+
 var $ = layui.$;
+var element = layui.element;
+
 var currentCode;
 var currentMarket;
+
+function render(){
+    layui.use(['element', 'layer', 'util'], function(){
+      var element = layui.element;
+      var layer = layui.layer;
+      var util = layui.util;
+      var $ = layui.$;
+      element.render('nav');
+    });
+}
+
+
 function loadOptionsExpDate(code, market){
     currentCode = code;
     currentMarket = market;
@@ -15,11 +31,17 @@ function loadOptionsExpDate(code, market){
       success: function( result ) {
         var output = document.getElementById("strike-list");
         output.innerHTML = "";
-
+        var moreHtml = ""
         for(var i=0; i<result.length; i++) {
             var obj = result[i];
-            output.innerHTML += '<li class="layui-nav-item layui-hide-xs" onclick="loadOptionsChain(\''+obj.strikeTime+'\',\''+obj.strikeTimestamp+'\',\''+obj.optionExpiryDateDistance+'\')"><a href="javascript:;">'+obj.strikeTime+'('+obj.optionExpiryDateDistance+')</a></li>'
+            if (i < 8){
+                output.innerHTML += '<li class="layui-nav-item layui-hide-xs" onclick="loadOptionsChain(\''+obj.strikeTime+'\',\''+obj.strikeTimestamp+'\',\''+obj.optionExpiryDateDistance+'\')"><a href="javascript:;">'+obj.strikeTime+'('+obj.optionExpiryDateDistance+')</a></li>'
+            }else{
+                moreHtml += '<dd onclick="loadOptionsChain(\''+obj.strikeTime+'\',\''+obj.strikeTimestamp+'\',\''+obj.optionExpiryDateDistance+'\')"><a href="javascript:;">'+obj.strikeTime+'('+obj.optionExpiryDateDistance+')</a></dd>'
+            }
         }
+        output.innerHTML += '<li class="layui-nav-item"><a href="javascript:;">More</a><dl class="layui-nav-child">' + moreHtml + '</dl></li>';
+        render();
       }
     });
 }
@@ -38,7 +60,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
         time: new Date().getTime()
       },
       success: function( result ) {
-        document.getElementById("title").innerHTML=result.strikeTime;
+        document.getElementById("title").innerHTML=currentCode + ' - ' + result.strikeTime + '(' + optionExpiryDateDistance + ')';
 
         var convertedData = result.optionList.map(item => {
             return {
@@ -89,8 +111,11 @@ function reloadData(){
             var obj = result[i];
             output.innerHTML += '<li class="layui-nav-item" onclick="loadOptionsExpDate(\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.code+'</a></li>'
         }
+        render();
       }
     });
 }
-
 reloadData();
+
+
+

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,14 +14,14 @@
     <div class="layui-header">
         <div class="layui-logo layui-hide-xs layui-bg-black">Options</div>
         <!-- 头部区域（可配合layui 已有的水平导航） -->
-        <ul class="layui-nav layui-layout-left" id="strike-list">
+        <ul class="layui-nav layui-layout-left" id="strike-list" lay-filter="strike-list">
             <li class="layui-nav-item layui-hide-xs"><a href="javascript:;">-</a></li>
         </ul>
     </div>
     <div class="layui-side layui-bg-black">
         <div class="layui-side-scroll">
             <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
-            <ul class="layui-nav layui-nav-tree" id="underlying">
+            <ul class="layui-nav layui-nav-tree" id="underlying" lay-filter="underlying">
                 <li class="layui-nav-item"><a href="javascript:;">loading...</a></li>
             </ul>
         </div>
@@ -30,14 +29,11 @@
     <div class="layui-body">
         <!-- 内容主体区域 -->
         <div style="padding: 15px;">
-            <blockquote class="layui-elem-quote layui-text">
+            <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
                 期权链
             </blockquote>
             <div class="layui-card layui-panel">
-                <div class="layui-card-header" id="title">
-
-                </div>
-                <div class="layui-card-body" id="result">
+                <div class="layui-card-body" id="result" lay-filter="result">
                     依次点击：1.股票 2.期权到期日
                 </div>
             </div>
@@ -49,14 +45,5 @@
 
 <script src="layui/layui.js"></script>
 <script src="index.js"></script>
-<script>
-    //JS
-    layui.use(['element', 'layer', 'util'], function(){
-      var element = layui.element;
-      var layer = layui.layer;
-      var util = layui.util;
-      var $ = layui.$;
-    });
-</script>
 </body>
 </html>
