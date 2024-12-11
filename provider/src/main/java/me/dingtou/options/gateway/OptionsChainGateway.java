@@ -2,7 +2,9 @@ package me.dingtou.options.gateway;
 
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsExpDate;
+import me.dingtou.options.model.Security;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -15,19 +17,18 @@ public interface OptionsChainGateway {
     /**
      * 获取期权到期时间线
      *
-     * @param market 市场
-     * @param code   证券代码
+     * @param security   证券
      * @return 期权到期时间线
      */
-    List<OptionsExpDate> getOptionsExpDate(int market, String code);
+    List<OptionsExpDate> getOptionsExpDate(Security security);
 
     /**
      * 查询期权链
      *
-     * @param market     市场
-     * @param code       证券代码
+     * @param security   证券
      * @param strikeTime 行权时间
+     * @param lastDone   最新价
      * @return 期权链
      */
-    OptionsChain queryOptionsChain(Integer market, String code, String strikeTime);
+    OptionsChain queryOptionsChain(Security security, String strikeTime, BigDecimal lastDone);
 }

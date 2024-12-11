@@ -1,12 +1,11 @@
 package me.dingtou.options.gateway.futu.func;
 
 import com.alibaba.fastjson.JSON;
-import com.futu.openapi.ProtoID;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionExpirationDate;
 import me.dingtou.options.gateway.futu.BaseFuncExecutor;
-import me.dingtou.options.gateway.futu.ReqContext;
 import me.dingtou.options.gateway.futu.FunctionCall;
+import me.dingtou.options.gateway.futu.ReqContext;
 import me.dingtou.options.model.OptionsExpDate;
 
 import java.util.Collections;
@@ -44,19 +43,18 @@ public class FuncGetOptionExpirationDate implements FunctionCall<BaseFuncExecuto
         if (seqNo == 0) {
             throw new RuntimeException("QotGetOptionExpirationDate error");
         }
-//        client.currentReqContext.seqNo = seqNo;
-//        client.currentReqContext.protoID = ProtoID.QOT_GETOPTIONEXPIRATIONDATE;
+
     }
 
     @Override
     public List<OptionsExpDate> result(ReqContext reqContext) {
 
-        QotGetOptionExpirationDate.Response resp1 = (QotGetOptionExpirationDate.Response) reqContext.resp;
-        if (null == resp1 || null == resp1.getS2C() || null == resp1.getS2C().getDateListList()) {
+        QotGetOptionExpirationDate.Response resp = (QotGetOptionExpirationDate.Response) reqContext.resp;
+        if (null == resp || 0 != resp.getRetType()) {
             return Collections.emptyList();
         }
 
-        return convert(resp1.getS2C().getDateListList());
+        return convert(resp.getS2C().getDateListList());
     }
 
     private List<OptionsExpDate> convert(List<QotGetOptionExpirationDate.OptionExpirationDate> dateLis) {

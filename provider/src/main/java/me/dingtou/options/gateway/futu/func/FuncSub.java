@@ -1,9 +1,7 @@
 package me.dingtou.options.gateway.futu.func;
 
 import com.alibaba.fastjson.JSON;
-import com.futu.openapi.ProtoID;
 import com.futu.openapi.pb.QotCommon;
-import com.futu.openapi.pb.QotGetSubInfo;
 import com.futu.openapi.pb.QotSub;
 import me.dingtou.options.gateway.futu.BaseFuncExecutor;
 import me.dingtou.options.gateway.futu.FunctionCall;
@@ -40,8 +38,6 @@ public class FuncSub implements FunctionCall<BaseFuncExecutor<QotSub.Response, S
         QotSub.Request req = QotSub.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.sub(req);
         System.out.printf("Send QotSub: %d\n", seqNo);
-//        client.currentReqContext.seqNo = seqNo;
-//        client.currentReqContext.protoID = ProtoID.QOT_GETOPTIONCHAIN;
     }
 
     @Override

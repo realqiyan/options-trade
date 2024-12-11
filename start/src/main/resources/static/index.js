@@ -64,17 +64,17 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
 
         var convertedData = result.optionList.map(item => {
             return {
-                "strikePrice": item.call.optionExData.strikePrice,
-                "putDelta": item.put.realtimeData?item.put.realtimeData.delta:0,
-                "callDelta": item.call.realtimeData?item.call.realtimeData.delta:0,
-                "putGamma": item.put.realtimeData?item.put.realtimeData.gamma:0,
-                "callGamma": item.call.realtimeData?item.call.realtimeData.gamma:0,
-                "putTheta": item.put.realtimeData?item.put.realtimeData.theta:0,
-                "callTheta": item.call.realtimeData?item.call.realtimeData.theta:0,
-                "putCurPrice": item.put.realtimeData?item.put.realtimeData.curPrice:0,
-                "callCurPrice": item.call.realtimeData?item.call.realtimeData.curPrice:0,
-                "putSellAnnualYield": item.put.strategyData?item.put.strategyData.sellAnnualYield + '%' : '-',
-                "callSellAnnualYield": item.call.strategyData?item.call.strategyData.sellAnnualYield + '%' : '-',
+                "strikePrice": item.call?item.call.optionExData.strikePrice:item.put.optionExData.strikePrice,
+                "putDelta": item.put && item.put.realtimeData?item.put.realtimeData.delta:'-',
+                "callDelta": item.call && item.call.realtimeData?item.call.realtimeData.delta:'-',
+                "putGamma": item.put && item.put.realtimeData?item.put.realtimeData.gamma:'-',
+                "callGamma": item.call && item.call.realtimeData?item.call.realtimeData.gamma:'-',
+                "putTheta": item.put && item.put.realtimeData?item.put.realtimeData.theta:'-',
+                "callTheta": item.call && item.call.realtimeData?item.call.realtimeData.theta:'-',
+                "putCurPrice": item.put && item.put.realtimeData?item.put.realtimeData.curPrice:'-',
+                "callCurPrice": item.call && item.call.realtimeData?item.call.realtimeData.curPrice:'-',
+                "putSellAnnualYield": item.put && item.put.strategyData?item.put.strategyData.sellAnnualYield + '%' : '-',
+                "callSellAnnualYield": item.call && item.call.strategyData?item.call.strategyData.sellAnnualYield + '%' : '-',
             };
         });
 
@@ -83,21 +83,25 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
           var inst = table.render({
             elem: '#result',
             cols: [[
-              {field: 'callGamma', title: 'Gamma', width: 100},
-              {field: 'callTheta', title: 'Theta', width: 100},
-              {field: 'callDelta', title: 'Delta', width: 100},
-              {field: 'callCurPrice', title: 'Price', width: 100},
+              {field: 'callGamma', title: 'Gamma', width: 85},
+              {field: 'callTheta', title: 'Theta', width: 85},
+              {field: 'callDelta', title: 'Delta', width: 85},
+              {field: 'callCurPrice', title: 'Price', width: 85},
               {field: 'callSellAnnualYield', title: '年化', width: 100},
               {field: 'strikePrice', title: '行权价', width: 100, sort: true},
               {field: 'putSellAnnualYield', title: '年化', width: 100},
-              {field: 'putCurPrice', title: 'Price', width: 100},
-              {field: 'putDelta', title: 'Delta', width: 100},
-              {field: 'putTheta', title: 'Theta', width: 100},
-              {field: 'putGamma', title: 'Gamma', width: 100}
+              {field: 'putCurPrice', title: 'Price', width: 85},
+              {field: 'putDelta', title: 'Delta', width: 85},
+              {field: 'putTheta', title: 'Theta', width: 85},
+              {field: 'putGamma', title: 'Gamma', width: 85}
             ]],
             data: convertedData,
             //skin: 'line',
             //even: true,
+            initSort: {
+              field: 'strikePrice',
+              type: 'asc'
+            },
             page: false,
             limits: [100, 200, 500],
             limit: 100

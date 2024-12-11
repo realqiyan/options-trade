@@ -74,7 +74,7 @@ public class OptionsReadServiceImpl implements OptionsReadService {
         BigDecimal dte = new BigDecimal(optionsExpDate.getOptionExpiryDateDistance());
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
-            if (call.getOptionExData().getStrikePrice().compareTo(securityPrice) > 0) {
+            if (null != call && call.getOptionExData().getStrikePrice().compareTo(securityPrice) > 0) {
                 OptionsStrategyData callStrategyData = new OptionsStrategyData();
                 BigDecimal sellCallAnnualYield = calculateAnnualYield(call, securityPrice, dte);
                 callStrategyData.setSellAnnualYield(sellCallAnnualYield);
@@ -82,7 +82,7 @@ public class OptionsReadServiceImpl implements OptionsReadService {
             }
 
             Options put = optionsTuple.getPut();
-            if (put.getOptionExData().getStrikePrice().compareTo(securityPrice) < 0) {
+            if (null != put && put.getOptionExData().getStrikePrice().compareTo(securityPrice) < 0) {
                 OptionsStrategyData putStrategyData = new OptionsStrategyData();
                 BigDecimal sellPutAnnualYield = calculateAnnualYield(put, securityPrice, dte);
                 putStrategyData.setSellAnnualYield(sellPutAnnualYield);

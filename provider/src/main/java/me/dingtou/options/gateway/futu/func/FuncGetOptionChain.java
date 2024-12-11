@@ -6,7 +6,9 @@ import com.futu.openapi.pb.QotGetOptionChain;
 import me.dingtou.options.gateway.futu.BaseFuncExecutor;
 import me.dingtou.options.gateway.futu.FunctionCall;
 import me.dingtou.options.gateway.futu.ReqContext;
+import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsChain;
+import me.dingtou.options.model.OptionsTuple;
 
 /**
  * 获取期权链
@@ -37,11 +39,11 @@ public class FuncGetOptionChain implements FunctionCall<BaseFuncExecutor<QotGetO
 
         QotGetOptionChain.DataFilter.Builder builder = QotGetOptionChain.DataFilter.newBuilder();
         // builder.setDeltaMax(0.800).setDeltaMin(-0.800);
-
         QotGetOptionChain.DataFilter dataFilter = builder.build();
 
         QotGetOptionChain.C2S c2s = QotGetOptionChain.C2S.newBuilder()
                 .setOwner(sec)
+                .setCondition(QotGetOptionChain.OptionCondType.OptionCondType_Outside_VALUE)
                 .setBeginTime(strikeTime)
                 .setEndTime(strikeTime)
                 .setDataFilter(dataFilter)
@@ -53,16 +55,13 @@ public class FuncGetOptionChain implements FunctionCall<BaseFuncExecutor<QotGetO
         if (seqNo == 0) {
             throw new RuntimeException("QotGetOptionChain error");
         }
-
-//        client.currentReqContext.seqNo = seqNo;
-//        client.currentReqContext.protoID = ProtoID.QOT_GETOPTIONCHAIN;
     }
 
     @Override
     public OptionsChain result(ReqContext reqContext) {
 
         QotGetOptionChain.Response resp = (QotGetOptionChain.Response) reqContext.resp;
-        if (null == resp || null == resp.getS2C() || null == resp.getS2C().getOptionChainList()) {
+        if (null == resp || 0 != resp.getRetType()) {
             return null;
         }
         QotGetOptionChain.OptionChain optionChain = resp.getS2C().getOptionChainList().iterator().next();
@@ -75,7 +74,19 @@ public class FuncGetOptionChain implements FunctionCall<BaseFuncExecutor<QotGetO
             return null;
         }
         String jsonString = JSON.toJSONString(resp);
-        return JSON.parseObject(jsonString, OptionsChain.class);
+        OptionsChain optionsChain = JSON.parseObject(jsonString, OptionsChain.class);
+        for (OptionsTuple optionsTuple : optionsChain.getOptionList()) {
+            Options call = optionsTuple.getCall();
+            if (null == call || null == call.getBasic() || "0".equals(call.getBasic().getId())) {
+                optionsTuple.setCall(null);
+            }
+
+            Options put = optionsTuple.getPut();
+            if (null == put || null == put.getBasic() || "0".equals(put.getBasic().getId())) {
+                optionsTuple.setPut(null);
+            }
+        }
+        return optionsChain;
     }
 
 }

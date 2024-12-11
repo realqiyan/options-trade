@@ -1,10 +1,8 @@
 package me.dingtou.options.gateway.futu.func;
 
 import com.alibaba.fastjson.JSON;
-import com.futu.openapi.ProtoID;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetBasicQot;
-import com.futu.openapi.pb.QotSub;
 import me.dingtou.options.gateway.futu.BaseFuncExecutor;
 import me.dingtou.options.gateway.futu.FunctionCall;
 import me.dingtou.options.gateway.futu.ReqContext;
@@ -36,8 +34,6 @@ public class FuncGetBasicQot implements FunctionCall<BaseFuncExecutor<QotGetBasi
         QotGetBasicQot.Request req = QotGetBasicQot.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.getBasicQot(req);
         System.out.printf("Send QotGetBasicQot: %d\n", seqNo);
-//        client.currentReqContext.seqNo = seqNo;
-//        client.currentReqContext.protoID = ProtoID.QOT_GETOPTIONCHAIN;
     }
 
     @Override

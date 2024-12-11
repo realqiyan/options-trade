@@ -55,7 +55,7 @@ public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Respo
 
             QotGetBasicQot.Response resp = (QotGetBasicQot.Response) client.resp;
 
-            if (null == resp || null == resp.getS2C() || null == resp.getS2C().getBasicQotListList()) {
+            if (null == resp || 0 != resp.getRetType()) {
                 return Collections.emptyList();
             }
             List<OptionsRealtimeData> result = new ArrayList<>();
