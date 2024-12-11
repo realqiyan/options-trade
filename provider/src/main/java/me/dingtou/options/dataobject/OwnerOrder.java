@@ -3,10 +3,10 @@ package me.dingtou.options.dataobject;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 public class OwnerOrder {
-
     /**
      * ID
      */
@@ -23,7 +23,10 @@ public class OwnerOrder {
      * 市场
      */
     private Integer market;
-
+    /**
+     * 交易时间
+     */
+    private Date tradeTime;
     /**
      * 买卖方向 1:买  2:卖
      */
@@ -32,17 +35,14 @@ public class OwnerOrder {
      * 订单价格
      */
     private BigDecimal price;
-
     /**
      * 订单数量
      */
     private Long quantity;
-
     /**
      * 订单状态
      */
     private Integer status;
-
     /**
      * 扩展信息
      */
