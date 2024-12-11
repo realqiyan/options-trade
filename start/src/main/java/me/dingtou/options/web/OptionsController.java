@@ -4,9 +4,8 @@ package me.dingtou.options.web;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsExpDate;
-import me.dingtou.options.model.UnderlyingAsset;
-import me.dingtou.options.service.OptionsReadService;
-import me.dingtou.options.web.util.SessionUtils;
+import me.dingtou.options.model.Security;
+import me.dingtou.options.service.OptionsService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,17 +20,15 @@ import java.util.*;
 public class OptionsController {
 
     @Autowired
-    private OptionsReadService optionsReadService;
+    private OptionsService optionsService;
 
 
     @RequestMapping(value = "/options/strike/list", method = RequestMethod.GET)
-    public List<OptionsExpDate> listOptionsExpDate(UnderlyingAsset underlyingAsset) throws Exception {
-        if (null == underlyingAsset || StringUtils.isEmpty(underlyingAsset.getCode())) {
+    public List<OptionsExpDate> listOptionsExpDate(Security security) throws Exception {
+        if (null == security || StringUtils.isEmpty(security.getCode())) {
             return Collections.emptyList();
         }
-        String owner = SessionUtils.getCurrentOwner();
-        underlyingAsset.setOwner(owner);
-        List<OptionsExpDate> optionsExpDates = optionsReadService.queryOptionsExpDate(underlyingAsset);
+        List<OptionsExpDate> optionsExpDates = optionsService.queryOptionsExpDate(security);
         if (null == optionsExpDates || optionsExpDates.isEmpty()) {
             return Collections.emptyList();
         }
@@ -44,18 +41,16 @@ public class OptionsController {
                                          @RequestParam(value = "strikeTime", required = true) String strikeTime,
                                          @RequestParam(value = "strikeTimestamp", required = true) Long strikeTimestamp,
                                          @RequestParam(value = "optionExpiryDateDistance", required = true) Integer optionExpiryDateDistance) throws Exception {
-        String owner = SessionUtils.getCurrentOwner();
-        UnderlyingAsset underlyingAsset = new UnderlyingAsset();
-        underlyingAsset.setOwner(owner);
-        underlyingAsset.setMarket(market);
-        underlyingAsset.setCode(code);
+        Security security = new Security();
+        security.setMarket(market);
+        security.setCode(code);
 
         OptionsExpDate optionsExpDate = new OptionsExpDate();
         optionsExpDate.setStrikeTime(strikeTime);
         optionsExpDate.setStrikeTimestamp(strikeTimestamp);
         optionsExpDate.setOptionExpiryDateDistance(optionExpiryDateDistance);
 
-        return optionsReadService.queryOptionsChain(underlyingAsset, optionsExpDate);
+        return optionsService.queryOptionsChain(security, optionsExpDate);
     }
 
 }

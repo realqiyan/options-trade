@@ -2,7 +2,7 @@ package me.dingtou.options.service;
 
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsExpDate;
-import me.dingtou.options.model.UnderlyingAsset;
+import me.dingtou.options.model.Security;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author qiyan
  */
-public interface OptionsReadService {
+public interface OptionsService {
 
     /**
      * 查询底层资产列表
@@ -19,23 +19,23 @@ public interface OptionsReadService {
      * @param owner 所有者
      * @return 底层资产列表
      */
-    List<UnderlyingAsset> queryUnderlyingAsset(String owner);
+    List<Security> querySecurity(String owner);
 
     /**
      * 查询期权到期日列表
      *
-     * @param underlyingAsset 底层资产
+     * @param security 底层资产
      * @return 期权到期日列表
      */
-    List<OptionsExpDate> queryOptionsExpDate(UnderlyingAsset underlyingAsset);
+    List<OptionsExpDate> queryOptionsExpDate(Security security);
 
 
     /**
      * 查询期权链
      *
-     * @param underlyingAsset 底层资产
-     * @param optionsExpDate  期权到期日
+     * @param security       底层资产
+     * @param optionsExpDate 期权到期日
      * @return 期权链
      */
-    OptionsChain queryOptionsChain(UnderlyingAsset underlyingAsset, OptionsExpDate optionsExpDate);
+    OptionsChain queryOptionsChain(Security security, OptionsExpDate optionsExpDate);
 }

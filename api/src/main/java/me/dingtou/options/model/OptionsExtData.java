@@ -29,9 +29,9 @@ public class OptionsExtData {
      */
     private Integer type;
     /**
-     * UnderlyingAsset
+     * Security
      */
-    private UnderlyingAsset owner;
+    private Security owner;
     /**
      * 期权到期日 格式：yyyy-MM-dd
      */

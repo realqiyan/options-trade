@@ -114,13 +114,13 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
 
 function reloadData(){
     $.ajax({
-      url: "/underlying/list",
+      url: "/security/list",
       data: {
         owner: $("#owner").val(),
         time: new Date().getTime()
       },
       success: function( result ) {
-        var output = document.getElementById("underlying");
+        var output = document.getElementById("security");
         output.innerHTML = "";
 
         for(var i=0; i<result.length; i++) {

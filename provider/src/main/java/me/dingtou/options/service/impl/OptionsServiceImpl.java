@@ -2,8 +2,9 @@ package me.dingtou.options.service.impl;
 
 import me.dingtou.options.constant.Market;
 import me.dingtou.options.manager.OptionsManager;
+import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.*;
-import me.dingtou.options.service.OptionsReadService;
+import me.dingtou.options.service.OptionsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,47 +14,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class OptionsReadServiceImpl implements OptionsReadService {
+public class OptionsServiceImpl implements OptionsService {
 
     @Autowired
     private OptionsManager optionsManager;
 
+    @Autowired
+    private OwnerManager ownerManager;
+
     @Override
-    public List<UnderlyingAsset> queryUnderlyingAsset(String owner) {
-        //TODO database
-        List<UnderlyingAsset> underlyingAssetList = new ArrayList<>(1);
-        {
-            UnderlyingAsset underlyingAsset = new UnderlyingAsset();
-            underlyingAsset.setOwner(owner);
-            underlyingAsset.setCode("BABA");
-            underlyingAsset.setMarket(Market.US.getCode());
-            underlyingAssetList.add(underlyingAsset);
-        }
-        {
-            UnderlyingAsset underlyingAsset = new UnderlyingAsset();
-            underlyingAsset.setOwner(owner);
-            underlyingAsset.setCode("KWEB");
-            underlyingAsset.setMarket(Market.US.getCode());
-            underlyingAssetList.add(underlyingAsset);
-        }
-        {
-            UnderlyingAsset underlyingAsset = new UnderlyingAsset();
-            underlyingAsset.setOwner(owner);
-            underlyingAsset.setCode("FXI");
-            underlyingAsset.setMarket(Market.US.getCode());
-            underlyingAssetList.add(underlyingAsset);
-        }
-        return underlyingAssetList;
+    public List<Security> querySecurity(String owner) {
+        Owner ownerObj = ownerManager.querySecurity(owner);
+        return ownerObj.getSecurityList();
     }
 
     @Override
-    public List<OptionsExpDate> queryOptionsExpDate(UnderlyingAsset underlyingAsset) {
-        return optionsManager.queryOptionsExpDate(underlyingAsset.getCode(), underlyingAsset.getMarket());
+    public List<OptionsExpDate> queryOptionsExpDate(Security security) {
+        return optionsManager.queryOptionsExpDate(security.getCode(), security.getMarket());
     }
 
     @Override
-    public OptionsChain queryOptionsChain(UnderlyingAsset underlyingAsset, OptionsExpDate optionsExpDate) {
-        OptionsChain optionsChain = optionsManager.queryOptionsChain(underlyingAsset.getCode(), underlyingAsset.getMarket(), optionsExpDate);
+    public OptionsChain queryOptionsChain(Security security, OptionsExpDate optionsExpDate) {
+        OptionsChain optionsChain = optionsManager.queryOptionsChain(security.getCode(), security.getMarket(), optionsExpDate);
 
         // 计算策略数据
         calculateStrategyData(optionsChain, optionsExpDate);
@@ -106,12 +88,19 @@ public class OptionsReadServiceImpl implements OptionsReadService {
             return BigDecimal.ZERO;
         }
         BigDecimal income = realtimeData.getCurPrice().multiply(lotSize);
+        BigDecimal fee = calculateFee(options.getBasic().getSecurity());
+        BigDecimal afterIncome = income.subtract(fee);
         BigDecimal totalPrice = securityPrice.multiply(lotSize);
-        return income
+        return afterIncome
                 .divide(dte, 4, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal(365))
                 .divide(totalPrice, 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100))
                 .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private static BigDecimal calculateFee(Security security) {
+        // 富途手续费预估
+        return BigDecimal.valueOf(2.52);
     }
 }

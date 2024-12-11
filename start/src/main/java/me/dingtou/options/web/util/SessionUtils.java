@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SessionUtils {
 
 
-    public static final String DEFAULT_USER = "default";
+    public static final String DEFAULT_USER = "qiyan";
 
     /**
      * 获取当前登陆用户

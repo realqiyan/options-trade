@@ -1,8 +1,8 @@
 package me.dingtou.options.web;
 
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.model.UnderlyingAsset;
-import me.dingtou.options.service.OptionsReadService;
+import me.dingtou.options.model.Security;
+import me.dingtou.options.service.OptionsService;
 import me.dingtou.options.web.util.SessionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,20 +14,20 @@ import java.util.List;
 
 @Slf4j
 @RestController
-public class UnderlyingController {
+public class SecurityController {
 
     @Autowired
-    private OptionsReadService optionsReadService;
+    private OptionsService optionsService;
 
 
-    @RequestMapping(value = "/underlying/list", method = RequestMethod.GET)
-    public List<UnderlyingAsset> listUnderlyingAsset() throws Exception {
+    @RequestMapping(value = "/security/list", method = RequestMethod.GET)
+    public List<Security> listSecurity() throws Exception {
         String owner = SessionUtils.getCurrentOwner();
-        List<UnderlyingAsset> underlyingAssets = optionsReadService.queryUnderlyingAsset(owner);
-        if (null == underlyingAssets || underlyingAssets.isEmpty()) {
+        List<Security> securityList = optionsService.querySecurity(owner);
+        if (null == securityList || securityList.isEmpty()) {
             return Collections.emptyList();
         }
-        return underlyingAssets;
+        return securityList;
     }
 
 
