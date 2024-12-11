@@ -2,6 +2,7 @@
 
 var $ = layui.$;
 var element = layui.element;
+var util = layui.util;
 
 var currentCode;
 var currentMarket;
@@ -65,6 +66,8 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
         var convertedData = result.optionList.map(item => {
             return {
                 "strikePrice": item.call?item.call.optionExData.strikePrice:item.put.optionExData.strikePrice,
+                "call": item.call?JSON.stringify(item.call):null,
+                "put": item.put?JSON.stringify(item.put):null,
                 "putDelta": item.put && item.put.realtimeData?item.put.realtimeData.delta:'-',
                 "callDelta": item.call && item.call.realtimeData?item.call.realtimeData.delta:'-',
                 "putGamma": item.put && item.put.realtimeData?item.put.realtimeData.gamma:'-',
@@ -87,9 +90,11 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
               {field: 'callTheta', title: 'Theta', width: 85},
               {field: 'callDelta', title: 'Delta', width: 85},
               {field: 'callCurPrice', title: 'Price', width: 85},
+              {field: 'call', title: '卖', width: 20, templet: '{{#  if(d.call){ }}<div><a class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.call }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'callSellAnnualYield', title: '年化', width: 100},
               {field: 'strikePrice', title: '行权价', width: 100, sort: true},
               {field: 'putSellAnnualYield', title: '年化', width: 100},
+              {field: 'put', title: '卖', width: 20, templet: '{{#  if(d.put){ }}<div><a class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.put }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'putCurPrice', title: 'Price', width: 85},
               {field: 'putDelta', title: 'Delta', width: 85},
               {field: 'putTheta', title: 'Theta', width: 85},
@@ -131,6 +136,18 @@ function reloadData(){
       }
     });
 }
+
+function sell(options){
+    layer.prompt({title: '请输入卖出份数'}, function(value, index, elem){
+            if(value === ''){
+                return elem.focus();
+            }
+            // 下单
+            layer.msg('卖出份数:'+ util.escape(value)+"\n 交易信息:"+JSON.stringify(options));
+            layer.close(index);
+          });
+}
+
 reloadData();
 
 
