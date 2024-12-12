@@ -3,7 +3,7 @@ package me.dingtou.options.gateway.futu.func;
 import com.alibaba.fastjson.JSON;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionChain;
-import me.dingtou.options.gateway.futu.BaseFuncExecutor;
+import me.dingtou.options.gateway.futu.BaseQueryFuncExecutor;
 import me.dingtou.options.gateway.futu.FunctionCall;
 import me.dingtou.options.gateway.futu.ReqContext;
 import me.dingtou.options.model.Options;
@@ -15,7 +15,7 @@ import me.dingtou.options.model.OptionsTuple;
  *
  * @author qiyan
  */
-public class FuncGetOptionChain implements FunctionCall<BaseFuncExecutor<QotGetOptionChain.Response, OptionsChain>, OptionsChain> {
+public class FuncGetOptionChain implements FunctionCall<BaseQueryFuncExecutor<QotGetOptionChain.Response, OptionsChain>, OptionsChain> {
 
     private final int market;
     private final String code;
@@ -29,7 +29,7 @@ public class FuncGetOptionChain implements FunctionCall<BaseFuncExecutor<QotGetO
 
 
     @Override
-    public void call(BaseFuncExecutor<QotGetOptionChain.Response, OptionsChain> client) {
+    public void call(BaseQueryFuncExecutor<QotGetOptionChain.Response, OptionsChain> client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)

@@ -23,6 +23,11 @@ public class Owner {
     List<Security> securityList;
 
     /**
+     * 账户列表
+     */
+    private List<Account> accountList;
+
+    /**
      * 订单
      */
     List<Order> orderList;

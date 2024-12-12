@@ -12,6 +12,11 @@ import java.math.BigDecimal;
 @Data
 public class Order {
     /**
+     * 账号信息
+     */
+    private Account account;
+
+    /**
      * 证券
      */
     private Security security;
@@ -20,6 +25,7 @@ public class Order {
      * 买卖方向 1:买  2:卖
      */
     private Integer side;
+
     /**
      * 订单价格
      */
@@ -29,4 +35,13 @@ public class Order {
      * 订单数量
      */
     private Long quantity;
+
+    /**
+     * 订单ID
+     */
+    private String orderId;
+    /**
+     * 交易市场
+     */
+    private String tradeMarket;
 }

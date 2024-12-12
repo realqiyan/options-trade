@@ -10,7 +10,7 @@ public class OwnerOrder {
     /**
      * ID
      */
-    private Long id;
+    private Integer id;
     /**
      * 所有者
      */
@@ -39,6 +39,18 @@ public class OwnerOrder {
      * 订单数量
      */
     private Long quantity;
+    /**
+     * 账户ID
+     */
+    private String accountId;
+    /**
+     * 订单ID
+     */
+    private String orderId;
+    /**
+     * 交易市场
+     */
+    private String tradeMarket;
     /**
      * 订单状态
      */

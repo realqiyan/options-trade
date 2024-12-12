@@ -2,7 +2,7 @@ package me.dingtou.options.gateway.futu.func;
 
 import com.alibaba.fastjson.JSON;
 import com.futu.openapi.pb.QotGetSubInfo;
-import me.dingtou.options.gateway.futu.BaseFuncExecutor;
+import me.dingtou.options.gateway.futu.BaseQueryFuncExecutor;
 import me.dingtou.options.gateway.futu.FunctionCall;
 import me.dingtou.options.gateway.futu.ReqContext;
 
@@ -11,11 +11,11 @@ import me.dingtou.options.gateway.futu.ReqContext;
  *
  * @author qiyan
  */
-public class FuncGetSubInfo implements FunctionCall<BaseFuncExecutor<QotGetSubInfo.Response, String>, String> {
+public class FuncGetSubInfo implements FunctionCall<BaseQueryFuncExecutor<QotGetSubInfo.Response, String>, String> {
 
 
     @Override
-    public void call(BaseFuncExecutor<QotGetSubInfo.Response, String> client) {
+    public void call(BaseQueryFuncExecutor<QotGetSubInfo.Response, String> client) {
 
         QotGetSubInfo.C2S c2s = QotGetSubInfo.C2S.newBuilder()
                 .build();

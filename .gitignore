@@ -60,3 +60,4 @@ build/
 .DS_Store
 
 private.key
+trade.key

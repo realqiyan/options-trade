@@ -5,6 +5,7 @@ import com.futu.openapi.pb.*;
 import com.google.protobuf.GeneratedMessageV3;
 import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.Security;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,7 +19,7 @@ import java.util.Set;
  *
  * @author yuanhongbo
  */
-public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Response, List<OptionsRealtimeData>> {
+public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasicQot.Response, List<OptionsRealtimeData>> {
 
     private final Object syncEvent = new Object();
 
@@ -26,7 +27,7 @@ public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Respo
 
     private final Set<Security> allSecurity;
 
-    public FillBasicInfoExecutor(Set<Security> allSecurity) {
+    public FillBasicInfoExecutorQuery(Set<Security> allSecurity) {
         this.allSecurity = allSecurity;
     }
 
@@ -37,11 +38,16 @@ public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Respo
      * @return futu api
      */
     public static List<OptionsRealtimeData> fill(Set<Security> allSecurity) {
-        try (FillBasicInfoExecutor client = new FillBasicInfoExecutor(allSecurity)) {
+        try (FillBasicInfoExecutorQuery client = new FillBasicInfoExecutorQuery(allSecurity)) {
             client.setClientInfo("javaClient", 1);  //设置客户端信息
             client.setConnSpi(client);  //设置连接回调
             client.setQotSpi(client);//设置交易回调
-            client.initConnect(BaseFuncExecutor.FU_TU_API_IP, BaseFuncExecutor.FU_TU_API_PORT, false);
+            boolean isEnableEncrypt = false;
+            if (StringUtils.isNotBlank(FU_TU_API_PRIVATE_KEY)) {
+                isEnableEncrypt = true;
+                client.setRSAPrivateKey(FU_TU_API_PRIVATE_KEY);
+            }
+            client.initConnect(FU_TU_API_IP, FU_TU_API_PORT, isEnableEncrypt);
 
             try {
                 synchronized (client.syncEvent) {
@@ -111,7 +117,7 @@ public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Respo
         }
         QotSub.C2S c2s = builder.addSubTypeList(QotCommon.SubType.SubType_Basic_VALUE).setIsSubOrUnSub(true).build();
         QotSub.Request req = QotSub.Request.newBuilder().setC2S(c2s).build();
-        FillBasicInfoExecutor conn = (FillBasicInfoExecutor) client;
+        FillBasicInfoExecutorQuery conn = (FillBasicInfoExecutorQuery) client;
         int seqNo = conn.sub(req);
         System.out.printf("Send QotSub: %d\n", seqNo);
     }
@@ -135,7 +141,7 @@ public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Respo
         }
         QotGetBasicQot.C2S c2s = builder.build();
         QotGetBasicQot.Request req = QotGetBasicQot.Request.newBuilder().setC2S(c2s).build();
-        FillBasicInfoExecutor conn = (FillBasicInfoExecutor) client;
+        FillBasicInfoExecutorQuery conn = (FillBasicInfoExecutorQuery) client;
         int seqNo = conn.getBasicQot(req);
         System.out.printf("Send QotGetBasicQot: %d\n", seqNo);
     }
@@ -143,7 +149,7 @@ public class FillBasicInfoExecutor extends BaseFuncExecutor<QotGetBasicQot.Respo
     @Override
     public void onReply_GetBasicQot(FTAPI_Conn client, int nSerialNo, QotGetBasicQot.Response rsp) {
         System.out.printf("Reply: GetBasicQot: %d RetType: %d\n", nSerialNo, rsp.getRetType());
-        FillBasicInfoExecutor conn = (FillBasicInfoExecutor) client;
+        FillBasicInfoExecutorQuery conn = (FillBasicInfoExecutorQuery) client;
         conn.resp = rsp;
         synchronized (conn.syncEvent) {
             conn.syncEvent.notifyAll();

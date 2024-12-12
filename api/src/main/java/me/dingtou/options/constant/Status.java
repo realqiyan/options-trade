@@ -11,9 +11,13 @@ public enum Status {
      */
     NORMAL(1),
     /**
+     * 处理中
+     */
+    PROCESSING(0),
+    /**
      * 删除
      */
-    DELETE(0);
+    DELETE(-1);
 
     private final Integer code;
 

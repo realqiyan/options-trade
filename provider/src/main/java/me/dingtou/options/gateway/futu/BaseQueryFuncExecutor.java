@@ -5,12 +5,18 @@ import com.futu.openapi.pb.*;
 import com.google.protobuf.GeneratedMessageV3;
 import org.apache.commons.lang3.StringUtils;
 
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Objects;
+
 /**
  * futu api
  *
  * @author yuanhongbo
  */
-public class BaseFuncExecutor<T extends GeneratedMessageV3, R> extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Conn {
+public class BaseQueryFuncExecutor<T extends GeneratedMessageV3, R> extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Conn {
 
     public static final String FU_TU_API_IP = System.getProperty("fuTuApiIp", "10.0.12.160");
     public static final String FU_TU_API_PORT_CFG = System.getProperty("fuTuApiPort", "18888");
@@ -21,24 +27,24 @@ public class BaseFuncExecutor<T extends GeneratedMessageV3, R> extends FTAPI_Con
         try {
             FU_TU_API_PORT = Integer.parseInt(FU_TU_API_PORT_CFG);
 
+            URI uri = Objects.requireNonNull(BaseQueryFuncExecutor.class.getResource("/key/private.key")).toURI();
+            byte[] buf = Files.readAllBytes(Paths.get(uri));
+            FU_TU_API_PRIVATE_KEY = new String(buf, StandardCharsets.UTF_8);
 
-//            URI uri = Objects.requireNonNull(BaseFuncExecutor.class.getResource("/key/private.key")).toURI();
-//            byte[] buf = Files.readAllBytes(Paths.get(uri));
-//            FU_TU_API_PRIVATE_KEY = new String(buf, StandardCharsets.UTF_8);
-            FU_TU_API_PRIVATE_KEY = "";
+            FTAPI.init();
         } catch (Exception e) {
-            throw new RuntimeException("init BaseFuncExecutor error", e);
+            throw new RuntimeException("init BaseQueryFuncExecutor error", e);
         }
     }
 
 
     private final ReqContext currentReqContext = new ReqContext();
-    protected FunctionCall<BaseFuncExecutor<T, R>, R> call;
+    protected FunctionCall<BaseQueryFuncExecutor<T, R>, R> call;
 
-    public BaseFuncExecutor(){
+    public BaseQueryFuncExecutor(){
 
     }
-    public BaseFuncExecutor(FunctionCall<BaseFuncExecutor<T, R>, R> call) {
+    public BaseQueryFuncExecutor(FunctionCall<BaseQueryFuncExecutor<T, R>, R> call) {
         this.call = call;
     }
 
@@ -48,9 +54,9 @@ public class BaseFuncExecutor<T extends GeneratedMessageV3, R> extends FTAPI_Con
      *
      * @return futu api
      */
-    public static <T extends GeneratedMessageV3, R> R exec(FunctionCall<BaseFuncExecutor<T, R>, R> call) {
-        try (BaseFuncExecutor<T, R> client = new BaseFuncExecutor<T, R>(call)) {
-            // BaseFuncExecutor<T, R> client = new BaseFuncExecutor<T, R>(call);
+    public static <T extends GeneratedMessageV3, R> R exec(FunctionCall<BaseQueryFuncExecutor<T, R>, R> call) {
+        try (BaseQueryFuncExecutor<T, R> client = new BaseQueryFuncExecutor<T, R>(call)) {
+            // BaseQueryFuncExecutor<T, R> client = new BaseQueryFuncExecutor<T, R>(call);
             client.setClientInfo("javaClient", 1);  //设置客户端信息
             client.setConnSpi(client);  //设置连接回调
             client.setQotSpi(client);//设置交易回调
@@ -79,7 +85,7 @@ public class BaseFuncExecutor<T extends GeneratedMessageV3, R> extends FTAPI_Con
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
         System.out.printf("Qot onInitConnect: ret=%b desc=%s connID=%d\n", errCode, desc, client.getConnectID());
-        call.call((BaseFuncExecutor) client);
+        call.call((BaseQueryFuncExecutor) client);
     }
 
     @Override

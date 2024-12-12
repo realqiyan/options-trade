@@ -2,6 +2,7 @@ package me.dingtou.options.service;
 
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsExpDate;
+import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.Security;
 
 import java.util.List;
@@ -11,7 +12,15 @@ import java.util.List;
  *
  * @author qiyan
  */
-public interface OptionsService {
+public interface OptionsQueryService {
+
+    /**
+     * 查询owner信息
+     *
+     * @param owner 所有者
+     * @return owner信息
+     */
+    Owner queryOwner(String owner);
 
     /**
      * 查询底层资产列表

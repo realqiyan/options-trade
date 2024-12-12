@@ -1,5 +1,4 @@
 //JS
-
 var $ = layui.$;
 var element = layui.element;
 var util = layui.util;
@@ -117,19 +116,66 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
     });
 }
 
+//owner: $("#owner").val(),
+function sell(options){
+    layer.prompt({title: '请输入卖出份数', value: 1}, function(value, index, elem){
+        if(value === ''){
+            return elem.focus();
+        }
+        var quantity = util.escape(value);
+        layer.close(index);
+        layer.prompt({title: '请输入卖出价格', value: options.realtimeData.curPrice}, function(value, index, elem){
+            if(value === ''){
+                return elem.focus();
+            }
+            // 下单
+            var price = util.escape(value);
+            layer.msg('卖出价格:'+ price);
+            $.ajax({
+              url: "/options/sell",
+              method: 'POST',
+              data: {
+                owner: $("#owner").val(),
+                account: $("#account").val(),
+                quantity: quantity,
+                price: price,
+                options: JSON.stringify(options),
+              },
+              success: function( result ) {
+                $("#owner").val(result.owner);
+                var output = document.getElementById("security");
+                output.innerHTML = "";
+                for(var i=0; i<result.securityList.length; i++) {
+                    var obj = result.securityList[i];
+                    output.innerHTML += '<li class="layui-nav-item" onclick="loadOptionsExpDate(\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.code+'</a></li>'
+                }
+
+                render();
+              }
+            });
+            layer.close(index);
+        });
+    });
+}
+
 function reloadData(){
     $.ajax({
-      url: "/security/list",
+      url: "/options/owner/get",
       data: {
-        owner: $("#owner").val(),
         time: new Date().getTime()
       },
       success: function( result ) {
+        $("#owner").val(result.owner);
+        var accountOutput = document.getElementById("account");
+        accountOutput.innerHTML = "";
+        for(var i=0; i<result.accountList.length; i++) {
+            var obj = result.accountList[i];
+            accountOutput.innerHTML += '<option value=\''+JSON.stringify(obj)+'\'>'+obj.accountId+'</option>'
+        }
         var output = document.getElementById("security");
         output.innerHTML = "";
-
-        for(var i=0; i<result.length; i++) {
-            var obj = result[i];
+        for(var i=0; i<result.securityList.length; i++) {
+            var obj = result.securityList[i];
             output.innerHTML += '<li class="layui-nav-item" onclick="loadOptionsExpDate(\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.code+'</a></li>'
         }
         render();
@@ -137,18 +183,4 @@ function reloadData(){
     });
 }
 
-function sell(options){
-    layer.prompt({title: '请输入卖出份数'}, function(value, index, elem){
-            if(value === ''){
-                return elem.focus();
-            }
-            // 下单
-            layer.msg('卖出份数:'+ util.escape(value)+"\n 交易信息:"+JSON.stringify(options));
-            layer.close(index);
-          });
-}
-
 reloadData();
-
-
-

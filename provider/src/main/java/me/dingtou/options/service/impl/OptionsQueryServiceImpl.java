@@ -1,20 +1,19 @@
 package me.dingtou.options.service.impl;
 
-import me.dingtou.options.constant.Market;
 import me.dingtou.options.manager.OptionsManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.*;
-import me.dingtou.options.service.OptionsService;
+import me.dingtou.options.service.OptionsQueryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
-public class OptionsServiceImpl implements OptionsService {
+public class OptionsQueryServiceImpl implements OptionsQueryService {
 
     @Autowired
     private OptionsManager optionsManager;
@@ -23,8 +22,16 @@ public class OptionsServiceImpl implements OptionsService {
     private OwnerManager ownerManager;
 
     @Override
+    public Owner queryOwner(String owner) {
+        return ownerManager.queryOwner(owner);
+    }
+
+    @Override
     public List<Security> querySecurity(String owner) {
-        Owner ownerObj = ownerManager.querySecurity(owner);
+        Owner ownerObj = this.queryOwner(owner);
+        if (null == ownerObj || null == ownerObj.getSecurityList()) {
+            return Collections.emptyList();
+        }
         return ownerObj.getSecurityList();
     }
 

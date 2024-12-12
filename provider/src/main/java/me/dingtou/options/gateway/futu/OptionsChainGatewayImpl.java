@@ -15,7 +15,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
 
     @Override
     public List<OptionsExpDate> getOptionsExpDate(Security security) {
-        return BaseFuncExecutor.exec(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
+        return BaseQueryFuncExecutor.exec(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
     }
 
     @Override
@@ -26,7 +26,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             minStrikePrice = lastDone.multiply(BigDecimal.valueOf(0.8));
             maxStrikePrice = lastDone.multiply(BigDecimal.valueOf(1.5));
         }
-        OptionsChain optionsChain = BaseFuncExecutor.exec(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
+        OptionsChain optionsChain = BaseQueryFuncExecutor.exec(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
         Set<Security> allSecurity = new HashSet<>();
 
         ListIterator<OptionsTuple> optionsTupleListIterator = optionsChain.getOptionList().listIterator();
@@ -65,9 +65,9 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
                 optionsTupleListIterator.remove();
             }
         }
-        List<OptionsRealtimeData> optionsBasicInfo = FillBasicInfoExecutor.fill(allSecurity);
+        List<OptionsRealtimeData> optionsBasicInfo = FillBasicInfoExecutorQuery.fill(allSecurity);
         if (optionsBasicInfo.isEmpty()) {
-            optionsBasicInfo = FillBasicInfoExecutor.fill(allSecurity);
+            optionsBasicInfo = FillBasicInfoExecutorQuery.fill(allSecurity);
         }
         mergeRealtimeData(optionsChain, optionsBasicInfo);
         return optionsChain;
