@@ -98,6 +98,8 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         BigDecimal fee = calculateFee(options.getBasic().getSecurity());
         BigDecimal afterIncome = income.subtract(fee);
         BigDecimal totalPrice = securityPrice.multiply(lotSize);
+        // 到期日当天也计算持有日
+        dte = dte.add(BigDecimal.ONE);
         return afterIncome
                 .divide(dte, 4, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal(365))

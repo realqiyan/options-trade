@@ -64,6 +64,9 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
 
         var convertedData = result.optionList.map(item => {
             return {
+                "callObj": item.call,
+                "putObj": item.put,
+                "group": item.call?item.call.basic.name.match(/^([^ ]+)/)[1]:item.put.basic.name.match(/^([^ ]+)/)[1],
                 "strikePrice": item.call?item.call.optionExData.strikePrice:item.put.optionExData.strikePrice,
                 "call": item.call?JSON.stringify(item.call):null,
                 "put": item.put?JSON.stringify(item.put):null,
@@ -85,15 +88,16 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
           var inst = table.render({
             elem: '#result',
             cols: [[
+              {field: 'group', title: 'Group', width: 85},
               {field: 'callGamma', title: 'Gamma', width: 85},
               {field: 'callTheta', title: 'Theta', width: 85},
               {field: 'callDelta', title: 'Delta', width: 85},
               {field: 'callCurPrice', title: 'Price', width: 85},
-              {field: 'call', title: '卖', width: 20, templet: '{{#  if(d.call){ }}<div><a title="{{= d.call }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.call }})" lay-event="sell">卖</a></div>{{#  } }}'},
+              {field: 'call', title: '卖', width: 20, templet: '{{#  if(d.call){ }}<div><a title="{{= d.callObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.call }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'callSellAnnualYield', title: '年化', width: 100},
               {field: 'strikePrice', title: '行权价', width: 100, sort: true},
               {field: 'putSellAnnualYield', title: '年化', width: 100},
-              {field: 'put', title: '卖', width: 20, templet: '{{#  if(d.put){ }}<div><a title="{{= d.put }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.put }})" lay-event="sell">卖</a></div>{{#  } }}'},
+              {field: 'put', title: '卖', width: 20, templet: '{{#  if(d.put){ }}<div><a title="{{= d.putObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.put }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'putCurPrice', title: 'Price', width: 85},
               {field: 'putDelta', title: 'Delta', width: 85},
               {field: 'putTheta', title: 'Theta', width: 85},

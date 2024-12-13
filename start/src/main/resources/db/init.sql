@@ -25,7 +25,7 @@ CREATE TABLE `owner_account` (
 DROP TABLE IF EXISTS `owner_order`;
 CREATE TABLE `owner_order` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `code` varchar(16) COLLATE utf8mb4_general_ci NOT NULL,
+  `code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `market` int NOT NULL,
   `trade_time` date NOT NULL,
   `side` int NOT NULL,
@@ -44,17 +44,18 @@ CREATE TABLE `owner_order` (
 DROP TABLE IF EXISTS `owner_security`;
 CREATE TABLE `owner_security` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `code` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `market` int NOT NULL,
   `owner` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
   `ext` text COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+TRUNCATE `owner_security`;
 INSERT INTO `owner_security` (`id`, `code`, `market`, `owner`, `ext`) VALUES
 (1,	'BABA',	11,	'qiyan',	''),
 (2,	'KWEB',	11,	'qiyan',	''),
 (3,	'FXI',	11,	'qiyan',	''),
 (4,	'JD',	11,	'qiyan',	'');
 
--- 2024-12-12 18:22:25
+-- 2024-12-13 17:59:55
