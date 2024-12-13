@@ -3,6 +3,7 @@ package me.dingtou.options.gateway.futu;
 import com.futu.openapi.*;
 import com.futu.openapi.pb.*;
 import com.google.protobuf.GeneratedMessageV3;
+import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.Market;
 import me.dingtou.options.model.Order;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +19,7 @@ import java.util.*;
  *
  * @author yuanhongbo
  */
+@Slf4j
 public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI_Conn {
 
     private static final String PWD_MD5;
@@ -88,7 +90,7 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
 
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
-        System.out.printf("Qot onInitConnect: ret=%b desc=%s connID=%d\n", errCode, desc, client.getConnectID());
+        log.warn("Qot onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
         TrdUnlockTrade.C2S c2s = TrdUnlockTrade.C2S.newBuilder()
                 .setPwdMD5(PWD_MD5)
                 .setUnlock(true)
@@ -97,13 +99,13 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
         TrdUnlockTrade.Request req = TrdUnlockTrade.Request.newBuilder().setC2S(c2s).build();
         PlaceOrderExecutor conn = (PlaceOrderExecutor) client;
         int seqNo = conn.unlockTrade(req);
-        System.out.printf("Send unlockTrade: %d\n", seqNo);
+        log.warn("Send unlockTrade: {}", seqNo);
     }
 
     @Override
     public void onReply_UnlockTrade(FTAPI_Conn client, int nSerialNo, TrdUnlockTrade.Response rsp) {
         if (rsp.getRetType() != 0) {
-            System.out.printf("TrdUnlockTrade failed: %s\n", rsp.getRetMsg());
+            log.warn("TrdUnlockTrade failed: {}", rsp.getRetMsg());
             return;
         }
         PlaceOrderExecutor conn = (PlaceOrderExecutor) client;
@@ -137,13 +139,13 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
                 .build();
         TrdPlaceOrder.Request req = TrdPlaceOrder.Request.newBuilder().setC2S(c2s).build();
         int seqNo = conn.placeOrder(req);
-        System.out.printf("Send TrdPlaceOrder: %d\n", seqNo);
+        log.warn("Send TrdPlaceOrder: {}", seqNo);
     }
 
     @Override
     public void onReply_PlaceOrder(FTAPI_Conn client, int nSerialNo, TrdPlaceOrder.Response rsp) {
         if (rsp.getRetType() != 0) {
-            System.out.printf("TrdPlaceOrder failed: %s\n", rsp.getRetMsg());
+            log.warn("TrdPlaceOrder failed: {}", rsp.getRetMsg());
             return;
         }
         PlaceOrderExecutor conn = (PlaceOrderExecutor) client;

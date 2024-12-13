@@ -1,8 +1,12 @@
 package me.dingtou.options.gateway.futu;
 
-import com.futu.openapi.*;
-import com.futu.openapi.pb.*;
+import com.futu.openapi.FTAPI_Conn;
+import com.futu.openapi.pb.Common;
+import com.futu.openapi.pb.QotCommon;
+import com.futu.openapi.pb.QotGetBasicQot;
+import com.futu.openapi.pb.QotSub;
 import com.google.protobuf.GeneratedMessageV3;
+import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.Security;
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +23,7 @@ import java.util.Set;
  *
  * @author yuanhongbo
  */
+@Slf4j
 public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasicQot.Response, List<OptionsRealtimeData>> {
 
     private final Object syncEvent = new Object();
@@ -57,7 +62,7 @@ public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasi
                 throw new RuntimeException("call timeout");
             }
 
-            System.out.print("Reply: syncEvent:notifyAll\n");
+            log.warn("Reply: syncEvent:notifyAll");
 
             QotGetBasicQot.Response resp = (QotGetBasicQot.Response) client.resp;
 
@@ -105,7 +110,7 @@ public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasi
 
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
-        System.out.printf("Qot onInitConnect: ret=%b desc=%s connID=%d\n", errCode, desc, client.getConnectID());
+        log.warn("Qot onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
 
         QotSub.C2S.Builder builder = QotSub.C2S.newBuilder();
         for (Security security : allSecurity) {
@@ -119,13 +124,13 @@ public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasi
         QotSub.Request req = QotSub.Request.newBuilder().setC2S(c2s).build();
         FillBasicInfoExecutorQuery conn = (FillBasicInfoExecutorQuery) client;
         int seqNo = conn.sub(req);
-        System.out.printf("Send QotSub: %d\n", seqNo);
+        log.warn("Send QotSub: {}", seqNo);
     }
 
 
     @Override
     public void onReply_Sub(FTAPI_Conn client, int nSerialNo, QotSub.Response rsp) {
-        System.out.printf("Reply: QotSub: %d RetType: %d\n", nSerialNo, rsp.getRetType());
+        log.warn("Reply: QotSub: {} RetType: {}", nSerialNo, rsp.getRetType());
 
         if (rsp.getRetType() != Common.RetType.RetType_Succeed_VALUE) {
             return;
@@ -143,12 +148,12 @@ public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasi
         QotGetBasicQot.Request req = QotGetBasicQot.Request.newBuilder().setC2S(c2s).build();
         FillBasicInfoExecutorQuery conn = (FillBasicInfoExecutorQuery) client;
         int seqNo = conn.getBasicQot(req);
-        System.out.printf("Send QotGetBasicQot: %d\n", seqNo);
+        log.warn("Send QotGetBasicQot: {}", seqNo);
     }
 
     @Override
     public void onReply_GetBasicQot(FTAPI_Conn client, int nSerialNo, QotGetBasicQot.Response rsp) {
-        System.out.printf("Reply: GetBasicQot: %d RetType: %d\n", nSerialNo, rsp.getRetType());
+        log.warn("Reply: GetBasicQot: {} RetType: {}", nSerialNo, rsp.getRetType());
         FillBasicInfoExecutorQuery conn = (FillBasicInfoExecutorQuery) client;
         conn.resp = rsp;
         synchronized (conn.syncEvent) {

@@ -16,7 +16,7 @@ public class Md5Utils {
             MessageDigest md = MessageDigest.getInstance("MD5");
 
             // 计算输入字符串的MD5哈希值
-            byte[] messageDigest = md.digest(input.getBytes());
+            byte[] messageDigest = md.digest(input.getBytes("UTF-8"));
 
             // 将字节数组转换为十六进制字符串
             StringBuilder hexString = new StringBuilder();

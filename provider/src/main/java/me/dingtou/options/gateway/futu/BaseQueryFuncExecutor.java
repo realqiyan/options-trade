@@ -3,6 +3,7 @@ package me.dingtou.options.gateway.futu;
 import com.futu.openapi.*;
 import com.futu.openapi.pb.*;
 import com.google.protobuf.GeneratedMessageV3;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
@@ -16,6 +17,7 @@ import java.util.Objects;
  *
  * @author yuanhongbo
  */
+@Slf4j
 public class BaseQueryFuncExecutor<T extends GeneratedMessageV3, R> extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Conn {
 
     public static final String FU_TU_API_IP = System.getProperty("fuTuApiIp", "10.0.12.160");
@@ -41,9 +43,10 @@ public class BaseQueryFuncExecutor<T extends GeneratedMessageV3, R> extends FTAP
     private final ReqContext currentReqContext = new ReqContext();
     protected FunctionCall<BaseQueryFuncExecutor<T, R>, R> call;
 
-    public BaseQueryFuncExecutor(){
+    public BaseQueryFuncExecutor() {
 
     }
+
     public BaseQueryFuncExecutor(FunctionCall<BaseQueryFuncExecutor<T, R>, R> call) {
         this.call = call;
     }
@@ -84,13 +87,13 @@ public class BaseQueryFuncExecutor<T extends GeneratedMessageV3, R> extends FTAP
 
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
-        System.out.printf("Qot onInitConnect: ret=%b desc=%s connID=%d\n", errCode, desc, client.getConnectID());
+        log.warn("Qot onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
         call.call((BaseQueryFuncExecutor) client);
     }
 
     @Override
     public void onDisconnect(FTAPI_Conn client, long errCode) {
-        System.out.printf("Qot onDisconnect: ret=%b  connID=%d\n", errCode, client.getConnectID());
+        log.warn("Qot onDisconnect: ret={}  connID={}", errCode, client.getConnectID());
     }
 
 
@@ -104,9 +107,6 @@ public class BaseQueryFuncExecutor<T extends GeneratedMessageV3, R> extends FTAP
     void handleQotOnReply(int protoID, int serialNo, GeneratedMessageV3 rsp) {
         ReqContext reqContext = this.currentReqContext;
         synchronized (reqContext.syncEvent) {
-            reqContext.protoID = protoID;
-            reqContext.seqNo = serialNo;
-            reqContext.done = true;
             reqContext.resp = rsp;
             reqContext.syncEvent.notifyAll();
         }
