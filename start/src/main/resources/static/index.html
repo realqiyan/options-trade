@@ -15,19 +15,20 @@
         <div class="layui-logo layui-hide-xs layui-bg-black">Options</div>
         <!-- 头部区域（可配合layui 已有的水平导航） -->
         <ul class="layui-nav layui-layout-left" id="strike-list" lay-filter="strike-list">
-            <li class="layui-nav-item layui-hide-xs"><a href="javascript:;">-</a></li>
+            <li class="layui-nav-item layui-hide-xs"><a href="javascript:;"></a></li>
         </ul>
     </div>
     <div class="layui-side layui-bg-black">
         <div class="layui-side-scroll">
             <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
             <ul class="layui-nav layui-nav-tree">
-                <li class="layui-nav-item layui-this"><a href="index.html">Home</a></li>
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a href="javascript:;">Main</a>
+                    <dl class="layui-nav-child" id="security" lay-filter="security">
+                        <dd><a href="javascript:;">loading...</a></dd>
+                    </dl>
+                </li>
                 <li class="layui-nav-item"><a href="order.html">Order</a></li>
-            </ul>
-
-            <ul class="layui-nav layui-nav-tree" id="security" lay-filter="security">
-                <li class="layui-nav-item"><a href="javascript:;">loading...</a></li>
             </ul>
         </div>
     </div>

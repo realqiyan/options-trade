@@ -180,7 +180,8 @@ function reloadData(){
         output.innerHTML = "";
         for(var i=0; i<result.securityList.length; i++) {
             var obj = result.securityList[i];
-            output.innerHTML += '<li class="layui-nav-item" onclick="loadOptionsExpDate(\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.code+'</a></li>'
+            //<dd><a href="javascript:;">loading...</a></dd>
+            output.innerHTML += '<dd onclick="loadOptionsExpDate(\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.code+'</a></dd>'
         }
         render();
       }
