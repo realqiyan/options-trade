@@ -16,6 +16,10 @@ public class OptionsStrategyData {
      */
     private BigDecimal sellAnnualYield;
     /**
+     * 价格涨跌幅
+     */
+    private BigDecimal range;
+    /**
      * 是否推荐
      */
     private Boolean recommend;

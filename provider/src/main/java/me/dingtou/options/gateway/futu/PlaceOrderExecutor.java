@@ -6,6 +6,7 @@ import com.futu.openapi.pb.*;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.Market;
+import me.dingtou.options.constant.Platform;
 import me.dingtou.options.model.Order;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,7 +25,6 @@ import java.util.*;
 public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI_Conn {
 
     private static final String PWD_MD5;
-    public static final String FITU = "futu";
 
     static {
         try {
@@ -82,7 +82,7 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
 
             long orderID = resp.getS2C().getOrderID();
             order.setOrderId(String.valueOf(orderID));
-            order.setPlatform(FITU);
+            order.setPlatform(Platform.FUTU.getCode());
 
             return order;
         }

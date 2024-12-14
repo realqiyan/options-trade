@@ -16,32 +16,44 @@ public class SellOptionsStrategy implements OptionsStrategy {
         BigDecimal dte = new BigDecimal(optionsStrikeDate.getOptionExpiryDateDistance());
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
-            if (null != call && call.getOptionExData().getStrikePrice().compareTo(securityPrice) > 0) {
-                OptionsStrategyData callStrategyData = new OptionsStrategyData();
-                // 计算卖出收益
-                BigDecimal sellCallAnnualYield = calculateAnnualYield(call, securityPrice, dte);
-                callStrategyData.setSellAnnualYield(sellCallAnnualYield);
+            if (null != call) {
+                BigDecimal strikePrice = call.getOptionExData().getStrikePrice();
+                if (strikePrice.compareTo(securityPrice) > 0) {
+                    OptionsStrategyData callStrategyData = new OptionsStrategyData();
+                    // 计算卖出收益
+                    BigDecimal sellCallAnnualYield = calculateAnnualYield(call, securityPrice, dte);
+                    callStrategyData.setSellAnnualYield(sellCallAnnualYield);
 
-                // 是否推荐卖出
-                // TODO wheel strategy卖出call的选择取决于 sell put的行权价
-                BigDecimal delta = call.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
-                callStrategyData.setRecommend(delta.compareTo(BigDecimal.valueOf(0.10)) >= 0 && delta.compareTo(BigDecimal.valueOf(0.20)) <= 0);
+                    // 是否推荐卖出
+                    // TODO wheel strategy卖出call的选择取决于 sell put的行权价
+                    BigDecimal delta = call.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
+                    callStrategyData.setRecommend(delta.compareTo(BigDecimal.valueOf(0.10)) >= 0 && delta.compareTo(BigDecimal.valueOf(0.20)) <= 0);
 
-                call.setStrategyData(callStrategyData);
+                    // 涨跌幅
+                    callStrategyData.setRange(calculateRange(strikePrice, securityPrice));
 
+                    call.setStrategyData(callStrategyData);
+
+                }
             }
 
             Options put = optionsTuple.getPut();
-            if (null != put && put.getOptionExData().getStrikePrice().compareTo(securityPrice) < 0) {
-                OptionsStrategyData putStrategyData = new OptionsStrategyData();
-                // 计算卖出收益
-                BigDecimal sellPutAnnualYield = calculateAnnualYield(put, securityPrice, dte);
-                putStrategyData.setSellAnnualYield(sellPutAnnualYield);
-                // 是否推荐卖出
-                BigDecimal delta = put.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
-                putStrategyData.setRecommend(delta.compareTo(BigDecimal.valueOf(0.20)) >= 0 && delta.compareTo(BigDecimal.valueOf(0.35)) <= 0);
+            if (null != put) {
+                BigDecimal strikePrice = put.getOptionExData().getStrikePrice();
+                if (strikePrice.compareTo(securityPrice) < 0) {
+                    OptionsStrategyData putStrategyData = new OptionsStrategyData();
+                    // 计算卖出收益
+                    BigDecimal sellPutAnnualYield = calculateAnnualYield(put, securityPrice, dte);
+                    putStrategyData.setSellAnnualYield(sellPutAnnualYield);
+                    // 是否推荐卖出
+                    BigDecimal delta = put.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
+                    putStrategyData.setRecommend(delta.compareTo(BigDecimal.valueOf(0.20)) >= 0 && delta.compareTo(BigDecimal.valueOf(0.35)) <= 0);
 
-                put.setStrategyData(putStrategyData);
+                    // 涨跌幅
+                    putStrategyData.setRange(calculateRange(strikePrice, securityPrice));
+
+                    put.setStrategyData(putStrategyData);
+                }
             }
         });
     }
@@ -54,7 +66,7 @@ public class SellOptionsStrategy implements OptionsStrategy {
      * @param dte           天数
      * @return 年化收益
      */
-    private static BigDecimal calculateAnnualYield(Options options, BigDecimal securityPrice, BigDecimal dte) {
+    private BigDecimal calculateAnnualYield(Options options, BigDecimal securityPrice, BigDecimal dte) {
         BigDecimal lotSize = new BigDecimal(options.getBasic().getLotSize());
         OptionsRealtimeData realtimeData = options.getRealtimeData();
         if (null == realtimeData) {
@@ -78,8 +90,14 @@ public class SellOptionsStrategy implements OptionsStrategy {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
-    private static BigDecimal calculateFee(Security security) {
+    private BigDecimal calculateFee(Security security) {
         // 使用富途手续费预估： 佣金1.99 平台使用费0.3 证监会规费 0.01 期权监管费 0.012 期权清算费 0.02 期权交手费 0.18
         return BigDecimal.valueOf(2.52);
+    }
+
+    private BigDecimal calculateRange(BigDecimal strikePrice, BigDecimal securityPrice) {
+        return securityPrice.subtract(strikePrice).abs()
+                .divide(securityPrice, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
     }
 }

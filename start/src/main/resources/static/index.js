@@ -64,10 +64,10 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
 
         var convertedData = result.optionList.map(item => {
             return {
+                "LAY_CHECKED": item.call?item.call.strategyData.recommend:item.put.strategyData.recommend,
                 "callObj": item.call,
                 "putObj": item.put,
                 "group": item.call?item.call.basic.name.match(/^([^ ]+)/)[1]:item.put.basic.name.match(/^([^ ]+)/)[1],
-                "LAY_CHECKED": item.call?item.call.strategyData.recommend:item.put.strategyData.recommend,
                 "strikePrice": item.call?item.call.optionExData.strikePrice:item.put.optionExData.strikePrice,
                 "call": item.call?JSON.stringify(item.call):null,
                 "put": item.put?JSON.stringify(item.put):null,
@@ -83,6 +83,8 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                 "callSellAnnualYield": item.call && item.call.strategyData?item.call.strategyData.sellAnnualYield + '%' : '-',
                 "putSellRecommend": item.put && item.put.strategyData?item.put.strategyData.recommend : false,
                 "callSellRecommend": item.call && item.call.strategyData?item.call.strategyData.recommend : false,
+                "putRange": item.put && item.put.strategyData?item.put.strategyData.range + '%' : '-',
+                "callRange": item.call && item.call.strategyData?item.call.strategyData.range + '%' : '-',
             };
         });
 
@@ -95,13 +97,15 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
               {field: 'callGamma', title: 'Gamma', width: 85},
               {field: 'callTheta', title: 'Theta', width: 85},
               {field: 'callDelta', title: 'Delta', width: 85},
-              {field: 'callCurPrice', title: 'Price', width: 85},
+              {field: 'callCurPrice', title: '价格', width: 85},
+              {field: 'callRange', title: '涨跌幅', width: 100},
               {field: 'call', title: '卖', width: 20, templet: '{{#  if(d.call){ }}<div><a title="{{= d.callObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.call }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'callSellAnnualYield', title: '年化', width: 100},
               {field: 'strikePrice', title: '行权价', width: 100, sort: true},
               {field: 'putSellAnnualYield', title: '年化', width: 100},
               {field: 'put', title: '卖', width: 20, templet: '{{#  if(d.put){ }}<div><a title="{{= d.putObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.put }})" lay-event="sell">卖</a></div>{{#  } }}'},
-              {field: 'putCurPrice', title: 'Price', width: 85},
+              {field: 'putRange', title: '涨跌幅', width: 100},
+              {field: 'putCurPrice', title: '价格', width: 85},
               {field: 'putDelta', title: 'Delta', width: 85},
               {field: 'putTheta', title: 'Theta', width: 85},
               {field: 'putGamma', title: 'Gamma', width: 85},
