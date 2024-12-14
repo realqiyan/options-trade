@@ -47,5 +47,11 @@ CREATE TABLE `owner_strategy` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+TRUNCATE `owner_strategy`;
+INSERT INTO `owner_strategy` (`id`, `strategy_id`, `strategy_type`, `platform`, `account_id`, `code`, `market`, `owner`, `ext`) VALUES
+(18,	'86c312eccaff4fe1865cf0e79432ebe3',	'wheel_strategy',	'futu',	'123456',	'BABA',	11,	'qiyan',	'{}'),
+(28,	'024cc086a560460e90705f2ef87cac7d',	'wheel_strategy',	'futu',	'123456',	'KWEB',	11,	'qiyan',	'{}'),
+(38,	'b3605b43f26345abbfa663abad867d38',	'wheel_strategy',	'futu',	'123456',	'JD',	11,	'qiyan',	'{}'),
+(58,	'8a533bd8ce2e41bf93a4dec6347fdf49',	'wheel_strategy',	'longport',	'',	'FXI',	11,	'qiyan',	'{}');
 
--- 2024-12-14 18:42:07
+-- 2024-12-14 18:45:59

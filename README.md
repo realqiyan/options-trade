@@ -23,6 +23,18 @@ https://open.longportapp.com/docs/getting-started#%E5%BC%80%E9%80%9A%E5%BC%80%E5
 富途交易密码md5：start/src/main/resources/key/trade.key
 ```
 
+4. 初始化数据
+```
+owner_strategy表数初始化:
+INSERT INTO `owner_strategy` (`id`, `strategy_id`, `strategy_type`, `platform`, `account_id`, `code`, `market`, `owner`, `ext`) VALUES
+(18,	'86c312eccaff4fe1865cf0e79432ebe3',	'wheel_strategy',	'futu',	'123456',	'BABA',	11,	'qiyan',	'{}');
+
+strategy_id：建议使用uuid
+strategy_type：策略类型，目前支持wheel_strategy
+platform：平台 futu、longport
+market：1：港股，11：美股
+account_id：富途需要填写，longport不需要填，富途可以使用TrdGetAccListHelper获取账号列表
+```
 
 # 升级记录
 ## 2024-12-07
