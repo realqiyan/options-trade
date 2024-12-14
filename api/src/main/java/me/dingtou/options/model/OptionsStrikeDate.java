@@ -13,7 +13,7 @@ import lombok.Data;
  *  }
  */
 @Data
-public class OptionsExpDate {
+public class OptionsStrikeDate {
     /*
      *   "strikeTime": "2021-06-29",
      */

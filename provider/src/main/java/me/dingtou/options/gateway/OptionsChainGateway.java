@@ -1,7 +1,7 @@
 package me.dingtou.options.gateway;
 
 import me.dingtou.options.model.OptionsChain;
-import me.dingtou.options.model.OptionsExpDate;
+import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.Security;
 
 import java.math.BigDecimal;
@@ -20,7 +20,7 @@ public interface OptionsChainGateway {
      * @param security   证券
      * @return 期权到期时间线
      */
-    List<OptionsExpDate> getOptionsExpDate(Security security);
+    List<OptionsStrikeDate> getOptionsExpDate(Security security);
 
     /**
      * 查询期权链

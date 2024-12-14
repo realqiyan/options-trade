@@ -1,7 +1,7 @@
 package me.dingtou.options.service;
 
 import me.dingtou.options.model.OptionsChain;
-import me.dingtou.options.model.OptionsExpDate;
+import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.Security;
 
@@ -36,15 +36,15 @@ public interface OptionsQueryService {
      * @param security 底层资产
      * @return 期权到期日列表
      */
-    List<OptionsExpDate> queryOptionsExpDate(Security security);
+    List<OptionsStrikeDate> queryOptionsExpDate(Security security);
 
 
     /**
      * 查询期权链
      *
      * @param security       底层资产
-     * @param optionsExpDate 期权到期日
+     * @param optionsStrikeDate 期权到期日
      * @return 期权链
      */
-    OptionsChain queryOptionsChain(Security security, OptionsExpDate optionsExpDate);
+    OptionsChain queryOptionsChain(Security security, OptionsStrikeDate optionsStrikeDate);
 }

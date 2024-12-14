@@ -37,16 +37,16 @@ public class OptionsController {
     }
 
     @RequestMapping(value = "/options/strike/list", method = RequestMethod.GET)
-    public List<OptionsExpDate> listOptionsExpDate(Security security) throws Exception {
+    public List<OptionsStrikeDate> listOptionsExpDate(Security security) throws Exception {
         log.info("listOptionsExpDate. security:{}", security);
         if (null == security || StringUtils.isEmpty(security.getCode())) {
             return Collections.emptyList();
         }
-        List<OptionsExpDate> optionsExpDates = optionsQueryService.queryOptionsExpDate(security);
-        if (null == optionsExpDates || optionsExpDates.isEmpty()) {
+        List<OptionsStrikeDate> optionsStrikeDates = optionsQueryService.queryOptionsExpDate(security);
+        if (null == optionsStrikeDates || optionsStrikeDates.isEmpty()) {
             return Collections.emptyList();
         }
-        return optionsExpDates;
+        return optionsStrikeDates;
     }
 
     @RequestMapping(value = "/options/chain/get", method = RequestMethod.GET)
@@ -60,12 +60,12 @@ public class OptionsController {
         security.setMarket(market);
         security.setCode(code);
 
-        OptionsExpDate optionsExpDate = new OptionsExpDate();
-        optionsExpDate.setStrikeTime(strikeTime);
-        optionsExpDate.setStrikeTimestamp(strikeTimestamp);
-        optionsExpDate.setOptionExpiryDateDistance(optionExpiryDateDistance);
+        OptionsStrikeDate optionsStrikeDate = new OptionsStrikeDate();
+        optionsStrikeDate.setStrikeTime(strikeTime);
+        optionsStrikeDate.setStrikeTimestamp(strikeTimestamp);
+        optionsStrikeDate.setOptionExpiryDateDistance(optionExpiryDateDistance);
 
-        return optionsQueryService.queryOptionsChain(security, optionsExpDate);
+        return optionsQueryService.queryOptionsChain(security, optionsStrikeDate);
     }
 
 

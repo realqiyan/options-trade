@@ -6,7 +6,7 @@ import com.futu.openapi.pb.QotGetOptionExpirationDate;
 import me.dingtou.options.gateway.futu.BaseQueryFuncExecutor;
 import me.dingtou.options.gateway.futu.FunctionCall;
 import me.dingtou.options.gateway.futu.ReqContext;
-import me.dingtou.options.model.OptionsExpDate;
+import me.dingtou.options.model.OptionsStrikeDate;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
  *
  * @author qiyan
  */
-public class FuncGetOptionExpirationDate implements FunctionCall<BaseQueryFuncExecutor<QotGetOptionExpirationDate.Response, List<OptionsExpDate>>, List<OptionsExpDate>> {
+public class FuncGetOptionExpirationDate implements FunctionCall<BaseQueryFuncExecutor<QotGetOptionExpirationDate.Response, List<OptionsStrikeDate>>, List<OptionsStrikeDate>> {
 
     private final int market;
     private final String code;
@@ -28,7 +28,7 @@ public class FuncGetOptionExpirationDate implements FunctionCall<BaseQueryFuncEx
 
 
     @Override
-    public void call(BaseQueryFuncExecutor<QotGetOptionExpirationDate.Response, List<OptionsExpDate>> client) {
+    public void call(BaseQueryFuncExecutor<QotGetOptionExpirationDate.Response, List<OptionsStrikeDate>> client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)
@@ -47,7 +47,7 @@ public class FuncGetOptionExpirationDate implements FunctionCall<BaseQueryFuncEx
     }
 
     @Override
-    public List<OptionsExpDate> result(ReqContext reqContext) {
+    public List<OptionsStrikeDate> result(ReqContext reqContext) {
 
         QotGetOptionExpirationDate.Response resp = (QotGetOptionExpirationDate.Response) reqContext.resp;
         if (null == resp || 0 != resp.getRetType()) {
@@ -57,12 +57,12 @@ public class FuncGetOptionExpirationDate implements FunctionCall<BaseQueryFuncEx
         return convert(resp.getS2C().getDateListList());
     }
 
-    private List<OptionsExpDate> convert(List<QotGetOptionExpirationDate.OptionExpirationDate> dateLis) {
+    private List<OptionsStrikeDate> convert(List<QotGetOptionExpirationDate.OptionExpirationDate> dateLis) {
         if (dateLis == null) {
             return Collections.emptyList();
         }
         String jsonString = JSON.toJSONString(dateLis);
-        return JSON.parseArray(jsonString, OptionsExpDate.class);
+        return JSON.parseArray(jsonString, OptionsStrikeDate.class);
     }
 
 }

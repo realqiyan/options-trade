@@ -14,7 +14,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
 
 
     @Override
-    public List<OptionsExpDate> getOptionsExpDate(Security security) {
+    public List<OptionsStrikeDate> getOptionsExpDate(Security security) {
         return BaseQueryFuncExecutor.exec(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
     }
 
