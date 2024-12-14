@@ -23,14 +23,6 @@ public interface OptionsQueryService {
     Owner queryOwner(String owner);
 
     /**
-     * 查询底层资产列表
-     *
-     * @param owner 所有者
-     * @return 底层资产列表
-     */
-    List<Security> querySecurity(String owner);
-
-    /**
      * 查询期权到期日列表
      *
      * @param security 底层资产
@@ -42,7 +34,7 @@ public interface OptionsQueryService {
     /**
      * 查询期权链
      *
-     * @param security       底层资产
+     * @param security          底层资产
      * @param optionsStrikeDate 期权到期日
      * @return 期权链
      */

@@ -22,17 +22,24 @@ function reloadData(){
       success: function( result ) {
 
         var orderList = result.orderList;
+        if(!orderList){
+            return;
+        }
 
         var convertedData = orderList.map(item => {
                     return {
                         "itemObj": item,
-                        "code": item.security.code,
+                        "id": item.id,
+                        "strategyId": item.strategyId,
+                        "underlyingCode": item.underlyingCode,
+                        "code": item.code,
                         "side": item.side,
                         "price": item.price,
                         "quantity": item.quantity,
                         "tradeTime": item.tradeTime,
                         "platform": item.platform,
-                        "accountId": item.account.accountId,
+                        "accountId": item.accountId,
+                        "strikeTime": item.strikeTime,
                         "status": item.status,
                     };
                 });
@@ -42,14 +49,18 @@ function reloadData(){
                   var inst = table.render({
                     elem: '#result',
                     cols: [[
-                      {field: 'accountId', title: 'AccountId', width: 200},
-                      {field: 'code', title: 'Code', width: 200},
-                      {field: 'side', title: 'Side', width: 120},
-                      {field: 'price', title: 'Price', width: 120},
-                      {field: 'quantity', title: 'Quantity', width: 120},
-                      {field: 'tradeTime', title: 'TradeTime', width: 200},
-                      {field: 'platform', title: 'Platform', width: 120},
-                      {field: 'status', title: 'Status', width: 120},
+                      {field: 'strategyId', title: '策略ID', width: 280, sort: true},
+                      {field: 'id', title: 'ID', width: 120},
+                      {field: 'accountId', title: '账号', width: 180},
+                      {field: 'underlyingCode', title: '股票', width: 80},
+                      {field: 'code', title: '期权', width: 180},
+                      {field: 'side', title: '买卖', width: 80},
+                      {field: 'price', title: '价格', width: 80},
+                      {field: 'quantity', title: '数量', width: 80},
+                      {field: 'tradeTime', title: '交易时间', width: 160},
+                      {field: 'strikeTime', title: '行权时间', width: 160},
+                      {field: 'platform', title: '平台', width: 80},
+                      {field: 'status', title: '状态', width: 80},
                     ]],
                     data: convertedData,
                     //skin: 'line',

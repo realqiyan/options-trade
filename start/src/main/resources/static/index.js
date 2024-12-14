@@ -3,6 +3,7 @@ var $ = layui.$;
 var element = layui.element;
 var util = layui.util;
 
+var currentStrategyId;
 var currentCode;
 var currentMarket;
 
@@ -17,7 +18,8 @@ function render(){
 }
 
 
-function loadOptionsExpDate(code, market){
+function loadOptionsExpDate(strategyId, code, market){
+    currentStrategyId = strategyId;
     currentCode = code;
     currentMarket = market;
     console.log('loadOptionsExpDate code:'+ code+' market:'+ market);
@@ -93,22 +95,22 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
           var inst = table.render({
             elem: '#result',
             cols: [[
-              {field: 'group', title: 'Group', width: 85},
               {field: 'callGamma', title: 'Gamma', width: 85},
-              {field: 'callTheta', title: 'Theta', width: 85},
-              {field: 'callDelta', title: 'Delta', width: 85},
+              {field: 'callTheta', title: 'Theta', width: 80},
+              {field: 'callDelta', title: 'Delta', width: 80},
               {field: 'callCurPrice', title: '价格', width: 85},
-              {field: 'callRange', title: '涨跌幅', width: 100},
+              {field: 'callRange', title: '涨跌幅', width: 85},
               {field: 'call', title: '卖', width: 20, templet: '{{#  if(d.call){ }}<div><a title="{{= d.callObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.call }})" lay-event="sell">卖</a></div>{{#  } }}'},
-              {field: 'callSellAnnualYield', title: '年化', width: 100},
-              {field: 'strikePrice', title: '行权价', width: 100, sort: true},
-              {field: 'putSellAnnualYield', title: '年化', width: 100},
+              {field: 'callSellAnnualYield', title: '年化', width: 85},
+              {field: 'strikePrice', title: '行权价', width: 90, sort: true},
+              {field: 'putSellAnnualYield', title: '年化', width: 85},
               {field: 'put', title: '卖', width: 20, templet: '{{#  if(d.put){ }}<div><a title="{{= d.putObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.put }})" lay-event="sell">卖</a></div>{{#  } }}'},
-              {field: 'putRange', title: '涨跌幅', width: 100},
+              {field: 'putRange', title: '涨跌幅', width: 85},
               {field: 'putCurPrice', title: '价格', width: 85},
-              {field: 'putDelta', title: 'Delta', width: 85},
-              {field: 'putTheta', title: 'Theta', width: 85},
+              {field: 'putDelta', title: 'Delta', width: 80},
+              {field: 'putTheta', title: 'Theta', width: 80},
               {field: 'putGamma', title: 'Gamma', width: 85},
+              {field: 'group', title: 'Group', width: 80},
             ]],
             data: convertedData,
             //skin: 'line',
@@ -147,7 +149,7 @@ function sell(options){
               method: 'POST',
               data: {
                 owner: $("#owner").val(),
-                account: $("#account").val(),
+                strategyId: currentStrategyId,
                 quantity: quantity,
                 price: price,
                 options: JSON.stringify(options),
@@ -177,18 +179,13 @@ function reloadData(){
       },
       success: function( result ) {
         $("#owner").val(result.owner);
-        var accountOutput = document.getElementById("account");
-        accountOutput.innerHTML = "";
-        for(var i=0; i<result.accountList.length; i++) {
-            var obj = result.accountList[i];
-            accountOutput.innerHTML += '<option value=\''+JSON.stringify(obj)+'\'>'+obj.accountId+'</option>'
-        }
+
         var output = document.getElementById("security");
         output.innerHTML = "";
-        for(var i=0; i<result.securityList.length; i++) {
-            var obj = result.securityList[i];
+        for(var i=0; i<result.strategyList.length; i++) {
+            var obj = result.strategyList[i];
             //<dd><a href="javascript:;">loading...</a></dd>
-            output.innerHTML += '<dd onclick="loadOptionsExpDate(\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.code+'</a></dd>'
+            output.innerHTML += '<dd onclick="loadOptionsExpDate(\''+obj.strategyId+'\',\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.code+'('+obj.platform+')</a></dd>'
         }
         render();
       }

@@ -4,7 +4,7 @@ import lombok.Data;
 
 
 @Data
-public class OwnerOrder extends me.dingtou.options.model.OwnerOrder {
+public class OwnerStrategy extends me.dingtou.options.model.OwnerStrategy {
     /**
      * ID
      */

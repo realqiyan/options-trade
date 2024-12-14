@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -70,23 +71,21 @@ public class OptionsController {
 
 
     @RequestMapping(value = "/options/sell", method = RequestMethod.POST)
-    public Order sell(@RequestParam(value = "owner", required = true) String owner,
-                      @RequestParam(value = "account", required = true) String account,
-                      @RequestParam(value = "quantity", required = true) Long quantity,
-                      @RequestParam(value = "price", required = true) String price,
-                      @RequestParam(value = "options", required = true) String options) throws Exception {
+    public OwnerOrder sell(@RequestParam(value = "owner", required = true) String owner,
+                           @RequestParam(value = "strategyId", required = true) String strategyId,
+                           @RequestParam(value = "quantity", required = true) Integer quantity,
+                           @RequestParam(value = "price", required = true) String price,
+                           @RequestParam(value = "options", required = true) String options) throws Exception {
 
         log.info("buy: owner={}, quantity={}, price={}, options={}", owner, quantity, price, options);
+
         String loginOwner = SessionUtils.getCurrentOwner();
         if (!loginOwner.equals(owner)) {
             return null;
         }
-        Account accountObj = JSON.parseObject(account, Account.class);
-        if (!loginOwner.equals(accountObj.getOwner())) {
-            return null;
-        }
+
         Options optionsObj = JSON.parseObject(options, Options.class);
-        return optionsTradeService.trade(accountObj, TradeSide.SELL, quantity, new BigDecimal(price), optionsObj);
+        return optionsTradeService.trade(strategyId, TradeSide.SELL, quantity, new BigDecimal(price), optionsObj);
     }
 
 }

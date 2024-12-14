@@ -28,14 +28,6 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         return ownerManager.queryOwner(owner);
     }
 
-    @Override
-    public List<Security> querySecurity(String owner) {
-        Owner ownerObj = this.queryOwner(owner);
-        if (null == ownerObj || null == ownerObj.getSecurityList()) {
-            return Collections.emptyList();
-        }
-        return ownerObj.getSecurityList();
-    }
 
     @Override
     public List<OptionsStrikeDate> queryOptionsExpDate(Security security) {

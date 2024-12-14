@@ -1,6 +1,6 @@
 package me.dingtou.options.gateway;
 
-import me.dingtou.options.model.Order;
+import me.dingtou.options.model.OwnerOrder;
 
 /**
  * 期权交易
@@ -12,8 +12,8 @@ public interface OptionsTradeGateway {
     /**
      * 交易
      *
-     * @param order 订单
-     * @return 订单
+     * @param ownerOrder 订单
+     * @return 外部订单号
      */
-    Order trade(Order order);
+    String trade(OwnerOrder ownerOrder);
 }

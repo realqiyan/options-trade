@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * Owner
+ * 用户数据
  *
  * @author qiyan
  */
@@ -18,17 +18,13 @@ public class Owner {
     private String owner;
 
     /**
-     * underlying asset
+     * 策略列表
      */
-    List<Security> securityList;
+    List<? extends OwnerStrategy> strategyList;
+
 
     /**
-     * 账户列表
+     * 订单列表
      */
-    private List<Account> accountList;
-
-    /**
-     * 订单
-     */
-    List<Order> orderList;
+    List<? extends OwnerOrder> orderList;
 }

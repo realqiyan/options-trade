@@ -1,20 +1,20 @@
 package me.dingtou.options.gateway.futu;
 
-import com.alibaba.fastjson.JSON;
 import com.futu.openapi.*;
-import com.futu.openapi.pb.*;
+import com.futu.openapi.pb.TrdCommon;
+import com.futu.openapi.pb.TrdPlaceOrder;
+import com.futu.openapi.pb.TrdUnlockTrade;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.Market;
-import me.dingtou.options.constant.Platform;
-import me.dingtou.options.model.Order;
+import me.dingtou.options.model.OwnerOrder;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Objects;
 
 /**
  * futu api
@@ -39,12 +39,12 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
     }
 
     private final Object syncEvent = new Object();
-    private final Order order;
+    private final OwnerOrder ownerOrder;
 
     private GeneratedMessageV3 resp;
 
-    public PlaceOrderExecutor(Order order) {
-        this.order = order;
+    public PlaceOrderExecutor(OwnerOrder ownerOrder) {
+        this.ownerOrder = ownerOrder;
     }
 
 
@@ -53,8 +53,8 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
      *
      * @return futu api
      */
-    public static Order placeOrder(Order order) {
-        try (PlaceOrderExecutor client = new PlaceOrderExecutor(order)) {
+    public static String placeOrder(OwnerOrder ownerOrder) {
+        try (PlaceOrderExecutor client = new PlaceOrderExecutor(ownerOrder)) {
             client.setClientInfo("javaClient", 1);  //设置客户端信息
             client.setConnSpi(client);  //设置连接回调
             client.setTrdSpi(client);//设置交易回调
@@ -81,10 +81,8 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
             }
 
             long orderID = resp.getS2C().getOrderID();
-            order.setOrderId(String.valueOf(orderID));
-            order.setPlatform(Platform.FUTU.getCode());
-
-            return order;
+            // ownerOrder.setPlatformOrderId(String.valueOf(orderID));
+            return String.valueOf(orderID);
         }
     }
 
@@ -110,7 +108,7 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
             return;
         }
         PlaceOrderExecutor conn = (PlaceOrderExecutor) client;
-        Market market = Market.of(order.getSecurity().getMarket());
+        Market market = Market.of(ownerOrder.getMarket());
         int trdMarket;
         int secMarket;
         if (market.equals(Market.HK)) {
@@ -124,19 +122,19 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
         }
 
         TrdCommon.TrdHeader header = TrdCommon.TrdHeader.newBuilder()
-                .setAccID(Long.parseLong(order.getAccount().getAccountId()))
+                .setAccID(Long.parseLong(ownerOrder.getAccountId()))
                 .setTrdEnv(TrdCommon.TrdEnv.TrdEnv_Real_VALUE)
                 .setTrdMarket(trdMarket)
                 .build();
         TrdPlaceOrder.C2S c2s = TrdPlaceOrder.C2S.newBuilder()
                 .setPacketID(conn.nextPacketID())
                 .setHeader(header)
-                .setTrdSide(order.getSide())
+                .setTrdSide(ownerOrder.getSide())
                 .setOrderType(TrdCommon.OrderType.OrderType_Normal_VALUE)
                 .setSecMarket(secMarket)
-                .setCode(order.getSecurity().getCode())
-                .setQty(order.getQuantity())
-                .setPrice(order.getPrice().doubleValue())
+                .setCode(ownerOrder.getCode())
+                .setQty(ownerOrder.getQuantity())
+                .setPrice(ownerOrder.getPrice().doubleValue())
                 .build();
         TrdPlaceOrder.Request req = TrdPlaceOrder.Request.newBuilder().setC2S(c2s).build();
         int seqNo = conn.placeOrder(req);
