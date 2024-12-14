@@ -18,16 +18,29 @@ public class SellOptionsStrategy implements OptionsStrategy {
             Options call = optionsTuple.getCall();
             if (null != call && call.getOptionExData().getStrikePrice().compareTo(securityPrice) > 0) {
                 OptionsStrategyData callStrategyData = new OptionsStrategyData();
+                // 计算卖出收益
                 BigDecimal sellCallAnnualYield = calculateAnnualYield(call, securityPrice, dte);
                 callStrategyData.setSellAnnualYield(sellCallAnnualYield);
+
+                // 是否推荐卖出
+                // TODO wheel strategy卖出call的选择取决于 sell put的行权价
+                BigDecimal delta = call.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
+                callStrategyData.setRecommend(delta.compareTo(BigDecimal.valueOf(0.10)) >= 0 && delta.compareTo(BigDecimal.valueOf(0.20)) <= 0);
+
                 call.setStrategyData(callStrategyData);
+
             }
 
             Options put = optionsTuple.getPut();
             if (null != put && put.getOptionExData().getStrikePrice().compareTo(securityPrice) < 0) {
                 OptionsStrategyData putStrategyData = new OptionsStrategyData();
+                // 计算卖出收益
                 BigDecimal sellPutAnnualYield = calculateAnnualYield(put, securityPrice, dte);
                 putStrategyData.setSellAnnualYield(sellPutAnnualYield);
+                // 是否推荐卖出
+                BigDecimal delta = put.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
+                putStrategyData.setRecommend(delta.compareTo(BigDecimal.valueOf(0.20)) >= 0 && delta.compareTo(BigDecimal.valueOf(0.35)) <= 0);
+
                 put.setStrategyData(putStrategyData);
             }
         });
@@ -47,7 +60,8 @@ public class SellOptionsStrategy implements OptionsStrategy {
         if (null == realtimeData) {
             return BigDecimal.ZERO;
         }
-        BigDecimal income = realtimeData.getCurPrice().multiply(lotSize);
+        BigDecimal curPrice = realtimeData.getCurPrice();
+        BigDecimal income = curPrice.multiply(lotSize);
         BigDecimal fee = calculateFee(options.getBasic().getSecurity());
         BigDecimal afterIncome = income.subtract(fee);
         BigDecimal totalPrice = securityPrice.multiply(lotSize);
@@ -65,7 +79,7 @@ public class SellOptionsStrategy implements OptionsStrategy {
     }
 
     private static BigDecimal calculateFee(Security security) {
-        // 富途手续费预估
+        // 使用富途手续费预估： 佣金1.99 平台使用费0.3 证监会规费 0.01 期权监管费 0.012 期权清算费 0.02 期权交手费 0.18
         return BigDecimal.valueOf(2.52);
     }
 }

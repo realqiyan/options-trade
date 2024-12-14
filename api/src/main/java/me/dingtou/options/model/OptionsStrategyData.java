@@ -15,4 +15,8 @@ public class OptionsStrategyData {
      * 卖出年化收益率
      */
     private BigDecimal sellAnnualYield;
+    /**
+     * 是否推荐
+     */
+    private Boolean recommend;
 }
