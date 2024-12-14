@@ -1,6 +1,9 @@
-package me.dingtou.options.gateway.futu;
+package me.dingtou.options.gateway.futu.executor;
 
 import com.futu.openapi.FTAPI_Conn;
+import com.futu.openapi.FTAPI_Conn_Qot;
+import com.futu.openapi.FTSPI_Conn;
+import com.futu.openapi.FTSPI_Qot;
 import com.futu.openapi.pb.Common;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetBasicQot;
@@ -18,13 +21,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static me.dingtou.options.gateway.futu.executor.BaseConfig.*;
+
 /**
  * futu api
  *
  * @author yuanhongbo
  */
 @Slf4j
-public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasicQot.Response, List<OptionsRealtimeData>> {
+public class SubAndQueryBasicExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Conn {
 
     private final Object syncEvent = new Object();
 
@@ -32,7 +37,7 @@ public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasi
 
     private final Set<Security> allSecurity;
 
-    public FillBasicInfoExecutorQuery(Set<Security> allSecurity) {
+    public SubAndQueryBasicExecutor(Set<Security> allSecurity) {
         this.allSecurity = allSecurity;
     }
 
@@ -43,7 +48,7 @@ public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasi
      * @return futu api
      */
     public static List<OptionsRealtimeData> fill(Set<Security> allSecurity) {
-        try (FillBasicInfoExecutorQuery client = new FillBasicInfoExecutorQuery(allSecurity)) {
+        try (SubAndQueryBasicExecutor client = new SubAndQueryBasicExecutor(allSecurity)) {
             client.setClientInfo("javaClient", 1);  //设置客户端信息
             client.setConnSpi(client);  //设置连接回调
             client.setQotSpi(client);//设置交易回调
@@ -122,7 +127,7 @@ public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasi
         }
         QotSub.C2S c2s = builder.addSubTypeList(QotCommon.SubType.SubType_Basic_VALUE).setIsSubOrUnSub(true).build();
         QotSub.Request req = QotSub.Request.newBuilder().setC2S(c2s).build();
-        FillBasicInfoExecutorQuery conn = (FillBasicInfoExecutorQuery) client;
+        SubAndQueryBasicExecutor conn = (SubAndQueryBasicExecutor) client;
         int seqNo = conn.sub(req);
         log.warn("Send QotSub: {}", seqNo);
     }
@@ -146,7 +151,7 @@ public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasi
         }
         QotGetBasicQot.C2S c2s = builder.build();
         QotGetBasicQot.Request req = QotGetBasicQot.Request.newBuilder().setC2S(c2s).build();
-        FillBasicInfoExecutorQuery conn = (FillBasicInfoExecutorQuery) client;
+        SubAndQueryBasicExecutor conn = (SubAndQueryBasicExecutor) client;
         int seqNo = conn.getBasicQot(req);
         log.warn("Send QotGetBasicQot: {}", seqNo);
     }
@@ -154,7 +159,7 @@ public class FillBasicInfoExecutorQuery extends BaseQueryFuncExecutor<QotGetBasi
     @Override
     public void onReply_GetBasicQot(FTAPI_Conn client, int nSerialNo, QotGetBasicQot.Response rsp) {
         log.warn("Reply: GetBasicQot: {} RetType: {}", nSerialNo, rsp.getRetType());
-        FillBasicInfoExecutorQuery conn = (FillBasicInfoExecutorQuery) client;
+        SubAndQueryBasicExecutor conn = (SubAndQueryBasicExecutor) client;
         conn.resp = rsp;
         synchronized (conn.syncEvent) {
             conn.syncEvent.notifyAll();

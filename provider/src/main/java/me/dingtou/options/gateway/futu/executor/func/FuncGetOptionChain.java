@@ -1,11 +1,11 @@
-package me.dingtou.options.gateway.futu.func;
+package me.dingtou.options.gateway.futu.executor.func;
 
 import com.alibaba.fastjson.JSON;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionChain;
-import me.dingtou.options.gateway.futu.BaseQueryFuncExecutor;
-import me.dingtou.options.gateway.futu.FunctionCall;
-import me.dingtou.options.gateway.futu.ReqContext;
+import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.gateway.futu.executor.SingleQueryExecutor;
+import me.dingtou.options.gateway.futu.executor.ReqContext;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsTuple;
@@ -15,7 +15,8 @@ import me.dingtou.options.model.OptionsTuple;
  *
  * @author qiyan
  */
-public class FuncGetOptionChain implements FunctionCall<BaseQueryFuncExecutor<QotGetOptionChain.Response, OptionsChain>, OptionsChain> {
+@Slf4j
+public class FuncGetOptionChain implements FunctionCall<SingleQueryExecutor<QotGetOptionChain.Response, OptionsChain>, OptionsChain> {
 
     private final int market;
     private final String code;
@@ -29,7 +30,7 @@ public class FuncGetOptionChain implements FunctionCall<BaseQueryFuncExecutor<Qo
 
 
     @Override
-    public void call(BaseQueryFuncExecutor<QotGetOptionChain.Response, OptionsChain> client) {
+    public void call(SingleQueryExecutor<QotGetOptionChain.Response, OptionsChain> client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)
@@ -51,7 +52,7 @@ public class FuncGetOptionChain implements FunctionCall<BaseQueryFuncExecutor<Qo
 
         QotGetOptionChain.Request req = QotGetOptionChain.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.getOptionChain(req);
-        System.out.printf("Send QotGetOptionChain: %d\n", seqNo);
+        log.warn("Send QotGetOptionChain: {}", seqNo);
         if (seqNo == 0) {
             throw new RuntimeException("QotGetOptionChain error");
         }

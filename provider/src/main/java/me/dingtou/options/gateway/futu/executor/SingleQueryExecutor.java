@@ -1,16 +1,13 @@
-package me.dingtou.options.gateway.futu;
+package me.dingtou.options.gateway.futu.executor;
 
 import com.futu.openapi.*;
 import com.futu.openapi.pb.*;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.gateway.futu.executor.func.FunctionCall;
 import org.apache.commons.lang3.StringUtils;
 
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Objects;
+import static me.dingtou.options.gateway.futu.executor.BaseConfig.*;
 
 /**
  * futu api
@@ -18,36 +15,13 @@ import java.util.Objects;
  * @author yuanhongbo
  */
 @Slf4j
-public class BaseQueryFuncExecutor<T extends GeneratedMessageV3, R> extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Conn {
-
-    public static final String FU_TU_API_IP = System.getProperty("fuTuApiIp", "10.0.12.160");
-    public static final String FU_TU_API_PORT_CFG = System.getProperty("fuTuApiPort", "18888");
-    public static final int FU_TU_API_PORT;
-    public static final String FU_TU_API_PRIVATE_KEY;
-
-    static {
-        try {
-            FU_TU_API_PORT = Integer.parseInt(FU_TU_API_PORT_CFG);
-
-            URI uri = Objects.requireNonNull(BaseQueryFuncExecutor.class.getResource("/key/private.key")).toURI();
-            byte[] buf = Files.readAllBytes(Paths.get(uri));
-            FU_TU_API_PRIVATE_KEY = new String(buf, StandardCharsets.UTF_8);
-
-            FTAPI.init();
-        } catch (Exception e) {
-            throw new RuntimeException("init BaseQueryFuncExecutor error", e);
-        }
-    }
+public class SingleQueryExecutor<T extends GeneratedMessageV3, R> extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Conn {
 
 
     private final ReqContext currentReqContext = new ReqContext();
-    protected FunctionCall<BaseQueryFuncExecutor<T, R>, R> call;
+    protected FunctionCall<SingleQueryExecutor<T, R>, R> call;
 
-    public BaseQueryFuncExecutor() {
-
-    }
-
-    public BaseQueryFuncExecutor(FunctionCall<BaseQueryFuncExecutor<T, R>, R> call) {
+    public SingleQueryExecutor(FunctionCall<SingleQueryExecutor<T, R>, R> call) {
         this.call = call;
     }
 
@@ -57,9 +31,9 @@ public class BaseQueryFuncExecutor<T extends GeneratedMessageV3, R> extends FTAP
      *
      * @return futu api
      */
-    public static <T extends GeneratedMessageV3, R> R exec(FunctionCall<BaseQueryFuncExecutor<T, R>, R> call) {
-        try (BaseQueryFuncExecutor<T, R> client = new BaseQueryFuncExecutor<T, R>(call)) {
-            // BaseQueryFuncExecutor<T, R> client = new BaseQueryFuncExecutor<T, R>(call);
+    public static <T extends GeneratedMessageV3, R> R query(FunctionCall<SingleQueryExecutor<T, R>, R> call) {
+        try (SingleQueryExecutor<T, R> client = new SingleQueryExecutor<T, R>(call)) {
+            // SingleQueryExecutor<T, R> client = new SingleQueryExecutor<T, R>(call);
             client.setClientInfo("javaClient", 1);  //设置客户端信息
             client.setConnSpi(client);  //设置连接回调
             client.setQotSpi(client);//设置交易回调
@@ -88,7 +62,7 @@ public class BaseQueryFuncExecutor<T extends GeneratedMessageV3, R> extends FTAP
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
         log.warn("Qot onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
-        call.call((BaseQueryFuncExecutor) client);
+        call.call((SingleQueryExecutor) client);
     }
 
     @Override
@@ -100,11 +74,9 @@ public class BaseQueryFuncExecutor<T extends GeneratedMessageV3, R> extends FTAP
     /**
      * 统一处理返回
      *
-     * @param protoID  协议ID
-     * @param serialNo 请求序列号
-     * @param rsp      返回结果
+     * @param rsp 返回结果
      */
-    void handleQotOnReply(int protoID, int serialNo, GeneratedMessageV3 rsp) {
+    void handleQotOnReply(GeneratedMessageV3 rsp) {
         ReqContext reqContext = this.currentReqContext;
         synchronized (reqContext.syncEvent) {
             reqContext.resp = rsp;
@@ -115,30 +87,30 @@ public class BaseQueryFuncExecutor<T extends GeneratedMessageV3, R> extends FTAP
 
     @Override
     public void onReply_Sub(FTAPI_Conn client, int nSerialNo, QotSub.Response rsp) {
-        handleQotOnReply(ProtoID.QOT_SUB, nSerialNo, rsp);
+        handleQotOnReply(rsp);
     }
 
 
     @Override
     public void onReply_GetSubInfo(FTAPI_Conn client, int nSerialNo, QotGetSubInfo.Response rsp) {
-        handleQotOnReply(ProtoID.QOT_GETSUBINFO, nSerialNo, rsp);
+        handleQotOnReply(rsp);
     }
 
 
     @Override
     public void onReply_GetBasicQot(FTAPI_Conn client, int nSerialNo, QotGetBasicQot.Response rsp) {
-        handleQotOnReply(ProtoID.QOT_GETBASICQOT, nSerialNo, rsp);
+        handleQotOnReply(rsp);
     }
 
     @Override
     public void onReply_GetOptionChain(FTAPI_Conn client, int nSerialNo, QotGetOptionChain.Response rsp) {
-        handleQotOnReply(ProtoID.QOT_GETOPTIONCHAIN, nSerialNo, rsp);
+        handleQotOnReply(rsp);
     }
 
 
     @Override
     public void onReply_GetOptionExpirationDate(FTAPI_Conn client, int nSerialNo, QotGetOptionExpirationDate.Response rsp) {
-        handleQotOnReply(ProtoID.QOT_GETOPTIONEXPIRATIONDATE, nSerialNo, rsp);
+        handleQotOnReply(rsp);
     }
 
 }

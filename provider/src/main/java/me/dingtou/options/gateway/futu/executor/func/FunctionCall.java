@@ -1,6 +1,7 @@
-package me.dingtou.options.gateway.futu;
+package me.dingtou.options.gateway.futu.executor.func;
 
 import com.futu.openapi.FTAPI_Conn;
+import me.dingtou.options.gateway.futu.executor.ReqContext;
 
 public interface FunctionCall<F extends FTAPI_Conn, R> {
     /**

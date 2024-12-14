@@ -1,6 +1,9 @@
-package me.dingtou.options.gateway.futu;
+package me.dingtou.options.gateway.futu.executor;
 
-import com.futu.openapi.*;
+import com.futu.openapi.FTAPI_Conn;
+import com.futu.openapi.FTAPI_Conn_Trd;
+import com.futu.openapi.FTSPI_Conn;
+import com.futu.openapi.FTSPI_Trd;
 import com.futu.openapi.pb.TrdCommon;
 import com.futu.openapi.pb.TrdPlaceOrder;
 import com.futu.openapi.pb.TrdUnlockTrade;
@@ -10,11 +13,7 @@ import me.dingtou.options.constant.Market;
 import me.dingtou.options.model.OwnerOrder;
 import org.apache.commons.lang3.StringUtils;
 
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Objects;
+import static me.dingtou.options.gateway.futu.executor.BaseConfig.*;
 
 /**
  * futu api
@@ -24,19 +23,6 @@ import java.util.Objects;
 @Slf4j
 public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI_Conn {
 
-    private static final String PWD_MD5;
-
-    static {
-        try {
-            URI uri = Objects.requireNonNull(BaseQueryFuncExecutor.class.getResource("/key/trade.key")).toURI();
-            byte[] buf = Files.readAllBytes(Paths.get(uri));
-            PWD_MD5 = new String(buf, StandardCharsets.UTF_8);
-
-            FTAPI.init();
-        } catch (Exception e) {
-            throw new RuntimeException("init BaseQueryFuncExecutor error", e);
-        }
-    }
 
     private final Object syncEvent = new Object();
     private final OwnerOrder ownerOrder;
@@ -59,11 +45,11 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
             client.setConnSpi(client);  //设置连接回调
             client.setTrdSpi(client);//设置交易回调
             boolean isEnableEncrypt = false;
-            if (StringUtils.isNotBlank(BaseQueryFuncExecutor.FU_TU_API_PRIVATE_KEY)) {
+            if (StringUtils.isNotBlank(FU_TU_API_PRIVATE_KEY)) {
                 isEnableEncrypt = true;
-                client.setRSAPrivateKey(BaseQueryFuncExecutor.FU_TU_API_PRIVATE_KEY);
+                client.setRSAPrivateKey(FU_TU_API_PRIVATE_KEY);
             }
-            client.initConnect(BaseQueryFuncExecutor.FU_TU_API_IP, BaseQueryFuncExecutor.FU_TU_API_PORT, isEnableEncrypt);
+            client.initConnect(FU_TU_API_IP, FU_TU_API_PORT, isEnableEncrypt);
 
             try {
                 synchronized (client.syncEvent) {

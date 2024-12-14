@@ -1,18 +1,19 @@
-package me.dingtou.options.gateway.futu.func;
+package me.dingtou.options.gateway.futu.executor.func;
 
 import com.alibaba.fastjson.JSON;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetBasicQot;
-import me.dingtou.options.gateway.futu.BaseQueryFuncExecutor;
-import me.dingtou.options.gateway.futu.FunctionCall;
-import me.dingtou.options.gateway.futu.ReqContext;
+import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.gateway.futu.executor.SingleQueryExecutor;
+import me.dingtou.options.gateway.futu.executor.ReqContext;
 
 /**
  * 获取基础行情
  *
  * @author qiyan
  */
-public class FuncGetBasicQot implements FunctionCall<BaseQueryFuncExecutor<QotGetBasicQot.Response, String>, String> {
+@Slf4j
+public class FuncGetBasicQot implements FunctionCall<SingleQueryExecutor<QotGetBasicQot.Response, String>, String> {
 
     private final int market;
     private final String code;
@@ -23,7 +24,7 @@ public class FuncGetBasicQot implements FunctionCall<BaseQueryFuncExecutor<QotGe
     }
 
     @Override
-    public void call(BaseQueryFuncExecutor<QotGetBasicQot.Response, String> client) {
+    public void call(SingleQueryExecutor<QotGetBasicQot.Response, String> client) {
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)
                 .setCode(code)
@@ -33,7 +34,7 @@ public class FuncGetBasicQot implements FunctionCall<BaseQueryFuncExecutor<QotGe
                 .build();
         QotGetBasicQot.Request req = QotGetBasicQot.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.getBasicQot(req);
-        System.out.printf("Send QotGetBasicQot: %d\n", seqNo);
+        log.warn("Send QotGetBasicQot: {}", seqNo);
     }
 
     @Override

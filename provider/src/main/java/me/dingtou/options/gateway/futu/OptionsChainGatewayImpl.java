@@ -1,8 +1,10 @@
 package me.dingtou.options.gateway.futu;
 
 import me.dingtou.options.gateway.OptionsChainGateway;
-import me.dingtou.options.gateway.futu.func.FuncGetOptionChain;
-import me.dingtou.options.gateway.futu.func.FuncGetOptionExpirationDate;
+import me.dingtou.options.gateway.futu.executor.SingleQueryExecutor;
+import me.dingtou.options.gateway.futu.executor.SubAndQueryBasicExecutor;
+import me.dingtou.options.gateway.futu.executor.func.FuncGetOptionChain;
+import me.dingtou.options.gateway.futu.executor.func.FuncGetOptionExpirationDate;
 import me.dingtou.options.model.*;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +17,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
 
     @Override
     public List<OptionsStrikeDate> getOptionsExpDate(Security security) {
-        return BaseQueryFuncExecutor.exec(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
+        return SingleQueryExecutor.query(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
     }
 
     @Override
@@ -26,7 +28,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             minStrikePrice = lastDone.multiply(BigDecimal.valueOf(0.8));
             maxStrikePrice = lastDone.multiply(BigDecimal.valueOf(1.5));
         }
-        OptionsChain optionsChain = BaseQueryFuncExecutor.exec(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
+        OptionsChain optionsChain = SingleQueryExecutor.query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
         Set<Security> allSecurity = new HashSet<>();
 
         ListIterator<OptionsTuple> optionsTupleListIterator = optionsChain.getOptionList().listIterator();
@@ -65,9 +67,9 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
                 optionsTupleListIterator.remove();
             }
         }
-        List<OptionsRealtimeData> optionsBasicInfo = FillBasicInfoExecutorQuery.fill(allSecurity);
+        List<OptionsRealtimeData> optionsBasicInfo = SubAndQueryBasicExecutor.fill(allSecurity);
         if (optionsBasicInfo.isEmpty()) {
-            optionsBasicInfo = FillBasicInfoExecutorQuery.fill(allSecurity);
+            optionsBasicInfo = SubAndQueryBasicExecutor.fill(allSecurity);
         }
         mergeRealtimeData(optionsChain, optionsBasicInfo);
         return optionsChain;

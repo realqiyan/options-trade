@@ -2,6 +2,7 @@ package me.dingtou.options.gateway.futu;
 
 import me.dingtou.options.constant.Platform;
 import me.dingtou.options.gateway.OptionsTradeGateway;
+import me.dingtou.options.gateway.futu.executor.PlaceOrderExecutor;
 import me.dingtou.options.model.OwnerOrder;
 import org.springframework.stereotype.Component;
 

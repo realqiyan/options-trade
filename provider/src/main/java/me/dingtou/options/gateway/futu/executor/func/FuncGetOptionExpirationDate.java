@@ -1,11 +1,11 @@
-package me.dingtou.options.gateway.futu.func;
+package me.dingtou.options.gateway.futu.executor.func;
 
 import com.alibaba.fastjson.JSON;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionExpirationDate;
-import me.dingtou.options.gateway.futu.BaseQueryFuncExecutor;
-import me.dingtou.options.gateway.futu.FunctionCall;
-import me.dingtou.options.gateway.futu.ReqContext;
+import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.gateway.futu.executor.SingleQueryExecutor;
+import me.dingtou.options.gateway.futu.executor.ReqContext;
 import me.dingtou.options.model.OptionsStrikeDate;
 
 import java.util.Collections;
@@ -16,7 +16,8 @@ import java.util.List;
  *
  * @author qiyan
  */
-public class FuncGetOptionExpirationDate implements FunctionCall<BaseQueryFuncExecutor<QotGetOptionExpirationDate.Response, List<OptionsStrikeDate>>, List<OptionsStrikeDate>> {
+@Slf4j
+public class FuncGetOptionExpirationDate implements FunctionCall<SingleQueryExecutor<QotGetOptionExpirationDate.Response, List<OptionsStrikeDate>>, List<OptionsStrikeDate>> {
 
     private final int market;
     private final String code;
@@ -28,7 +29,7 @@ public class FuncGetOptionExpirationDate implements FunctionCall<BaseQueryFuncEx
 
 
     @Override
-    public void call(BaseQueryFuncExecutor<QotGetOptionExpirationDate.Response, List<OptionsStrikeDate>> client) {
+    public void call(SingleQueryExecutor<QotGetOptionExpirationDate.Response, List<OptionsStrikeDate>> client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)
@@ -39,7 +40,7 @@ public class FuncGetOptionExpirationDate implements FunctionCall<BaseQueryFuncEx
                 .build();
         QotGetOptionExpirationDate.Request req = QotGetOptionExpirationDate.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.getOptionExpirationDate(req);
-        System.out.printf("Send QotGetOptionExpirationDate: %d\n", seqNo);
+        log.warn("Send QotGetOptionExpirationDate: {}", seqNo);
         if (seqNo == 0) {
             throw new RuntimeException("QotGetOptionExpirationDate error");
         }
