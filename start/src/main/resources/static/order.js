@@ -30,6 +30,10 @@ function reloadData(){
                         "side": item.side,
                         "price": item.price,
                         "quantity": item.quantity,
+                        "tradeTime": item.tradeTime,
+                        "platform": item.platform,
+                        "accountId": item.account.accountId,
+                        "status": item.status,
                     };
                 });
 
@@ -38,10 +42,14 @@ function reloadData(){
                   var inst = table.render({
                     elem: '#result',
                     cols: [[
+                      {field: 'accountId', title: 'AccountId', width: 200},
                       {field: 'code', title: 'Code', width: 200},
                       {field: 'side', title: 'Side', width: 120},
                       {field: 'price', title: 'Price', width: 120},
                       {field: 'quantity', title: 'Quantity', width: 120},
+                      {field: 'tradeTime', title: 'TradeTime', width: 200},
+                      {field: 'platform', title: 'Platform', width: 120},
+                      {field: 'status', title: 'Status', width: 120},
                     ]],
                     data: convertedData,
                     //skin: 'line',

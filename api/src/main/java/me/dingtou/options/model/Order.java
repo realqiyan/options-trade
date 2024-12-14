@@ -3,6 +3,8 @@ package me.dingtou.options.model;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.Map;
 
 /**
  * 订单
@@ -15,6 +17,11 @@ public class Order {
      * 账号信息
      */
     private Account account;
+
+    /**
+     * 交易时间
+     */
+    private Date tradeTime;
 
     /**
      * 证券
@@ -43,5 +50,15 @@ public class Order {
     /**
      * 交易市场
      */
-    private String tradeMarket;
+    private String platform;
+    /**
+     * 交易状态
+     */
+    private Integer status;
+
+    /**
+     * 扩展信息
+     */
+    private Map<String, String> ext;
+
 }

@@ -50,7 +50,7 @@ public class OwnerOrder {
     /**
      * 交易市场
      */
-    private String tradeMarket;
+    private String platform;
     /**
      * 订单状态
      */

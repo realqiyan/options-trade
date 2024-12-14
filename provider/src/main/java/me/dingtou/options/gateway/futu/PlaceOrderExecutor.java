@@ -1,5 +1,6 @@
 package me.dingtou.options.gateway.futu;
 
+import com.alibaba.fastjson.JSON;
 import com.futu.openapi.*;
 import com.futu.openapi.pb.*;
 import com.google.protobuf.GeneratedMessageV3;
@@ -23,7 +24,7 @@ import java.util.*;
 public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI_Conn {
 
     private static final String PWD_MD5;
-    public static final String TRADE_MARKET = "futu";
+    public static final String FITU = "futu";
 
     static {
         try {
@@ -81,7 +82,7 @@ public class PlaceOrderExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTS
 
             long orderID = resp.getS2C().getOrderID();
             order.setOrderId(String.valueOf(orderID));
-            order.setTradeMarket(TRADE_MARKET);
+            order.setPlatform(FITU);
 
             return order;
         }

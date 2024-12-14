@@ -67,7 +67,7 @@ public class TradeManager {
 
         // 更新订单的交易ID和交易市场信息
         ownerOrder.setOrderId(order.getOrderId());
-        ownerOrder.setTradeMarket(order.getTradeMarket());
+        ownerOrder.setPlatform(order.getPlatform());
 
         // 更新数据库中的订单信息
         ownerOrderDAO.updateById(ownerOrder);

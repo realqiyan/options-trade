@@ -52,9 +52,17 @@ public class OwnerManager {
             for (OwnerOrder ownerOrder : ownerOrderList) {
                 Order order = new Order();
                 order.setSecurity(Security.of(ownerOrder.getCode(), ownerOrder.getMarket()));
+                order.setTradeTime(ownerOrder.getTradeTime());
                 order.setSide(ownerOrder.getSide());
                 order.setPrice(ownerOrder.getPrice());
                 order.setQuantity(ownerOrder.getQuantity());
+                order.setPlatform(ownerOrder.getPlatform());
+                order.setStatus(ownerOrder.getStatus());
+                Account account = new Account();
+                account.setAccountId(ownerOrder.getAccountId());
+                account.setOwner(ownerOrder.getOwner());
+                order.setAccount(account);
+
                 orderList.add(order);
             }
         }
