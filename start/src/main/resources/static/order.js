@@ -135,6 +135,7 @@ function reloadData(){
                         "accountId": item.accountId,
                         "strikeTime": item.strikeTime,
                         "status": item.status,
+                        "profitRatio": item.ext ? item.ext.profitRatio + '%' : null,
                     };
                 });
 
@@ -156,9 +157,10 @@ function reloadData(){
                       {field: 'strikeTime', title: '行权时间', width: 160},
                       {field: 'platform', title: '平台', width: 80},
                       {field: 'status', title: '状态', width: 80},
+                      {field: 'profitRatio', title: '盈亏', width: 80},
                       {field: 'order', title: '操作', width: 200, templet: '<div>'+
-                      '<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="cancel">Cancel</a>'+
-                      '<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition(\'{{= d.order}}\')" lay-event="closePosition">ClosePosition</a>'+
+                      '<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="cancel">取消</a>'+
+                      '<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition(\'{{= d.order}}\')" lay-event="closePosition">平仓</a>'+
                       '</div>'},
                     ]],
                     data: convertedData,
