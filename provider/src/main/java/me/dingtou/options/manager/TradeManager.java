@@ -1,6 +1,6 @@
 package me.dingtou.options.manager;
 
-import me.dingtou.options.constant.Status;
+import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.dao.OwnerOrderDAO;
 import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.model.Options;
@@ -61,7 +61,7 @@ public class TradeManager {
         ownerOrder.setQuantity(quantity);
         ownerOrder.setPrice(price);
         ownerOrder.setSide(side);
-        ownerOrder.setStatus(Status.PROCESSING.getCode());
+        ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
 
         // 将订单信息插入数据库
         ownerOrderDAO.insert(ownerOrder);
@@ -69,7 +69,7 @@ public class TradeManager {
         // 通过交易网关执行交易操作
         String platformOrderId = optionsTradeGateway.trade(ownerOrder);
         ownerOrder.setPlatformOrderId(platformOrderId);
-
+        ownerOrder.setStatus(OrderStatus.SUBMITTED.getCode());
         // 更新数据库中的订单信息
         ownerOrderDAO.updateById(ownerOrder);
 
@@ -77,14 +77,56 @@ public class TradeManager {
         return ownerOrder;
     }
 
+    /**
+     * 平仓
+     *
+     * @param ownerStrategy 交易策略
+     * @param side          交易方向，买或卖
+     * @param quantity      交易数量
+     * @param price         交易价格
+     * @param hisOrder      历史订单
+     * @return 订单
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public OwnerOrder close(OwnerStrategy ownerStrategy, int side, Integer quantity, BigDecimal price, OwnerOrder hisOrder) {
+        // 创建并初始化订单对象
+        OwnerOrder ownerOrder = new OwnerOrder();
+        ownerOrder.setStrategyId(ownerStrategy.getStrategyId());
+        ownerOrder.setUnderlyingCode(ownerStrategy.getCode());
+        ownerOrder.setPlatform(ownerStrategy.getPlatform());
+        ownerOrder.setOwner(ownerStrategy.getOwner());
+        ownerOrder.setAccountId(ownerStrategy.getAccountId());
+        ownerOrder.setMarket(hisOrder.getMarket());
+        ownerOrder.setTradeTime(new Date());
+        ownerOrder.setStrikeTime(hisOrder.getStrikeTime());
+        ownerOrder.setCode(hisOrder.getCode());
+        ownerOrder.setQuantity(quantity);
+        ownerOrder.setPrice(price);
+        ownerOrder.setSide(side);
+        ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
+
+        // 将订单信息插入数据库
+        ownerOrderDAO.insert(ownerOrder);
+
+        // 通过交易网关执行交易操作
+        String platformOrderId = optionsTradeGateway.trade(ownerOrder);
+        ownerOrder.setPlatformOrderId(platformOrderId);
+        ownerOrder.setStatus(OrderStatus.SUBMITTED.getCode());
+        // 更新数据库中的订单信息
+        ownerOrderDAO.updateById(ownerOrder);
+        return ownerOrder;
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public OwnerOrder cancel(OwnerOrder dbOrder) {
         optionsTradeGateway.cancel(dbOrder);
-        dbOrder.setStatus(Status.DELETE.getCode());
+        dbOrder.setStatus(OrderStatus.CANCELLED_ALL.getCode());
         int update = ownerOrderDAO.updateById(dbOrder);
         if (update != 1) {
             throw new RuntimeException("cancel order error");
         }
         return dbOrder;
     }
+
+
 }

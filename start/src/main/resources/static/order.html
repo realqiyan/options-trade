@@ -25,6 +25,7 @@
         </div>
     </div>
     <div class="layui-body">
+        <button type="button" class="layui-btn layui-bg-blue" onClick="sync()">同步订单状态</button>
         <!-- 内容主体区域 -->
         <div style="padding: 15px;">
             <div class="layui-card layui-panel">
@@ -32,6 +33,32 @@
                 </div>
             </div>
             <br><br>
+        </div>
+        <div class="layui-collapse" lay-accordion>
+            <div class="layui-colla-item">
+                <div class="layui-colla-title">交易状态</div>
+                <div class="layui-colla-content layui-show">
+                    <p>UNKNOWN(-1), //未知状态</p>
+                    <p>WAITING_SUBMIT(1), //等待提交</p>
+                    <p>SUBMITTING(2), //提交中</p>
+                    <p>SUBMITTED(5), //已提交，等待成交</p>
+                    <p>FILLED_PART(10), //部分成交</p>
+                    <p>FILLED_ALL(11), //全部已成</p>
+                    <p>CANCELLED_PART(14), //部分成交，剩余部分已撤单</p>
+                    <p>CANCELLED_ALL(15), //全部已撤单，无成交</p>
+                    <p>FAILED(21), //下单失败，服务拒绝</p>
+                    <p>DISABLED(22), //已失效</p>
+                    <p>DELETED(23), //已删除，无成交的订单才能删除</p>
+                    <p>FILL_CANCELLED(24), //成交被撤销</p>
+                </div>
+            </div>
+            <div class="layui-colla-item">
+                <div class="layui-colla-title">交易类型</div>
+                <div class="layui-colla-content">
+                    <p>BUY(1),</p>
+                    <p>SELL(2);</p>
+                </div>
+            </div>
         </div>
     </div>
 

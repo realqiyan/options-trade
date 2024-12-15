@@ -15,7 +15,7 @@ function render(){
 
 
 //owner: $("#owner").val(),
-function trade(action, order){
+function tradeModify(action, order){
     layer.prompt({title: '确认操作', value: action}, function(value, index, elem){
         if(value === ''){
             return elem.focus();
@@ -36,10 +36,75 @@ function trade(action, order){
     });
 }
 
-function cancel(order){
-    trade('cancel', order);
+//owner: $("#owner").val(),
+function sync(){
+    $.ajax({
+          url: "/trade/sync",
+          method: 'GET',
+          data: {
+            time: new Date().getTime()
+          },
+          success: function( result ) {
+            layer.msg('同步完成！');
+            reloadData();
+          }
+        });
 }
 
+
+function cancel(order){
+    tradeModify('cancel', order);
+}
+
+function tradeClose(side, order, orderBook){
+    layer.prompt({title: '请输入买入份数', value: order.quantity}, function(value, index, elem){
+        if(value === ''){
+            return elem.focus();
+        }
+        var quantity = util.escape(value);
+        layer.close(index);
+        layer.prompt({title: '请输入买入价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）'}, function(value, index, elem){
+            if(value === ''){
+                return elem.focus();
+            }
+            // 下单
+            var price = util.escape(value);
+            layer.msg('卖出价格:'+ price);
+            $.ajax({
+              url: "/trade/close",
+              method: 'POST',
+              data: {
+                owner: order.owner,
+                side: side,
+                strategyId: order.strategyId,
+                quantity: quantity,
+                price: price,
+                order: JSON.stringify(order),
+              },
+              success: function( result ) {
+                layer.msg('交易完成 result:'+ result.platformOrderId);
+              }
+            });
+            layer.close(index);
+        });
+    });
+}
+
+function closePosition(order){
+    var orderObj = JSON.parse(order);
+    $.ajax({
+         url: "/options/orderbook/get",
+         method: 'GET',
+         data: {
+           code: orderObj.code,
+           market: orderObj.market,
+           time: new Date().getTime()
+         },
+         success: function( result ) {
+            tradeClose(1, orderObj, result);
+         }
+       });
+}
 
 function reloadData(){
     $.ajax({
@@ -91,7 +156,10 @@ function reloadData(){
                       {field: 'strikeTime', title: '行权时间', width: 160},
                       {field: 'platform', title: '平台', width: 80},
                       {field: 'status', title: '状态', width: 80},
-                      {field: 'order', title: '操作', width: 200, templet: '<div><a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="sell">Cancel</a></div>'},
+                      {field: 'order', title: '操作', width: 200, templet: '<div>'+
+                      '<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="cancel">Cancel</a>'+
+                      '<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition(\'{{= d.order}}\')" lay-event="closePosition">ClosePosition</a>'+
+                      '</div>'},
                     ]],
                     data: convertedData,
                     //skin: 'line',
