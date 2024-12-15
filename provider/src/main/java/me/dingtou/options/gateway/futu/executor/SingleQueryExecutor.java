@@ -60,10 +60,11 @@ public class SingleQueryExecutor<R> extends FTAPI_Conn_Qot implements FTSPI_Qot,
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
         log.warn("Qot onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
-        if (errCode != 0 && client instanceof SingleQueryExecutor<?>) {
+        if (errCode == 0 && client instanceof SingleQueryExecutor<?>) {
             call.call((SingleQueryExecutor<R>) client);
+        } else {
+            throw new RuntimeException("onInitConnect fail");
         }
-        throw new RuntimeException("onInitConnect fail");
     }
 
     @Override
