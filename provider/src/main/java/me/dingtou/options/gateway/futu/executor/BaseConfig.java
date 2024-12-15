@@ -26,20 +26,20 @@ public class BaseConfig {
             FU_TU_API_PORT = Integer.parseInt(FU_TU_API_PORT_CFG);
 
             {
-                URI uri = Objects.requireNonNull(SingleQueryExecutor.class.getResource("/key/private.key")).toURI();
+                URI uri = Objects.requireNonNull(QueryExecutor.class.getResource("/key/private.key")).toURI();
                 byte[] buf = Files.readAllBytes(Paths.get(uri));
                 FU_TU_API_PRIVATE_KEY = new String(buf, StandardCharsets.UTF_8);
             }
 
             {
-                URI uri = Objects.requireNonNull(SingleQueryExecutor.class.getResource("/key/trade.key")).toURI();
+                URI uri = Objects.requireNonNull(QueryExecutor.class.getResource("/key/trade.key")).toURI();
                 byte[] buf = Files.readAllBytes(Paths.get(uri));
                 PWD_MD5 = new String(buf, StandardCharsets.UTF_8);
             }
 
             FTAPI.init();
         } catch (Exception e) {
-            throw new RuntimeException("init SingleQueryExecutor error", e);
+            throw new RuntimeException("init QueryExecutor error", e);
         }
     }
 

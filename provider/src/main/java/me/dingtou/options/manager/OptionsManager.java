@@ -1,11 +1,9 @@
 package me.dingtou.options.manager;
 
 import me.dingtou.options.gateway.OptionsChainGateway;
-import me.dingtou.options.gateway.SecurityGateway;
-import me.dingtou.options.model.OptionsChain;
-import me.dingtou.options.model.OptionsStrikeDate;
-import me.dingtou.options.model.Security;
-import me.dingtou.options.model.SecurityQuote;
+import me.dingtou.options.gateway.SecurityOrderBookGateway;
+import me.dingtou.options.gateway.SecurityQuoteGateway;
+import me.dingtou.options.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,7 +18,10 @@ public class OptionsManager {
     private OptionsChainGateway optionsChainGateway;
 
     @Autowired
-    private SecurityGateway securityGateway;
+    private SecurityQuoteGateway securityQuoteGateway;
+
+    @Autowired
+    private SecurityOrderBookGateway securityOrderBookGateway;
 
     public List<OptionsStrikeDate> queryOptionsExpDate(String code, Integer market) {
         if (StringUtils.isBlank(code) || null == market) {
@@ -34,11 +35,20 @@ public class OptionsManager {
             return null;
         }
         Security security = Security.of(code, market);
-        SecurityQuote securityQuote = securityGateway.quote(security);
+        SecurityQuote securityQuote = securityQuoteGateway.quote(security);
         OptionsChain optionsChain = optionsChainGateway.queryOptionsChain(security, optionsStrikeDate.getStrikeTime(), securityQuote.getLastDone());
         optionsChain.setSecurityQuote(securityQuote);
 
         return optionsChain;
+    }
+
+
+    public SecurityOrderBook querySecurityOrderBook(String code, Integer market) {
+        if (StringUtils.isBlank(code) || null == market) {
+            return null;
+        }
+        Security security = Security.of(code, market);
+        return securityOrderBookGateway.getOrderBook(security);
     }
 
 

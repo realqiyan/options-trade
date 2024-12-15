@@ -130,14 +130,14 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
 }
 
 //owner: $("#owner").val(),
-function sell(options){
+function trade(side, options, orderBook){
     layer.prompt({title: '请输入卖出份数', value: 1}, function(value, index, elem){
         if(value === ''){
             return elem.focus();
         }
         var quantity = util.escape(value);
         layer.close(index);
-        layer.prompt({title: '请输入卖出价格', value: options.realtimeData.curPrice}, function(value, index, elem){
+        layer.prompt({title: '请输入卖出价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）', value: options.realtimeData.curPrice}, function(value, index, elem){
             if(value === ''){
                 return elem.focus();
             }
@@ -145,30 +145,38 @@ function sell(options){
             var price = util.escape(value);
             layer.msg('卖出价格:'+ price);
             $.ajax({
-              url: "/options/sell",
+              url: "/options/trade",
               method: 'POST',
               data: {
                 owner: $("#owner").val(),
+                side: side,
                 strategyId: currentStrategyId,
                 quantity: quantity,
                 price: price,
                 options: JSON.stringify(options),
               },
               success: function( result ) {
-                $("#owner").val(result.owner);
-                var output = document.getElementById("security");
-                output.innerHTML = "";
-                for(var i=0; i<result.securityList.length; i++) {
-                    var obj = result.securityList[i];
-                    output.innerHTML += '<li class="layui-nav-item" onclick="loadOptionsExpDate(\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.code+'</a></li>'
-                }
-
-                render();
+                layer.msg('交易完成 result:'+ result.platformOrderId);
               }
             });
             layer.close(index);
         });
     });
+}
+
+function sell(options){
+    $.ajax({
+         url: "/options/orderbook/get",
+         method: 'GET',
+         data: {
+           code: options.basic.security.code,
+           market: options.basic.security.market,
+           time: new Date().getTime()
+         },
+         success: function( result ) {
+            trade(2,options,result);
+         }
+       });
 }
 
 function reloadData(){

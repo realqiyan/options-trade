@@ -8,7 +8,6 @@ import me.dingtou.options.strategy.OptionsStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -32,6 +31,11 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     @Override
     public List<OptionsStrikeDate> queryOptionsExpDate(Security security) {
         return optionsManager.queryOptionsExpDate(security.getCode(), security.getMarket());
+    }
+
+    @Override
+    public SecurityOrderBook queryOrderBook(Security security) {
+        return optionsManager.querySecurityOrderBook(security.getCode(), security.getMarket());
     }
 
     @Override

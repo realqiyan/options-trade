@@ -5,10 +5,14 @@ import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionChain;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.gateway.futu.executor.SingleQueryExecutor;
+import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsTuple;
+import me.dingtou.options.model.Security;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 获取期权链
@@ -30,7 +34,12 @@ public class FuncGetOptionChain implements FunctionCall<OptionsChain> {
 
 
     @Override
-    public void call(SingleQueryExecutor<OptionsChain> client) {
+    public List<Security> getSubSecurityList() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void call(QueryExecutor<OptionsChain> client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)

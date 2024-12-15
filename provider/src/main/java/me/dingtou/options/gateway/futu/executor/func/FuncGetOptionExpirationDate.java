@@ -5,8 +5,9 @@ import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionExpirationDate;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.gateway.futu.executor.SingleQueryExecutor;
+import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.model.OptionsStrikeDate;
+import me.dingtou.options.model.Security;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +30,12 @@ public class FuncGetOptionExpirationDate implements FunctionCall<List<OptionsStr
 
 
     @Override
-    public void call(SingleQueryExecutor<List<OptionsStrikeDate>> client) {
+    public List<Security> getSubSecurityList() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void call(QueryExecutor<List<OptionsStrikeDate>> client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)

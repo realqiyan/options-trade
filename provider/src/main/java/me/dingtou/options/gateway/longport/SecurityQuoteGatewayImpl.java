@@ -3,7 +3,7 @@ package me.dingtou.options.gateway.longport;
 import com.longport.Config;
 import com.longport.OpenApiException;
 import com.longport.quote.QuoteContext;
-import me.dingtou.options.gateway.SecurityGateway;
+import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class SecurityGatewayImpl implements SecurityGateway {
+public class SecurityQuoteGatewayImpl implements SecurityQuoteGateway {
 
     private final static Config LONGPORT_CONFIG;
 

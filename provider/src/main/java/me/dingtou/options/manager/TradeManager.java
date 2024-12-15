@@ -67,7 +67,8 @@ public class TradeManager {
         ownerOrderDAO.insert(ownerOrder);
 
         // 通过交易网关执行交易操作
-        optionsTradeGateway.trade(ownerOrder);
+        String platformOrderId = optionsTradeGateway.trade(ownerOrder);
+        ownerOrder.setPlatformOrderId(platformOrderId);
 
         // 更新数据库中的订单信息
         ownerOrderDAO.updateById(ownerOrder);

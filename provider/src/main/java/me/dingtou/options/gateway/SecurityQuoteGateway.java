@@ -1,5 +1,6 @@
 package me.dingtou.options.gateway;
 
+import me.dingtou.options.model.SecurityOrderBook;
 import me.dingtou.options.model.SecurityQuote;
 import me.dingtou.options.model.Security;
 
@@ -10,7 +11,7 @@ import java.util.List;
  *
  * @author qiyan
  */
-public interface SecurityGateway {
+public interface SecurityQuoteGateway {
 
     /**
      * 查询行情

@@ -32,7 +32,6 @@ public class OptionsController {
 
     @RequestMapping(value = "/options/owner/get", method = RequestMethod.GET)
     public Owner queryOwner() throws Exception {
-        log.info("queryOwner");
         String owner = SessionUtils.getCurrentOwner();
         return optionsQueryService.queryOwner(owner);
     }
@@ -69,15 +68,26 @@ public class OptionsController {
         return optionsQueryService.queryOptionsChain(security, optionsStrikeDate);
     }
 
+    @RequestMapping(value = "/options/orderbook/get", method = RequestMethod.GET)
+    public SecurityOrderBook listOrderBook(@RequestParam(value = "market", required = true) Integer market,
+                                           @RequestParam(value = "code", required = true) String code) throws Exception {
+        log.info("listOrderBook. market:{}, code:{}", market, code);
+        Security security = new Security();
+        security.setMarket(market);
+        security.setCode(code);
+        return optionsQueryService.queryOrderBook(security);
+    }
 
-    @RequestMapping(value = "/options/sell", method = RequestMethod.POST)
-    public OwnerOrder sell(@RequestParam(value = "owner", required = true) String owner,
-                           @RequestParam(value = "strategyId", required = true) String strategyId,
-                           @RequestParam(value = "quantity", required = true) Integer quantity,
-                           @RequestParam(value = "price", required = true) String price,
-                           @RequestParam(value = "options", required = true) String options) throws Exception {
 
-        log.info("buy: owner={}, quantity={}, price={}, options={}", owner, quantity, price, options);
+    @RequestMapping(value = "/options/trade", method = RequestMethod.POST)
+    public OwnerOrder trade(@RequestParam(value = "owner", required = true) String owner,
+                            @RequestParam(value = "side", required = true) Integer side,
+                            @RequestParam(value = "strategyId", required = true) String strategyId,
+                            @RequestParam(value = "quantity", required = true) Integer quantity,
+                            @RequestParam(value = "price", required = true) String price,
+                            @RequestParam(value = "options", required = true) String options) throws Exception {
+
+        log.info("trade. owner:{}, side:{}, quantity:{}, price:{}, options:{}", owner, side, quantity, price, options);
 
         String loginOwner = SessionUtils.getCurrentOwner();
         if (!loginOwner.equals(owner)) {
@@ -85,7 +95,7 @@ public class OptionsController {
         }
 
         Options optionsObj = JSON.parseObject(options, Options.class);
-        return optionsTradeService.trade(strategyId, TradeSide.SELL, quantity, new BigDecimal(price), optionsObj);
+        return optionsTradeService.trade(strategyId, TradeSide.of(side), quantity, new BigDecimal(price), optionsObj);
     }
 
 }

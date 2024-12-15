@@ -1,8 +1,9 @@
 package me.dingtou.options.gateway.futu;
 
+import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.OptionsChainGateway;
-import me.dingtou.options.gateway.futu.executor.SingleQueryExecutor;
-import me.dingtou.options.gateway.futu.executor.SubAndQueryBasicExecutor;
+import me.dingtou.options.gateway.futu.executor.QueryExecutor;
+import me.dingtou.options.gateway.futu.executor.func.FuncGetOptionsRealtimeData;
 import me.dingtou.options.gateway.futu.executor.func.FuncGetOptionChain;
 import me.dingtou.options.gateway.futu.executor.func.FuncGetOptionExpirationDate;
 import me.dingtou.options.model.*;
@@ -12,12 +13,13 @@ import java.math.BigDecimal;
 import java.util.*;
 
 @Component
+@Slf4j
 public class OptionsChainGatewayImpl implements OptionsChainGateway {
 
 
     @Override
     public List<OptionsStrikeDate> getOptionsExpDate(Security security) {
-        return SingleQueryExecutor.query(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
+        return QueryExecutor.query(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
     }
 
     @Override
@@ -28,7 +30,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             minStrikePrice = lastDone.multiply(BigDecimal.valueOf(0.8));
             maxStrikePrice = lastDone.multiply(BigDecimal.valueOf(1.5));
         }
-        OptionsChain optionsChain = SingleQueryExecutor.query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
+        OptionsChain optionsChain = QueryExecutor.query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
         Set<Security> allSecurity = new HashSet<>();
 
         ListIterator<OptionsTuple> optionsTupleListIterator = optionsChain.getOptionList().listIterator();
@@ -67,9 +69,11 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
                 optionsTupleListIterator.remove();
             }
         }
-        List<OptionsRealtimeData> optionsBasicInfo = SubAndQueryBasicExecutor.fill(allSecurity);
+        List<Security> securityList = new ArrayList<>(allSecurity);
+        List<OptionsRealtimeData> optionsBasicInfo = QueryExecutor.query(new FuncGetOptionsRealtimeData(securityList));
         if (optionsBasicInfo.isEmpty()) {
-            optionsBasicInfo = SubAndQueryBasicExecutor.fill(allSecurity);
+            log.warn("query options basic info failed, retry");
+            optionsBasicInfo = QueryExecutor.query(new FuncGetOptionsRealtimeData(securityList));
         }
         mergeRealtimeData(optionsChain, optionsBasicInfo);
         return optionsChain;

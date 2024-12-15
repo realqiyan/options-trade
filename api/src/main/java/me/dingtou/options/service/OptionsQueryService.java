@@ -1,9 +1,6 @@
 package me.dingtou.options.service;
 
-import me.dingtou.options.model.OptionsChain;
-import me.dingtou.options.model.OptionsStrikeDate;
-import me.dingtou.options.model.Owner;
-import me.dingtou.options.model.Security;
+import me.dingtou.options.model.*;
 
 import java.util.List;
 
@@ -30,6 +27,14 @@ public interface OptionsQueryService {
      */
     List<OptionsStrikeDate> queryOptionsExpDate(Security security);
 
+
+    /**
+     * 查询市场实时盘口
+     *
+     * @param security 证券
+     * @return 实时盘口
+     */
+    SecurityOrderBook queryOrderBook(Security security);
 
     /**
      * 查询期权链
