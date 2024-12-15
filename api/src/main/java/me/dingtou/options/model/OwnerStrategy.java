@@ -34,6 +34,11 @@ public class OwnerStrategy {
      * 策略的类型，描述策略的种类或分类
      */
     private String strategyType;
+    
+    /**
+     * 当前阶段
+     */
+    private String currentStage;
 
     /**
      * 账户的标识符，表示策略关联的账户或用户

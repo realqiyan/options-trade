@@ -38,6 +38,7 @@ CREATE TABLE `owner_strategy` (
   `id` int NOT NULL AUTO_INCREMENT,
   `strategy_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
   `strategy_type` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
+  `current_stage` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `platform` varchar(16) COLLATE utf8mb4_general_ci NOT NULL,
   `account_id` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `code` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
@@ -48,10 +49,10 @@ CREATE TABLE `owner_strategy` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 TRUNCATE `owner_strategy`;
-INSERT INTO `owner_strategy` (`id`, `strategy_id`, `strategy_type`, `platform`, `account_id`, `code`, `market`, `owner`, `ext`) VALUES
-(18,	'86c312eccaff4fe1865cf0e79432ebe3',	'wheel_strategy',	'futu',	'123456',	'BABA',	11,	'qiyan',	'{}'),
-(28,	'024cc086a560460e90705f2ef87cac7d',	'wheel_strategy',	'futu',	'123456',	'KWEB',	11,	'qiyan',	'{}'),
-(38,	'b3605b43f26345abbfa663abad867d38',	'wheel_strategy',	'futu',	'123456',	'JD',	11,	'qiyan',	'{}'),
-(58,	'8a533bd8ce2e41bf93a4dec6347fdf49',	'wheel_strategy',	'longport',	'',	'FXI',	11,	'qiyan',	'{}');
+INSERT INTO `owner_strategy` (`id`, `strategy_id`, `strategy_type`, `current_stage`, `platform`, `account_id`, `code`, `market`, `owner`, `ext`) VALUES
+(18,	'86c312eccaff4fe1865cf0e79432ebe3',	'wheel_strategy',	'sp',	'futu',	'123456',	'BABA',	11,	'qiyan',	'{}'),
+(28,	'024cc086a560460e90705f2ef87cac7d',	'wheel_strategy',	'cc',	'futu',	'123456',	'KWEB',	11,	'qiyan',	'{}'),
+(38,	'b3605b43f26345abbfa663abad867d38',	'wheel_strategy',	'sp',	'futu',	'123456',	'JD',	11,	'qiyan',	'{}'),
+(58,	'8a533bd8ce2e41bf93a4dec6347fdf49',	'wheel_strategy',	'cc',	'longport',	'',	'FXI',	11,	'qiyan',	'{}');
 
--- 2024-12-14 18:45:59
+-- 2024-12-15 15:15:02
