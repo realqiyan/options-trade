@@ -26,8 +26,8 @@ https://open.longportapp.com/docs/getting-started#%E5%BC%80%E9%80%9A%E5%BC%80%E5
 4. 初始化数据
 ```
 owner_strategy表数初始化:
-INSERT INTO `owner_strategy` (`id`, `strategy_id`, `strategy_type`, `platform`, `account_id`, `code`, `market`, `owner`, `ext`) VALUES
-(18,	'86c312eccaff4fe1865cf0e79432ebe3',	'wheel_strategy',	'futu',	'123456',	'BABA',	11,	'qiyan',	'{}');
+INSERT INTO `owner_strategy` (`id`, `strategy_id`, `strategy_type`, `current_stage`, `platform`, `account_id`, `code`, `market`, `owner`, `ext`) VALUES
+(18,	'86c312eccaff4fe1865cf0e79432ebe3',	'wheel_strategy',	'sp',	'futu',	'123456',	'BABA',	11,	'qiyan',	'{}'),
 
 strategy_id：建议使用uuid
 strategy_type：策略类型，目前支持wheel_strategy
