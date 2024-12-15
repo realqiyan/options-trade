@@ -3,9 +3,9 @@ package me.dingtou.options.gateway.futu.executor.func;
 import com.alibaba.fastjson.JSON;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionChain;
+import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.SingleQueryExecutor;
-import me.dingtou.options.gateway.futu.executor.ReqContext;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsTuple;
@@ -16,7 +16,7 @@ import me.dingtou.options.model.OptionsTuple;
  * @author qiyan
  */
 @Slf4j
-public class FuncGetOptionChain implements FunctionCall<SingleQueryExecutor<QotGetOptionChain.Response, OptionsChain>, OptionsChain> {
+public class FuncGetOptionChain implements FunctionCall<OptionsChain> {
 
     private final int market;
     private final String code;
@@ -30,7 +30,7 @@ public class FuncGetOptionChain implements FunctionCall<SingleQueryExecutor<QotG
 
 
     @Override
-    public void call(SingleQueryExecutor<QotGetOptionChain.Response, OptionsChain> client) {
+    public void call(SingleQueryExecutor<OptionsChain> client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)
@@ -59,9 +59,9 @@ public class FuncGetOptionChain implements FunctionCall<SingleQueryExecutor<QotG
     }
 
     @Override
-    public OptionsChain result(ReqContext reqContext) {
+    public OptionsChain result(GeneratedMessageV3 response) {
 
-        QotGetOptionChain.Response resp = (QotGetOptionChain.Response) reqContext.resp;
+        QotGetOptionChain.Response resp = (QotGetOptionChain.Response) response;
         if (null == resp || 0 != resp.getRetType()) {
             return null;
         }

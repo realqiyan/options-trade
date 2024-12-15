@@ -61,16 +61,13 @@ public class SubAndQueryBasicExecutor extends FTAPI_Conn_Qot implements FTSPI_Qo
 
             try {
                 synchronized (client.syncEvent) {
-                    client.syncEvent.wait(3000);
+                    client.syncEvent.wait(6000);
                 }
             } catch (InterruptedException e) {
                 throw new RuntimeException("call timeout");
             }
 
-            log.warn("Reply: syncEvent:notifyAll");
-
             QotGetBasicQot.Response resp = (QotGetBasicQot.Response) client.resp;
-
             if (null == resp || 0 != resp.getRetType()) {
                 return Collections.emptyList();
             }

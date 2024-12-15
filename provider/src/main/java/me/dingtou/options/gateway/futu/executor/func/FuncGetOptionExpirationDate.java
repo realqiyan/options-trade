@@ -3,9 +3,9 @@ package me.dingtou.options.gateway.futu.executor.func;
 import com.alibaba.fastjson.JSON;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionExpirationDate;
+import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.SingleQueryExecutor;
-import me.dingtou.options.gateway.futu.executor.ReqContext;
 import me.dingtou.options.model.OptionsStrikeDate;
 
 import java.util.Collections;
@@ -17,7 +17,7 @@ import java.util.List;
  * @author qiyan
  */
 @Slf4j
-public class FuncGetOptionExpirationDate implements FunctionCall<SingleQueryExecutor<QotGetOptionExpirationDate.Response, List<OptionsStrikeDate>>, List<OptionsStrikeDate>> {
+public class FuncGetOptionExpirationDate implements FunctionCall<List<OptionsStrikeDate>> {
 
     private final int market;
     private final String code;
@@ -29,7 +29,7 @@ public class FuncGetOptionExpirationDate implements FunctionCall<SingleQueryExec
 
 
     @Override
-    public void call(SingleQueryExecutor<QotGetOptionExpirationDate.Response, List<OptionsStrikeDate>> client) {
+    public void call(SingleQueryExecutor<List<OptionsStrikeDate>> client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)
@@ -48,9 +48,9 @@ public class FuncGetOptionExpirationDate implements FunctionCall<SingleQueryExec
     }
 
     @Override
-    public List<OptionsStrikeDate> result(ReqContext reqContext) {
+    public List<OptionsStrikeDate> result(GeneratedMessageV3 response) {
 
-        QotGetOptionExpirationDate.Response resp = (QotGetOptionExpirationDate.Response) reqContext.resp;
+        QotGetOptionExpirationDate.Response resp = (QotGetOptionExpirationDate.Response) response;
         if (null == resp || 0 != resp.getRetType()) {
             return Collections.emptyList();
         }

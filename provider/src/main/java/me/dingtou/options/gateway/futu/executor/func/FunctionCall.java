@@ -1,21 +1,22 @@
 package me.dingtou.options.gateway.futu.executor.func;
 
-import com.futu.openapi.FTAPI_Conn;
-import me.dingtou.options.gateway.futu.executor.ReqContext;
 
-public interface FunctionCall<F extends FTAPI_Conn, R> {
+import com.google.protobuf.GeneratedMessageV3;
+import me.dingtou.options.gateway.futu.executor.SingleQueryExecutor;
+
+public interface FunctionCall<R> {
     /**
      * 调用
      *
      * @param client ft客户端
      */
-    void call(F client);
+    void call(SingleQueryExecutor<R> client);
 
     /**
      * 结果处理
      *
-     * @param reqContext 请求标识
+     * @param resp 结果
      * @return 结果
      */
-    R result(ReqContext reqContext);
+    R result(GeneratedMessageV3 resp);
 }

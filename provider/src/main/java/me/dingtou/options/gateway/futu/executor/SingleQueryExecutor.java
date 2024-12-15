@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.func.FunctionCall;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.concurrent.CompletableFuture;
+
 import static me.dingtou.options.gateway.futu.executor.BaseConfig.*;
 
 /**
@@ -15,13 +17,14 @@ import static me.dingtou.options.gateway.futu.executor.BaseConfig.*;
  * @author yuanhongbo
  */
 @Slf4j
-public class SingleQueryExecutor<T extends GeneratedMessageV3, R> extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Conn {
+public class SingleQueryExecutor<R> extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Conn {
 
 
-    private final ReqContext currentReqContext = new ReqContext();
-    protected FunctionCall<SingleQueryExecutor<T, R>, R> call;
+    private final CompletableFuture<GeneratedMessageV3> future = new CompletableFuture<>();
 
-    public SingleQueryExecutor(FunctionCall<SingleQueryExecutor<T, R>, R> call) {
+    private final FunctionCall<R> call;
+
+    public SingleQueryExecutor(FunctionCall<R> call) {
         this.call = call;
     }
 
@@ -31,9 +34,8 @@ public class SingleQueryExecutor<T extends GeneratedMessageV3, R> extends FTAPI_
      *
      * @return futu api
      */
-    public static <T extends GeneratedMessageV3, R> R query(FunctionCall<SingleQueryExecutor<T, R>, R> call) {
-        try (SingleQueryExecutor<T, R> client = new SingleQueryExecutor<T, R>(call)) {
-            // SingleQueryExecutor<T, R> client = new SingleQueryExecutor<T, R>(call);
+    public static <R> R query(FunctionCall<R> call) {
+        try (SingleQueryExecutor<R> client = new SingleQueryExecutor<>(call)) {
             client.setClientInfo("javaClient", 1);  //设置客户端信息
             client.setConnSpi(client);  //设置连接回调
             client.setQotSpi(client);//设置交易回调
@@ -46,23 +48,22 @@ public class SingleQueryExecutor<T extends GeneratedMessageV3, R> extends FTAPI_
             if (!connect) {
                 throw new RuntimeException("initConnect fail");
             }
-            try {
-                synchronized (client.currentReqContext.syncEvent) {
-                    client.currentReqContext.syncEvent.wait(3000);
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException("call timeout");
-            }
-            return client.call.result(client.currentReqContext);
+            return client.call.result(client.future.get());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
     }
 
 
+    @SuppressWarnings("unchecked")
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
         log.warn("Qot onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
-        call.call((SingleQueryExecutor) client);
+        if (errCode != 0 && client instanceof SingleQueryExecutor<?>) {
+            call.call((SingleQueryExecutor<R>) client);
+        }
+        throw new RuntimeException("onInitConnect fail");
     }
 
     @Override
@@ -77,11 +78,7 @@ public class SingleQueryExecutor<T extends GeneratedMessageV3, R> extends FTAPI_
      * @param rsp 返回结果
      */
     void handleQotOnReply(GeneratedMessageV3 rsp) {
-        ReqContext reqContext = this.currentReqContext;
-        synchronized (reqContext.syncEvent) {
-            reqContext.resp = rsp;
-            reqContext.syncEvent.notifyAll();
-        }
+        this.future.complete(rsp);
     }
 
 
