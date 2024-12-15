@@ -12,6 +12,10 @@ import java.util.Map;
 @Data
 public class OwnerStrategy {
     /**
+     * ID
+     */
+    private Integer id;
+    /**
      * 所有者的标识符，表示策略属于哪个用户或实体
      */
     private String owner;

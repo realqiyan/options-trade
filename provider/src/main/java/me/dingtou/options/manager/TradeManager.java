@@ -41,7 +41,7 @@ public class TradeManager {
         Security security = options.getBasic().getSecurity();
 
         // 创建并初始化订单对象
-        me.dingtou.options.dataobject.OwnerOrder ownerOrder = new me.dingtou.options.dataobject.OwnerOrder();
+        OwnerOrder ownerOrder = new OwnerOrder();
         ownerOrder.setStrategyId(ownerStrategy.getStrategyId());
         ownerOrder.setUnderlyingCode(ownerStrategy.getCode());
         ownerOrder.setPlatform(ownerStrategy.getPlatform());
@@ -75,5 +75,16 @@ public class TradeManager {
 
         // 返回执行后的订单对象
         return ownerOrder;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public OwnerOrder cancel(OwnerOrder dbOrder) {
+        optionsTradeGateway.cancel(dbOrder);
+        dbOrder.setStatus(Status.DELETE.getCode());
+        int update = ownerOrderDAO.updateById(dbOrder);
+        if (update != 1) {
+            throw new RuntimeException("cancel order error");
+        }
+        return dbOrder;
     }
 }

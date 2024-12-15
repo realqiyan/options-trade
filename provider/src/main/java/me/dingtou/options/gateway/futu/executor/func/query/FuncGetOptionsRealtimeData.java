@@ -1,10 +1,11 @@
-package me.dingtou.options.gateway.futu.executor.func;
+package me.dingtou.options.gateway.futu.executor.func.query;
 
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetBasicQot;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
+import me.dingtou.options.gateway.futu.executor.func.QueryFunctionCall;
 import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.Security;
 
@@ -15,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Slf4j
-public class FuncGetOptionsRealtimeData implements FunctionCall<List<OptionsRealtimeData>> {
+public class FuncGetOptionsRealtimeData implements QueryFunctionCall<List<OptionsRealtimeData>> {
 
     private final List<Security> allSecurity;
 

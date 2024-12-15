@@ -1,9 +1,7 @@
 package me.dingtou.options.web;
 
 
-import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.model.*;
 import me.dingtou.options.service.OptionsQueryService;
 import me.dingtou.options.service.OptionsTradeService;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,26 +73,6 @@ public class OptionsController {
         security.setMarket(market);
         security.setCode(code);
         return optionsQueryService.queryOrderBook(security);
-    }
-
-
-    @RequestMapping(value = "/options/trade", method = RequestMethod.POST)
-    public OwnerOrder trade(@RequestParam(value = "owner", required = true) String owner,
-                            @RequestParam(value = "side", required = true) Integer side,
-                            @RequestParam(value = "strategyId", required = true) String strategyId,
-                            @RequestParam(value = "quantity", required = true) Integer quantity,
-                            @RequestParam(value = "price", required = true) String price,
-                            @RequestParam(value = "options", required = true) String options) throws Exception {
-
-        log.info("trade. owner:{}, side:{}, quantity:{}, price:{}, options:{}", owner, side, quantity, price, options);
-
-        String loginOwner = SessionUtils.getCurrentOwner();
-        if (!loginOwner.equals(owner)) {
-            return null;
-        }
-
-        Options optionsObj = JSON.parseObject(options, Options.class);
-        return optionsTradeService.trade(strategyId, TradeSide.of(side), quantity, new BigDecimal(price), optionsObj);
     }
 
 }

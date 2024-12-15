@@ -1,7 +1,7 @@
 package me.dingtou.options.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import me.dingtou.options.dataobject.OwnerOrder;
+import me.dingtou.options.model.OwnerOrder;
 
 /**
  * OwnerOrderDAO

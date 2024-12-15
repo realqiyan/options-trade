@@ -5,16 +5,19 @@ import com.google.protobuf.GeneratedMessageV3;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.model.Security;
 
+import java.util.Collections;
 import java.util.List;
 
-public interface FunctionCall<R> {
+public interface QueryFunctionCall<R> {
 
     /**
-     * 目标证券
+     * 需要订阅的目标证券
      *
      * @return 目标证券
      */
-    List<Security> getSubSecurityList();
+    default List<Security> getSubSecurityList() {
+        return Collections.emptyList();
+    }
 
     /**
      * 调用

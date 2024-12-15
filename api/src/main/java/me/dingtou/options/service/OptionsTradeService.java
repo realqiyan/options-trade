@@ -1,5 +1,6 @@
 package me.dingtou.options.service;
 
+import me.dingtou.options.constant.OrderAction;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OwnerOrder;
@@ -23,5 +24,14 @@ public interface OptionsTradeService {
      * @param options    期权
      * @return 订单
      */
-    OwnerOrder trade(String strategyId, TradeSide side, Integer quantity, BigDecimal price, Options options);
+    OwnerOrder submit(String strategyId, TradeSide side, Integer quantity, BigDecimal price, Options options);
+
+    /**
+     * 修改订单
+     *
+     * @param order  订单
+     * @param action 操作
+     * @return 订单
+     */
+    OwnerOrder modify(OwnerOrder order, OrderAction action);
 }

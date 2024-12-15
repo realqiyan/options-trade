@@ -13,6 +13,34 @@ function render(){
     });
 }
 
+
+//owner: $("#owner").val(),
+function trade(action, order){
+    layer.prompt({title: '确认操作', value: action}, function(value, index, elem){
+        if(value === ''){
+            return elem.focus();
+        }
+        $.ajax({
+              url: "/trade/modify",
+              method: 'POST',
+              data: {
+                action: action,
+                order: order,
+              },
+              success: function( result ) {
+                layer.msg('执行完成 result:'+ JSON.stringify(result));
+              }
+            });
+        layer.close(index);
+
+    });
+}
+
+function cancel(order){
+    trade('cancel', order);
+}
+
+
 function reloadData(){
     $.ajax({
       url: "/options/owner/get",
@@ -28,7 +56,7 @@ function reloadData(){
 
         var convertedData = orderList.map(item => {
                     return {
-                        "itemObj": item,
+                        "order": JSON.stringify(item),
                         "id": item.id,
                         "strategyId": item.strategyId,
                         "platformOrderId": item.platformOrderId,
@@ -63,6 +91,7 @@ function reloadData(){
                       {field: 'strikeTime', title: '行权时间', width: 160},
                       {field: 'platform', title: '平台', width: 80},
                       {field: 'status', title: '状态', width: 80},
+                      {field: 'order', title: '操作', width: 200, templet: '<div><a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="sell">Cancel</a></div>'},
                     ]],
                     data: convertedData,
                     //skin: 'line',

@@ -13,7 +13,10 @@ import java.util.Map;
  */
 @Data
 public class OwnerOrder {
-
+    /**
+     * ID
+     */
+    private Integer id;
     /**
      * 策略的唯一标识符，表示该订单所属的策略
      */

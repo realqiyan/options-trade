@@ -1,4 +1,4 @@
-package me.dingtou.options.gateway.futu.executor.func;
+package me.dingtou.options.gateway.futu.executor.func.query;
 
 import com.alibaba.fastjson.JSON;
 import com.futu.openapi.pb.QotCommon;
@@ -6,6 +6,7 @@ import com.futu.openapi.pb.QotGetOptionExpirationDate;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
+import me.dingtou.options.gateway.futu.executor.func.QueryFunctionCall;
 import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.Security;
 
@@ -18,7 +19,7 @@ import java.util.List;
  * @author qiyan
  */
 @Slf4j
-public class FuncGetOptionExpirationDate implements FunctionCall<List<OptionsStrikeDate>> {
+public class FuncGetOptionExpirationDate implements QueryFunctionCall<List<OptionsStrikeDate>> {
 
     private final int market;
     private final String code;

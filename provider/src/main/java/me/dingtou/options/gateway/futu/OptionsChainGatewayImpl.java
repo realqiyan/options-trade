@@ -3,9 +3,9 @@ package me.dingtou.options.gateway.futu;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.OptionsChainGateway;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
-import me.dingtou.options.gateway.futu.executor.func.FuncGetOptionsRealtimeData;
-import me.dingtou.options.gateway.futu.executor.func.FuncGetOptionChain;
-import me.dingtou.options.gateway.futu.executor.func.FuncGetOptionExpirationDate;
+import me.dingtou.options.gateway.futu.executor.func.query.FuncGetOptionsRealtimeData;
+import me.dingtou.options.gateway.futu.executor.func.query.FuncGetOptionChain;
+import me.dingtou.options.gateway.futu.executor.func.query.FuncGetOptionExpirationDate;
 import me.dingtou.options.model.*;
 import org.springframework.stereotype.Component;
 

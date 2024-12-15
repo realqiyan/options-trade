@@ -7,7 +7,11 @@ package me.dingtou.options.constant;
  */
 public enum Status {
     /**
-     * 正常状态
+     * 完结状态
+     */
+    COMPLETE(2),
+    /**
+     * 持有状态
      */
     NORMAL(1),
     /**

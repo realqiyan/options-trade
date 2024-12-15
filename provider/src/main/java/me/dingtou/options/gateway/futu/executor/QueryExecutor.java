@@ -7,7 +7,7 @@ import com.futu.openapi.FTSPI_Qot;
 import com.futu.openapi.pb.*;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.gateway.futu.executor.func.FunctionCall;
+import me.dingtou.options.gateway.futu.executor.func.QueryFunctionCall;
 import me.dingtou.options.model.Security;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,9 +27,9 @@ public class QueryExecutor<R> extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI
 
     private final CompletableFuture<GeneratedMessageV3> future = new CompletableFuture<>();
 
-    private final FunctionCall<R> call;
+    private final QueryFunctionCall<R> call;
 
-    public QueryExecutor(FunctionCall<R> call) {
+    public QueryExecutor(QueryFunctionCall<R> call) {
         this.call = call;
     }
 
@@ -38,7 +38,7 @@ public class QueryExecutor<R> extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI
      *
      * @return futu api
      */
-    public static <R> R query(FunctionCall<R> call) {
+    public static <R> R query(QueryFunctionCall<R> call) {
         try (QueryExecutor<R> client = new QueryExecutor<>(call)) {
             client.setClientInfo("javaClient", 1);  //设置客户端信息
             client.setConnSpi(client);  //设置连接回调

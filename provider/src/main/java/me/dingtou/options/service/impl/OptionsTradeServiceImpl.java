@@ -1,5 +1,6 @@
 package me.dingtou.options.service.impl;
 
+import me.dingtou.options.constant.OrderAction;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
@@ -22,11 +23,23 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
     private OwnerManager ownerManager;
 
     @Override
-    public OwnerOrder trade(String strategyId, TradeSide side, Integer quantity, BigDecimal price, Options options) {
+    public OwnerOrder submit(String strategyId, TradeSide side, Integer quantity, BigDecimal price, Options options) {
         OwnerStrategy ownerStrategy = ownerManager.queryStrategy(strategyId);
         if (null == ownerStrategy) {
             throw new IllegalArgumentException("策略不存在 strategyId:" + strategyId);
         }
         return tradeManager.trade(ownerStrategy, side.getCode(), quantity, price, options);
+    }
+
+    @Override
+    public OwnerOrder modify(OwnerOrder order, OrderAction action) {
+        if (null == order || null == order.getPlatform() || null == order.getPlatform()) {
+            return null;
+        }
+        OwnerOrder oldOrder = ownerManager.queryOwnerOwner(order.getOwner(), order.getPlatform(), order.getPlatformOrderId());
+        if(OrderAction.CANCEL.equals(action)){
+            return tradeManager.cancel(oldOrder);
+        }
+        throw new IllegalArgumentException("不支持的操作");
     }
 }

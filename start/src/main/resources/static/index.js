@@ -145,7 +145,7 @@ function trade(side, options, orderBook){
             var price = util.escape(value);
             layer.msg('卖出价格:'+ price);
             $.ajax({
-              url: "/options/trade",
+              url: "/trade/submit",
               method: 'POST',
               data: {
                 owner: $("#owner").val(),
