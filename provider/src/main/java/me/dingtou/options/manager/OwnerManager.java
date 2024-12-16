@@ -75,6 +75,7 @@ public class OwnerManager {
                                 if (null == ownerOrder.getExt()) {
                                     ownerOrder.setExt(new HashMap<>());
                                 }
+                                ownerOrder.getExt().put("curPrice", curPrice.toString());
                                 ownerOrder.getExt().put("profitRatio", profitRatio.toString());
                             }
                         }
