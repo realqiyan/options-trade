@@ -17,6 +17,17 @@ public class OwnerOrder {
      * ID
      */
     private Integer id;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+    /**
+     * 修改时间
+     */
+    private Date updateTime;
+
     /**
      * 策略的唯一标识符，表示该订单所属的策略
      */

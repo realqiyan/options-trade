@@ -186,7 +186,7 @@ function reloadData(){
                       {field: 'platform', title: '平台', width: 80},
                       {field: 'statusStr', title: '状态', width: 100},
                       {field: 'curPrice', title: '现价', width: 80},
-                      {field: 'profitRatio', title: '盈亏', width: 80},
+                      {field: 'profitRatio', title: '盈亏', width: 100},
                       {field: 'order', title: '操作', width: 200, templet: '<div>'+
                       '{{# if(["-1","1","2","5"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="cancel">取消</a>{{#  } }}'+
                       '{{# if(["11"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition(\'{{= d.order}}\')" lay-event="closePosition">平仓</a>{{#  } }}'+

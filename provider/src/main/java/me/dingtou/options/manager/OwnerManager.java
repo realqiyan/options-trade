@@ -132,7 +132,9 @@ public class OwnerManager {
             }
             result.addAll(optionsTradeGateway.syncOrder(ownerStrategy, orderList));
         }
+        Date now = new Date();
         for (OwnerOrder ownerOrder : result) {
+            ownerOrder.setUpdateTime(now);
             ownerOrderDAO.updateById(ownerOrder);
         }
         return result;

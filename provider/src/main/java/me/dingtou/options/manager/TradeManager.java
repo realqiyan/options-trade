@@ -41,6 +41,7 @@ public class TradeManager {
         Security security = options.getBasic().getSecurity();
 
         // 创建并初始化订单对象
+        Date now = new Date();
         OwnerOrder ownerOrder = new OwnerOrder();
         ownerOrder.setStrategyId(ownerStrategy.getStrategyId());
         ownerOrder.setUnderlyingCode(ownerStrategy.getCode());
@@ -48,7 +49,7 @@ public class TradeManager {
         ownerOrder.setOwner(ownerStrategy.getOwner());
         ownerOrder.setMarket(security.getMarket());
         ownerOrder.setAccountId(ownerStrategy.getAccountId());
-        ownerOrder.setTradeTime(new Date());
+        ownerOrder.setTradeTime(now);
         SimpleDateFormat strikeTimeFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date strikeTime = null;
         try {
@@ -64,6 +65,8 @@ public class TradeManager {
         ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
 
         // 将订单信息插入数据库
+        ownerOrder.setCreateTime(now);
+        ownerOrder.setUpdateTime(now);
         ownerOrderDAO.insert(ownerOrder);
 
         // 通过交易网关执行交易操作
@@ -71,6 +74,7 @@ public class TradeManager {
         ownerOrder.setPlatformOrderId(platformOrderId);
         ownerOrder.setStatus(OrderStatus.SUBMITTED.getCode());
         // 更新数据库中的订单信息
+        ownerOrder.setUpdateTime(new Date());
         ownerOrderDAO.updateById(ownerOrder);
 
         // 返回执行后的订单对象
@@ -90,6 +94,7 @@ public class TradeManager {
     @Transactional(rollbackFor = Exception.class)
     public OwnerOrder close(OwnerStrategy ownerStrategy, int side, Integer quantity, BigDecimal price, OwnerOrder hisOrder) {
         // 创建并初始化订单对象
+        Date now = new Date();
         OwnerOrder ownerOrder = new OwnerOrder();
         ownerOrder.setStrategyId(ownerStrategy.getStrategyId());
         ownerOrder.setUnderlyingCode(ownerStrategy.getCode());
@@ -97,7 +102,7 @@ public class TradeManager {
         ownerOrder.setOwner(ownerStrategy.getOwner());
         ownerOrder.setAccountId(ownerStrategy.getAccountId());
         ownerOrder.setMarket(hisOrder.getMarket());
-        ownerOrder.setTradeTime(new Date());
+        ownerOrder.setTradeTime(now);
         ownerOrder.setStrikeTime(hisOrder.getStrikeTime());
         ownerOrder.setCode(hisOrder.getCode());
         ownerOrder.setQuantity(quantity);
@@ -106,6 +111,8 @@ public class TradeManager {
         ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
 
         // 将订单信息插入数据库
+        ownerOrder.setCreateTime(now);
+        ownerOrder.setUpdateTime(now);
         ownerOrderDAO.insert(ownerOrder);
 
         // 通过交易网关执行交易操作
@@ -113,6 +120,7 @@ public class TradeManager {
         ownerOrder.setPlatformOrderId(platformOrderId);
         ownerOrder.setStatus(OrderStatus.SUBMITTED.getCode());
         // 更新数据库中的订单信息
+        ownerOrder.setUpdateTime(new Date());
         ownerOrderDAO.updateById(ownerOrder);
         return ownerOrder;
     }
@@ -121,6 +129,7 @@ public class TradeManager {
     public OwnerOrder cancel(OwnerOrder dbOrder) {
         optionsTradeGateway.cancel(dbOrder);
         dbOrder.setStatus(OrderStatus.CANCELLED_ALL.getCode());
+        dbOrder.setUpdateTime(new Date());
         int update = ownerOrderDAO.updateById(dbOrder);
         if (update != 1) {
             throw new RuntimeException("cancel order error");
