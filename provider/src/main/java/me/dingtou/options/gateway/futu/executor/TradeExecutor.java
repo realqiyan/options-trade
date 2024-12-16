@@ -37,7 +37,7 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
      * @return futu api
      */
     public static <R> R submit(TradeFunctionCall<R> call) {
-        try (TradeExecutor<R> client = new TradeExecutor<R>(call)) {
+        try (TradeExecutor<R> client = new TradeExecutor<>(call)) {
             client.setClientInfo("javaClient", 1);  //设置客户端信息
             client.setConnSpi(client);  //设置连接回调
             client.setTrdSpi(client);//设置交易回调
@@ -63,7 +63,7 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
         log.warn("Qot onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
         if (call.needUnlock()) {
             TrdUnlockTrade.C2S c2s = TrdUnlockTrade.C2S.newBuilder()
-                    .setPwdMD5(PWD_MD5)
+                    .setPwdMD5(FU_TU_TRADE_PWD_MD5)
                     .setUnlock(true)
                     .setSecurityFirm(TrdCommon.SecurityFirm.SecurityFirm_FutuSecurities_VALUE)
                     .build();

@@ -17,11 +17,9 @@ https://open.longportapp.com/docs/getting-started#%E5%BC%80%E9%80%9A%E5%BC%80%E5
 ```
 
 3. 初始化工程密钥
-```
-开发模式:
-富途RSA密钥：start/src/main/resources/key/private.key
-富途交易密码md5：start/src/main/resources/key/trade.key
-```
+* 当前用户的home目录下创建`.options-trade`文件夹
+* 创建`config.properties`文件，内容参考`example.config.properties`
+* 创建`futu_rsa_private.key`文件，内容参考`example.futu_rsa_private.key`
 
 4. 初始化数据
 ```
