@@ -7,9 +7,8 @@ SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 
 SET NAMES utf8mb4;
 
-DROP DATABASE IF EXISTS `dev`;
-CREATE DATABASE `dev` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `dev`;
+CREATE DATABASE `options` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `options`;
 
 DROP TABLE IF EXISTS `owner_order`;
 CREATE TABLE `owner_order` (
@@ -36,14 +35,14 @@ CREATE TABLE `owner_order` (
 DROP TABLE IF EXISTS `owner_strategy`;
 CREATE TABLE `owner_strategy` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `strategy_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
-  `strategy_type` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
+  `strategy_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `strategy_type` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `current_stage` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `platform` varchar(16) COLLATE utf8mb4_general_ci NOT NULL,
-  `account_id` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `code` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
+  `platform` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `account_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `market` int NOT NULL,
-  `owner` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
+  `owner` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `ext` json NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -55,4 +54,4 @@ INSERT INTO `owner_strategy` (`id`, `strategy_id`, `strategy_type`, `current_sta
 (38,	'b3605b43f26345abbfa663abad867d38',	'wheel_strategy',	'sp',	'futu',	'123456',	'JD',	11,	'qiyan',	'{}'),
 (58,	'8a533bd8ce2e41bf93a4dec6347fdf49',	'wheel_strategy',	'cc',	'longport',	'',	'FXI',	11,	'qiyan',	'{}');
 
--- 2024-12-15 15:15:02
+-- 2024-12-16 16:20:26
