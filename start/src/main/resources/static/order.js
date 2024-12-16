@@ -159,8 +159,8 @@ function reloadData(){
                       {field: 'status', title: '状态', width: 80},
                       {field: 'profitRatio', title: '盈亏', width: 80},
                       {field: 'order', title: '操作', width: 200, templet: '<div>'+
-                      '<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="cancel">取消</a>'+
-                      '<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition(\'{{= d.order}}\')" lay-event="closePosition">平仓</a>'+
+                      '{{# if(["-1","1","2","5"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="cancel">取消</a>{{#  } }}'+
+                      '{{# if(["11"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition(\'{{= d.order}}\')" lay-event="closePosition">平仓</a>{{#  } }}'+
                       '</div>'},
                     ]],
                     data: convertedData,

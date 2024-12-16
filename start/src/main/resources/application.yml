@@ -1,3 +1,5 @@
+server:
+  port: 8888
 # 数据源配置
 spring:
   datasource:
