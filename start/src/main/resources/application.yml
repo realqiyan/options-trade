@@ -4,8 +4,8 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://10.0.12.220:3306/dev?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=CONVERT_TO_NULL&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=true
-    username: dev
+    url: jdbc:mysql://10.0.12.220:3306/options?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=CONVERT_TO_NULL&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=true
+    username: options
     password: Passw0rd
 
 

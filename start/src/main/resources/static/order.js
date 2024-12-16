@@ -106,6 +106,32 @@ function closePosition(order){
        });
 }
 
+function sideMapping(side){
+    const sideMap = {
+        '1': '买',
+        '2': '卖',
+    };
+    return sideMap[side] || '未知';
+}
+
+function statusMapping(status) {
+    const statusMap = {
+        '-1': '未知', // 未知状态
+        '1': '待提交', // 等待提交
+        '2': '提交中', // 提交中
+        '5': '已提交', // 已提交，等待成交
+        '10': '部分成交', // 部分成交
+        '11': '全部成交', // 全部已成
+        '14': '部分撤单', // 部分成交，剩余部分已撤单
+        '15': '已撤单', // 全部已撤单，无成交
+        '21': '下单失败', // 下单失败，服务拒绝
+        '22': '已失效', // 已失效
+        '23': '已删除', // 已删除，无成交的订单才能删除
+        '24': '成交撤销' // 成交被撤销
+    };
+    return statusMap[status] || '未知';
+}
+
 function reloadData(){
     $.ajax({
       url: "/options/owner/get",
@@ -127,7 +153,7 @@ function reloadData(){
                         "platformOrderId": item.platformOrderId,
                         "underlyingCode": item.underlyingCode,
                         "code": item.code,
-                        "side": item.side,
+                        "side": sideMapping(item.side),
                         "price": item.price,
                         "quantity": item.quantity,
                         "tradeTime": item.tradeTime,
@@ -135,6 +161,7 @@ function reloadData(){
                         "accountId": item.accountId,
                         "strikeTime": item.strikeTime,
                         "status": item.status,
+                        "statusStr": statusMapping(item.status+''),
                         "curPrice": item.ext ? item.ext.curPrice : null,
                         "profitRatio": item.ext ? item.ext.profitRatio + '%' : null,
                     };
@@ -157,7 +184,7 @@ function reloadData(){
                       {field: 'tradeTime', title: '交易时间', width: 160},
                       {field: 'strikeTime', title: '行权时间', width: 160},
                       {field: 'platform', title: '平台', width: 80},
-                      {field: 'status', title: '状态', width: 80},
+                      {field: 'statusStr', title: '状态', width: 100},
                       {field: 'curPrice', title: '现价', width: 80},
                       {field: 'profitRatio', title: '盈亏', width: 80},
                       {field: 'order', title: '操作', width: 200, templet: '<div>'+
