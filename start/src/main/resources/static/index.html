@@ -51,16 +51,25 @@
 </div>
 
 <script src="layui/layui.js"></script>
-<script type="text/html" id="id-table-put-volume">
-    {{# if(d.put) { }}
-    <span class="layui-badge-rim">交易量:{{= d.putVolume }}</span>
-    <span class="layui-badge-rim">未关仓量:{{= d.putOpenInterest }}</span>
+<script type="text/html" id="id-table-put-info">
+    {{# if(d.putObj) { }}
+    <span class="layui-badge-rim">Delta:{{= d.putObj.realtimeData.delta }}</span>
+    <span class="layui-badge-rim">Theta:{{= d.putObj.realtimeData.theta }}</span>
+    <span class="layui-badge-rim">Gamma:{{= d.putObj.realtimeData.gamma }}</span>
+    <br/>
+    <span class="layui-badge-rim">交易量:{{= d.putObj.realtimeData.volume }}</span>
+    <span class="layui-badge-rim">开仓量:{{= d.putObj.realtimeData.openInterest }}</span>
     {{# } }}
 </script>
-<script type="text/html" id="id-table-call-volume">
-    {{# if(d.call) { }}
-    <span class="layui-badge-rim">交易量:{{= d.callVolume }}</span>
-    <span class="layui-badge-rim">未关仓量:{{= d.callOpenInterest }}</span>
+
+<script type="text/html" id="id-table-call-info">
+    {{# if(d.callObj) { }}
+    <span class="layui-badge-rim">Delta:{{= d.callObj.realtimeData.delta }}</span>
+    <span class="layui-badge-rim">Theta:{{= d.callObj.realtimeData.theta }}</span>
+    <span class="layui-badge-rim">Gamma:{{= d.callObj.realtimeData.gamma }}</span>
+    <br/>
+    <span class="layui-badge-rim">交易量:{{= d.callObj.realtimeData.volume }}</span>
+    <span class="layui-badge-rim">开仓量:{{= d.callObj.realtimeData.openInterest }}</span>
     {{# } }}
 </script>
 <script src="index.js"></script>

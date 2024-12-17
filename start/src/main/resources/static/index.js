@@ -73,12 +73,6 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                 "strikePrice": item.call?item.call.optionExData.strikePrice:item.put.optionExData.strikePrice,
                 "call": item.call?JSON.stringify(item.call):null,
                 "put": item.put?JSON.stringify(item.put):null,
-                "putDelta": item.put && item.put.realtimeData?item.put.realtimeData.delta:'-',
-                "callDelta": item.call && item.call.realtimeData?item.call.realtimeData.delta:'-',
-                "putGamma": item.put && item.put.realtimeData?item.put.realtimeData.gamma:'-',
-                "callGamma": item.call && item.call.realtimeData?item.call.realtimeData.gamma:'-',
-                "putTheta": item.put && item.put.realtimeData?item.put.realtimeData.theta:'-',
-                "callTheta": item.call && item.call.realtimeData?item.call.realtimeData.theta:'-',
                 "putCurPrice": item.put && item.put.realtimeData?item.put.realtimeData.curPrice:'-',
                 "callCurPrice": item.call && item.call.realtimeData?item.call.realtimeData.curPrice:'-',
                 "putSellAnnualYield": item.put && item.put.strategyData?item.put.strategyData.sellAnnualYield + '%' : '-',
@@ -87,10 +81,6 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                 "callRange": item.call && item.call.strategyData?item.call.strategyData.range + '%' : '-',
                 "putSellRecommend": item.put && item.put.strategyData?item.put.strategyData.recommend : false,
                 "callSellRecommend": item.call && item.call.strategyData?item.call.strategyData.recommend : false,
-                "putOpenInterest": item.put && item.put.realtimeData?item.put.realtimeData.openInterest:null,
-                "callOpenInterest": item.call && item.call.realtimeData?item.call.realtimeData.openInterest:null,
-                "putVolume": item.put && item.put.realtimeData?item.put.realtimeData.volume:null,
-                "callVolume": item.call && item.call.realtimeData?item.call.realtimeData.volume:null,
             };
         });
 
@@ -99,11 +89,8 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
           var inst = table.render({
             elem: '#result',
             cols: [[
-              {field: 'callGamma', title: 'Gamma', width: 85},
-              {field: 'callTheta', title: 'Theta', width: 80},
-              {field: 'callDelta', title: 'Delta', width: 80},
               {field: 'callRange', title: '涨跌幅', width: 85},
-              {title: '成交量', width: 160, templet: '#id-table-call-volume'},
+              {title: '交易参考信息', width: 350, rowspan: 3, templet: '#id-table-call-info'},
               {field: 'callCurPrice', title: '价格', width: 85},
               {field: 'call', title: '卖', width: 20, templet: '{{#  if(d.call){ }}<div><a title="{{= d.callObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.call }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'callSellAnnualYield', title: '年化', width: 85},
@@ -111,15 +98,13 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
               {field: 'putSellAnnualYield', title: '年化', width: 85},
               {field: 'put', title: '卖', width: 20, templet: '{{#  if(d.put){ }}<div><a title="{{= d.putObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.put }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'putCurPrice', title: '价格', width: 85},
-              {title: '成交量', width: 160, templet: '#id-table-put-volume'},
-              {field: 'putRange', title: '涨跌幅', width: 85},
-              {field: 'putDelta', title: 'Delta', width: 80},
-              {field: 'putTheta', title: 'Theta', width: 80},
-              {field: 'putGamma', title: 'Gamma', width: 85},
+              {title: '交易参考信息', width: 350, templet: '#id-table-put-info'},
               {field: 'group', title: 'Group', width: 80},
             ]],
             data: convertedData,
             toolbar: true,
+            height: 'full-200',
+            lineStyle: 'height: 100%;',
             defaultToolbar: [
               'filter', // 列筛选
               'exports', // 导出
