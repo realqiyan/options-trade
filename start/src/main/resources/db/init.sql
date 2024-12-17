@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： 10.0.12.220
--- 生成日期： 2024-12-16 17:02:34
+-- 生成日期： 2024-12-17 17:50:34
 -- 服务器版本： 8.2.0
 -- PHP 版本： 8.2.26
 
@@ -59,6 +59,7 @@ CREATE TABLE `owner_strategy` (
   `id` int NOT NULL,
   `strategy_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `strategy_type` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `strategy_name` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
   `current_stage` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `platform` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `account_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -72,11 +73,12 @@ CREATE TABLE `owner_strategy` (
 -- 转存表中的数据 `owner_strategy`
 --
 
-INSERT INTO `owner_strategy` (`id`, `strategy_id`, `strategy_type`, `current_stage`, `platform`, `account_id`, `code`, `market`, `owner`, `ext`) VALUES
-(18, '86c312eccaff4fe1865cf0e79432ebe3', 'wheel_strategy', 'sp', 'futu', '123456', 'BABA', 11, 'qiyan', '{}'),
-(28, '024cc086a560460e90705f2ef87cac7d', 'wheel_strategy', 'cc', 'futu', '123456', 'KWEB', 11, 'qiyan', '{}'),
-(38, 'b3605b43f26345abbfa663abad867d38', 'wheel_strategy', 'sp', 'futu', '123456', 'JD', 11, 'qiyan', '{}'),
-(58, '8a533bd8ce2e41bf93a4dec6347fdf49', 'wheel_strategy', 'cc', 'longport', '', 'FXI', 11, 'qiyan', '{}');
+INSERT INTO `owner_strategy` (`id`, `strategy_id`, `strategy_type`, `strategy_name`, `current_stage`, `platform`, `account_id`, `code`, `market`, `owner`, `ext`) VALUES
+(18, '86c312eccaff4fe1865cf0e79432ebe3', 'wheel_strategy', 'BABA-富途Wheel', 'sp', 'futu', '123456', 'BABA', 11, 'qiyan', '{}'),
+(19, '30132f0ae0fc4a07a49cae550a08cae9', 'wheel_strategy', 'BABA-富途CC', 'cc', 'futu', '123456', 'BABA', 11, 'qiyan', '{}'),
+(28, '024cc086a560460e90705f2ef87cac7d', 'wheel_strategy', 'KWEB-富途CC', 'cc', 'futu', '123456', 'KWEB', 11, 'qiyan', '{}'),
+(38, 'b3605b43f26345abbfa663abad867d38', 'wheel_strategy', 'JD-富途Wheel', 'sp', 'futu', '123456', 'JD', 11, 'qiyan', '{}'),
+(58, '8a533bd8ce2e41bf93a4dec6347fdf49', 'wheel_strategy', 'FXI-长桥Wheel', 'cc', 'longport', '', 'FXI', 11, 'qiyan', '{}');
 
 --
 -- 转储表的索引
