@@ -51,6 +51,18 @@
 </div>
 
 <script src="layui/layui.js"></script>
+<script type="text/html" id="id-table-put-volume">
+    {{# if(d.put) { }}
+    <span class="layui-badge-rim">交易量:{{= d.putVolume }}</span>
+    <span class="layui-badge-rim">未关仓量:{{= d.putOpenInterest }}</span>
+    {{# } }}
+</script>
+<script type="text/html" id="id-table-call-volume">
+    {{# if(d.call) { }}
+    <span class="layui-badge-rim">交易量:{{= d.callVolume }}</span>
+    <span class="layui-badge-rim">未关仓量:{{= d.callOpenInterest }}</span>
+    {{# } }}
+</script>
 <script src="index.js"></script>
 </body>
 </html>

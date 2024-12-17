@@ -83,10 +83,14 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                 "callCurPrice": item.call && item.call.realtimeData?item.call.realtimeData.curPrice:'-',
                 "putSellAnnualYield": item.put && item.put.strategyData?item.put.strategyData.sellAnnualYield + '%' : '-',
                 "callSellAnnualYield": item.call && item.call.strategyData?item.call.strategyData.sellAnnualYield + '%' : '-',
-                "putSellRecommend": item.put && item.put.strategyData?item.put.strategyData.recommend : false,
-                "callSellRecommend": item.call && item.call.strategyData?item.call.strategyData.recommend : false,
                 "putRange": item.put && item.put.strategyData?item.put.strategyData.range + '%' : '-',
                 "callRange": item.call && item.call.strategyData?item.call.strategyData.range + '%' : '-',
+                "putSellRecommend": item.put && item.put.strategyData?item.put.strategyData.recommend : false,
+                "callSellRecommend": item.call && item.call.strategyData?item.call.strategyData.recommend : false,
+                "putOpenInterest": item.put && item.put.realtimeData?item.put.realtimeData.openInterest:null,
+                "callOpenInterest": item.call && item.call.realtimeData?item.call.realtimeData.openInterest:null,
+                "putVolume": item.put && item.put.realtimeData?item.put.realtimeData.volume:null,
+                "callVolume": item.call && item.call.realtimeData?item.call.realtimeData.volume:null,
             };
         });
 
@@ -98,21 +102,29 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
               {field: 'callGamma', title: 'Gamma', width: 85},
               {field: 'callTheta', title: 'Theta', width: 80},
               {field: 'callDelta', title: 'Delta', width: 80},
-              {field: 'callCurPrice', title: '价格', width: 85},
               {field: 'callRange', title: '涨跌幅', width: 85},
+              {title: '成交量', width: 160, templet: '#id-table-call-volume'},
+              {field: 'callCurPrice', title: '价格', width: 85},
               {field: 'call', title: '卖', width: 20, templet: '{{#  if(d.call){ }}<div><a title="{{= d.callObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.call }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'callSellAnnualYield', title: '年化', width: 85},
               {field: 'strikePrice', title: '行权价', width: 90, sort: true},
               {field: 'putSellAnnualYield', title: '年化', width: 85},
               {field: 'put', title: '卖', width: 20, templet: '{{#  if(d.put){ }}<div><a title="{{= d.putObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.put }})" lay-event="sell">卖</a></div>{{#  } }}'},
-              {field: 'putRange', title: '涨跌幅', width: 85},
               {field: 'putCurPrice', title: '价格', width: 85},
+              {title: '成交量', width: 160, templet: '#id-table-put-volume'},
+              {field: 'putRange', title: '涨跌幅', width: 85},
               {field: 'putDelta', title: 'Delta', width: 80},
               {field: 'putTheta', title: 'Theta', width: 80},
               {field: 'putGamma', title: 'Gamma', width: 85},
               {field: 'group', title: 'Group', width: 80},
             ]],
             data: convertedData,
+            toolbar: true,
+            defaultToolbar: [
+              'filter', // 列筛选
+              'exports', // 导出
+              'print' // 打印
+            ],
             //skin: 'line',
             //even: true,
             initSort: {
@@ -193,7 +205,7 @@ function reloadData(){
         for(var i=0; i<result.strategyList.length; i++) {
             var obj = result.strategyList[i];
             //<dd><a href="javascript:;">loading...</a></dd>
-            output.innerHTML += '<dd onclick="loadOptionsExpDate(\''+obj.strategyId+'\',\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.code+'('+obj.platform+')</a></dd>'
+            output.innerHTML += '<dd onclick="loadOptionsExpDate(\''+obj.strategyId+'\',\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.strategyName+'</a></dd>'
         }
         render();
       }

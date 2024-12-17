@@ -49,5 +49,9 @@ public class OptionsRealtimeData {
     private BigDecimal premium;
     //当前价格
     private BigDecimal curPrice;
+    //未平仓数量
+    private Integer openInterest;
+    //成交量
+    private Long volume;
 
 }

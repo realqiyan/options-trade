@@ -86,6 +86,8 @@ public class FuncGetOptionsRealtimeData implements QueryFunctionCall<List<Option
         data.setPremium(premium.setScale(newScale, RoundingMode.HALF_UP));
         BigDecimal curPrice = new BigDecimal(String.valueOf(basicQot.getCurPrice()));
         data.setCurPrice(curPrice.setScale(newScale, RoundingMode.HALF_UP));
+        data.setOpenInterest(optionExData.getOpenInterest());
+        data.setVolume(basicQot.getVolume());
         return data;
     }
 }

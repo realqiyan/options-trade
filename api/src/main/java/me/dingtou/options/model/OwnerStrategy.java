@@ -29,6 +29,10 @@ public class OwnerStrategy {
      * 策略的唯一标识符，用于区分不同的策略
      */
     private String strategyId;
+    /**
+     * 策略的名称，用于在用户界面中显示
+     */
+    private String strategyName;
 
     /**
      * 策略的类型，描述策略的种类或分类
