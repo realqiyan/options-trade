@@ -1,5 +1,7 @@
 package me.dingtou.options.model;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -101,6 +103,7 @@ public class OwnerOrder {
     /**
      * 扩展信息的集合，允许在订单中存储额外的自定义键值对，默认为NULL
      */
+    @TableField(typeHandler = JacksonTypeHandler.class)
     private Map<String, String> ext;
 
 }

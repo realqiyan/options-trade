@@ -13,15 +13,20 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
 
+    private static final boolean DEBUG = false;
 
     @Override
     public String trade(OwnerOrder order) {
+        if (DEBUG) {
+            return UUID.randomUUID().toString().replaceAll("-", "");
+        }
         if (Platform.FUTU.getCode().equals(order.getPlatform())) {
             return TradeExecutor.submit(new FuncPlaceOrder(order));
         }
@@ -30,6 +35,9 @@ public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
 
     @Override
     public OwnerOrder cancel(OwnerOrder order) {
+        if (DEBUG) {
+            return order;
+        }
         if (Platform.FUTU.getCode().equals(order.getPlatform())) {
             return TradeExecutor.submit(new FuncCancelOrder(order));
         }
@@ -38,6 +46,9 @@ public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
 
     @Override
     public List<OwnerOrder> syncOrder(OwnerStrategy strategy, List<OwnerOrder> orderList) {
+        if (DEBUG) {
+            return orderList;
+        }
         List<OwnerOrder> ownerOrderList = orderList.stream()
                 .filter(order -> Platform.FUTU.getCode().equals(order.getPlatform()))
                 .filter(order -> strategy.getStrategyId().equals(order.getStrategyId()))

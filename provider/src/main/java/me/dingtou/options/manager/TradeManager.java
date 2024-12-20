@@ -1,5 +1,6 @@
 package me.dingtou.options.manager;
 
+import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.dao.OwnerOrderDAO;
 import me.dingtou.options.gateway.OptionsTradeGateway;
@@ -15,6 +16,8 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class TradeManager {
@@ -63,6 +66,9 @@ public class TradeManager {
         ownerOrder.setPrice(price);
         ownerOrder.setSide(side);
         ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
+        Map<String, String> ext = new HashMap<>();
+        ext.put(OrderExt.SOURCE_OPTIONS.getCode(), OrderExt.SOURCE_OPTIONS.toString(options));
+        ownerOrder.setExt(ext);
 
         // 将订单信息插入数据库
         ownerOrder.setCreateTime(now);
@@ -109,6 +115,9 @@ public class TradeManager {
         ownerOrder.setPrice(price);
         ownerOrder.setSide(side);
         ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
+        Map<String, String> ext = new HashMap<>();
+        ext.put(OrderExt.SOURCE_ORDER.getCode(), OrderExt.SOURCE_ORDER.toString(hisOrder));
+        ownerOrder.setExt(ext);
 
         // 将订单信息插入数据库
         ownerOrder.setCreateTime(now);

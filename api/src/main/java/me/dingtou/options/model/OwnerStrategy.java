@@ -1,5 +1,7 @@
 package me.dingtou.options.model;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
 import java.util.Map;
@@ -62,5 +64,6 @@ public class OwnerStrategy {
     /**
      * 扩展信息的集合，允许在策略中存储额外的自定义键值对
      */
+    @TableField(typeHandler = JacksonTypeHandler.class)
     private Map<String, String> ext;
 }
