@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -37,14 +38,9 @@ public class OwnerStrategy {
     private String strategyName;
 
     /**
-     * 策略的类型，描述策略的种类或分类
+     * 策略的开始时间，用于记录策略的创建或启用时间
      */
-    private String strategyType;
-    
-    /**
-     * 当前阶段
-     */
-    private String currentStage;
+    private Date startTime;
 
     /**
      * 账户的标识符，表示策略关联的账户或用户
@@ -57,9 +53,19 @@ public class OwnerStrategy {
     private String code;
 
     /**
+     * 每手数量
+     */
+    private Integer lotSize;
+
+    /**
      * 市场的标识符，表示策略适用的市场或地区
      */
     private Integer market;
+
+    /**
+     * 策略的状态，用于表示策略的当前运行状态或状态
+     */
+    private Integer status;
 
     /**
      * 扩展信息的集合，允许在策略中存储额外的自定义键值对

@@ -1,8 +1,11 @@
 package me.dingtou.options.manager;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
+import me.dingtou.options.constant.TradeFrom;
 import me.dingtou.options.dao.OwnerOrderDAO;
+import me.dingtou.options.dao.OwnerStrategyDAO;
 import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OwnerOrder;
@@ -15,9 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class TradeManager {
@@ -27,6 +29,9 @@ public class TradeManager {
 
     @Autowired
     private OptionsTradeGateway optionsTradeGateway;
+
+    @Autowired
+    private OwnerStrategyDAO ownerStrategyDAO;
 
     /**
      * 执行交易操作
@@ -66,6 +71,7 @@ public class TradeManager {
         ownerOrder.setPrice(price);
         ownerOrder.setSide(side);
         ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
+        ownerOrder.setTradeFrom(TradeFrom.SYS_CREATE.getCode());
         Map<String, String> ext = new HashMap<>();
         ext.put(OrderExt.SOURCE_OPTIONS.getCode(), OrderExt.SOURCE_OPTIONS.toString(options));
         ownerOrder.setExt(ext);
@@ -115,6 +121,7 @@ public class TradeManager {
         ownerOrder.setPrice(price);
         ownerOrder.setSide(side);
         ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
+        ownerOrder.setTradeFrom(TradeFrom.SYS_CLOSE.getCode());
         Map<String, String> ext = new HashMap<>();
         ext.put(OrderExt.SOURCE_ORDER.getCode(), OrderExt.SOURCE_ORDER.toString(hisOrder));
         ownerOrder.setExt(ext);
@@ -144,6 +151,104 @@ public class TradeManager {
             throw new RuntimeException("cancel order error");
         }
         return dbOrder;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public List<OwnerOrder> syncOrder(OwnerStrategy strategy) {
+        Date now = new Date();
+        QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
+        queryOrder.eq("owner", strategy.getOwner());
+        queryOrder.eq("strategy_id", strategy.getStrategyId());
+        List<OwnerOrder> ownerOrderList = ownerOrderDAO.selectList(queryOrder);
+
+        // 拉取平台订单列表1:1
+        List<OwnerOrder> platformOrders = optionsTradeGateway.pullOrder(strategy);
+        Map<String, List<OwnerOrder>> orderMap = platformOrders.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
+
+        // 拉取平台成交单列表1:n
+        List<OwnerOrder> platformOrderFills = optionsTradeGateway.pullOrderFill(strategy);
+        Map<String, List<OwnerOrder>> orderFillMap = platformOrderFills.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
+
+        // 更新本地订单
+        for (OwnerOrder ownerOrder : ownerOrderList) {
+            String platformOrderId = ownerOrder.getPlatformOrderId();
+            List<OwnerOrder> ownerOrders = orderMap.get(platformOrderId);
+            if (null != ownerOrders) {
+                if (ownerOrders.size() != 1) {
+                    throw new IllegalArgumentException("平台订单不存在或重复 orderId:" + platformOrderId);
+                }
+                OwnerOrder platformOrder = ownerOrders.get(0);
+                ownerOrder.setStatus(platformOrder.getStatus());
+                ownerOrder.setTradeTime(platformOrder.getTradeTime());
+                ownerOrder.setStrikeTime(platformOrder.getStrikeTime());
+                orderMap.remove(platformOrderId);
+            }
+
+            List<OwnerOrder> ownerOrderFills = orderFillMap.get(platformOrderId);
+            if (null != ownerOrderFills && !ownerOrderFills.isEmpty()) {
+                if (ownerOrderFills.size() == 1) {
+                    OwnerOrder ownerOrderFill = ownerOrderFills.get(0);
+                    ownerOrder.setTradeTime(ownerOrderFill.getTradeTime());
+                    ownerOrder.setStrikeTime(ownerOrderFill.getStrikeTime());
+                    ownerOrder.setPlatformFillId(ownerOrderFill.getPlatformFillId());
+                } else {
+                    Optional<OwnerOrder> ownerOrderOptional = ownerOrderFills.stream()
+                            .filter(order -> order.getPlatformFillId().equals(ownerOrder.getPlatformFillId()))
+                            .findAny();
+                    if (ownerOrderOptional.isPresent()) {
+                        ownerOrder.setTradeTime(ownerOrderOptional.get().getTradeTime());
+                        ownerOrder.setStrikeTime(ownerOrderOptional.get().getStrikeTime());
+                        ownerOrder.setPlatformFillId(ownerOrderOptional.get().getPlatformFillId());
+                    }
+                }
+                orderFillMap.remove(platformOrderId);
+            }
+        }
+
+        for (OwnerOrder ownerOrder : ownerOrderList) {
+            ownerOrder.setUpdateTime(now);
+            ownerOrderDAO.updateById(ownerOrder);
+        }
+
+        List<OwnerOrder> platformNewOrders = orderMap.values().stream().flatMap(Collection::stream).toList();
+        for (OwnerOrder platformNewOrder : platformNewOrders) {
+            String platformOrderId = platformNewOrder.getPlatformOrderId();
+            List<OwnerOrder> ownerOrderFills = orderFillMap.get(platformOrderId);
+            if (null != ownerOrderFills) {
+                if (ownerOrderFills.size() == 1) {
+                    OwnerOrder ownerOrderFill = ownerOrderFills.get(0);
+                    platformNewOrder.setPlatformFillId(ownerOrderFill.getPlatformFillId());
+                }
+                orderFillMap.remove(platformOrderId);
+            }
+        }
+
+        List<OwnerOrder> platformNewOrderFills = orderFillMap.values().stream().flatMap(Collection::stream).toList();
+
+
+        List<OwnerOrder> newOrders = new ArrayList<>();
+        newOrders.addAll(platformNewOrders);
+        newOrders.addAll(platformNewOrderFills);
+        for (OwnerOrder ownerOrder : newOrders) {
+            ownerOrderDAO.insert(ownerOrder);
+        }
+        List<OwnerOrder> allOrders = new ArrayList<>();
+        allOrders.addAll(ownerOrderList);
+        allOrders.addAll(newOrders);
+        return allOrders;
+
+    }
+
+
+    public OwnerStrategy queryStrategy(String ownerStrategyId) {
+        QueryWrapper<OwnerStrategy> querySecurity = new QueryWrapper<>();
+        querySecurity.eq("strategy_id", ownerStrategyId);
+        List<OwnerStrategy> ownerStrategyList = ownerStrategyDAO.selectList(querySecurity);
+        if (null == ownerStrategyList || ownerStrategyList.size() != 1) {
+            return null;
+        }
+        return ownerStrategyList.get(0);
+
     }
 
 

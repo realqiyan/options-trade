@@ -1,10 +1,13 @@
 package me.dingtou.options.constant;
 
+import lombok.Getter;
+
 /**
  * 状态
  *
  * @author qiyan
  */
+@Getter
 public enum OrderStatus {
 
 
@@ -38,7 +41,4 @@ public enum OrderStatus {
         throw new IllegalArgumentException(code + " not found.");
     }
 
-    public Integer getCode() {
-        return code;
-    }
-    }
+}

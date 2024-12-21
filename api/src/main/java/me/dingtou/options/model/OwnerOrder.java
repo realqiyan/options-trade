@@ -81,6 +81,11 @@ public class OwnerOrder {
     private Integer quantity;
 
     /**
+     * 订单来源
+     */
+    private String tradeFrom;
+
+    /**
      * 状态，表示订单的状态
      */
     private Integer status;
@@ -94,6 +99,11 @@ public class OwnerOrder {
      * 平台订单ID，表示订单在平台上的唯一标识符，默认为NULL
      */
     private String platformOrderId;
+
+    /**
+     * 平台的成交ID，表示订单在平台上成交的唯一标识符，默认为NULL
+     */
+    private String platformFillId;
 
     /**
      * 平台的标识符，表示订单所属的平台或系统，默认为NULL

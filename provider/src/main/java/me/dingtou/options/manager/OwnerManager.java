@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -34,15 +33,8 @@ public class OwnerManager {
     public Owner queryOwner(String owner) {
         Owner ownerObj = new Owner();
         ownerObj.setOwner(owner);
-        QueryWrapper<OwnerStrategy> querySecurity = new QueryWrapper<>();
-        querySecurity.eq("owner", owner);
-        List<OwnerStrategy> ownerStrategyList = ownerStrategyDAO.selectList(querySecurity);
-        if (null != ownerStrategyList && !ownerStrategyList.isEmpty()) {
-            ownerObj.setStrategyList(ownerStrategyList);
-        }
-        QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
-        queryOrder.eq("owner", owner);
-        List<OwnerOrder> ownerOrderList = ownerOrderDAO.selectList(queryOrder);
+        ownerObj.setStrategyList(queryOwnerStrategy(owner));
+        List<OwnerOrder> ownerOrderList = queryOwnerOrder(owner);
         if (null != ownerOrderList && !ownerOrderList.isEmpty()) {
             ownerObj.setOrderList(ownerOrderList);
 
@@ -88,15 +80,16 @@ public class OwnerManager {
     }
 
 
-    public OwnerStrategy queryStrategy(String ownerStrategyId) {
+    public List<OwnerStrategy> queryOwnerStrategy(String owner) {
         QueryWrapper<OwnerStrategy> querySecurity = new QueryWrapper<>();
-        querySecurity.eq("strategy_id", ownerStrategyId);
-        List<OwnerStrategy> ownerStrategyList = ownerStrategyDAO.selectList(querySecurity);
-        if (null == ownerStrategyList || ownerStrategyList.size() != 1) {
-            return null;
-        }
-        return ownerStrategyList.get(0);
+        querySecurity.eq("owner", owner);
+        return ownerStrategyDAO.selectList(querySecurity);
+    }
 
+    public List<OwnerOrder> queryOwnerOrder(String owner) {
+        QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
+        queryOrder.eq("owner", owner);
+        return ownerOrderDAO.selectList(queryOrder);
     }
 
     public OwnerOrder queryOwnerOrder(String owner, String platform, String platformOrderId) {
@@ -111,33 +104,10 @@ public class OwnerManager {
         throw new RuntimeException("query owner order error");
     }
 
-    public List<OwnerOrder> syncOrder(String owner) {
+    public List<OwnerOrder> queryOwnerOrder(String owner, String strategyId) {
         QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
         queryOrder.eq("owner", owner);
-        // queryOrder.notIn("status", OrderStatus.FILL_CANCELLED.getCode(), OrderStatus.DELETED.getCode(), OrderStatus.DISABLED.getCode(), OrderStatus.FAILED.getCode(), OrderStatus.CANCELLED_ALL.getCode());
-        List<OwnerOrder> ownerOrderList = ownerOrderDAO.selectList(queryOrder);
-        if (null == ownerOrderList || ownerOrderList.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<OwnerOrder> result = new ArrayList<>();
-
-        Map<String, List<OwnerOrder>> strategyIdOrderList = ownerOrderList.stream().collect(Collectors.groupingBy(OwnerOrder::getStrategyId));
-
-        for (String strategyId : strategyIdOrderList.keySet()) {
-            List<OwnerOrder> orderList = strategyIdOrderList.get(strategyId);
-            OwnerStrategy ownerStrategy = queryStrategy(strategyId);
-            if (null == ownerStrategy) {
-                continue;
-            }
-            result.addAll(optionsTradeGateway.syncOrder(ownerStrategy, orderList));
-        }
-        Date now = new Date();
-        for (OwnerOrder ownerOrder : result) {
-            ownerOrder.setUpdateTime(now);
-            ownerOrderDAO.updateById(ownerOrder);
-        }
-        return result;
-
+        queryOrder.eq("strategy_id", strategyId);
+        return ownerOrderDAO.selectList(queryOrder);
     }
 }

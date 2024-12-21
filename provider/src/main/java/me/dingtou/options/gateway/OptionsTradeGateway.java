@@ -31,9 +31,16 @@ public interface OptionsTradeGateway {
     /**
      * 同步订单
      *
-     * @param strategy  策略
-     * @param orderList 订单列表
+     * @param strategy 策略
      * @return 订单列表
      */
-    List<OwnerOrder> syncOrder(OwnerStrategy strategy, List<OwnerOrder> orderList);
+    List<OwnerOrder> pullOrder(OwnerStrategy strategy);
+
+    /**
+     * 拉取成交单
+     *
+     * @param ownerStrategy 策略
+     * @return 订单列表
+     */
+    List<OwnerOrder> pullOrderFill(OwnerStrategy ownerStrategy);
 }

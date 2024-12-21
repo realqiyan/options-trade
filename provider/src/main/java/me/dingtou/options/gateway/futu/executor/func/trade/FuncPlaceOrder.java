@@ -9,6 +9,8 @@ import me.dingtou.options.gateway.futu.executor.TradeExecutor;
 import me.dingtou.options.gateway.futu.executor.func.TradeFunctionCall;
 import me.dingtou.options.model.OwnerOrder;
 
+import java.util.UUID;
+
 @Slf4j
 public class FuncPlaceOrder implements TradeFunctionCall<String> {
 
@@ -16,6 +18,11 @@ public class FuncPlaceOrder implements TradeFunctionCall<String> {
 
     public FuncPlaceOrder(OwnerOrder ownerOrder) {
         this.ownerOrder = ownerOrder;
+    }
+
+    @Override
+    public String unlockResult() {
+        return UUID.randomUUID().toString().replaceAll("-", "");
     }
 
     @Override
@@ -47,6 +54,7 @@ public class FuncPlaceOrder implements TradeFunctionCall<String> {
                 .setCode(ownerOrder.getCode())
                 .setQty(ownerOrder.getQuantity())
                 .setPrice(ownerOrder.getPrice().doubleValue())
+                .setTimeInForce(TrdCommon.TimeInForce.TimeInForce_GTC_VALUE)
                 .build();
         TrdPlaceOrder.Request req = TrdPlaceOrder.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.placeOrder(req);

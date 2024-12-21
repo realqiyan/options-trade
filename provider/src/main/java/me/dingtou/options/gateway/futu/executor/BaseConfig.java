@@ -48,8 +48,8 @@ public class BaseConfig {
                 String apiPort = properties.getProperty("futu.api.port");
                 String apiUnlockPasswordMd5 = properties.getProperty("futu.api.unlock");
 
-                if (apiIp == null || apiPort == null || apiUnlockPasswordMd5 == null) {
-                    throw new RuntimeException(configFile + " futu.api.ip or futu.api.port or futu.api.unlock is null");
+                if (apiIp == null || apiPort == null) {
+                    throw new RuntimeException(configFile + " futu.api.ip or futu.api.port is null");
                 }
 
                 FU_TU_API_IP = apiIp;

@@ -90,5 +90,4 @@ public class TradeController {
         return optionsTradeService.sync(loginOwner);
     }
 
-
 }

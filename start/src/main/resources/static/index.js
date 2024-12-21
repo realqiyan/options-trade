@@ -171,7 +171,7 @@ function sell(options){
            time: new Date().getTime()
          },
          success: function( result ) {
-            trade(2,options,result);
+            trade(3,options,result);
          }
        });
 }

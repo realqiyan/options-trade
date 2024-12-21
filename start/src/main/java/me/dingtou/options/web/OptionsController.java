@@ -33,6 +33,12 @@ public class OptionsController {
         return optionsQueryService.queryOwner(owner);
     }
 
+    @RequestMapping(value = "/options/order/list", method = RequestMethod.GET)
+    public List<OwnerOrder> queryOwnerOrder(@RequestParam(value = "strategyId", required = true) String strategyId) throws Exception {
+        String owner = SessionUtils.getCurrentOwner();
+        return optionsQueryService.queryStrategyOrder(owner, strategyId);
+    }
+
     @RequestMapping(value = "/options/strike/list", method = RequestMethod.GET)
     public List<OptionsStrikeDate> listOptionsExpDate(Security security) throws Exception {
         log.info("listOptionsExpDate. security:{}", security);

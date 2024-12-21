@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,7 +26,7 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
 
     @Override
     public OwnerOrder submit(String strategyId, TradeSide side, Integer quantity, BigDecimal price, Options options) {
-        OwnerStrategy ownerStrategy = ownerManager.queryStrategy(strategyId);
+        OwnerStrategy ownerStrategy = tradeManager.queryStrategy(strategyId);
         if (null == ownerStrategy) {
             throw new IllegalArgumentException("策略不存在 strategyId:" + strategyId);
         }
@@ -34,7 +35,7 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
 
     @Override
     public OwnerOrder close(String strategyId, TradeSide side, Integer quantity, BigDecimal price, OwnerOrder order) {
-        OwnerStrategy ownerStrategy = ownerManager.queryStrategy(strategyId);
+        OwnerStrategy ownerStrategy = tradeManager.queryStrategy(strategyId);
         if (null == ownerStrategy) {
             throw new IllegalArgumentException("策略不存在 strategyId:" + strategyId);
         }
@@ -44,11 +45,11 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
 
     @Override
     public OwnerOrder modify(OwnerOrder order, OrderAction action) {
-        if (null == order || null == order.getPlatform() || null == order.getPlatform()) {
+        if (null == order || null == order.getPlatform()) {
             return null;
         }
         OwnerOrder oldOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatform(), order.getPlatformOrderId());
-        if(OrderAction.CANCEL.equals(action)){
+        if (OrderAction.CANCEL.equals(action)) {
             return tradeManager.cancel(oldOrder);
         }
         throw new IllegalArgumentException("不支持的操作");
@@ -56,6 +57,12 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
 
     @Override
     public List<OwnerOrder> sync(String owner) {
-        return ownerManager.syncOrder(owner);
+        List<OwnerOrder> orders = new ArrayList<>();
+        List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
+        for (OwnerStrategy ownerStrategy : ownerStrategies) {
+            orders.addAll(tradeManager.syncOrder(ownerStrategy));
+        }
+        return orders;
     }
+
 }

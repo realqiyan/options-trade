@@ -8,7 +8,9 @@ import me.dingtou.options.strategy.OptionsStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OptionsQueryServiceImpl implements OptionsQueryService {
@@ -31,6 +33,19 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     @Override
     public List<OptionsStrikeDate> queryOptionsExpDate(Security security) {
         return optionsManager.queryOptionsExpDate(security.getCode(), security.getMarket());
+    }
+
+    @Override
+    public List<OwnerOrder> queryStrategyOrder(String owner, String strategyId) {
+        List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
+        Optional<OwnerStrategy> strategyOptional = ownerStrategies.stream().filter(ownerStrategy -> ownerStrategy.getStrategyId().equals(strategyId)).findAny();
+        if (strategyOptional.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        OwnerStrategy ownerStrategy = strategyOptional.get();
+        return ownerManager.queryOwnerOrder(ownerStrategy.getOwner(), ownerStrategy.getStrategyId());
+
     }
 
     @Override

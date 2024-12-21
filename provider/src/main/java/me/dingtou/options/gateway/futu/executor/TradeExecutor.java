@@ -61,6 +61,10 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
         log.warn("Qot onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
+        if (StringUtils.isBlank(FU_TU_TRADE_PWD_MD5) && call.needUnlock()) {
+            log.warn("TradeExecutor needUnlock but FU_TU_TRADE_PWD_MD5 is empty");
+            return;
+        }
         if (call.needUnlock()) {
             TrdUnlockTrade.C2S c2s = TrdUnlockTrade.C2S.newBuilder()
                     .setPwdMD5(FU_TU_TRADE_PWD_MD5)
@@ -114,6 +118,11 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
 
     @Override
     public void onReply_GetHistoryOrderList(FTAPI_Conn client, int nSerialNo, TrdGetHistoryOrderList.Response rsp) {
+        handleQotOnReply(rsp);
+    }
+
+    @Override
+    public void onReply_GetHistoryOrderFillList(FTAPI_Conn client, int nSerialNo, TrdGetHistoryOrderFillList.Response rsp) {
         handleQotOnReply(rsp);
     }
 

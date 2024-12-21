@@ -29,6 +29,16 @@ public interface OptionsQueryService {
 
 
     /**
+     * 查询策略下的订单列表
+     *
+     * @param owner      策略所有者
+     * @param strategyId 策略ID
+     * @return 订单列表
+     */
+    List<OwnerOrder> queryStrategyOrder(String owner, String strategyId);
+
+
+    /**
      * 查询市场实时盘口
      *
      * @param security 证券
@@ -44,4 +54,5 @@ public interface OptionsQueryService {
      * @return 期权链
      */
     OptionsChain queryOptionsChain(Security security, OptionsStrikeDate optionsStrikeDate);
+
 }
