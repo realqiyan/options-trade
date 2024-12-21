@@ -100,7 +100,7 @@ function closePosition(order){
            time: new Date().getTime()
          },
          success: function( result ) {
-            tradeClose(4, orderObj, result);
+            tradeClose(1, orderObj, result);
          }
        });
 }
