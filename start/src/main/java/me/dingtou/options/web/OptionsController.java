@@ -33,10 +33,10 @@ public class OptionsController {
         return optionsQueryService.queryOwner(owner);
     }
 
-    @RequestMapping(value = "/options/order/list", method = RequestMethod.GET)
-    public List<OwnerOrder> queryOwnerOrder(@RequestParam(value = "strategyId", required = true) String strategyId) throws Exception {
+    @RequestMapping(value = "/options/strategy/get", method = RequestMethod.GET)
+    public StrategySummary queryStrategySummary(@RequestParam(value = "strategyId", required = true) String strategyId) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
-        return optionsQueryService.queryStrategyOrder(owner, strategyId);
+        return optionsQueryService.queryStrategySummary(owner, strategyId);
     }
 
     @RequestMapping(value = "/options/strike/list", method = RequestMethod.GET)

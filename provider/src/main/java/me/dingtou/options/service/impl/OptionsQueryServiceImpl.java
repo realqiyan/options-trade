@@ -1,14 +1,16 @@
 package me.dingtou.options.service.impl;
 
+import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.manager.OptionsManager;
 import me.dingtou.options.manager.OwnerManager;
+import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.*;
 import me.dingtou.options.service.OptionsQueryService;
 import me.dingtou.options.strategy.OptionsStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +22,9 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
     @Autowired
     private OwnerManager ownerManager;
+
+    @Autowired
+    private TradeManager tradeManager;
 
     @Autowired
     private List<OptionsStrategy> optionsStrategyList;
@@ -36,16 +41,35 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     }
 
     @Override
-    public List<OwnerOrder> queryStrategyOrder(String owner, String strategyId) {
+    public StrategySummary queryStrategySummary(String owner, String strategyId) {
+        StrategySummary summary = new StrategySummary();
         List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
         Optional<OwnerStrategy> strategyOptional = ownerStrategies.stream().filter(ownerStrategy -> ownerStrategy.getStrategyId().equals(strategyId)).findAny();
         if (strategyOptional.isEmpty()) {
-            return Collections.emptyList();
+            return summary;
         }
-
+        // 策略
         OwnerStrategy ownerStrategy = strategyOptional.get();
-        return ownerManager.queryOwnerOrder(ownerStrategy.getOwner(), ownerStrategy.getStrategyId());
+        summary.setStrategy(ownerStrategy);
 
+        // 订单列表
+        List<OwnerOrder> ownerOrders = ownerManager.queryOwnerOrder(ownerStrategy.getOwner(), ownerStrategy.getStrategyId());
+        summary.setStrategyOrders(ownerOrders);
+
+        // 订单费用
+        BigDecimal totalFee = tradeManager.queryTotalOrderFee(ownerStrategy, ownerOrders);
+        summary.setTotalIncome(totalFee);
+
+        // 订单总金额
+        BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
+        List<BigDecimal> totalPriceList = ownerOrders.stream().map(order -> {
+            BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
+            return order.getPrice().multiply(lotSize).multiply(sign);
+        }).toList();
+        BigDecimal totalPrice = totalPriceList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 订单利润
+        summary.setTotalIncome(totalPrice.subtract(totalFee));
+        return summary;
     }
 
     @Override

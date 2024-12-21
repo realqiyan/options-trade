@@ -82,8 +82,7 @@ public class TradeManager {
         ownerOrderDAO.insert(ownerOrder);
 
         // 通过交易网关执行交易操作
-        String platformOrderId = optionsTradeGateway.trade(ownerOrder);
-        ownerOrder.setPlatformOrderId(platformOrderId);
+        ownerOrder = optionsTradeGateway.trade(ownerOrder);
         ownerOrder.setStatus(OrderStatus.SUBMITTED.getCode());
         // 更新数据库中的订单信息
         ownerOrder.setUpdateTime(new Date());
@@ -132,8 +131,7 @@ public class TradeManager {
         ownerOrderDAO.insert(ownerOrder);
 
         // 通过交易网关执行交易操作
-        String platformOrderId = optionsTradeGateway.trade(ownerOrder);
-        ownerOrder.setPlatformOrderId(platformOrderId);
+        ownerOrder = optionsTradeGateway.trade(ownerOrder);
         ownerOrder.setStatus(OrderStatus.SUBMITTED.getCode());
         // 更新数据库中的订单信息
         ownerOrder.setUpdateTime(new Date());
@@ -168,6 +166,7 @@ public class TradeManager {
         // 拉取平台成交单列表1:n
         List<OwnerOrder> platformOrderFills = optionsTradeGateway.pullOrderFill(strategy);
         Map<String, List<OwnerOrder>> orderFillMap = platformOrderFills.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
+        Map<String, List<OwnerOrder>> removedOrderFillMap = new HashMap<>();
 
         // 更新本地订单
         for (OwnerOrder ownerOrder : ownerOrderList) {
@@ -181,27 +180,35 @@ public class TradeManager {
                 ownerOrder.setStatus(platformOrder.getStatus());
                 ownerOrder.setTradeTime(platformOrder.getTradeTime());
                 ownerOrder.setStrikeTime(platformOrder.getStrikeTime());
+                ownerOrder.setPlatformOrderIdEx(platformOrder.getPlatformOrderIdEx());
                 orderMap.remove(platformOrderId);
             }
 
             List<OwnerOrder> ownerOrderFills = orderFillMap.get(platformOrderId);
+            if (null == ownerOrderFills) {
+                ownerOrderFills = removedOrderFillMap.get(platformOrderId);
+            }
             if (null != ownerOrderFills && !ownerOrderFills.isEmpty()) {
+                OwnerOrder ownerOrderFill = null;
                 if (ownerOrderFills.size() == 1) {
-                    OwnerOrder ownerOrderFill = ownerOrderFills.get(0);
+                    ownerOrderFill = ownerOrderFills.get(0);
+                } else {
+                    Optional<OwnerOrder> ownerOrderOptional = ownerOrderFills.stream().filter(order -> order.getPlatformFillId().equals(ownerOrder.getPlatformFillId())).findAny();
+                    if (ownerOrderOptional.isPresent()) {
+                        ownerOrderFill = ownerOrderOptional.get();
+                    }
+                }
+                List<OwnerOrder> removed = orderFillMap.remove(platformOrderId);
+                if (null != removed) {
+                    removedOrderFillMap.put(platformOrderId, removed);
+                }
+
+                if (null != ownerOrderFill) {
                     ownerOrder.setTradeTime(ownerOrderFill.getTradeTime());
                     ownerOrder.setStrikeTime(ownerOrderFill.getStrikeTime());
                     ownerOrder.setPlatformFillId(ownerOrderFill.getPlatformFillId());
-                } else {
-                    Optional<OwnerOrder> ownerOrderOptional = ownerOrderFills.stream()
-                            .filter(order -> order.getPlatformFillId().equals(ownerOrder.getPlatformFillId()))
-                            .findAny();
-                    if (ownerOrderOptional.isPresent()) {
-                        ownerOrder.setTradeTime(ownerOrderOptional.get().getTradeTime());
-                        ownerOrder.setStrikeTime(ownerOrderOptional.get().getStrikeTime());
-                        ownerOrder.setPlatformFillId(ownerOrderOptional.get().getPlatformFillId());
-                    }
+                    ownerOrder.setPlatformOrderIdEx(ownerOrderFill.getPlatformOrderIdEx());
                 }
-                orderFillMap.remove(platformOrderId);
             }
         }
 
@@ -251,5 +258,7 @@ public class TradeManager {
 
     }
 
-
+    public BigDecimal queryTotalOrderFee(OwnerStrategy strategy, List<OwnerOrder> ownerOrders) {
+        return optionsTradeGateway.totalFee(strategy, ownerOrders);
+    }
 }

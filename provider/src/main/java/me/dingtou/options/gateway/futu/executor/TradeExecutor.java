@@ -126,5 +126,8 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
         handleQotOnReply(rsp);
     }
 
-
+    @Override
+    public void onReply_GetOrderFee(FTAPI_Conn client, int nSerialNo, TrdGetOrderFee.Response rsp) {
+        handleQotOnReply(rsp);
+    }
 }

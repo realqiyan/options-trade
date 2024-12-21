@@ -9,10 +9,8 @@ import me.dingtou.options.gateway.futu.executor.TradeExecutor;
 import me.dingtou.options.gateway.futu.executor.func.TradeFunctionCall;
 import me.dingtou.options.model.OwnerOrder;
 
-import java.util.UUID;
-
 @Slf4j
-public class FuncPlaceOrder implements TradeFunctionCall<String> {
+public class FuncPlaceOrder implements TradeFunctionCall<OwnerOrder> {
 
     private final OwnerOrder ownerOrder;
 
@@ -21,12 +19,12 @@ public class FuncPlaceOrder implements TradeFunctionCall<String> {
     }
 
     @Override
-    public String unlockResult() {
-        return UUID.randomUUID().toString().replaceAll("-", "");
+    public OwnerOrder unlockResult() {
+        return this.ownerOrder;
     }
 
     @Override
-    public void call(TradeExecutor<String> client) {
+    public void call(TradeExecutor<OwnerOrder> client) {
         Market market = Market.of(ownerOrder.getMarket());
         int trdMarket;
         int secMarket;
@@ -62,9 +60,15 @@ public class FuncPlaceOrder implements TradeFunctionCall<String> {
     }
 
     @Override
-    public String result(GeneratedMessageV3 response) {
+    public OwnerOrder result(GeneratedMessageV3 response) {
         TrdPlaceOrder.Response resp = (TrdPlaceOrder.Response) response;
-        long orderID = resp.getS2C().getOrderID();
-        return String.valueOf(orderID);
+        TrdPlaceOrder.S2C s2C = resp.getS2C();
+
+        long orderID = s2C.getOrderID();
+        String orderIDEx = s2C.getOrderIDEx();
+        ownerOrder.setPlatformOrderId(String.valueOf(orderID));
+        ownerOrder.setPlatformOrderIdEx(orderIDEx);
+
+        return this.ownerOrder;
     }
 }

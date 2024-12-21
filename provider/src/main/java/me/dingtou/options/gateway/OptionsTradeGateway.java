@@ -3,6 +3,7 @@ package me.dingtou.options.gateway;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerStrategy;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -18,7 +19,7 @@ public interface OptionsTradeGateway {
      * @param order 订单
      * @return 外部订单号
      */
-    String trade(OwnerOrder order);
+    OwnerOrder trade(OwnerOrder order);
 
     /**
      * 取消订单
@@ -27,6 +28,15 @@ public interface OptionsTradeGateway {
      * @return 订单
      */
     OwnerOrder cancel(OwnerOrder order);
+
+    /**
+     * 计算订单总费用
+     *
+     * @param strategy 策略
+     * @param orders   订单
+     * @return 订单总费用
+     */
+    BigDecimal totalFee(OwnerStrategy strategy, List<OwnerOrder> orders);
 
     /**
      * 同步订单
@@ -43,4 +53,6 @@ public interface OptionsTradeGateway {
      * @return 订单列表
      */
     List<OwnerOrder> pullOrderFill(OwnerStrategy ownerStrategy);
+
+
 }

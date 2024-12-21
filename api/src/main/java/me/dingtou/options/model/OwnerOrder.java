@@ -101,6 +101,11 @@ public class OwnerOrder {
     private String platformOrderId;
 
     /**
+     * 平台的扩展订单ID，表示订单在平台上的唯一标识符，默认为NULL
+     */
+    private String platformOrderIdEx;
+
+    /**
      * 平台的成交ID，表示订单在平台上成交的唯一标识符，默认为NULL
      */
     private String platformFillId;

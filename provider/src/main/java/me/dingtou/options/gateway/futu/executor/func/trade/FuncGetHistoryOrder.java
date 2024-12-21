@@ -114,6 +114,7 @@ public class FuncGetHistoryOrder implements TradeFunctionCall<List<OwnerOrder>> 
 
             ownerOrder.setSide(TradeSide.of(order.getTrdSide()).getCode());
             ownerOrder.setPlatformOrderId(String.valueOf(order.getOrderID()));
+            ownerOrder.setPlatformOrderIdEx(order.getOrderIDEx());
             ownerOrder.setStrikeTime(strikeTimeFormat.parse(strikeTimeStr));
             ownerOrder.setTradeTime(dateFormat.parse(order.getCreateTime()));
             ownerOrder.setCreateTime(dateFormat.parse(order.getCreateTime()));

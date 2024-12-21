@@ -29,13 +29,13 @@ public interface OptionsQueryService {
 
 
     /**
-     * 查询策略下的订单列表
+     * 查询策略汇总
      *
      * @param owner      策略所有者
      * @param strategyId 策略ID
      * @return 订单列表
      */
-    List<OwnerOrder> queryStrategyOrder(String owner, String strategyId);
+    StrategySummary queryStrategySummary(String owner, String strategyId);
 
 
     /**

@@ -144,6 +144,7 @@ function renderTable(orderList){
             "id": item.id,
             "strategyId": item.strategyId,
             "platformOrderId": item.platformOrderId,
+            "platformOrderIdEx": item.platformOrderIdEx,
             "platformFillId": item.platformFillId,
             "underlyingCode": item.underlyingCode,
             "code": item.code,
@@ -170,6 +171,7 @@ function renderTable(orderList){
           {field: 'underlyingCode', title: '股票', width: 80},
           {field: 'tradeTime', title: '交易时间', width: 160, sort: true},
           {field: 'platformOrderId', title: '订单号', width: 180},
+          {field: 'platformOrderIdEx', title: '订单号Ex', width: 200},
           {field: 'platformFillId', title: '成交单', width: 180},
           {field: 'code', title: '期权', width: 180},
           {field: 'side', title: '买卖', width: 80},
@@ -204,12 +206,12 @@ function renderTable(orderList){
 
 function loadStrategyOrder(strategyId){
     $.ajax({
-          url: "/options/order/list",
+          url: "/options/strategy/get",
           data: {
             strategyId: strategyId
           },
           success: function( result ) {
-            renderTable(result);
+            renderTable(result.orders);
           }
     });
 }
