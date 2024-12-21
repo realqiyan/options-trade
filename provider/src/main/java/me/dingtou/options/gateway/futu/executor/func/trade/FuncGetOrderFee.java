@@ -30,11 +30,6 @@ public class FuncGetOrderFee implements TradeFunctionCall<BigDecimal> {
     }
 
     @Override
-    public BigDecimal unlockResult() {
-        return BigDecimal.ZERO;
-    }
-
-    @Override
     public void call(TradeExecutor<BigDecimal> client) {
 
         int trdMarket;

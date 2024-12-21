@@ -16,13 +16,6 @@ public interface TradeFunctionCall<R> {
     }
 
     /**
-     * 未解锁结果
-     *
-     * @return 未解锁结果
-     */
-    R unlockResult();
-
-    /**
      * 调用
      *
      * @param client ft客户端

@@ -38,11 +38,6 @@ public class FuncGetHistoryOrder implements TradeFunctionCall<List<OwnerOrder>> 
     }
 
     @Override
-    public List<OwnerOrder> unlockResult() {
-        return Collections.emptyList();
-    }
-
-    @Override
     public void call(TradeExecutor<List<OwnerOrder>> client) {
 
         int trdMarket;

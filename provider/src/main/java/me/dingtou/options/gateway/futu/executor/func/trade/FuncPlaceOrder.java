@@ -19,11 +19,6 @@ public class FuncPlaceOrder implements TradeFunctionCall<OwnerOrder> {
     }
 
     @Override
-    public OwnerOrder unlockResult() {
-        return this.ownerOrder;
-    }
-
-    @Override
     public void call(TradeExecutor<OwnerOrder> client) {
         Market market = Market.of(ownerOrder.getMarket());
         int trdMarket;
