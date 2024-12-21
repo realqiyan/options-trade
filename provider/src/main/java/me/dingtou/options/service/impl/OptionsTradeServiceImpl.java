@@ -39,7 +39,7 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
         if (null == ownerStrategy) {
             throw new IllegalArgumentException("策略不存在 strategyId:" + strategyId);
         }
-        OwnerOrder ownerOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatform(), order.getPlatformOrderId());
+        OwnerOrder ownerOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatform(), order.getPlatformOrderId(), order.getPlatformFillId());
         return tradeManager.close(ownerStrategy, side.getCode(), quantity, price, ownerOrder);
     }
 
@@ -48,7 +48,7 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
         if (null == order || null == order.getPlatform()) {
             return null;
         }
-        OwnerOrder oldOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatform(), order.getPlatformOrderId());
+        OwnerOrder oldOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatform(), order.getPlatformOrderId(), order.getPlatformFillId());
         if (OrderAction.CANCEL.equals(action)) {
             return tradeManager.cancel(oldOrder);
         }

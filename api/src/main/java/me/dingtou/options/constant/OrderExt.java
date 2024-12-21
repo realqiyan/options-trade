@@ -13,17 +13,34 @@ import me.dingtou.options.model.OwnerOrder;
 @Getter
 public enum OrderExt {
 
-    TOTAL_INCOME("totalIncome", String.class),
-
-    CUR_STATUS("curStatus", String.class),
-
+    /**
+     * 当前价格
+     */
     CUR_PRICE("curPrice", String.class),
 
+    /**
+     * 总收益
+     */
+    TOTAL_INCOME("totalIncome", String.class),
+
+    /**
+     * 是否平仓
+     */
+    IS_CLOSE("isClose", String.class),
+
+    /**
+     * 盈亏比例
+     */
     PROFIT_RATIO("profitRatio", String.class),
 
+    /**
+     * 来源订单
+     */
     SOURCE_ORDER("sourceOrder", OwnerOrder.class),
 
-
+    /**
+     * 来源期权
+     */
     SOURCE_OPTIONS("sourceOptions", Options.class);
 
     private final String code;

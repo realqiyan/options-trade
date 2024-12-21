@@ -3,6 +3,7 @@ package me.dingtou.options.manager;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderExt;
+import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.dao.OwnerOrderDAO;
 import me.dingtou.options.dao.OwnerStrategyDAO;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -47,20 +49,24 @@ public class OwnerManager {
         return ownerStrategyDAO.selectList(querySecurity);
     }
 
-    public List<OwnerOrder> queryOwnerOrder(String owner) {
-        QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
-        queryOrder.eq("owner", owner);
-        return ownerOrderDAO.selectList(queryOrder);
-    }
 
-    public OwnerOrder queryOwnerOrder(String owner, String platform, String platformOrderId) {
+    public OwnerOrder queryOwnerOrder(String owner, String platform, String platformOrderId, String platformFillId) {
         QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
         queryOrder.eq("owner", owner);
         queryOrder.eq("platform", platform);
         queryOrder.eq("platform_order_id", platformOrderId);
         List<OwnerOrder> ownerOrderList = ownerOrderDAO.selectList(queryOrder);
-        if (null != ownerOrderList && ownerOrderList.size() == 1) {
+        if (null == ownerOrderList || ownerOrderList.isEmpty()) {
+            throw new RuntimeException("query owner order error");
+        }
+        if (ownerOrderList.size() == 1) {
             return ownerOrderList.get(0);
+        } else {
+            for (OwnerOrder ownerOrder : ownerOrderList) {
+                if (ownerOrder.getPlatformFillId().equals(platformFillId)) {
+                    return ownerOrder;
+                }
+            }
         }
         throw new RuntimeException("query owner order error");
     }
@@ -87,18 +93,42 @@ public class OwnerManager {
             return;
         }
         Date now = new Date();
+        // 计算是否已经平仓用
+        Map<String, List<OwnerOrder>> codeOrdersMap = ownerOrders.stream().collect(Collectors.groupingBy(OwnerOrder::getCode));
+        Map<String, Boolean> orderClose = new HashMap<>();
+        for (Map.Entry<String, List<OwnerOrder>> codeOrders : codeOrdersMap.entrySet()) {
+            String code = codeOrders.getKey();
+            List<OwnerOrder> orders = codeOrders.getValue();
+            // 买入卖出的数量是否为0
+            BigDecimal totalQuantity = orders.stream().map(order -> {
+                if (OrderStatus.of(order.getStatus()).isValid()) {
+                    return new BigDecimal(order.getQuantity()).multiply(new BigDecimal(TradeSide.of(order.getSide()).getSign()));
+                }
+                return BigDecimal.ZERO;
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (totalQuantity.compareTo(BigDecimal.ZERO) == 0) {
+                orderClose.put(code, true);
+            }
+        }
+
+
         for (OwnerOrder ownerOrder : ownerOrders) {
             BigDecimal totalIncome = ownerOrder.getPrice()
                     .multiply(new BigDecimal(ownerOrder.getQuantity()))
                     .multiply(new BigDecimal(strategy.getLotSize()))
                     .multiply(new BigDecimal(TradeSide.of(ownerOrder.getSide()).getSign()));
+            // 订单收益
             ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getCode(), totalIncome.toString());
 
-            // 订单是不是完结
-            if (ownerOrder.getStrikeTime().before(now) && !DateUtils.isSameDay(ownerOrder.getStrikeTime(), now)) {
-                ownerOrder.getExt().put(OrderExt.CUR_STATUS.getCode(), "finished");
-            }
+            // 订单是不是已经过了行权日
+            boolean isTimeout = ownerOrder.getStrikeTime().before(now) && !DateUtils.isSameDay(ownerOrder.getStrikeTime(), now);
+
+            // 订单是否已经平仓
+            Boolean isClose = isTimeout || orderClose.getOrDefault(ownerOrder.getCode(), false);
+            ownerOrder.getExt().put(OrderExt.IS_CLOSE.getCode(), String.valueOf(isClose));
         }
+
+
     }
 
     private void calculateProfit(List<OwnerOrder> ownerOrders) {

@@ -152,12 +152,11 @@ function renderTable(orderList){
             "price": item.price,
             "quantity": item.quantity,
             "tradeTime": item.tradeTime,
-            "platform": item.platform,
             "accountId": item.accountId,
             "strikeTime": item.strikeTime,
             "status": item.status,
             "statusStr": statusMapping(item.status+''),
-            "curStatus": item.ext ? item.ext.curStatus : null,
+            "isClose": item.ext ? item.ext.isClose : null,
             "totalIncome": item.ext ? item.ext.totalIncome : null,
             "curPrice": item.ext ? item.ext.curPrice : null,
             "profitRatio": item.ext && item.ext.profitRatio ? item.ext.profitRatio + '%' : null,
@@ -180,12 +179,12 @@ function renderTable(orderList){
           {field: 'price', title: '价格', width: 80},
           {field: 'quantity', title: '数量', width: 80},
           {field: 'strikeTime', title: '行权时间', width: 160, sort: true},
-          {field: 'platform', title: '平台', width: 80},
           {field: 'statusStr', title: '状态', width: 100},
+          {field: 'isClose', title: '是否平仓', width: 100},
           {field: 'totalIncome', title: '收入', width: 100},
           {field: 'curPrice', title: '现价', width: 80},
           {field: 'profitRatio', title: '盈亏', width: 100},
-          {field: 'order', title: '操作', width: 200, templet: '<div>{{# if("finished" != d.curStatus){ }}'+
+          {field: 'order', title: '操作', width: 200, templet: '<div>{{# if("true" != d.isClose){ }}'+
           '{{# if(["-1","1","2","5"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="cancel">取消</a>{{#  } }}'+
           '{{# if(["11"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition(\'{{= d.order}}\')" lay-event="closePosition">平仓</a>{{#  } }}'+
           '{{# } }}</div>'},
