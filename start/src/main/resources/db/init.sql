@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： 10.0.12.220
--- 生成日期： 2024-12-21 15:14:32
+-- 生成日期： 2024-12-21 17:12:04
 -- 服务器版本： 8.2.0
 -- PHP 版本： 8.2.26
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- 数据库： `options`
 --
+CREATE DATABASE IF NOT EXISTS `options` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `options`;
 
 -- --------------------------------------------------------
 
@@ -27,8 +29,9 @@ SET time_zone = "+00:00";
 -- 表的结构 `owner_order`
 --
 
-CREATE TABLE `owner_order` (
-  `id` int NOT NULL,
+DROP TABLE IF EXISTS `owner_order`;
+CREATE TABLE IF NOT EXISTS `owner_order` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `strategy_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -45,11 +48,19 @@ CREATE TABLE `owner_order` (
   `status` int NOT NULL,
   `owner` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `platform_order_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `platform_order_id_ex` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `platform_fill_id` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `platform_order_id_ex` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `platform_fill_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `platform` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `ext` json DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `ext` json DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pk_p_o_f` (`platform`,`platform_order_id`,`platform_fill_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1663963139 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 插入之前先把表清空（truncate） `owner_order`
+--
+
+TRUNCATE TABLE `owner_order`;
 
 -- --------------------------------------------------------
 
@@ -57,11 +68,12 @@ CREATE TABLE `owner_order` (
 -- 表的结构 `owner_strategy`
 --
 
-CREATE TABLE `owner_strategy` (
-  `id` int NOT NULL,
+DROP TABLE IF EXISTS `owner_strategy`;
+CREATE TABLE IF NOT EXISTS `owner_strategy` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `strategy_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `start_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `strategy_name` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
+  `strategy_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `status` int NOT NULL DEFAULT '1',
   `platform` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `account_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -69,9 +81,16 @@ CREATE TABLE `owner_strategy` (
   `lot_size` int NOT NULL DEFAULT '100',
   `market` int NOT NULL,
   `owner` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `ext` json NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `ext` json NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_p_a_c` (`platform`,`account_id`,`code`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- 插入之前先把表清空（truncate） `owner_strategy`
+--
+
+TRUNCATE TABLE `owner_strategy`;
 --
 -- 转存表中的数据 `owner_strategy`
 --
@@ -80,40 +99,6 @@ INSERT INTO `owner_strategy` (`id`, `strategy_id`, `start_time`, `strategy_name`
 (18, '86c312eccaff4fe1865cf0e79432ebe3', '2024-11-01 00:00:00', 'BABA-富途', 1, 'futu', '123456', 'BABA', 100, 11, 'qiyan', '{}'),
 (28, '024cc086a560460e90705f2ef87cac7d', '2024-11-01 00:00:00', 'KWEB-富途', 1, 'futu', '123456', 'KWEB', 100, 11, 'qiyan', '{}'),
 (38, 'b3605b43f26345abbfa663abad867d38', '2024-11-01 00:00:00', 'JD-富途', 1, 'futu', '123456', 'JD', 100, 11, 'qiyan', '{}');
-
---
--- 转储表的索引
---
-
---
--- 表的索引 `owner_order`
---
-ALTER TABLE `owner_order`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `pk_p_o_f` (`platform`,`platform_order_id`,`platform_fill_id`) USING BTREE;
-
---
--- 表的索引 `owner_strategy`
---
-ALTER TABLE `owner_strategy`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uk_p_a_c` (`platform`,`account_id`,`code`) USING BTREE;
-
---
--- 在导出的表使用AUTO_INCREMENT
---
-
---
--- 使用表AUTO_INCREMENT `owner_order`
---
-ALTER TABLE `owner_order`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
-
---
--- 使用表AUTO_INCREMENT `owner_strategy`
---
-ALTER TABLE `owner_strategy`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
