@@ -103,7 +103,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
             ]],
             data: convertedData,
             toolbar: true,
-            height: 'full-200',
+            height: 'full-260',
             lineStyle: 'height: 100%;',
             defaultToolbar: [
               'filter', // 列筛选

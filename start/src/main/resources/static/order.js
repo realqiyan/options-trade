@@ -191,6 +191,7 @@ function renderTable(orderList){
           '{{# } }}</div>'},
         ]],
         data: convertedData,
+        height: 'full-260',
         //skin: 'line',
         //even: true,
         initSort: {
