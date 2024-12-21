@@ -13,11 +13,18 @@ import me.dingtou.options.model.OwnerOrder;
 @Getter
 public enum OrderExt {
 
+    TOTAL_INCOME("totalIncome", String.class),
 
-    SOURCE_ORDER("source_order", OwnerOrder.class),
+    CUR_STATUS("curStatus", String.class),
+
+    CUR_PRICE("curPrice", String.class),
+
+    PROFIT_RATIO("profitRatio", String.class),
+
+    SOURCE_ORDER("sourceOrder", OwnerOrder.class),
 
 
-    SOURCE_OPTIONS("source_options", Options.class);
+    SOURCE_OPTIONS("sourceOptions", Options.class);
 
     private final String code;
     private final Class<?> classType;

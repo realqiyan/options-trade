@@ -18,6 +18,9 @@ import java.util.Optional;
 public class OptionsQueryServiceImpl implements OptionsQueryService {
 
     @Autowired
+    private List<OptionsStrategy> allOptionsStrategy;
+
+    @Autowired
     private OptionsManager optionsManager;
 
     @Autowired
@@ -26,8 +29,6 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     @Autowired
     private TradeManager tradeManager;
 
-    @Autowired
-    private List<OptionsStrategy> optionsStrategyList;
 
     @Override
     public Owner queryOwner(String owner) {
@@ -53,12 +54,13 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         summary.setStrategy(ownerStrategy);
 
         // 订单列表
-        List<OwnerOrder> ownerOrders = ownerManager.queryOwnerOrder(ownerStrategy.getOwner(), ownerStrategy.getStrategyId());
+        List<OwnerOrder> ownerOrders = ownerManager.queryStrategyOrder(ownerStrategy);
+
         summary.setStrategyOrders(ownerOrders);
 
         // 订单费用
         BigDecimal totalFee = tradeManager.queryTotalOrderFee(ownerStrategy, ownerOrders);
-        summary.setTotalIncome(totalFee);
+        summary.setTotalFee(totalFee);
 
         // 订单总金额
         BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
@@ -95,10 +97,10 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
      * @param optionsChain      期权链
      */
     private void calculateStrategyData(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain) {
-        if (null == optionsStrategyList || optionsStrategyList.isEmpty()) {
+        if (null == allOptionsStrategy || allOptionsStrategy.isEmpty()) {
             return;
         }
-        for (OptionsStrategy optionsStrategy : optionsStrategyList) {
+        for (OptionsStrategy optionsStrategy : allOptionsStrategy) {
             optionsStrategy.calculate(optionsStrikeDate, optionsChain);
         }
     }

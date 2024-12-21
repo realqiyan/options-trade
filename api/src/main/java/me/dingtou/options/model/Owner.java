@@ -22,9 +22,4 @@ public class Owner {
      */
     List<? extends OwnerStrategy> strategyList;
 
-
-    /**
-     * 订单列表
-     */
-    List<? extends OwnerOrder> orderList;
 }
