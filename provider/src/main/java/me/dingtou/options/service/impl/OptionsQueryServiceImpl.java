@@ -1,5 +1,6 @@
 package me.dingtou.options.service.impl;
 
+import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.manager.OptionsManager;
 import me.dingtou.options.manager.OwnerManager;
@@ -64,11 +65,14 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
         // 订单总金额
         BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
-        List<BigDecimal> totalPriceList = ownerOrders.stream().map(order -> {
-            BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-            return order.getPrice().multiply(lotSize).multiply(sign);
-        }).toList();
+        List<BigDecimal> totalPriceList = ownerOrders.stream()
+                .filter(order -> OrderStatus.of(order.getStatus()).isValid())
+                .map(order -> {
+                    BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
+                    return order.getPrice().multiply(lotSize).multiply(sign);
+                }).toList();
         BigDecimal totalPrice = totalPriceList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+
         // 订单利润
         summary.setTotalIncome(totalPrice.subtract(totalFee));
         return summary;
