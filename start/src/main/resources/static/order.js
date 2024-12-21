@@ -3,6 +3,8 @@ var $ = layui.$;
 var element = layui.element;
 var util = layui.util;
 
+var currentStrategyId;;
+
 function render(){
     layui.use(['element', 'layer', 'util'], function(){
       var element = layui.element;
@@ -29,6 +31,7 @@ function tradeModify(action, order){
               },
               success: function( result ) {
                 layer.msg('执行完成 result:'+ JSON.stringify(result));
+                loadStrategyOrder(currentStrategyId);
               }
             });
         layer.close(index);
@@ -82,6 +85,7 @@ function tradeClose(side, order, orderBook){
               },
               success: function( result ) {
                 layer.msg('交易完成 result:'+ result.platformOrderId);
+                loadStrategyOrder(currentStrategyId);
               }
             });
             layer.close(index);
@@ -208,6 +212,7 @@ function renderTable(orderList){
 }
 
 function loadStrategyOrder(strategyId){
+    currentStrategyId = strategyId;
     $.ajax({
           url: "/options/strategy/get",
           data: {
@@ -231,10 +236,14 @@ function reloadData(){
         output.innerHTML = "";
         for(var i=0; i<result.strategyList.length; i++) {
             var obj = result.strategyList[i];
+            if(i == 0){
+               currentStrategyId = obj.strategyId
+            }
             //<dd><a href="javascript:;">loading...</a></dd>
             output.innerHTML += '<dd onclick="loadStrategyOrder(\''+obj.strategyId+'\')"><a href="javascript:;">'+obj.strategyName+'</a></dd>';
         }
         render();
+        loadStrategyOrder(currentStrategyId);
       }
     });
 }
