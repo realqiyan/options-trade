@@ -11,10 +11,12 @@ import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerStrategy;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
-public class FuncGetOrderFee implements TradeFunctionCall<BigDecimal> {
+public class FuncGetOrderFee implements TradeFunctionCall<Map<String, BigDecimal>> {
 
     private final OwnerStrategy strategy;
     private final List<OwnerOrder> orders;
@@ -30,7 +32,7 @@ public class FuncGetOrderFee implements TradeFunctionCall<BigDecimal> {
     }
 
     @Override
-    public void call(TradeExecutor<BigDecimal> client) {
+    public void call(TradeExecutor<Map<String, BigDecimal>> client) {
 
         int trdMarket;
         if (strategy.getMarket().equals(Market.HK.getCode())) {
@@ -57,13 +59,20 @@ public class FuncGetOrderFee implements TradeFunctionCall<BigDecimal> {
     }
 
     @Override
-    public BigDecimal result(GeneratedMessageV3 response) {
+    public Map<String, BigDecimal> result(GeneratedMessageV3 response) {
         TrdGetOrderFee.Response rsp = (TrdGetOrderFee.Response) response;
         List<TrdCommon.OrderFee> orderFeeListList = rsp.getS2C().getOrderFeeListList();
-        List<TrdCommon.OrderFeeItem> feeItems = orderFeeListList.stream().flatMap(o -> o.getFeeListList().stream()).toList();
-        List<BigDecimal> feeList = feeItems.stream()
-                .map(orderFee -> new BigDecimal(String.valueOf(orderFee.getValue())))
-                .toList();
-        return feeList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Map<String, BigDecimal> feeMap = new HashMap<>();
+        orderFeeListList.forEach(orderFee -> {
+            log.warn("orderFee : {}", orderFee);
+            List<BigDecimal> feeList = orderFee.getFeeListList().stream()
+                    .map(feeItem -> new BigDecimal(String.valueOf(feeItem.getValue())))
+                    .toList();
+            BigDecimal totalFee = feeList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+            feeMap.put(orderFee.getOrderIDEx(), totalFee);
+        });
+
+        return feeMap;
     }
 }

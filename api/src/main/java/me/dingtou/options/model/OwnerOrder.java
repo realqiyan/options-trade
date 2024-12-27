@@ -76,6 +76,11 @@ public class OwnerOrder {
     private BigDecimal price;
 
     /**
+     * 订单交易费用，订单号维度的交易费用，默认为NULL
+     */
+    private BigDecimal orderFee;
+
+    /**
      * 数量，表示订单的交易数量
      */
     private Integer quantity;

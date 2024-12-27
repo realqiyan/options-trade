@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -34,9 +35,9 @@ public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
     }
 
     @Override
-    public BigDecimal totalFee(OwnerStrategy strategy, List<OwnerOrder> orders) {
+    public Map<String, BigDecimal> totalFee(OwnerStrategy strategy, List<OwnerOrder> orders) {
         if (null == orders || orders.isEmpty()) {
-            return BigDecimal.ZERO;
+            return Collections.emptyMap();
         }
         if (Platform.FUTU.getCode().equals(strategy.getPlatform())) {
             return TradeExecutor.submit(new FuncGetOrderFee(strategy, orders));

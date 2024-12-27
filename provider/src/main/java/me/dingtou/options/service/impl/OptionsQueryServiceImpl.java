@@ -46,7 +46,9 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     public StrategySummary queryStrategySummary(String owner, String strategyId) {
         StrategySummary summary = new StrategySummary();
         List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
-        Optional<OwnerStrategy> strategyOptional = ownerStrategies.stream().filter(ownerStrategy -> ownerStrategy.getStrategyId().equals(strategyId)).findAny();
+        Optional<OwnerStrategy> strategyOptional = ownerStrategies.stream()
+                .filter(ownerStrategy -> ownerStrategy.getStrategyId().equals(strategyId))
+                .findAny();
         if (strategyOptional.isEmpty()) {
             return summary;
         }
@@ -63,18 +65,38 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         BigDecimal totalFee = tradeManager.queryTotalOrderFee(ownerStrategy, ownerOrders);
         summary.setTotalFee(totalFee);
 
-        // 订单总金额
+        // 期权总金额
         BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
-        List<BigDecimal> totalPriceList = ownerOrders.stream()
+        List<BigDecimal> totalOptionsPriceList = ownerOrders.stream()
                 .filter(order -> OrderStatus.of(order.getStatus()).isValid())
+                .filter(order -> !order.getCode().equals(ownerStrategy.getCode()))
                 .map(order -> {
                     BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
                     return order.getPrice().multiply(lotSize).multiply(sign);
                 }).toList();
-        BigDecimal totalPrice = totalPriceList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPrice = totalOptionsPriceList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 订单利润
-        summary.setTotalIncome(totalPrice.subtract(totalFee));
+        // 期权利润
+        summary.setOptionsIncome(totalPrice.subtract(totalFee));
+
+        // 股票总金额
+        List<BigDecimal> totalSecurityPriceList = ownerOrders.stream()
+                .filter(order -> order.getCode().equals(ownerStrategy.getCode()))
+                .map(order -> {
+                    BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
+                    return order.getPrice().multiply(new BigDecimal(order.getQuantity())).multiply(sign);
+                }).toList();
+        BigDecimal totalSecurityPrice = totalSecurityPriceList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 股票利润
+        summary.setSecurityIncome(totalSecurityPrice);
+
+        // 持有数量
+        int holdSecurityNum = ownerOrders.stream()
+                .filter(order -> order.getCode().equals(ownerStrategy.getCode()))
+                .mapToInt(order -> -1 * TradeSide.of(order.getSide()).getSign() * order.getQuantity())
+                .sum();
+        summary.setHoldSecurityNum(holdSecurityNum);
+
         return summary;
     }
 

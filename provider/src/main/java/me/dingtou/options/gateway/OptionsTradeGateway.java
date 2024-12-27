@@ -5,6 +5,7 @@ import me.dingtou.options.model.OwnerStrategy;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 期权交易
@@ -36,7 +37,7 @@ public interface OptionsTradeGateway {
      * @param orders   订单
      * @return 订单总费用
      */
-    BigDecimal totalFee(OwnerStrategy strategy, List<OwnerOrder> orders);
+    Map<String, BigDecimal> totalFee(OwnerStrategy strategy, List<OwnerOrder> orders);
 
     /**
      * 同步订单

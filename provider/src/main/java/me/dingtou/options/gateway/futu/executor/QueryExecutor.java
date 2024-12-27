@@ -98,9 +98,6 @@ public class QueryExecutor<R> extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI
     public void onReply_Sub(FTAPI_Conn client, int nSerialNo, QotSub.Response rsp) {
         log.warn("Reply: QotSub: {} RetType: {}", nSerialNo, rsp.getRetType());
 
-        if (rsp.getRetType() != Common.RetType.RetType_Succeed_VALUE) {
-            return;
-        }
         if (client instanceof QueryExecutor<?>) {
             call.call((QueryExecutor<R>) client);
         }

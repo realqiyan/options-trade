@@ -15,7 +15,6 @@ import me.dingtou.options.model.OwnerStrategy;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -85,19 +84,25 @@ public class FuncGetHistoryOrder implements TradeFunctionCall<List<OwnerOrder>> 
             //name:BABA 241220 83.00P
             //code:BABA241220P830000
 
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
             String code = order.getCode();
-            String regexStr = "^(" + this.strategy.getCode() + ')' + "([0-9]{6})" + "([CP])" + "([0-9]*)$";
-            Pattern codePattern = Pattern.compile(regexStr);
-            Matcher matcher = codePattern.matcher(code);
-            if (!matcher.find()) {
-                log.warn("订单匹配错误: {} -> {}", code, regexStr);
-                return null;
+            Date strikeTime = null;
+            if (this.strategy.getCode().equals(code)) {
+                strikeTime = dateFormat.parse("2999-12-31 00:00:00.000");
+            } else {
+                String regexStr = "^(" + this.strategy.getCode() + ')' + "([0-9]{6})" + "([CP])" + "([0-9]*)$";
+                Pattern codePattern = Pattern.compile(regexStr);
+                Matcher matcher = codePattern.matcher(code);
+                if (!matcher.find()) {
+                    log.warn("订单匹配错误: {} -> {}", code, regexStr);
+                    return null;
+                }
+                SimpleDateFormat strikeTimeFormat = new SimpleDateFormat("yyMMdd");
+                strikeTime = strikeTimeFormat.parse(matcher.group(2));
             }
 
-            String strikeTimeStr = matcher.group(2);
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-            SimpleDateFormat strikeTimeFormat = new SimpleDateFormat("yyMMdd");
             OwnerOrder ownerOrder = new OwnerOrder();
             ownerOrder.setOwner(this.strategy.getOwner());
             ownerOrder.setPlatform(this.strategy.getPlatform());
@@ -110,7 +115,7 @@ public class FuncGetHistoryOrder implements TradeFunctionCall<List<OwnerOrder>> 
             ownerOrder.setSide(TradeSide.of(order.getTrdSide()).getCode());
             ownerOrder.setPlatformOrderId(String.valueOf(order.getOrderID()));
             ownerOrder.setPlatformOrderIdEx(order.getOrderIDEx());
-            ownerOrder.setStrikeTime(strikeTimeFormat.parse(strikeTimeStr));
+            ownerOrder.setStrikeTime(strikeTime);
             ownerOrder.setTradeTime(dateFormat.parse(order.getCreateTime()));
             ownerOrder.setCreateTime(dateFormat.parse(order.getCreateTime()));
             ownerOrder.setUpdateTime(dateFormat.parse(order.getUpdateTime()));

@@ -113,12 +113,14 @@ public class OwnerManager {
 
 
         for (OwnerOrder ownerOrder : ownerOrders) {
-            BigDecimal totalIncome = ownerOrder.getPrice()
-                    .multiply(new BigDecimal(ownerOrder.getQuantity()))
-                    .multiply(new BigDecimal(strategy.getLotSize()))
-                    .multiply(new BigDecimal(TradeSide.of(ownerOrder.getSide()).getSign()));
-            // 订单收益
-            ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getCode(), totalIncome.toString());
+            if (!ownerOrder.getCode().equals(ownerOrder.getUnderlyingCode())) {
+                BigDecimal totalIncome = ownerOrder.getPrice()
+                        .multiply(new BigDecimal(ownerOrder.getQuantity()))
+                        .multiply(new BigDecimal(strategy.getLotSize()))
+                        .multiply(new BigDecimal(TradeSide.of(ownerOrder.getSide()).getSign()));
+                // 订单收益
+                ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getCode(), totalIncome.toString());
+            }
 
             // 订单是不是已经过了行权日
             boolean isTimeout = ownerOrder.getStrikeTime().before(now) && !DateUtils.isSameDay(ownerOrder.getStrikeTime(), now);
@@ -141,7 +143,9 @@ public class OwnerManager {
             if (ownerOrder.getStrikeTime().before(now)) {
                 continue;
             }
-            securityList.add(Security.of(ownerOrder.getCode(), ownerOrder.getMarket()));
+            if (!ownerOrder.getCode().equals(ownerOrder.getUnderlyingCode())) {
+                securityList.add(Security.of(ownerOrder.getCode(), ownerOrder.getMarket()));
+            }
         }
 
         if (securityList.isEmpty()) {

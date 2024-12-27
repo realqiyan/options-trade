@@ -156,6 +156,7 @@ function renderTable(orderList){
             "price": item.price,
             "quantity": item.quantity,
             "tradeTime": item.tradeTime,
+            "orderFee": item.orderFee,
             "accountId": item.accountId,
             "strikeTime": item.strikeTime,
             "status": item.status,
@@ -178,14 +179,15 @@ function renderTable(orderList){
           {field: 'platformOrderId', title: '订单号', width: 180},
           {field: 'platformOrderIdEx', title: '订单号Ex', width: 200},
           {field: 'platformFillId', title: '成交单', width: 180},
-          {field: 'code', title: '期权', width: 180},
+          {field: 'code', title: '证券', width: 180},
           {field: 'side', title: '买卖', width: 80},
-          {field: 'price', title: '价格', width: 80},
+          {field: 'price', title: '价格', width: 85},
           {field: 'quantity', title: '数量', width: 80},
           {field: 'strikeTime', title: '行权时间', width: 160, sort: true},
           {field: 'statusStr', title: '状态', width: 100},
           {field: 'isClose', title: '是否平仓', width: 100},
           {field: 'totalIncome', title: '收入', width: 100},
+          {field: 'orderFee', title: '订单费用', width: 100},
           {field: 'curPrice', title: '现价', width: 80},
           {field: 'profitRatio', title: '盈亏', width: 100},
           {field: 'order', title: '操作', width: 200, templet: '<div>{{# if("true" != d.isClose){ }}'+
@@ -219,7 +221,7 @@ function loadStrategyOrder(strategyId){
             strategyId: strategyId
           },
           success: function( result ) {
-            document.getElementById("title").innerHTML=result.strategy.strategyName + '(总收入:' + result.totalIncome + ') (手续费:' + result.totalFee + ')';
+            document.getElementById("title").innerHTML=result.strategy.strategyName + '(期权总收入:' + result.optionsIncome + ') (手续费:' + result.totalFee + ')  (策略持有股票数:'+result.holdSecurityNum+') (股票收入:'+result.securityIncome+')';
             renderTable(result.strategyOrders);
           }
     });

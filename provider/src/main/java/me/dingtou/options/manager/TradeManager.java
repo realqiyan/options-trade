@@ -161,12 +161,18 @@ public class TradeManager {
 
         // 拉取平台订单列表1:1
         List<OwnerOrder> platformOrders = optionsTradeGateway.pullOrder(strategy);
-        Map<String, List<OwnerOrder>> orderMap = platformOrders.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
-
         // 拉取平台成交单列表1:n
         List<OwnerOrder> platformOrderFills = optionsTradeGateway.pullOrderFill(strategy);
+        // 获取平台订单手续费
+        Map<String, BigDecimal> feeMap = optionsTradeGateway.totalFee(strategy, platformOrderFills);
+        for (OwnerOrder platformOrderFill : platformOrderFills) {
+            platformOrderFill.setOrderFee(feeMap.get(platformOrderFill.getPlatformOrderIdEx()));
+        }
+
         Map<String, List<OwnerOrder>> orderFillMap = platformOrderFills.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
+        Map<String, List<OwnerOrder>> orderMap = platformOrders.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
         Map<String, List<OwnerOrder>> removedOrderFillMap = new HashMap<>();
+
 
         // 更新本地订单
         for (OwnerOrder ownerOrder : ownerOrderList) {
@@ -211,6 +217,9 @@ public class TradeManager {
                 }
             }
         }
+        for (OwnerOrder ownerOrder : ownerOrderList) {
+            ownerOrder.setOrderFee(feeMap.get(ownerOrder.getPlatformOrderIdEx()));
+        }
 
         for (OwnerOrder ownerOrder : ownerOrderList) {
             ownerOrder.setUpdateTime(now);
@@ -237,6 +246,7 @@ public class TradeManager {
         newOrders.addAll(platformNewOrders);
         newOrders.addAll(platformNewOrderFills);
         for (OwnerOrder ownerOrder : newOrders) {
+            ownerOrder.setOrderFee(feeMap.get(ownerOrder.getPlatformOrderIdEx()));
             ownerOrderDAO.insert(ownerOrder);
         }
         List<OwnerOrder> allOrders = new ArrayList<>();
@@ -259,6 +269,8 @@ public class TradeManager {
     }
 
     public BigDecimal queryTotalOrderFee(OwnerStrategy strategy, List<OwnerOrder> ownerOrders) {
-        return optionsTradeGateway.totalFee(strategy, ownerOrders);
+        Map<String, BigDecimal> totalFeeMap = optionsTradeGateway.totalFee(strategy, ownerOrders);
+        return totalFeeMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
     }
+
 }

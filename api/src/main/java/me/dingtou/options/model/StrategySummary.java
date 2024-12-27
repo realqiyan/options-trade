@@ -24,9 +24,19 @@ public class StrategySummary {
     private BigDecimal totalFee;
 
     /**
-     * 总收益
+     * 期权总收益
      */
-    private BigDecimal totalIncome;
+    private BigDecimal optionsIncome;
+
+    /**
+     * 股票总收益
+     */
+    private BigDecimal securityIncome;
+
+    /**
+     * 持有股票数
+     */
+    private Integer holdSecurityNum;
 
     /**
      * 订单列表
