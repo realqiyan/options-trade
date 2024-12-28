@@ -30,14 +30,11 @@ public interface OptionsTradeService {
     /**
      * 关闭头寸
      *
-     * @param strategyId 策略ID
-     * @param side       1:买，2:卖
-     * @param quantity   交易数量
-     * @param price      交易价格
-     * @param order      订单
+     * @param order 订单
+     * @param price 交易价格
      * @return 订单
      */
-    OwnerOrder close(String strategyId, TradeSide side, Integer quantity, BigDecimal price, OwnerOrder order);
+    OwnerOrder close(OwnerOrder order, BigDecimal price);
 
     /**
      * 修改订单

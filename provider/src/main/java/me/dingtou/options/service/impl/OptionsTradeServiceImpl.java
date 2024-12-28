@@ -30,17 +30,16 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
         if (null == ownerStrategy) {
             throw new IllegalArgumentException("策略不存在 strategyId:" + strategyId);
         }
-        return tradeManager.trade(ownerStrategy, side.getCode(), quantity, price, options);
+        return tradeManager.trade(ownerStrategy, side, quantity, price, options);
     }
 
     @Override
-    public OwnerOrder close(String strategyId, TradeSide side, Integer quantity, BigDecimal price, OwnerOrder order) {
-        OwnerStrategy ownerStrategy = tradeManager.queryStrategy(strategyId);
-        if (null == ownerStrategy) {
-            throw new IllegalArgumentException("策略不存在 strategyId:" + strategyId);
-        }
+    public OwnerOrder close(OwnerOrder order, BigDecimal price) {
         OwnerOrder ownerOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatform(), order.getPlatformOrderId(), order.getPlatformFillId());
-        return tradeManager.close(ownerStrategy, side.getCode(), quantity, price, ownerOrder);
+        if (null == ownerOrder) {
+            throw new IllegalArgumentException("订单不存在 platformOrderId:" + order.getPlatformOrderId());
+        }
+        return tradeManager.close(ownerOrder, price);
     }
 
     @Override

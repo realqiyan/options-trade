@@ -14,7 +14,7 @@ import java.util.Map;
  * @author qiyan
  */
 @Data
-public class OwnerOrder {
+public class OwnerOrder implements Cloneable {
     /**
      * ID
      */
@@ -132,4 +132,18 @@ public class OwnerOrder {
     @TableField(typeHandler = JacksonTypeHandler.class)
     private Map<String, String> ext;
 
+    @Override
+    public OwnerOrder clone() {
+        try {
+            OwnerOrder cloneOrder = (OwnerOrder) super.clone();
+            cloneOrder.setId(null);
+            cloneOrder.setPlatformOrderId(null);
+            cloneOrder.setPlatformOrderIdEx(null);
+            cloneOrder.setPlatformFillId(null);
+            cloneOrder.setOrderFee(null);
+            return cloneOrder;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

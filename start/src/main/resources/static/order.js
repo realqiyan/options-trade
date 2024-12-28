@@ -35,7 +35,6 @@ function tradeModify(action, order){
               }
             });
         layer.close(index);
-
     });
 }
 
@@ -58,38 +57,28 @@ function cancel(order){
     tradeModify('cancel', order);
 }
 
-function tradeClose(side, order, orderBook){
-    layer.prompt({title: '请输入买入份数', value: order.quantity}, function(value, index, elem){
+function tradeClose(order, orderBook){
+    layer.prompt({title: '请输入买入价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）'}, function(value, index, elem){
         if(value === ''){
             return elem.focus();
         }
-        var quantity = util.escape(value);
-        layer.close(index);
-        layer.prompt({title: '请输入买入价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）'}, function(value, index, elem){
-            if(value === ''){
-                return elem.focus();
-            }
-            // 下单
-            var price = util.escape(value);
-            layer.msg('卖出价格:'+ price);
-            $.ajax({
-              url: "/trade/close",
-              method: 'POST',
-              data: {
-                owner: order.owner,
-                side: side,
-                strategyId: order.strategyId,
-                quantity: quantity,
-                price: price,
-                order: JSON.stringify(order),
-              },
-              success: function( result ) {
-                layer.msg('交易完成 result:'+ result.platformOrderId);
-                loadStrategyOrder(currentStrategyId);
-              }
-            });
-            layer.close(index);
+        // 下单
+        var price = util.escape(value);
+        layer.msg('卖出价格:'+ price);
+        $.ajax({
+          url: "/trade/close",
+          method: 'POST',
+          data: {
+            owner: order.owner,
+            price: price,
+            order: JSON.stringify(order),
+          },
+          success: function( result ) {
+            layer.msg('交易完成 result:'+ result.platformOrderId);
+            loadStrategyOrder(currentStrategyId);
+          }
         });
+        layer.close(index);
     });
 }
 
@@ -104,7 +93,7 @@ function closePosition(order){
            time: new Date().getTime()
          },
          success: function( result ) {
-            tradeClose(1, orderObj, result);
+            tradeClose(orderObj, result);
          }
        });
 }

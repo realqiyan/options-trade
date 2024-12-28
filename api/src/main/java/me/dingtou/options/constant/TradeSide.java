@@ -12,30 +12,32 @@ public enum TradeSide {
     /**
      * 买
      */
-    BUY(1, -1),
+    BUY(1, -1, 2),
 
     /**
      * 卖
      */
-    SELL(2, 1),
+    SELL(2, 1, 1),
 
     /**
      * 卖空
      */
-    SELL_SHORT(3, 1),
+    SELL_SHORT(3, 1, 1),
 
     /**
      * 买回
      */
-    BUY_BACK(4, -1),
+    BUY_BACK(4, -1, 2),
     ;
 
     private final int code;
     private final int sign;
+    private final int reverseCode;
 
-    TradeSide(int code, int sign) {
+    TradeSide(int code, int sign, int reverseCode) {
         this.code = code;
         this.sign = sign;
+        this.reverseCode = reverseCode;
     }
 
 

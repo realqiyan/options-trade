@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeFrom;
+import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.dao.OwnerOrderDAO;
 import me.dingtou.options.dao.OwnerStrategyDAO;
 import me.dingtou.options.gateway.OptionsTradeGateway;
@@ -47,7 +48,7 @@ public class TradeManager {
      * @return 返回执行后的订单对象
      */
     @Transactional(rollbackFor = Exception.class)
-    public OwnerOrder trade(OwnerStrategy ownerStrategy, int side, Integer quantity, BigDecimal price, Options options) {
+    public OwnerOrder trade(OwnerStrategy ownerStrategy, TradeSide side, Integer quantity, BigDecimal price, Options options) {
         // 获取基础配置中的证券信息
         Security security = options.getBasic().getSecurity();
 
@@ -72,7 +73,7 @@ public class TradeManager {
         ownerOrder.setCode(security.getCode());
         ownerOrder.setQuantity(quantity);
         ownerOrder.setPrice(price);
-        ownerOrder.setSide(side);
+        ownerOrder.setSide(side.getCode());
         ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
         ownerOrder.setTradeFrom(TradeFrom.SYS_CREATE.getCode());
         Map<String, String> ext = new HashMap<>();
@@ -98,30 +99,20 @@ public class TradeManager {
     /**
      * 平仓
      *
-     * @param ownerStrategy 交易策略
-     * @param side          交易方向，买或卖
-     * @param quantity      交易数量
-     * @param price         交易价格
-     * @param hisOrder      历史订单
+     * @param hisOrder 历史订单
+     * @param price    交易价格
      * @return 订单
      */
     @Transactional(rollbackFor = Exception.class)
-    public OwnerOrder close(OwnerStrategy ownerStrategy, int side, Integer quantity, BigDecimal price, OwnerOrder hisOrder) {
+    public OwnerOrder close(OwnerOrder hisOrder, BigDecimal price) {
         // 创建并初始化订单对象
+        OwnerOrder ownerOrder = hisOrder.clone();
         Date now = new Date();
-        OwnerOrder ownerOrder = new OwnerOrder();
-        ownerOrder.setStrategyId(ownerStrategy.getStrategyId());
-        ownerOrder.setUnderlyingCode(ownerStrategy.getCode());
-        ownerOrder.setPlatform(ownerStrategy.getPlatform());
-        ownerOrder.setOwner(ownerStrategy.getOwner());
-        ownerOrder.setAccountId(ownerStrategy.getAccountId());
-        ownerOrder.setMarket(hisOrder.getMarket());
         ownerOrder.setTradeTime(now);
-        ownerOrder.setStrikeTime(hisOrder.getStrikeTime());
-        ownerOrder.setCode(hisOrder.getCode());
-        ownerOrder.setQuantity(quantity);
+        ownerOrder.setCreateTime(now);
+        ownerOrder.setUpdateTime(now);
         ownerOrder.setPrice(price);
-        ownerOrder.setSide(side);
+        ownerOrder.setSide(TradeSide.of(hisOrder.getSide()).getReverseCode());
         ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
         ownerOrder.setTradeFrom(TradeFrom.SYS_CLOSE.getCode());
         Map<String, String> ext = new HashMap<>();
@@ -129,8 +120,6 @@ public class TradeManager {
         ownerOrder.setExt(ext);
 
         // 将订单信息插入数据库
-        ownerOrder.setCreateTime(now);
-        ownerOrder.setUpdateTime(now);
         ownerOrderDAO.insert(ownerOrder);
 
         // 通过交易网关执行交易操作
@@ -231,7 +220,7 @@ public class TradeManager {
             if (Boolean.TRUE.equals(dbOrder.getSubOrder())) {
                 dbOrder.setOrderFee(BigDecimal.ZERO);
             } else {
-                dbOrder.setOrderFee(feeMap.get(dbOrder.getPlatformOrderIdEx()));
+                dbOrder.setOrderFee(feeMap.getOrDefault(dbOrder.getPlatformOrderIdEx(), BigDecimal.ZERO));
             }
             dbOrder.setUpdateTime(now);
             ownerOrderDAO.updateById(dbOrder);
@@ -269,9 +258,8 @@ public class TradeManager {
             if (Boolean.TRUE.equals(newOrder.getSubOrder())) {
                 newOrder.setOrderFee(BigDecimal.ZERO);
             } else {
-                newOrder.setOrderFee(feeMap.get(newOrder.getPlatformOrderIdEx()));
+                newOrder.setOrderFee(feeMap.getOrDefault(newOrder.getPlatformOrderIdEx(), BigDecimal.ZERO));
             }
-            newOrder.setOrderFee(feeMap.get(newOrder.getPlatformOrderIdEx()));
             ownerOrderDAO.insert(newOrder);
         }
         List<OwnerOrder> allOrders = new ArrayList<>();

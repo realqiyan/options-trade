@@ -93,20 +93,19 @@ public class OwnerManager {
             return;
         }
         Date now = new Date();
-        // 计算是否已经平仓用
+        // 计算提交的交易单是否已经平仓用
         Map<String, List<OwnerOrder>> codeOrdersMap = ownerOrders.stream().collect(Collectors.groupingBy(OwnerOrder::getCode));
         Map<String, Boolean> orderClose = new HashMap<>();
         for (Map.Entry<String, List<OwnerOrder>> codeOrders : codeOrdersMap.entrySet()) {
             String code = codeOrders.getKey();
             List<OwnerOrder> orders = codeOrders.getValue();
             // 买入卖出的数量是否为0
-            BigDecimal totalQuantity = orders.stream().map(order -> {
-                if (OrderStatus.of(order.getStatus()).isValid()) {
-                    return new BigDecimal(order.getQuantity()).multiply(new BigDecimal(TradeSide.of(order.getSide()).getSign()));
-                }
-                return BigDecimal.ZERO;
-            }).reduce(BigDecimal.ZERO, BigDecimal::add);
-            if (totalQuantity.compareTo(BigDecimal.ZERO) == 0) {
+            List<OwnerOrder> successOrders = orders.stream()
+                    .filter(order -> OrderStatus.of(order.getStatus()).isSuccess()).toList();
+            BigDecimal totalQuantity = successOrders.stream()
+                    .map(order -> new BigDecimal(order.getQuantity()).multiply(new BigDecimal(TradeSide.of(order.getSide()).getSign())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (!successOrders.isEmpty() && totalQuantity.compareTo(BigDecimal.ZERO) == 0) {
                 orderClose.put(code, true);
             }
         }
