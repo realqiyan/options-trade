@@ -1,8 +1,10 @@
 package me.dingtou.options.gateway.longport;
 
 import com.longport.Config;
+import com.longport.ConfigBuilder;
 import com.longport.OpenApiException;
 import com.longport.quote.QuoteContext;
+import me.dingtou.options.config.ConfigUtils;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
@@ -21,7 +23,17 @@ public class SecurityQuoteGatewayImpl implements SecurityQuoteGateway {
 
     static {
         try {
-            LONGPORT_CONFIG = Config.fromEnv();
+            // Init config without ENV
+            // https://longportapp.github.io/openapi-sdk/java/com/longport/ConfigBuilder.html
+            // 读取属性值
+            String appKey = ConfigUtils.getConfig("longport.app.key");
+            String appSecret = ConfigUtils.getConfig("longport.app.secret");
+            String accessToken = ConfigUtils.getConfig("longport.access.token");
+            if (null != appKey && null != appSecret && null != accessToken) {
+                LONGPORT_CONFIG = new ConfigBuilder(appKey, appSecret, accessToken).build();
+            } else {
+                LONGPORT_CONFIG = Config.fromEnv();
+            }
         } catch (OpenApiException e) {
             throw new RuntimeException(e);
         }
