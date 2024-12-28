@@ -58,13 +58,13 @@ function cancel(order){
 }
 
 function tradeClose(order, orderBook){
-    layer.prompt({title: '请输入买入价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）'}, function(value, index, elem){
+    var closePrice = order.price * 0.2;
+    layer.prompt({title: '请输入买入价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）',value:closePrice}, function(value, index, elem){
         if(value === ''){
             return elem.focus();
         }
         // 下单
         var price = util.escape(value);
-        layer.msg('卖出价格:'+ price);
         $.ajax({
           url: "/trade/close",
           method: 'POST',
