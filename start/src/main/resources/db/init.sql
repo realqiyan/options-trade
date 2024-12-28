@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： 10.0.12.220
--- 生成日期： 2024-12-27 19:15:10
+-- 生成日期： 2024-12-28 19:10:41
 -- 服务器版本： 8.2.0
 -- PHP 版本： 8.2.26
 
@@ -46,6 +46,7 @@ CREATE TABLE `owner_order` (
   `price` decimal(10,4) NOT NULL,
   `order_fee` decimal(10,4) DEFAULT NULL,
   `quantity` int NOT NULL,
+  `sub_order` int NOT NULL DEFAULT '0',
   `status` int NOT NULL,
   `owner` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `platform_order_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
