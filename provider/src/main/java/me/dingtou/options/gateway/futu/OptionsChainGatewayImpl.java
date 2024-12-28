@@ -26,7 +26,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
     public OptionsChain queryOptionsChain(Security security, String strikeTime, BigDecimal lastDone) {
         BigDecimal minStrikePrice = BigDecimal.ZERO;
         BigDecimal maxStrikePrice = BigDecimal.valueOf(Long.MAX_VALUE);
-        if (null != lastDone) {
+        if (null != lastDone && !BigDecimal.ZERO.equals(lastDone)) {
             minStrikePrice = lastDone.multiply(BigDecimal.valueOf(0.8));
             maxStrikePrice = lastDone.multiply(BigDecimal.valueOf(1.5));
         }

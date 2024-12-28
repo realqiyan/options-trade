@@ -66,7 +66,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
 
         var convertedData = result.optionList.map(item => {
             return {
-                "LAY_CHECKED": item.call?item.call.strategyData.recommend:item.put.strategyData.recommend,
+                "LAY_CHECKED": item.call&&item.call.strategyData?item.call.strategyData.recommend:(item.put&&item.put.strategyData?item.put.strategyData.recommend:false),
                 "callObj": item.call,
                 "putObj": item.put,
                 "group": item.call?item.call.basic.name.match(/^([^ ]+)/)[1]:item.put.basic.name.match(/^([^ ]+)/)[1],

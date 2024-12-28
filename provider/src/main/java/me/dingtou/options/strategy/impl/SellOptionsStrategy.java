@@ -18,7 +18,7 @@ public class SellOptionsStrategy implements OptionsStrategy {
             Options call = optionsTuple.getCall();
             if (null != call) {
                 BigDecimal strikePrice = call.getOptionExData().getStrikePrice();
-                if (strikePrice.compareTo(securityPrice) > 0) {
+                if (strikePrice.compareTo(securityPrice) > 0 && !BigDecimal.ZERO.equals(securityPrice)) {
                     OptionsStrategyData callStrategyData = new OptionsStrategyData();
                     // 计算卖出收益
                     BigDecimal sellCallAnnualYield = calculateAnnualYield(call, securityPrice, dte);

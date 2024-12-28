@@ -4,12 +4,14 @@ import com.longport.Config;
 import com.longport.ConfigBuilder;
 import com.longport.OpenApiException;
 import com.longport.quote.QuoteContext;
+import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.config.ConfigUtils;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,9 +19,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@Slf4j
 public class SecurityQuoteGatewayImpl implements SecurityQuoteGateway {
 
-    private final static Config LONGPORT_CONFIG;
+    private static Config LONGPORT_CONFIG = null;
 
     static {
         try {
@@ -34,8 +37,8 @@ public class SecurityQuoteGatewayImpl implements SecurityQuoteGateway {
             } else {
                 LONGPORT_CONFIG = Config.fromEnv();
             }
-        } catch (OpenApiException e) {
-            throw new RuntimeException(e);
+        } catch (Throwable e) {
+            log.error("init longport_java error. message:{}", e.getMessage());
         }
     }
 
@@ -60,15 +63,20 @@ public class SecurityQuoteGatewayImpl implements SecurityQuoteGateway {
         List<Security> securityList = new ArrayList<>(1);
         securityList.add(security);
         List<SecurityQuote> quoteList = quote(securityList);
-        if (null == quoteList) {
-            return null;
+        if (null == quoteList || quoteList.isEmpty()) {
+            SecurityQuote securityQuote = new SecurityQuote();
+            securityQuote.setSecurity(security);
+            securityQuote.setLastDone(BigDecimal.ZERO);
+            return securityQuote;
         }
         return quoteList.iterator().next();
     }
 
     @Override
     public List<SecurityQuote> quote(List<Security> securityList) {
-
+        if (null == LONGPORT_CONFIG) {
+            return Collections.emptyList();
+        }
         if (null == securityList || securityList.isEmpty()) {
             return Collections.emptyList();
         }
