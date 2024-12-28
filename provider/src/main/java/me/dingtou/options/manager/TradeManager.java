@@ -157,76 +157,86 @@ public class TradeManager {
         QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
         queryOrder.eq("owner", strategy.getOwner());
         queryOrder.eq("strategy_id", strategy.getStrategyId());
-        List<OwnerOrder> ownerOrderList = ownerOrderDAO.selectList(queryOrder);
-
+        // 本地订单
+        List<OwnerOrder> dbOrders = ownerOrderDAO.selectList(queryOrder);
         // 拉取平台订单列表1:1
         List<OwnerOrder> platformOrders = optionsTradeGateway.pullOrder(strategy);
         // 拉取平台成交单列表1:n
         List<OwnerOrder> platformOrderFills = optionsTradeGateway.pullOrderFill(strategy);
         // 获取平台订单手续费
         Map<String, BigDecimal> feeMap = optionsTradeGateway.totalFee(strategy, platformOrderFills);
-        for (OwnerOrder platformOrderFill : platformOrderFills) {
-            platformOrderFill.setOrderFee(feeMap.get(platformOrderFill.getPlatformOrderIdEx()));
-        }
 
+        // 组合订单platformOrders中拉取不到，成交单中会有多条记录
+
+        // 平台订单订单号唯一
+        Map<String, OwnerOrder> orderMap = new HashMap<>();
+        platformOrders.forEach(platformOrder -> {
+            orderMap.put(platformOrder.getPlatformOrderId(), platformOrder);
+        });
+
+        // 平台订单成交单一个订单号对应多条成交单
         Map<String, List<OwnerOrder>> orderFillMap = platformOrderFills.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
-        Map<String, List<OwnerOrder>> orderMap = platformOrders.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
-        Map<String, List<OwnerOrder>> removedOrderFillMap = new HashMap<>();
+        // 使用过的成交单
+        Map<String, List<OwnerOrder>> usedOrderFillMap = new HashMap<>();
 
 
         // 更新本地订单
-        for (OwnerOrder ownerOrder : ownerOrderList) {
-            String platformOrderId = ownerOrder.getPlatformOrderId();
-            List<OwnerOrder> ownerOrders = orderMap.get(platformOrderId);
-            if (null != ownerOrders) {
-                if (ownerOrders.size() != 1) {
-                    throw new IllegalArgumentException("平台订单不存在或重复 orderId:" + platformOrderId);
-                }
-                OwnerOrder platformOrder = ownerOrders.get(0);
-                ownerOrder.setStatus(platformOrder.getStatus());
-                ownerOrder.setTradeTime(platformOrder.getTradeTime());
-                ownerOrder.setStrikeTime(platformOrder.getStrikeTime());
-                ownerOrder.setPlatformOrderIdEx(platformOrder.getPlatformOrderIdEx());
+        for (OwnerOrder dbOrder : dbOrders) {
+            String platformOrderId = dbOrder.getPlatformOrderId();
+            OwnerOrder platformOrder = orderMap.get(platformOrderId);
+            if (null != platformOrder) {
+                dbOrder.setQuantity(platformOrder.getQuantity());
+                dbOrder.setStatus(platformOrder.getStatus());
+                dbOrder.setTradeTime(platformOrder.getTradeTime());
+                dbOrder.setStrikeTime(platformOrder.getStrikeTime());
+                dbOrder.setPlatformOrderIdEx(platformOrder.getPlatformOrderIdEx());
                 orderMap.remove(platformOrderId);
             }
 
-            List<OwnerOrder> ownerOrderFills = orderFillMap.get(platformOrderId);
-            if (null == ownerOrderFills) {
-                ownerOrderFills = removedOrderFillMap.get(platformOrderId);
+            boolean subOrder = false;
+            List<OwnerOrder> orderFills = orderFillMap.get(platformOrderId);
+            if (null == orderFills) {
+                subOrder = true;
+                orderFills = usedOrderFillMap.get(platformOrderId);
             }
-            if (null != ownerOrderFills && !ownerOrderFills.isEmpty()) {
-                OwnerOrder ownerOrderFill = null;
-                if (ownerOrderFills.size() == 1) {
-                    ownerOrderFill = ownerOrderFills.get(0);
+            if (null != orderFills && !orderFills.isEmpty()) {
+                OwnerOrder orderFill = null;
+                if (orderFills.size() == 1) {
+                    orderFill = orderFills.get(0);
                 } else {
-                    Optional<OwnerOrder> ownerOrderOptional = ownerOrderFills.stream().filter(order -> order.getPlatformFillId().equals(ownerOrder.getPlatformFillId())).findAny();
-                    if (ownerOrderOptional.isPresent()) {
-                        ownerOrderFill = ownerOrderOptional.get();
+                    Optional<OwnerOrder> orderOptional = orderFills.stream().filter(order -> order.getPlatformFillId().equals(dbOrder.getPlatformFillId())).findAny();
+                    if (orderOptional.isPresent()) {
+                        orderFill = orderOptional.get();
                     }
                 }
                 List<OwnerOrder> removed = orderFillMap.remove(platformOrderId);
                 if (null != removed) {
-                    removedOrderFillMap.put(platformOrderId, removed);
+                    usedOrderFillMap.put(platformOrderId, removed);
                 }
 
-                if (null != ownerOrderFill) {
-                    ownerOrder.setTradeTime(ownerOrderFill.getTradeTime());
-                    ownerOrder.setStrikeTime(ownerOrderFill.getStrikeTime());
-                    ownerOrder.setPlatformFillId(ownerOrderFill.getPlatformFillId());
-                    ownerOrder.setPlatformOrderIdEx(ownerOrderFill.getPlatformOrderIdEx());
+                if (null != orderFill) {
+                    dbOrder.setSubOrder(subOrder);
+                    dbOrder.setPrice(orderFill.getPrice());
+                    dbOrder.setTradeTime(orderFill.getTradeTime());
+                    dbOrder.setStrikeTime(orderFill.getStrikeTime());
+                    dbOrder.setPlatformFillId(orderFill.getPlatformFillId());
+                    dbOrder.setPlatformOrderIdEx(orderFill.getPlatformOrderIdEx());
                 }
             }
         }
-        for (OwnerOrder ownerOrder : ownerOrderList) {
-            ownerOrder.setOrderFee(feeMap.get(ownerOrder.getPlatformOrderIdEx()));
+        for (OwnerOrder dbOrder : dbOrders) {
+            if (Boolean.TRUE.equals(dbOrder.getSubOrder())) {
+                dbOrder.setOrderFee(BigDecimal.ZERO);
+            } else {
+                dbOrder.setOrderFee(feeMap.get(dbOrder.getPlatformOrderIdEx()));
+            }
+            dbOrder.setUpdateTime(now);
+            ownerOrderDAO.updateById(dbOrder);
         }
 
-        for (OwnerOrder ownerOrder : ownerOrderList) {
-            ownerOrder.setUpdateTime(now);
-            ownerOrderDAO.updateById(ownerOrder);
-        }
 
-        List<OwnerOrder> platformNewOrders = orderMap.values().stream().flatMap(Collection::stream).toList();
+        // 新订单
+        List<OwnerOrder> platformNewOrders = orderMap.values().stream().toList();
         for (OwnerOrder platformNewOrder : platformNewOrders) {
             String platformOrderId = platformNewOrder.getPlatformOrderId();
             List<OwnerOrder> ownerOrderFills = orderFillMap.get(platformOrderId);
@@ -239,18 +249,30 @@ public class TradeManager {
             }
         }
 
-        List<OwnerOrder> platformNewOrderFills = orderFillMap.values().stream().flatMap(Collection::stream).toList();
-
 
         List<OwnerOrder> newOrders = new ArrayList<>();
         newOrders.addAll(platformNewOrders);
-        newOrders.addAll(platformNewOrderFills);
-        for (OwnerOrder ownerOrder : newOrders) {
-            ownerOrder.setOrderFee(feeMap.get(ownerOrder.getPlatformOrderIdEx()));
-            ownerOrderDAO.insert(ownerOrder);
+        // 处理未使用过的订单 第一单为主订单，其他为子订单。
+        for (Map.Entry<String, List<OwnerOrder>> entries : orderFillMap.entrySet()) {
+            List<OwnerOrder> orderFills = entries.getValue();
+            for (int i = 0; i < orderFills.size(); i++) {
+                OwnerOrder platformNewOrderFill = orderFills.get(i);
+                platformNewOrderFill.setSubOrder(i == 0 ? false : true);
+                newOrders.add(platformNewOrderFill);
+            }
+        }
+
+        for (OwnerOrder newOrder : newOrders) {
+            if (Boolean.TRUE.equals(newOrder.getSubOrder())) {
+                newOrder.setOrderFee(BigDecimal.ZERO);
+            } else {
+                newOrder.setOrderFee(feeMap.get(newOrder.getPlatformOrderIdEx()));
+            }
+            newOrder.setOrderFee(feeMap.get(newOrder.getPlatformOrderIdEx()));
+            ownerOrderDAO.insert(newOrder);
         }
         List<OwnerOrder> allOrders = new ArrayList<>();
-        allOrders.addAll(ownerOrderList);
+        allOrders.addAll(dbOrders);
         allOrders.addAll(newOrders);
         return allOrders;
 

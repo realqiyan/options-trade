@@ -91,6 +91,12 @@ public class OwnerOrder {
     private String tradeFrom;
 
     /**
+     * 是否为子订单
+     */
+    private Boolean subOrder;
+
+
+    /**
      * 状态，表示订单的状态
      */
     private Integer status;
