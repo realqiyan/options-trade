@@ -7,10 +7,9 @@ import me.dingtou.options.constant.TradeFrom;
 import me.dingtou.options.dao.OwnerOrderDAO;
 import me.dingtou.options.dao.OwnerStrategyDAO;
 import me.dingtou.options.gateway.OptionsTradeGateway;
-import me.dingtou.options.model.Options;
-import me.dingtou.options.model.OwnerOrder;
-import me.dingtou.options.model.OwnerStrategy;
-import me.dingtou.options.model.Security;
+import me.dingtou.options.gateway.SecurityOrderBookGateway;
+import me.dingtou.options.model.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,10 +27,14 @@ public class TradeManager {
     private OwnerOrderDAO ownerOrderDAO;
 
     @Autowired
+    private OwnerStrategyDAO ownerStrategyDAO;
+
+    @Autowired
     private OptionsTradeGateway optionsTradeGateway;
 
     @Autowired
-    private OwnerStrategyDAO ownerStrategyDAO;
+    private SecurityOrderBookGateway securityOrderBookGateway;
+
 
     /**
      * 执行交易操作
@@ -303,4 +306,12 @@ public class TradeManager {
         return totalFeeMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
     }
 
+
+    public SecurityOrderBook querySecurityOrderBook(String code, Integer market) {
+        if (StringUtils.isBlank(code) || null == market) {
+            return null;
+        }
+        Security security = Security.of(code, market);
+        return securityOrderBookGateway.getOrderBook(security);
+    }
 }

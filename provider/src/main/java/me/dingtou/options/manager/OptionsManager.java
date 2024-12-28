@@ -1,9 +1,11 @@
 package me.dingtou.options.manager;
 
 import me.dingtou.options.gateway.OptionsChainGateway;
-import me.dingtou.options.gateway.SecurityOrderBookGateway;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
-import me.dingtou.options.model.*;
+import me.dingtou.options.model.OptionsChain;
+import me.dingtou.options.model.OptionsStrikeDate;
+import me.dingtou.options.model.Security;
+import me.dingtou.options.model.SecurityQuote;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,9 +21,6 @@ public class OptionsManager {
 
     @Autowired
     private SecurityQuoteGateway securityQuoteGateway;
-
-    @Autowired
-    private SecurityOrderBookGateway securityOrderBookGateway;
 
     public List<OptionsStrikeDate> queryOptionsExpDate(String code, Integer market) {
         if (StringUtils.isBlank(code) || null == market) {
@@ -41,15 +40,5 @@ public class OptionsManager {
 
         return optionsChain;
     }
-
-
-    public SecurityOrderBook querySecurityOrderBook(String code, Integer market) {
-        if (StringUtils.isBlank(code) || null == market) {
-            return null;
-        }
-        Security security = Security.of(code, market);
-        return securityOrderBookGateway.getOrderBook(security);
-    }
-
 
 }

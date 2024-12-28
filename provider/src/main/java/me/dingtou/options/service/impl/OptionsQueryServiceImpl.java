@@ -113,7 +113,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
     @Override
     public SecurityOrderBook queryOrderBook(Security security) {
-        return optionsManager.querySecurityOrderBook(security.getCode(), security.getMarket());
+        return tradeManager.querySecurityOrderBook(security.getCode(), security.getMarket());
     }
 
     @Override
