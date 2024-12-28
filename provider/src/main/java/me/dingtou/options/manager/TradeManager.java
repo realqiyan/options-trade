@@ -291,6 +291,14 @@ public class TradeManager {
     }
 
     public BigDecimal queryTotalOrderFee(OwnerStrategy strategy, List<OwnerOrder> ownerOrders) {
+        BigDecimal totalFee = ownerOrders.stream()
+                .map(OwnerOrder::getOrderFee)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
+        if (!BigDecimal.ZERO.equals(totalFee)) {
+            return totalFee;
+        }
         Map<String, BigDecimal> totalFeeMap = optionsTradeGateway.totalFee(strategy, ownerOrders);
         return totalFeeMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
     }

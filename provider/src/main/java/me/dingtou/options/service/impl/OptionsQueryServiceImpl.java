@@ -2,6 +2,7 @@ package me.dingtou.options.service.impl;
 
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
+import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.manager.OptionsManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
@@ -29,6 +30,9 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
     @Autowired
     private TradeManager tradeManager;
+
+    @Autowired
+    private SecurityQuoteGateway securityQuoteGateway;
 
 
     @Override
@@ -79,6 +83,18 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         // 期权利润
         summary.setOptionsIncome(totalPrice.subtract(totalFee));
 
+        // 持有数量
+        int holdSecurityNum = ownerOrders.stream()
+                .filter(order -> order.getCode().equals(ownerStrategy.getCode()))
+                .mapToInt(order -> -1 * TradeSide.of(order.getSide()).getSign() * order.getQuantity())
+                .sum();
+        summary.setHoldSecurityNum(holdSecurityNum);
+
+        // 股票现价
+        Security security = Security.of(ownerStrategy.getCode(), ownerStrategy.getMarket());
+        SecurityQuote securityQuote = securityQuoteGateway.quote(security);
+        BigDecimal lastDone = securityQuote.getLastDone();
+
         // 股票总金额
         List<BigDecimal> totalSecurityPriceList = ownerOrders.stream()
                 .filter(order -> order.getCode().equals(ownerStrategy.getCode()))
@@ -87,15 +103,10 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
                     return order.getPrice().multiply(new BigDecimal(order.getQuantity())).multiply(sign);
                 }).toList();
         BigDecimal totalSecurityPrice = totalSecurityPriceList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        // 股票利润
-        summary.setSecurityIncome(totalSecurityPrice);
 
-        // 持有数量
-        int holdSecurityNum = ownerOrders.stream()
-                .filter(order -> order.getCode().equals(ownerStrategy.getCode()))
-                .mapToInt(order -> -1 * TradeSide.of(order.getSide()).getSign() * order.getQuantity())
-                .sum();
-        summary.setHoldSecurityNum(holdSecurityNum);
+        // 股票利润
+        BigDecimal securityIncome = lastDone.multiply(BigDecimal.valueOf(holdSecurityNum)).add(totalSecurityPrice);
+        summary.setSecurityIncome(securityIncome);
 
         return summary;
     }
