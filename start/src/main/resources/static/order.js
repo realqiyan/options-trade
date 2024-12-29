@@ -49,7 +49,7 @@ function sync(){
             time: new Date().getTime()
           },
           success: function( result ) {
-            layer.msg('同步完成！');
+            layer.msg('同步结果:' + result.success + result.message?result.message:'');
             reloadData();
           }
         });
