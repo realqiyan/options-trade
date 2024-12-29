@@ -30,7 +30,8 @@ function loadOptionsExpDate(strategyId, code, market){
         market: market,
         time: new Date().getTime()
       },
-      success: function( result ) {
+      success: function( response ) {
+        var result = response.data;
         var output = document.getElementById("strike-list");
         output.innerHTML = "";
         var moreHtml = ""
@@ -61,7 +62,8 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
         optionExpiryDateDistance: optionExpiryDateDistance,
         time: new Date().getTime()
       },
-      success: function( result ) {
+      success: function( response ) {
+        var result = response.data;
         document.getElementById("title").innerHTML=currentCode + '(' + result.securityQuote.lastDone + ') - ' + result.strikeTime + '(' + optionExpiryDateDistance + ')';
 
         var convertedData = result.optionList.map(item => {
@@ -140,20 +142,20 @@ function trade(side, options, orderBook){
             }
             // 下单
             var price = util.escape(value);
-            layer.msg('卖出价格:'+ price);
             $.ajax({
               url: "/trade/submit",
               method: 'POST',
               data: {
                 owner: $("#owner").val(),
+                password: $("#password").val(),
                 side: side,
                 strategyId: currentStrategyId,
                 quantity: quantity,
                 price: price,
                 options: JSON.stringify(options),
               },
-              success: function( result ) {
-                layer.msg('交易完成 result:'+ result.platformOrderId);
+              success: function( response ) {
+                layer.msg('交易完成 result:'+ JSON.stringify(response));
               }
             });
             layer.close(index);
@@ -170,8 +172,8 @@ function sell(options){
            market: options.basic.security.market,
            time: new Date().getTime()
          },
-         success: function( result ) {
-            trade(2, options,result);
+         success: function( response ) {
+            trade(2, options, response.data);
          }
        });
 }
@@ -182,13 +184,14 @@ function reloadData(){
       data: {
         time: new Date().getTime()
       },
-      success: function( result ) {
-        $("#owner").val(result.owner);
+      success: function( response ) {
+        var data = response.data;
+        $("#owner").val(data.owner);
 
         var output = document.getElementById("security");
         output.innerHTML = "";
-        for(var i=0; i<result.strategyList.length; i++) {
-            var obj = result.strategyList[i];
+        for(var i=0; i<data.strategyList.length; i++) {
+            var obj = data.strategyList[i];
             //<dd><a href="javascript:;">loading...</a></dd>
             output.innerHTML += '<dd onclick="loadOptionsExpDate(\''+obj.strategyId+'\',\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.strategyName+'</a></dd>'
         }

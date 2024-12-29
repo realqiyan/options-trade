@@ -26,11 +26,12 @@ function tradeModify(action, order){
               url: "/trade/modify",
               method: 'POST',
               data: {
+                password: $("#password").val(),
                 action: action,
                 order: order,
               },
-              success: function( result ) {
-                layer.msg('执行完成 result:'+ JSON.stringify(result));
+              success: function( response ) {
+                layer.msg('执行完成 result:'+ JSON.stringify(response));
                 loadStrategyOrder(currentStrategyId);
               }
             });
@@ -44,6 +45,7 @@ function sync(){
           url: "/trade/sync",
           method: 'GET',
           data: {
+            password: $("#password").val(),
             time: new Date().getTime()
           },
           success: function( result ) {
@@ -69,11 +71,13 @@ function tradeClose(order, orderBook){
           url: "/trade/close",
           method: 'POST',
           data: {
+            password: $("#password").val(),
             owner: order.owner,
             price: price,
             order: JSON.stringify(order),
           },
-          success: function( result ) {
+          success: function( response ) {
+            var result = response.data;
             layer.msg('交易完成 result:'+ result.platformOrderId);
             loadStrategyOrder(currentStrategyId);
           }
@@ -92,7 +96,8 @@ function closePosition(order){
            market: orderObj.market,
            time: new Date().getTime()
          },
-         success: function( result ) {
+         success: function( response ) {
+            var result = response.data;
             tradeClose(orderObj, result);
          }
        });
@@ -212,7 +217,8 @@ function loadStrategyOrder(strategyId){
           data: {
             strategyId: strategyId
           },
-          success: function( result ) {
+          success: function( response ) {
+            var result = response.data;
             document.getElementById("title").innerHTML=result.strategy.strategyName + ' (期权收入:$' + result.optionsIncome + ') (策略持有股票数:'+result.holdSecurityNum+') (股票收入:$'+result.securityIncome+') (已扣除手续费:$' + result.totalFee + ')';
             renderTable(result.strategyOrders);
           }
@@ -225,7 +231,8 @@ function reloadData(){
       data: {
         time: new Date().getTime()
       },
-      success: function( result ) {
+      success: function( response ) {
+        var result = response.data;
         var output = document.getElementById("security");
         output.innerHTML = "";
         for(var i=0; i<result.strategyList.length; i++) {
