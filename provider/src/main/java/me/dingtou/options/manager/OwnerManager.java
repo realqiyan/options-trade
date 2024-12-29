@@ -99,13 +99,17 @@ public class OwnerManager {
         for (Map.Entry<String, List<OwnerOrder>> codeOrders : codeOrdersMap.entrySet()) {
             String code = codeOrders.getKey();
             List<OwnerOrder> orders = codeOrders.getValue();
-            // 买入卖出的数量是否为0
+            // 已成交的订单买入卖出的数量是否为0
             List<OwnerOrder> successOrders = orders.stream()
-                    .filter(order -> OrderStatus.of(order.getStatus()).isSuccess()).toList();
+                    .filter(order -> OrderStatus.of(order.getStatus()).isTraded())
+                    .toList();
+            if (successOrders.isEmpty()) {
+                continue;
+            }
             BigDecimal totalQuantity = successOrders.stream()
                     .map(order -> new BigDecimal(order.getQuantity()).multiply(new BigDecimal(TradeSide.of(order.getSide()).getSign())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-            if (!successOrders.isEmpty() && totalQuantity.compareTo(BigDecimal.ZERO) == 0) {
+            if (BigDecimal.ZERO.equals(totalQuantity)) {
                 orderClose.put(code, true);
             }
         }
@@ -121,12 +125,16 @@ public class OwnerManager {
                 ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getCode(), totalIncome.toString());
             }
 
-            // 订单是不是已经过了行权日
-            boolean isTimeout = ownerOrder.getStrikeTime().before(now) && !DateUtils.isSameDay(ownerOrder.getStrikeTime(), now);
-
-            // 订单是否已经平仓
-            Boolean isClose = isTimeout || orderClose.getOrDefault(ownerOrder.getCode(), false);
-            ownerOrder.getExt().put(OrderExt.IS_CLOSE.getCode(), String.valueOf(isClose));
+            if (!OrderStatus.of(ownerOrder.getStatus()).isValid()) {
+                // 无效订单直接标记关闭
+                ownerOrder.getExt().put(OrderExt.IS_CLOSE.getCode(), Boolean.TRUE.toString());
+            } else {
+                // 订单是不是已经过了行权日
+                boolean isTimeout = ownerOrder.getStrikeTime().before(now) && !DateUtils.isSameDay(ownerOrder.getStrikeTime(), now);
+                // 订单是否已经平仓
+                Boolean isClose = isTimeout || orderClose.getOrDefault(ownerOrder.getCode(), false);
+                ownerOrder.getExt().put(OrderExt.IS_CLOSE.getCode(), String.valueOf(isClose));
+            }
         }
 
 

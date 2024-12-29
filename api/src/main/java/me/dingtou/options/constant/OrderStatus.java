@@ -25,14 +25,23 @@ public enum OrderStatus {
     FILL_CANCELLED(24, false, false), //成交被撤销
     ;
 
+    /**
+     * 状态码
+     */
     private final Integer code;
+    /**
+     * 是否有效
+     */
     private final boolean valid;
-    private final boolean success;
+    /**
+     * 是否已成交
+     */
+    private final boolean traded;
 
-    OrderStatus(int code, boolean valid, boolean success) {
+    OrderStatus(int code, boolean valid, boolean traded) {
         this.code = code;
         this.valid = valid;
-        this.success = success;
+        this.traded = traded;
     }
 
     public static OrderStatus of(Integer code) {

@@ -133,6 +133,7 @@ function renderTable(orderList){
 
     var convertedData = orderList.map(item => {
         return {
+            "LAY_CHECKED": item.ext && "true" == item.ext.isClose ? false : true,
             "order": JSON.stringify(item),
             "id": item.id,
             "strategyId": item.strategyId,
@@ -212,7 +213,7 @@ function loadStrategyOrder(strategyId){
             strategyId: strategyId
           },
           success: function( result ) {
-            document.getElementById("title").innerHTML=result.strategy.strategyName + '(期权总收入:' + result.optionsIncome + ') (手续费:' + result.totalFee + ')  (策略持有股票数:'+result.holdSecurityNum+') (股票收入:'+result.securityIncome+')';
+            document.getElementById("title").innerHTML=result.strategy.strategyName + ' (期权收入:$' + result.optionsIncome + ') (策略持有股票数:'+result.holdSecurityNum+') (股票收入:$'+result.securityIncome+') (已扣除手续费:$' + result.totalFee + ')';
             renderTable(result.strategyOrders);
           }
     });

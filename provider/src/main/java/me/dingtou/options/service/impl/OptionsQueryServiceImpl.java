@@ -62,7 +62,6 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
         // 订单列表
         List<OwnerOrder> ownerOrders = ownerManager.queryStrategyOrder(ownerStrategy);
-
         summary.setStrategyOrders(ownerOrders);
 
         // 订单费用
@@ -72,7 +71,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         // 期权总金额
         BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
         List<BigDecimal> totalOptionsPriceList = ownerOrders.stream()
-                .filter(order -> OrderStatus.of(order.getStatus()).isValid())
+                .filter(order -> OrderStatus.of(order.getStatus()).isTraded())
                 .filter(order -> !order.getCode().equals(ownerStrategy.getCode()))
                 .map(order -> {
                     BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
