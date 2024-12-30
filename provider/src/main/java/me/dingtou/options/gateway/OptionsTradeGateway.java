@@ -30,6 +30,14 @@ public interface OptionsTradeGateway {
      */
     OwnerOrder cancel(OwnerOrder order);
 
+
+    /**
+     * 删除订单
+     *
+     * @param order 订单
+     */
+    Boolean delete(OwnerOrder order);
+
     /**
      * 计算订单总费用
      *

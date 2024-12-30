@@ -1,5 +1,6 @@
 package me.dingtou.options.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderAction;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.manager.OwnerManager;
@@ -15,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class OptionsTradeServiceImpl implements OptionsTradeService {
 
@@ -48,10 +50,19 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
             return null;
         }
         OwnerOrder oldOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatform(), order.getPlatformOrderId(), order.getPlatformFillId());
-        if (OrderAction.CANCEL.equals(action)) {
-            return tradeManager.cancel(oldOrder);
+        if (null == oldOrder) {
+            return null;
         }
-        throw new IllegalArgumentException("不支持的操作");
+        switch (action) {
+            case CANCEL:
+                return tradeManager.cancel(oldOrder);
+            case DELETE:
+                Boolean delete = tradeManager.delete(oldOrder);
+                log.warn("delete orderId:{} result:{}", oldOrder.getPlatformOrderId(), delete);
+                return oldOrder;
+            default:
+                throw new IllegalArgumentException("不支持的操作");
+        }
     }
 
     @Override

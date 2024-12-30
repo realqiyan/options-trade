@@ -35,6 +35,14 @@ public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
     }
 
     @Override
+    public Boolean delete(OwnerOrder order) {
+        if (Platform.FUTU.getCode().equals(order.getPlatform())) {
+            return TradeExecutor.submit(new FuncDeleteOrder(order));
+        }
+        throw new IllegalArgumentException("不支持的平台");
+    }
+
+    @Override
     public Map<String, BigDecimal> totalFee(OwnerStrategy strategy, List<OwnerOrder> orders) {
         if (null == orders || orders.isEmpty()) {
             return Collections.emptyMap();

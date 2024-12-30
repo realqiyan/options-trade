@@ -59,6 +59,10 @@ function cancel(order){
     tradeModify('cancel', order);
 }
 
+function deleteOrder(order){
+    tradeModify('delete', order);
+}
+
 function tradeClose(order, orderBook){
     var closePrice = order.price * 0.2;
     layer.prompt({title: '请输入买入价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）',value:closePrice}, function(value, index, elem){
@@ -190,7 +194,9 @@ function renderTable(orderList){
           {field: 'order', title: '操作', width: 200, templet: '<div>{{# if("true" != d.isClose){ }}'+
           '{{# if(["-1","1","2","5"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="cancel">取消</a>{{#  } }}'+
           '{{# if(["11"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition(\'{{= d.order}}\')" lay-event="closePosition">平仓</a>{{#  } }}'+
-          '{{# } }}</div>'},
+          '{{# } }}'+
+          '{{# if(["15"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="deleteOrder(\'{{= d.order}}\')" lay-event="delete">删除</a>{{#  } }}'+
+          '</div>'},
         ]],
         data: convertedData,
         height: 'full-260',

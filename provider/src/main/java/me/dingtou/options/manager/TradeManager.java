@@ -133,7 +133,7 @@ public class TradeManager {
 
     @Transactional(rollbackFor = Exception.class)
     public OwnerOrder cancel(OwnerOrder dbOrder) {
-        optionsTradeGateway.cancel(dbOrder);
+        dbOrder = optionsTradeGateway.cancel(dbOrder);
         dbOrder.setStatus(OrderStatus.CANCELLED_ALL.getCode());
         dbOrder.setUpdateTime(new Date());
         int update = ownerOrderDAO.updateById(dbOrder);
@@ -141,6 +141,20 @@ public class TradeManager {
             throw new RuntimeException("cancel order error");
         }
         return dbOrder;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean delete(OwnerOrder oldOrder) {
+        if (null == oldOrder || !Objects.equals(oldOrder.getStatus(), OrderStatus.CANCELLED_ALL.getCode())) {
+            return false;
+        }
+        int updateRow = 0;
+        if (optionsTradeGateway.delete(oldOrder)) {
+            List<Integer> orderIds = new ArrayList<>();
+            orderIds.add(oldOrder.getId());
+            updateRow = ownerOrderDAO.deleteByIds(orderIds);
+        }
+        return updateRow != 0;
     }
 
     @Transactional(rollbackFor = Exception.class)

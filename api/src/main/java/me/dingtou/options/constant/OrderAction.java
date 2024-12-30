@@ -1,13 +1,21 @@
 package me.dingtou.options.constant;
 
+import lombok.Getter;
+
 /**
  * 交易动作
  */
+@Getter
 public enum OrderAction {
     /**
      * 取消
      */
     CANCEL("cancel"),
+
+    /**
+     * 删除
+     */
+    DELETE("delete"),
 
     /**
      * 未知
@@ -30,7 +38,4 @@ public enum OrderAction {
         return UNKNOWN;
     }
 
-    public String getCode() {
-        return code;
-    }
 }
