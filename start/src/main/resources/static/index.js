@@ -1,22 +1,7 @@
 //JS
-var $ = layui.$;
-var element = layui.element;
-var util = layui.util;
-
 var currentStrategyId;
 var currentCode;
 var currentMarket;
-
-function render(){
-    layui.use(['element', 'layer', 'util'], function(){
-      var element = layui.element;
-      var layer = layui.layer;
-      var util = layui.util;
-      var $ = layui.$;
-      element.render('nav');
-    });
-}
-
 
 function loadOptionsExpDate(strategyId, code, market){
     currentStrategyId = strategyId;
