@@ -26,7 +26,12 @@ public class StrategySummary {
     /**
      * 期权总收益
      */
-    private BigDecimal optionsIncome;
+    private BigDecimal allOptionsIncome;
+
+    /**
+     * 未实现期权收益
+     */
+    private BigDecimal unrealizedOptionsIncome;
 
     /**
      * 股票总收益

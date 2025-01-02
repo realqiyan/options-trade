@@ -51,38 +51,18 @@
             </div>
             <br><br>
         </div>
-        <!--
-        <div class="layui-collapse" lay-accordion>
-            <div class="layui-colla-item">
-                <div class="layui-colla-title">交易状态</div>
-                <div class="layui-colla-content layui-show">
-                    <p>UNKNOWN(-1), //未知状态</p>
-                    <p>WAITING_SUBMIT(1), //等待提交</p>
-                    <p>SUBMITTING(2), //提交中</p>
-                    <p>SUBMITTED(5), //已提交，等待成交</p>
-                    <p>FILLED_PART(10), //部分成交</p>
-                    <p>FILLED_ALL(11), //全部已成</p>
-                    <p>CANCELLED_PART(14), //部分成交，剩余部分已撤单</p>
-                    <p>CANCELLED_ALL(15), //全部已撤单，无成交</p>
-                    <p>FAILED(21), //下单失败，服务拒绝</p>
-                    <p>DISABLED(22), //已失效</p>
-                    <p>DELETED(23), //已删除，无成交的订单才能删除</p>
-                    <p>FILL_CANCELLED(24), //成交被撤销</p>
-                </div>
-            </div>
-            <div class="layui-colla-item">
-                <div class="layui-colla-title">交易类型</div>
-                <div class="layui-colla-content">
-                    <p>BUY(1),</p>
-                    <p>SELL(2);</p>
-                </div>
-            </div>
-        </div>
-        -->
     </div>
 
 </div>
-
+<script id="summary" type="text/html">
+    <h3>{{ d.strategy.strategyName }} - ${{ d.allOptionsIncome }}</h3>
+    <ul>
+        <li>期权已到账收入:${{ d.allOptionsIncome }}【已扣除手续费${{ d.totalFee }}】</li>
+        <li>期权未到期收入:${{ d.unrealizedOptionsIncome }}</li>
+        <li>策略股票收入:${{ d.securityIncome }}</li>
+        <li>策略持有股票:{{ d.holdSecurityNum }}</li>
+    </ul>
+</script>
 <script src="layui/layui.js"></script>
 <script src="common.js"></script>
 <script src="order.js"></script>

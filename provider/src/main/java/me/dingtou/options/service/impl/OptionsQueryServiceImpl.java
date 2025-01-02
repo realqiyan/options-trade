@@ -1,5 +1,6 @@
 package me.dingtou.options.service.impl;
 
+import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
@@ -68,21 +69,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         BigDecimal totalFee = tradeManager.queryTotalOrderFee(ownerStrategy, ownerOrders);
         summary.setTotalFee(totalFee);
 
-        // 期权总金额
-        BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
-        List<BigDecimal> totalOptionsPriceList = ownerOrders.stream()
-                .filter(order -> OrderStatus.of(order.getStatus()).isTraded())
-                .filter(order -> !order.getCode().equals(ownerStrategy.getCode()))
-                .map(order -> {
-                    BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-                    return order.getPrice().multiply(lotSize).multiply(sign);
-                }).toList();
-        BigDecimal totalPrice = totalOptionsPriceList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // 期权利润
-        summary.setOptionsIncome(totalPrice.subtract(totalFee));
-
-        // 持有数量
+        // 股票持有数量
         int holdSecurityNum = ownerOrders.stream()
                 .filter(order -> order.getCode().equals(ownerStrategy.getCode()))
                 .mapToInt(order -> -1 * TradeSide.of(order.getSide()).getSign() * order.getQuantity())
@@ -106,6 +93,34 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         // 股票利润
         BigDecimal securityIncome = lastDone.multiply(BigDecimal.valueOf(holdSecurityNum)).add(totalSecurityPrice);
         summary.setSecurityIncome(securityIncome);
+
+
+        // 期权总金额
+        List<OwnerOrder> allOptionsOrders = ownerOrders.stream()
+                .filter(order -> OrderStatus.of(order.getStatus()).isTraded())
+                .filter(order -> !order.getCode().equals(ownerStrategy.getCode()))
+                .toList();
+
+        BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
+        // 所有期权利润
+        BigDecimal allOptionsIncome = allOptionsOrders.stream()
+                .map(order -> {
+                    BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
+                    return order.getPrice().multiply(lotSize).multiply(sign);
+                }).reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 期权利润
+        summary.setAllOptionsIncome(allOptionsIncome.subtract(totalFee));
+
+        // 所有未平仓的期权利润
+        BigDecimal unrealizedOptionsIncome = allOptionsOrders.stream()
+                .filter(order -> Boolean.FALSE.equals(Boolean.valueOf(order.getExt().get(OrderExt.IS_CLOSE.getCode()))))
+                .map(order -> {
+                    BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
+                    return order.getPrice().multiply(lotSize).multiply(sign);
+                }).reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 期权利润
+        summary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
+
 
         return summary;
     }

@@ -210,7 +210,11 @@ function loadStrategyOrder(strategyId){
           },
           success: function( response ) {
             var result = response.data;
-            document.getElementById("title").innerHTML=result.strategy.strategyName + ' (期权收入:$' + result.optionsIncome + ') (策略持有股票数:'+result.holdSecurityNum+') (股票收入:$'+result.securityIncome+') (已扣除手续费:$' + result.totalFee + ')';
+            var getTpl = summary.innerHTML;
+            var view = document.getElementById('title');
+            laytpl(getTpl).render(result, function(html){
+              view.innerHTML = html;
+            });
             renderTable(result.strategyOrders);
           }
     });
