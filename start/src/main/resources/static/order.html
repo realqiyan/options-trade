@@ -42,11 +42,10 @@
                 <div class="layui-form-mid layui-word-aux">OTP验证码</div>
             </div>
             <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
-                订单列表
+                点击股票查询详情
             </blockquote>
             <div class="layui-card layui-panel">
                 <div class="layui-card-body" id="result" lay-filter="result">
-                    点击股票查询订单
                 </div>
             </div>
             <br><br>
@@ -55,9 +54,9 @@
 
 </div>
 <script id="summary" type="text/html">
-    <h3>{{ d.strategy.strategyName }} - ${{ d.allOptionsIncome }}</h3>
-    <ul>
-        <li>期权已到账收入:${{ d.allOptionsIncome }}【已扣除手续费${{ d.totalFee }}】</li>
+    <h4>{{ d.strategy.strategyName }} - ${{ d.allOptionsIncome }}</h4>
+    <ul class="layui-font-12">
+        <li>期权已到账收入:${{ d.allOptionsIncome }} (已扣除手续费${{ d.totalFee }})</li>
         <li>期权未到期收入:${{ d.unrealizedOptionsIncome }}</li>
         <li>策略股票收入:${{ d.securityIncome }}</li>
         <li>策略持有股票:{{ d.holdSecurityNum }}</li>
