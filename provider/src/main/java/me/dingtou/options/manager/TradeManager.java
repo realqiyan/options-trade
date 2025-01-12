@@ -186,6 +186,9 @@ public class TradeManager {
         Map<String, List<OwnerOrder>> usedOrderFillMap = new HashMap<>();
 
 
+        // 新订单
+        List<OwnerOrder> platformNewOrders = new ArrayList<>();
+
         // 更新本地订单
         for (OwnerOrder dbOrder : dbOrders) {
             String platformOrderId = dbOrder.getPlatformOrderId();
@@ -207,13 +210,26 @@ public class TradeManager {
             }
             if (null != orderFills && !orderFills.isEmpty()) {
                 OwnerOrder orderFill = null;
+                // 一笔成交单直接赋值
                 if (orderFills.size() == 1) {
                     orderFill = orderFills.get(0);
                 } else {
-                    Optional<OwnerOrder> orderOptional = orderFills.stream().filter(order -> order.getPlatformFillId().equals(dbOrder.getPlatformFillId())).findAny();
-                    if (orderOptional.isPresent()) {
-                        orderFill = orderOptional.get();
+                    // 多比成交单 如果订单成交单id不为空就走更新逻辑
+                    if (null != dbOrder.getPlatformFillId()) {
+                        // 找到对应的成交单
+                        Optional<OwnerOrder> orderOptional = orderFills.stream().filter(order -> order.getPlatformFillId().equals(dbOrder.getPlatformFillId())).findAny();
+                        if (orderOptional.isPresent()) {
+                            orderFill = orderOptional.get();
+                        }
+                    } else {
+                        // 一笔订单生成了多笔成交单
+                        orderFill = orderFills.get(0);
+                        orderFill.setSubOrder(false);
+                        List<OwnerOrder> subOrders = orderFills.subList(1, orderFills.size());
+                        subOrders.forEach(order -> order.setSubOrder(true));
+                        platformNewOrders.addAll(subOrders);
                     }
+
                 }
                 List<OwnerOrder> removed = orderFillMap.remove(platformOrderId);
                 if (null != removed) {
@@ -223,6 +239,7 @@ public class TradeManager {
                 if (null != orderFill) {
                     dbOrder.setSubOrder(subOrder);
                     dbOrder.setPrice(orderFill.getPrice());
+                    dbOrder.setQuantity(orderFill.getQuantity());
                     dbOrder.setTradeTime(orderFill.getTradeTime());
                     dbOrder.setStrikeTime(orderFill.getStrikeTime());
                     dbOrder.setPlatformFillId(orderFill.getPlatformFillId());
@@ -242,7 +259,7 @@ public class TradeManager {
 
 
         // 新订单
-        List<OwnerOrder> platformNewOrders = orderMap.values().stream().toList();
+        platformNewOrders.addAll(orderMap.values().stream().toList());
         for (OwnerOrder platformNewOrder : platformNewOrders) {
             String platformOrderId = platformNewOrder.getPlatformOrderId();
             List<OwnerOrder> ownerOrderFills = orderFillMap.get(platformOrderId);
@@ -262,8 +279,9 @@ public class TradeManager {
         for (Map.Entry<String, List<OwnerOrder>> entries : orderFillMap.entrySet()) {
             List<OwnerOrder> orderFills = entries.getValue();
             for (int i = 0; i < orderFills.size(); i++) {
+                boolean subOrder = i == 0 ? false : true;
                 OwnerOrder platformNewOrderFill = orderFills.get(i);
-                platformNewOrderFill.setSubOrder(i == 0 ? false : true);
+                platformNewOrderFill.setSubOrder(subOrder);
                 newOrders.add(platformNewOrderFill);
             }
         }
