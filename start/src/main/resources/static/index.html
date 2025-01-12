@@ -65,23 +65,23 @@
 <script src="layui/layui.js"></script>
 <script type="text/html" id="id-table-put-info">
     {{# if(d.putObj) { }}
-    <span class="layui-badge-rim">Delta:{{= d.putObj.realtimeData.delta }}</span>
-    <span class="layui-badge-rim">Theta:{{= d.putObj.realtimeData.theta }}</span>
-    <span class="layui-badge-rim">Gamma:{{= d.putObj.realtimeData.gamma }}</span>
+    <span class="layui-badge-rim layui-bg-green">Delta:{{= d.putObj.realtimeData.delta }}</span>
+    <span class="layui-badge-rim layui-bg-green">Theta:{{= d.putObj.realtimeData.theta }}</span>
+    <span class="layui-badge-rim layui-bg-green">Gamma:{{= d.putObj.realtimeData.gamma }}</span>
     <br/>
-    <span class="layui-badge-rim">交易量:{{= d.putObj.realtimeData.volume }}</span>
-    <span class="layui-badge-rim">开仓量:{{= d.putObj.realtimeData.openInterest }}</span>
+    <span class="layui-badge-rim layui-bg-green">交易量:{{= d.putObj.realtimeData.volume }}</span>
+    <span class="layui-badge-rim layui-bg-green">开仓量:{{= d.putObj.realtimeData.openInterest }}</span>
     {{# } }}
 </script>
 
 <script type="text/html" id="id-table-call-info">
     {{# if(d.callObj) { }}
-    <span class="layui-badge-rim">Delta:{{= d.callObj.realtimeData.delta }}</span>
-    <span class="layui-badge-rim">Theta:{{= d.callObj.realtimeData.theta }}</span>
-    <span class="layui-badge-rim">Gamma:{{= d.callObj.realtimeData.gamma }}</span>
+    <span class="layui-badge-rim layui-bg-green">Delta:{{= d.callObj.realtimeData.delta }}</span>
+    <span class="layui-badge-rim layui-bg-green">Theta:{{= d.callObj.realtimeData.theta }}</span>
+    <span class="layui-badge-rim layui-bg-green">Gamma:{{= d.callObj.realtimeData.gamma }}</span>
     <br/>
-    <span class="layui-badge-rim">交易量:{{= d.callObj.realtimeData.volume }}</span>
-    <span class="layui-badge-rim">开仓量:{{= d.callObj.realtimeData.openInterest }}</span>
+    <span class="layui-badge-rim layui-bg-green">交易量:{{= d.callObj.realtimeData.volume }}</span>
+    <span class="layui-badge-rim layui-bg-green">开仓量:{{= d.callObj.realtimeData.openInterest }}</span>
     {{# } }}
 </script>
 <script src="common.js"></script>
