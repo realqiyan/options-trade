@@ -33,10 +33,18 @@ public class OptionsManager {
         if (StringUtils.isBlank(code) || null == market || null == optionsStrikeDate || null == optionsStrikeDate.getStrikeTime()) {
             return null;
         }
+        // 期权标的
         Security security = Security.of(code, market);
         SecurityQuote securityQuote = securityQuoteGateway.quote(security);
+
+        // 期权链
         OptionsChain optionsChain = optionsChainGateway.queryOptionsChain(security, optionsStrikeDate.getStrikeTime(), securityQuote.getLastDone());
         optionsChain.setSecurityQuote(securityQuote);
+
+        // 恐慌指数
+        //Security vixSecurity = Security.of("VIX", Market.US.getCode());
+        //SecurityQuote vixQuote = securityQuoteGateway.quote(vixSecurity);
+        //optionsChain.setVixQuote(vixQuote);
 
         return optionsChain;
     }

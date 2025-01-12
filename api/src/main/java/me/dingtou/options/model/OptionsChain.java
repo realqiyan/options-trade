@@ -23,6 +23,11 @@ public class OptionsChain {
     private Long strikeTimestamp;
 
     /**
+     * .VIX行情
+     */
+    private SecurityQuote vixQuote;
+
+    /**
      * 期权标的行情
      */
     private SecurityQuote securityQuote;

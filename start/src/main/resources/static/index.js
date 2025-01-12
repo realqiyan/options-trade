@@ -50,6 +50,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
       success: function( response ) {
         var result = response.data;
         document.getElementById("title").innerHTML=currentCode + '(' + result.securityQuote.lastDone + ') - ' + result.strikeTime + '(' + optionExpiryDateDistance + ')';
+        // document.getElementById("vix").innerHTML= 'VIX(' + result.vixQuote.lastDone + ')';
 
         var convertedData = result.optionList.map(item => {
             return {
