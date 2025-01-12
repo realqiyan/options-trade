@@ -35,7 +35,7 @@ function sync(){
           },
           success: function( result ) {
             layer.msg('同步结果:' + result.success + result.message?result.message:'');
-            reloadData();
+            loadStrategyOrder(currentStrategyId);
           }
         });
 }

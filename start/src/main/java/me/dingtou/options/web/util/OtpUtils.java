@@ -31,6 +31,6 @@ public class OtpUtils {
      * @param password 密码
      */
     public static boolean check(String password) {
-        return TOTP_GENERATOR.verify(password, 3);
+        return TOTP_GENERATOR.verify(password, 5);
     }
 }
