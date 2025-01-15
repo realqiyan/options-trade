@@ -174,11 +174,10 @@ public class OwnerManager {
                 continue;
             }
             BigDecimal curPrice = any.get().getCurPrice();
+            ownerOrder.getExt().put(OrderExt.CUR_PRICE.getCode(), curPrice.toString());
             TradeSide tradeSide = TradeSide.of(ownerOrder.getSide());
-
             if (TradeSide.SELL.equals(tradeSide) || TradeSide.SELL_SHORT.equals(tradeSide)) {
                 BigDecimal profitRatio = ownerOrder.getPrice().subtract(curPrice).divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_UP);
-                ownerOrder.getExt().put(OrderExt.CUR_PRICE.getCode(), curPrice.toString());
                 ownerOrder.getExt().put(OrderExt.PROFIT_RATIO.getCode(), profitRatio.toString());
             }
 
