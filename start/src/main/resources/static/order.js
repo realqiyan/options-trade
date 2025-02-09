@@ -120,6 +120,12 @@ function statusMapping(status) {
     return statusMap[status] || '未知';
 }
 
+function extractDate(dateString) {
+    // 使用 split 方法分割字符串"2025-02-21 00:00:00"
+    const parts = dateString.split(' ')[0];
+    return parts;
+}
+
 function renderTable(orderList){
     if(!orderList){
         return;
@@ -142,7 +148,7 @@ function renderTable(orderList){
             "tradeTime": item.tradeTime,
             "orderFee": item.orderFee,
             "accountId": item.accountId,
-            "strikeTime": item.strikeTime,
+            "strikeTime": extractDate(item.strikeTime),
             "subOrder": item.subOrder,
             "status": item.status,
             "statusStr": statusMapping(item.status+''),
@@ -159,24 +165,24 @@ function renderTable(orderList){
         elem: '#result',
         cols: [[
           //{field: 'strategyId', title: '策略ID', width: 280, sort: true},
-          {field: 'underlyingCode', title: '股票', width: 80},
-          {field: 'tradeTime', title: '交易时间', width: 160, sort: true},
+          //{field: 'underlyingCode', title: '股票', width: 80},
+          {field: 'code', title: '证券代码', width: 180},
+          {field: 'side', title: '类型', width: 80},
+          {field: 'price', title: '价格', width: 85},
+          {field: 'quantity', title: '数量', width: 80},
+          {field: 'totalIncome', title: '收入', width: 100},
+          {field: 'orderFee', title: '订单费用', width: 100},
+          {field: 'strikeTime', title: '行权时间', width: 120, sort: true},
+          {field: 'tradeTime', title: '交易时间', width: 165, sort: true},
+          {field: 'statusStr', title: '状态', width: 100},
           {field: 'platformOrderId', title: '订单号', width: 180},
           {field: 'platformOrderIdEx', title: '订单号Ex', width: 200},
           {field: 'platformFillId', title: '成交单', width: 180},
-          {field: 'code', title: '证券', width: 180},
-          {field: 'side', title: '买卖', width: 80},
-          {field: 'price', title: '价格', width: 85},
-          {field: 'quantity', title: '数量', width: 80},
-          {field: 'strikeTime', title: '行权时间', width: 160, sort: true},
-          {field: 'statusStr', title: '状态', width: 100},
           {field: 'subOrder', title: '是否子单', width: 100},
           {field: 'isClose', title: '是否平仓', width: 100},
-          {field: 'totalIncome', title: '收入', width: 100},
-          {field: 'orderFee', title: '订单费用', width: 100},
           {field: 'curPrice', title: '现价', width: 80},
           {field: 'profitRatio', title: '盈亏', width: 100},
-          {field: 'order', title: '操作', width: 200, templet: '<div>{{# if("true" != d.isClose){ }}'+
+          {field: 'order', title: '操作', width: 150, templet: '<div>{{# if("true" != d.isClose){ }}'+
           '{{# if(["-1","1","2","5"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="cancel">取消</a>{{#  } }}'+
           '{{# if(["11"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition(\'{{= d.order}}\')" lay-event="closePosition">平仓</a>{{#  } }}'+
           '{{# } }}'+
@@ -184,7 +190,14 @@ function renderTable(orderList){
           '</div>'},
         ]],
         data: convertedData,
+        toolbar: true,
         height: 'full-260',
+        lineStyle: 'height: 100%;',
+        defaultToolbar: [
+          'filter', // 列筛选
+          'exports', // 导出
+          'print' // 打印
+        ],
         //skin: 'line',
         //even: true,
         initSort: {

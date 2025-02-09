@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
+import me.dingtou.options.constant.StrategyStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.dao.OwnerOrderDAO;
 import me.dingtou.options.dao.OwnerStrategyDAO;
@@ -45,7 +46,9 @@ public class OwnerManager {
 
     public List<OwnerStrategy> queryOwnerStrategy(String owner) {
         QueryWrapper<OwnerStrategy> querySecurity = new QueryWrapper<>();
-        querySecurity.eq("owner", owner);
+        querySecurity.eq("owner", owner)
+                .eq("status", StrategyStatus.VALID.getCode());
+
         return ownerStrategyDAO.selectList(querySecurity);
     }
 
