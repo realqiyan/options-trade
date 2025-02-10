@@ -66,6 +66,7 @@ public class SecurityQuoteGatewayImpl implements SecurityQuoteGateway {
         if (null == quoteList || quoteList.isEmpty()) {
             SecurityQuote securityQuote = new SecurityQuote();
             securityQuote.setSecurity(security);
+            securityQuote.setLastDone(BigDecimal.ZERO);
             return securityQuote;
         }
         return quoteList.iterator().next();

@@ -15,14 +15,14 @@ function render(){
     });
 }
 
-// password
-const inputField = document.getElementById('password');
+// totp
+const inputField = document.getElementById('totp');
 function saveInput() {
     const inputValue = inputField.value;
-    localStorage.setItem('password', inputValue);
+    localStorage.setItem('totp', inputValue);
 }
 function loadInput() {
-    const savedValue = localStorage.getItem('password');
+    const savedValue = localStorage.getItem('totp');
     if (savedValue) {
         inputField.value = savedValue;
     }
@@ -30,4 +30,6 @@ function loadInput() {
 inputField.onchange = saveInput;
 $(document).ready(function() {
     loadInput();
+    // 清除历史记录
+    localStorage.removeItem('password');
 });

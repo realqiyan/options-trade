@@ -133,7 +133,7 @@ function trade(side, options, orderBook){
               method: 'POST',
               data: {
                 owner: $("#owner").val(),
-                password: $("#password").val(),
+                password: $("#totp").val(),
                 side: side,
                 strategyId: currentStrategyId,
                 quantity: quantity,

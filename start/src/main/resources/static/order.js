@@ -11,7 +11,7 @@ function tradeModify(action, order){
               url: "/trade/modify",
               method: 'POST',
               data: {
-                password: $("#password").val(),
+                password: $("#totp").val(),
                 action: action,
                 order: order,
               },
@@ -30,7 +30,7 @@ function sync(){
           url: "/trade/sync",
           method: 'GET',
           data: {
-            password: $("#password").val(),
+            password: $("#totp").val(),
             time: new Date().getTime()
           },
           success: function( result ) {
@@ -60,7 +60,7 @@ function tradeClose(order, orderBook){
           url: "/trade/close",
           method: 'POST',
           data: {
-            password: $("#password").val(),
+            password: $("#totp").val(),
             owner: order.owner,
             price: price,
             order: JSON.stringify(order),
