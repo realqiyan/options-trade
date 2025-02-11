@@ -18,6 +18,9 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -138,6 +141,13 @@ public class OwnerManager {
                 Boolean isClose = isTimeout || orderClose.getOrDefault(ownerOrder.getCode(), false);
                 ownerOrder.getExt().put(OrderExt.IS_CLOSE.getCode(), String.valueOf(isClose));
             }
+
+            //计算期权到期日ownerOrder.getStrikeTime()和now的间隔天数
+            LocalDate strikeTime = ownerOrder.getStrikeTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate currentDate = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            long daysToExpiration = ChronoUnit.DAYS.between(currentDate, strikeTime);
+            ownerOrder.getExt().put(OrderExt.CUR_DTE.getCode(), String.valueOf(daysToExpiration));
+
         }
 
 

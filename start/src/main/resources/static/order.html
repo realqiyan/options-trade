@@ -62,6 +62,16 @@
         <li>策略持有股票:{{ d.holdSecurityNum }}</li>
     </ul>
 </script>
+<script type="text/html" id="TPL-colorStatus">
+    {{#  var dte = d.curDTE ? d.curDTE : -1; }}
+    {{# if(dte>=0 && dte<=3) { }}
+    <span class="layui-badge-dot"></span>
+    {{# } else if(dte>3 && dte<=7) { }}
+    <span class="layui-badge-dot layui-bg-orange"></span>
+    {{# } else { }}
+    <span class="layui-badge-dot layui-bg-green"></span>
+    {{# } }}
+</script>
 <script src="layui/layui.js"></script>
 <script src="common.js"></script>
 <script src="order.js"></script>

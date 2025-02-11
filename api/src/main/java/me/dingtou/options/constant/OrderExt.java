@@ -19,6 +19,11 @@ public enum OrderExt {
     CUR_PRICE("curPrice", String.class),
 
     /**
+     * 当前到期天数 Days to Expiration
+     */
+    CUR_DTE("curDTE", Integer.class),
+
+    /**
      * 总收益
      */
     TOTAL_INCOME("totalIncome", String.class),

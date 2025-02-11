@@ -152,6 +152,7 @@ function renderTable(orderList){
             "subOrder": item.subOrder,
             "status": item.status,
             "statusStr": statusMapping(item.status+''),
+            "curDTE": item.ext ? item.ext.curDTE : null ,
             "isClose": item.ext ? item.ext.isClose : null,
             "totalIncome": item.ext ? item.ext.totalIncome : null,
             "curPrice": item.ext ? item.ext.curPrice : null,
@@ -164,6 +165,7 @@ function renderTable(orderList){
       var inst = table.render({
         elem: '#result',
         cols: [[
+          {field: 'curDTE', title: '关注', width: 50, align: 'center', templet: '#TPL-colorStatus'},
           //{field: 'strategyId', title: '策略ID', width: 280, sort: true},
           //{field: 'underlyingCode', title: '股票', width: 80},
           {field: 'code', title: '证券代码', width: 180},
