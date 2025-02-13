@@ -177,6 +177,7 @@ function renderTable(orderList){
           {field: 'strikeTime', title: '行权时间', width: 120, sort: true},
           {field: 'tradeTime', title: '交易时间', width: 165, sort: true},
           {field: 'statusStr', title: '状态', width: 100},
+          {field: 'order', title: '操作', width: 150, templet: '#TPL-orderOp'},
           {field: 'platformOrderId', title: '订单号', width: 180},
           {field: 'platformOrderIdEx', title: '订单号Ex', width: 200},
           {field: 'platformFillId', title: '成交单', width: 180},
@@ -184,16 +185,10 @@ function renderTable(orderList){
           {field: 'isClose', title: '是否平仓', width: 100},
           {field: 'curPrice', title: '现价', width: 80},
           {field: 'profitRatio', title: '盈亏', width: 100},
-          {field: 'order', title: '操作', width: 150, templet: '<div>{{# if("true" != d.isClose){ }}'+
-          '{{# if(["-1","1","2","5"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel(\'{{= d.order}}\')" lay-event="cancel">取消</a>{{#  } }}'+
-          '{{# if(["11"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition(\'{{= d.order}}\')" lay-event="closePosition">平仓</a>{{#  } }}'+
-          '{{# } }}'+
-          '{{# if(["15"].includes(d.status) ){ }}<a class="layui-btn layui-btn-primary layui-btn-xs" onclick="deleteOrder(\'{{= d.order}}\')" lay-event="delete">删除</a>{{#  } }}'+
-          '</div>'},
         ]],
         data: convertedData,
         toolbar: true,
-        height: 'full-260',
+        // height: 'full-390',
         lineStyle: 'height: 100%;',
         defaultToolbar: [
           'filter', // 列筛选

@@ -78,7 +78,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
             elem: '#result',
             cols: [[
               {field: 'callRange', title: '涨跌幅', width: 85},
-              {title: '交易参考信息', width: 350, rowspan: 3, templet: '#id-table-call-info'},
+              {title: '交易参考信息', width: 230, rowspan: 3, templet: '#id-table-call-info'},
               {field: 'callCurPrice', title: '价格', width: 85},
               {field: 'call', title: '卖', width: 20, templet: '{{#  if(d.call){ }}<div><a title="{{= d.callObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.call }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'callSellAnnualYield', title: '年化', width: 85},
@@ -86,12 +86,11 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
               {field: 'putSellAnnualYield', title: '年化', width: 85},
               {field: 'put', title: '卖', width: 20, templet: '{{#  if(d.put){ }}<div><a title="{{= d.putObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.put }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'putCurPrice', title: '价格', width: 85},
-              {title: '交易参考信息', width: 350, templet: '#id-table-put-info'},
+              {title: '交易参考信息', width: 230, templet: '#id-table-put-info'},
               {field: 'group', title: 'Group', width: 80},
             ]],
             data: convertedData,
             toolbar: true,
-            height: 'full-260',
             lineStyle: 'height: 100%;',
             defaultToolbar: [
               'filter', // 列筛选
