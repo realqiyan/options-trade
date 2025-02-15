@@ -87,24 +87,24 @@
     {{# } }}
 </script>
 <script id="commonInfo" type="text/html">
-    底层标的：{{= d.currentCode}}({{ d.securityQuote.lastDone }})
+    {{#
+    var lastDone = Number(d.securityQuote.lastDone);
+    var weekMin = (lastDone-Number(d.weekPriceRange)).toFixed(3);
+    var weekMax = (lastDone+Number(d.weekPriceRange)).toFixed(3);
+    var monthMin = (lastDone-Number(d.monthPriceRange)).toFixed(3);
+    var monthMax = (lastDone+Number(d.monthPriceRange)).toFixed(3);
+    }}
+    底层标的：{{= d.currentCode}}({{= d.securityQuote.lastDone }})
     - 到期日：{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})
-    - 周价格波动：{{= d.weekPriceRange}}
-    - 月价格波动：{{= d.monthPriceRange}}
+    - 周价格波动：{{= d.weekPriceRange}}({{= weekMin}} - {{= weekMax}})
+    - 月价格波动：{{= d.monthPriceRange}}({{= monthMin}} - {{= monthMax}})
     - Call：0.20
     - Put：0.30
 </script>
 <script type="text/html" id="TPL-recommendLevel">
-    {{#  var level = d.data.strategyData.recommendLevel; }}
-    {{# if(level == 2) { }}
-    <span class="layui-badge-dot layui-bg-green"></span>
-    <span class="layui-badge-dot layui-bg-green"></span>
-    {{# } else if(level == 1) { }}
-    <span class="layui-badge-dot layui-bg-green"></span>
-    {{# } else if(level>=3) { }}
-    <span class="layui-badge-dot layui-bg-green"></span>
-    <span class="layui-badge-dot layui-bg-green"></span>
-    <span class="layui-badge-dot layui-bg-green"></span>
+    {{# var level = d.data.strategyData.recommendLevel; }}
+    {{# if(level > 0) { }}
+    <span class="layui-badge layui-bg-green">{{= level}}</span>
     {{# } }}
 </script>
 <script src="common.js"></script>
