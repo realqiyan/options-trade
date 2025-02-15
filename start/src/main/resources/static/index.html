@@ -71,6 +71,7 @@
     <br/>
     <span class="layui-badge-rim layui-bg-green">交易量:{{= d.putObj.realtimeData.volume }}</span>
     <span class="layui-badge-rim layui-bg-green">开仓量:{{= d.putObj.realtimeData.openInterest }}</span>
+    <span class="layui-badge-rim layui-bg-green">{{= d.group }}</span>
     {{# } }}
 </script>
 
@@ -82,6 +83,7 @@
     <br/>
     <span class="layui-badge-rim layui-bg-green">交易量:{{= d.callObj.realtimeData.volume }}</span>
     <span class="layui-badge-rim layui-bg-green">开仓量:{{= d.callObj.realtimeData.openInterest }}</span>
+    <span class="layui-badge-rim layui-bg-green">{{= d.group }}</span>
     {{# } }}
 </script>
 <script src="common.js"></script>
