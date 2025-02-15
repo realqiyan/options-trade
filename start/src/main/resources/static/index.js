@@ -70,8 +70,6 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                 "callCurPrice": item.call && item.call.realtimeData?item.call.realtimeData.curPrice:'-',
                 "putSellAnnualYield": item.put && item.put.strategyData?item.put.strategyData.sellAnnualYield + '%' : '-',
                 "callSellAnnualYield": item.call && item.call.strategyData?item.call.strategyData.sellAnnualYield + '%' : '-',
-                "putRange": item.put && item.put.strategyData?item.put.strategyData.range + '%' : '-',
-                "callRange": item.call && item.call.strategyData?item.call.strategyData.range + '%' : '-',
                 "putSellRecommend": item.put && item.put.strategyData?item.put.strategyData.recommend : false,
                 "callSellRecommend": item.call && item.call.strategyData?item.call.strategyData.recommend : false,
             };
@@ -82,8 +80,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
           var inst = table.render({
             elem: '#result',
             cols: [[
-              {field: 'data', title: '推荐', width: 50, align: 'center', templet: '#TPL-recommendLevel'},
-              {field: 'callRange', title: '涨跌幅', width: 85},
+              {field: 'data', title: '推荐-涨跌', width: 100, align: 'left', templet: '#TPL-recommendInfo'},
               {title: '交易参考信息', width: 260, rowspan: 3, templet: '#id-table-call-info'},
               {field: 'callCurPrice', title: '价格', width: 85},
               {field: 'call', title: '卖', width: 20, templet: '{{#  if(d.call){ }}<div><a title="{{= d.callObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.call }})" lay-event="sell">卖</a></div>{{#  } }}'},

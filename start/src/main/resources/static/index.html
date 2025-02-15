@@ -94,18 +94,26 @@
     var monthMin = (lastDone-Number(d.monthPriceRange)).toFixed(3);
     var monthMax = (lastDone+Number(d.monthPriceRange)).toFixed(3);
     }}
-    底层标的：{{= d.currentCode}}({{= d.securityQuote.lastDone }})
-    - 到期日：{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})
-    - 周价格波动：{{= d.weekPriceRange}}({{= weekMin}} - {{= weekMax}})
-    - 月价格波动：{{= d.monthPriceRange}}({{= monthMin}} - {{= monthMax}})
-    - Call：0.20
-    - Put：0.30
+    <span class="layui-badge layui-bg-blue">底层标的：{{= d.currentCode}}({{= d.securityQuote.lastDone }})</span>
+    -
+    <span class="layui-badge layui-bg-green">到期日：{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})</span>
+    -
+    <span class="layui-badge layui-bg-purple">周价格波动：{{= d.weekPriceRange}}({{= weekMin}} - {{= weekMax}})</span>
+    -
+    <span class="layui-badge">月价格波动：{{= d.monthPriceRange}}({{= monthMin}} - {{= monthMax}})</span>
+    -
+    <span class="layui-badge layui-bg-cyan">Call：0.20 | Put：0.30</span>
 </script>
-<script type="text/html" id="TPL-recommendLevel">
-    {{# var level = d.data.strategyData.recommendLevel; }}
-    {{# if(level > 0) { }}
-    <span class="layui-badge layui-bg-green">{{= level}}</span>
-    {{# } }}
+<script type="text/html" id="TPL-recommendInfo">
+    <div class="layui-font-12">
+    {{#
+        var level = d.data.strategyData.recommendLevel;
+        var recommendLevelClass = level>0 ? "layui-bg-green" : "";
+    }}
+    <span class="layui-badge {{=recommendLevelClass}}">
+    {{= level}}
+    </span>{{= d.data.strategyData.range}}%
+    </div>
 </script>
 <script src="common.js"></script>
 <script src="index.js"></script>

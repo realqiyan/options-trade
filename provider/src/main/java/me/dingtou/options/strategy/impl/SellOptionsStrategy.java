@@ -135,7 +135,7 @@ public class SellOptionsStrategy implements OptionsStrategy {
     }
 
     private BigDecimal calculateRange(BigDecimal strikePrice, BigDecimal securityPrice) {
-        return securityPrice.subtract(strikePrice).abs()
+        return strikePrice.subtract(securityPrice)
                 .divide(securityPrice, 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100))
                 .setScale(2, RoundingMode.HALF_UP);
