@@ -57,4 +57,9 @@ public class OptionsChain {
      * 期权列表
      */
     private List<OptionsTuple> optionList;
+
+    /**
+     * AI提示
+     */
+    private String aiPrompt;
 }
