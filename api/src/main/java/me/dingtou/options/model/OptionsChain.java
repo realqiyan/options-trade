@@ -2,6 +2,7 @@ package me.dingtou.options.model;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -21,6 +22,26 @@ public class OptionsChain {
      * 期权到期时间戳
      */
     private Long strikeTimestamp;
+
+    /**
+     * 周价格幅度
+     */
+    private BigDecimal weekPriceRange;
+
+    /**
+     * 周收盘行情
+     */
+    private Candlestick weekCandlestick;
+
+    /**
+     * 月价格幅度
+     */
+    private BigDecimal monthPriceRange;
+
+    /**
+     * 月收盘行情
+     */
+    private Candlestick monthCandlestick;
 
     /**
      * .VIX行情
