@@ -70,7 +70,7 @@ public class FuncGetOptionsRealtimeData implements QueryFunctionCall<List<Option
         security.setCode(basicQot.getSecurity().getCode());
         data.setSecurity(security);
         BigDecimal delta = new BigDecimal(String.valueOf(optionExData.getDelta()));
-        int newScale = 4;
+        int newScale = 3;
         data.setDelta(delta.setScale(newScale, RoundingMode.HALF_UP));
         BigDecimal gamma = new BigDecimal(String.valueOf(optionExData.getGamma()));
         data.setGamma(gamma.setScale(newScale, RoundingMode.HALF_UP));

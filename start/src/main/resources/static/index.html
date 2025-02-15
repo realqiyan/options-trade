@@ -69,9 +69,9 @@
     <span class="layui-badge-rim layui-bg-green" title="theta">Θ:{{= d.putObj.realtimeData.theta }}</span>
     <span class="layui-badge-rim layui-bg-green" title="gamma">Γ:{{= d.putObj.realtimeData.gamma }}</span>
     <br/>
-    <span class="layui-badge-rim layui-bg-green">交易量:{{= d.putObj.realtimeData.volume }}</span>
-    <span class="layui-badge-rim layui-bg-green">开仓量:{{= d.putObj.realtimeData.openInterest }}</span>
-    <span class="layui-badge-rim layui-bg-green">{{= d.group }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="交易合约量">交易:{{= d.putObj.realtimeData.volume }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="未平仓合约量">开仓:{{= d.putObj.realtimeData.openInterest }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="隐含波动率">IV:{{= d.putObj.realtimeData.impliedVolatility }}</span>
     {{# } }}
 </script>
 
@@ -81,9 +81,9 @@
     <span class="layui-badge-rim layui-bg-green" title="theta">Θ:{{= d.callObj.realtimeData.theta }}</span>
     <span class="layui-badge-rim layui-bg-green" title="gamma">Γ:{{= d.callObj.realtimeData.gamma }}</span>
     <br/>
-    <span class="layui-badge-rim layui-bg-green">交易量:{{= d.callObj.realtimeData.volume }}</span>
-    <span class="layui-badge-rim layui-bg-green">开仓量:{{= d.callObj.realtimeData.openInterest }}</span>
-    <span class="layui-badge-rim layui-bg-green">{{= d.group }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="交易合约量">交易:{{= d.callObj.realtimeData.volume }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="未平仓合约量">开仓:{{= d.callObj.realtimeData.openInterest }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="隐含波动率">IV:{{= d.callObj.realtimeData.impliedVolatility }}</span>
     {{# } }}
 </script>
 <script id="commonInfo" type="text/html">
@@ -110,9 +110,9 @@
         var level = d.data.strategyData.recommendLevel;
         var recommendLevelClass = level>0 ? "layui-bg-green" : "";
     }}
-    <span class="layui-badge {{=recommendLevelClass}}">
-    {{= level}}
-    </span>{{= d.data.strategyData.range}}%
+    <span class="layui-badge {{=recommendLevelClass}}" title="推荐级别">{{= level}}</span>
+    <span class="layui-badge layui-bg-gray" title="期权组">{{= d.group }}</span>
+    <span class="layui-badge layui-bg-orange" title="价格涨跌幅">{{= d.data.strategyData.range}}%</span>
     </div>
 </script>
 <script src="common.js"></script>
