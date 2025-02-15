@@ -23,4 +23,8 @@ public class OptionsStrategyData {
      * 是否推荐
      */
     private Boolean recommend;
+    /**
+     * 推荐级别 0 不推荐 1 推荐 2 强烈推荐
+     */
+    private int recommendLevel;
 }

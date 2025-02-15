@@ -9,6 +9,12 @@ import java.math.RoundingMode;
 
 @Component
 public class SellOptionsStrategy implements OptionsStrategy {
+
+    /**
+     * Sell年化收益率
+     */
+    private static final BigDecimal SELL_ANNUAL_YIELD = BigDecimal.valueOf(20);
+
     @Override
     public void calculate(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain) {
         SecurityQuote securityQuote = optionsChain.getSecurityQuote();
@@ -25,9 +31,19 @@ public class SellOptionsStrategy implements OptionsStrategy {
                     callStrategyData.setSellAnnualYield(sellCallAnnualYield);
 
                     // 是否推荐卖出
-                    // TODO wheel strategy卖出call的选择取决于 sell put的行权价
+                    int level = 0;
                     BigDecimal delta = call.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
-                    callStrategyData.setRecommend(delta.compareTo(BigDecimal.valueOf(0.10)) >= 0 && delta.compareTo(BigDecimal.valueOf(0.20)) <= 0);
+                    // delta小于0.20
+                    boolean deltaRecommend = delta.compareTo(BigDecimal.valueOf(0.20)) <= 0;
+                    // 卖出收益大于0.2%
+                    boolean annualYieldRecommend = sellCallAnnualYield.compareTo(SELL_ANNUAL_YIELD) > 0;
+                    callStrategyData.setRecommend(deltaRecommend && annualYieldRecommend);
+
+                    if (Boolean.TRUE.equals(callStrategyData.getRecommend())) {
+                        level++;
+                    }
+
+                    callStrategyData.setRecommendLevel(level);
 
                     // 涨跌幅
                     callStrategyData.setRange(calculateRange(strikePrice, securityPrice));
@@ -43,11 +59,20 @@ public class SellOptionsStrategy implements OptionsStrategy {
                 if (strikePrice.compareTo(securityPrice) < 0) {
                     OptionsStrategyData putStrategyData = new OptionsStrategyData();
                     // 计算卖出收益
+                    int level = 0;
                     BigDecimal sellPutAnnualYield = calculateAnnualYield(put, securityPrice, dte);
                     putStrategyData.setSellAnnualYield(sellPutAnnualYield);
                     // 是否推荐卖出
                     BigDecimal delta = put.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
-                    putStrategyData.setRecommend(delta.compareTo(BigDecimal.valueOf(0.20)) >= 0 && delta.compareTo(BigDecimal.valueOf(0.35)) <= 0);
+                    // delta小于0.30
+                    boolean deltaRecommend = delta.compareTo(BigDecimal.valueOf(0.30)) <= 0;
+                    // 卖出收益大于20%
+                    boolean annualYieldRecommend = sellPutAnnualYield.compareTo(SELL_ANNUAL_YIELD) > 0;
+                    putStrategyData.setRecommend(deltaRecommend && annualYieldRecommend);
+                    if (Boolean.TRUE.equals(putStrategyData.getRecommend())) {
+                        level++;
+                    }
+                    putStrategyData.setRecommendLevel(level);
 
                     // 涨跌幅
                     putStrategyData.setRange(calculateRange(strikePrice, securityPrice));

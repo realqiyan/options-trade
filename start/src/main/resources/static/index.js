@@ -49,12 +49,17 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
       },
       success: function( response ) {
         var result = response.data;
-        document.getElementById("title").innerHTML=currentCode + '(' + result.securityQuote.lastDone + ') - ' + result.strikeTime + '(' + optionExpiryDateDistance + ')';
-        // document.getElementById("vix").innerHTML= 'VIX(' + result.vixQuote.lastDone + ')';
+        result.currentCode=currentCode;
+        result.optionExpiryDateDistance=optionExpiryDateDistance
+        var view = document.getElementById('title');
+        laytpl(commonInfo.innerHTML).render(result, function(html){
+          view.innerHTML = html;
+        });
 
         var convertedData = result.optionList.map(item => {
             return {
                 "LAY_CHECKED": item.call&&item.call.strategyData?item.call.strategyData.recommend:(item.put&&item.put.strategyData?item.put.strategyData.recommend:false),
+                "data": item.call?item.call:item.put,
                 "callObj": item.call,
                 "putObj": item.put,
                 "group": item.call?item.call.basic.name.match(/^([^ ]+)/)[1]:item.put.basic.name.match(/^([^ ]+)/)[1],
@@ -77,6 +82,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
           var inst = table.render({
             elem: '#result',
             cols: [[
+              {field: 'data', title: '推荐', width: 50, align: 'center', templet: '#TPL-recommendLevel'},
               {field: 'callRange', title: '涨跌幅', width: 85},
               {title: '交易参考信息', width: 260, rowspan: 3, templet: '#id-table-call-info'},
               {field: 'callCurPrice', title: '价格', width: 85},
@@ -87,7 +93,6 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
               {field: 'put', title: '卖', width: 20, templet: '{{#  if(d.put){ }}<div><a title="{{= d.putObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.put }})" lay-event="sell">卖</a></div>{{#  } }}'},
               {field: 'putCurPrice', title: '价格', width: 85},
               {title: '交易参考信息', width: 260, templet: '#id-table-put-info'},
-              //{field: 'group', title: 'Group', width: 80},
             ]],
             data: convertedData,
             toolbar: true,

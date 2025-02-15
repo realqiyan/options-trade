@@ -86,6 +86,27 @@
     <span class="layui-badge-rim layui-bg-green">{{= d.group }}</span>
     {{# } }}
 </script>
+<script id="commonInfo" type="text/html">
+    底层标的：{{= d.currentCode}}({{ d.securityQuote.lastDone }})
+    - 到期日：{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})
+    - 周价格波动：{{= d.weekPriceRange}}
+    - 月价格波动：{{= d.monthPriceRange}}
+    - Call：0.20
+    - Put：0.30
+</script>
+<script type="text/html" id="TPL-recommendLevel">
+    {{#  var level = d.data.strategyData.recommendLevel; }}
+    {{# if(level == 2) { }}
+    <span class="layui-badge-dot layui-bg-green"></span>
+    <span class="layui-badge-dot layui-bg-green"></span>
+    {{# } else if(level == 1) { }}
+    <span class="layui-badge-dot layui-bg-green"></span>
+    {{# } else if(level>=3) { }}
+    <span class="layui-badge-dot layui-bg-green"></span>
+    <span class="layui-badge-dot layui-bg-green"></span>
+    <span class="layui-badge-dot layui-bg-green"></span>
+    {{# } }}
+</script>
 <script src="common.js"></script>
 <script src="index.js"></script>
 </body>
