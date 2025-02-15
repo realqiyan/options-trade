@@ -79,7 +79,9 @@
 </script>
 <script type="text/html" id="TPL-colorStatus">
     {{#  var dte = d.curDTE ? d.curDTE : -1; }}
-    {{# if(dte>=0 && dte<=3) { }}
+    {{# if("true" == d.isClose) { }}
+    <span class="layui-badge-dot layui-bg-green"></span>
+    {{# } else if(dte>=0 && dte<=3) { }}
     <span class="layui-badge-dot"></span>
     {{# } else if(dte>3 && dte<=7) { }}
     <span class="layui-badge-dot layui-bg-orange"></span>
