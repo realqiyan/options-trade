@@ -42,7 +42,6 @@
                     <input type="text" id="totp" name="totp" placeholder="请输入验证码" autocomplete="off" class="layui-input">
                 </div>
                 <div class="layui-form-mid layui-word-aux">OTP验证码</div>
-                <button type="button" class="layui-btn layui-bg-blue" onClick="ai()">提示词</button>
             </div>
             <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
                 期权链
@@ -104,6 +103,10 @@
     <span class="layui-badge">月价格波动：{{= d.monthPriceRange}}({{= monthMin}} - {{= monthMax}})</span>
     -
     <span class="layui-badge layui-bg-cyan">Call：0.20 | Put：0.30</span>
+    -
+    <a href="javascript:;" onclick="ai()">提示词</a>
+    -
+    <a href="https://chat.deepseek.com/" target="_blank">DeepSeek</a>
 </script>
 <script type="text/html" id="TPL-recommendInfo">
     <div class="layui-font-12">
