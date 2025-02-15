@@ -59,7 +59,7 @@ public class OptionsChain {
     private List<OptionsTuple> optionList;
 
     /**
-     * AI提示
+     * AI提示词
      */
     private String aiPrompt;
 }
