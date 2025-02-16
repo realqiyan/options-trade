@@ -36,4 +36,8 @@ public class OwnerAccount {
      * 账户的标识符，表示策略关联的账户或用户
      */
     private String accountId;
+    /**
+     * otp认证信息
+     */
+    private String otpAuth;
 }

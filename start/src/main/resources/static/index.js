@@ -178,7 +178,6 @@ function trade(side, options, orderBook){
                       url: "/trade/submit",
                       method: 'POST',
                       data: {
-                        owner: $("#owner").val(),
                         password: $("#totp").val(),
                         side: side,
                         strategyId: currentStrategyId,

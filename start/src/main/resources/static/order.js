@@ -61,7 +61,6 @@ function tradeClose(order, orderBook){
           method: 'POST',
           data: {
             password: $("#totp").val(),
-            owner: order.owner,
             price: price,
             order: JSON.stringify(order),
           },

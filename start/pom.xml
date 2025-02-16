@@ -50,8 +50,8 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.bastiaanjansen</groupId>
-            <artifactId>otp-java</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
         </dependency>
 
     </dependencies>

@@ -113,7 +113,6 @@ function query(){
      url: "/trade/order/draft",
      method: 'GET',
      data: {
-         owner: $("#owner").val(),
          password: $("#totp").val(),
          time: new Date().getTime()
      },

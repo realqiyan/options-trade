@@ -57,6 +57,10 @@
             <groupId>io.github.longportapp</groupId>
             <artifactId>openapi-sdk</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.bastiaanjansen</groupId>
+            <artifactId>otp-java</artifactId>
+        </dependency>
     </dependencies>
 
 
