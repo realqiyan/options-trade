@@ -31,6 +31,14 @@ public class OwnerStrategy {
      */
     private String strategyName;
     /**
+     * 策略的策略编码：如wheel_strategy
+     */
+    private String strategyCode;
+    /**
+     * 策略的当前阶段，用于表示策略的当前状态或阶段
+     */
+    private String stage;
+    /**
      * 策略的开始时间，用于记录策略的创建或启用时间
      */
     private Date startTime;

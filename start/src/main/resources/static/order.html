@@ -54,7 +54,7 @@
 
 </div>
 <script id="summary" type="text/html">
-    <h4>{{ d.strategy.strategyName }} - ${{ d.allOptionsIncome }}</h4>
+    <h4>{{ d.strategy.strategyName }} - ${{ d.allOptionsIncome }}（当前策略:{{ d.strategy.strategyCode }} - 当前阶段:{{ d.strategy.stage }}）</h4>
     <ul class="layui-font-12">
         <li>期权已到账收入:${{ d.allOptionsIncome }} (已扣除手续费${{ d.totalFee }})</li>
         <li>期权未到期收入:${{ d.unrealizedOptionsIncome }}</li>
