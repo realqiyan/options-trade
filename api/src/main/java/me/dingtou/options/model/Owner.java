@@ -18,6 +18,10 @@ public class Owner {
     private String owner;
 
     /**
+     * 证券列表
+     */
+    List<OwnerSecurity> securityList;
+    /**
      * 策略列表
      */
     List<? extends OwnerStrategy> strategyList;

@@ -7,6 +7,7 @@ import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.StrategyStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.dao.OwnerOrderDAO;
+import me.dingtou.options.dao.OwnerSecurityDAO;
 import me.dingtou.options.dao.OwnerStrategyDAO;
 import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
@@ -30,6 +31,9 @@ import java.util.stream.Collectors;
 public class OwnerManager {
 
     @Autowired
+    private OwnerSecurityDAO ownerSecurityDAO;
+
+    @Autowired
     private OwnerStrategyDAO ownerStrategyDAO;
 
     @Autowired
@@ -42,26 +46,34 @@ public class OwnerManager {
     public Owner queryOwner(String owner) {
         Owner ownerObj = new Owner();
         ownerObj.setOwner(owner);
+        ownerObj.setSecurityList(queryOwnerSecurity(owner));
         ownerObj.setStrategyList(queryOwnerStrategy(owner));
         return ownerObj;
     }
 
 
+    public List<OwnerSecurity> queryOwnerSecurity(String owner) {
+        QueryWrapper<OwnerSecurity> query = new QueryWrapper<>();
+        query.eq("owner", owner)
+                .eq("status", StrategyStatus.VALID.getCode());
+        return ownerSecurityDAO.selectList(query);
+    }
+
     public List<OwnerStrategy> queryOwnerStrategy(String owner) {
-        QueryWrapper<OwnerStrategy> querySecurity = new QueryWrapper<>();
-        querySecurity.eq("owner", owner)
+        QueryWrapper<OwnerStrategy> query = new QueryWrapper<>();
+        query.eq("owner", owner)
                 .eq("status", StrategyStatus.VALID.getCode());
 
-        return ownerStrategyDAO.selectList(querySecurity);
+        return ownerStrategyDAO.selectList(query);
     }
 
 
     public OwnerOrder queryOwnerOrder(String owner, String platform, String platformOrderId, String platformFillId) {
-        QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
-        queryOrder.eq("owner", owner);
-        queryOrder.eq("platform", platform);
-        queryOrder.eq("platform_order_id", platformOrderId);
-        List<OwnerOrder> ownerOrderList = ownerOrderDAO.selectList(queryOrder);
+        QueryWrapper<OwnerOrder> query = new QueryWrapper<>();
+        query.eq("owner", owner);
+        query.eq("platform", platform);
+        query.eq("platform_order_id", platformOrderId);
+        List<OwnerOrder> ownerOrderList = ownerOrderDAO.selectList(query);
         if (null == ownerOrderList || ownerOrderList.isEmpty()) {
             throw new RuntimeException("query owner order error");
         }
@@ -78,10 +90,10 @@ public class OwnerManager {
     }
 
     public List<OwnerOrder> queryStrategyOrder(OwnerStrategy strategy) {
-        QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
-        queryOrder.eq("owner", strategy.getOwner());
-        queryOrder.eq("strategy_id", strategy.getStrategyId());
-        List<OwnerOrder> ownerOrders = ownerOrderDAO.selectList(queryOrder);
+        QueryWrapper<OwnerOrder> query = new QueryWrapper<>();
+        query.eq("owner", strategy.getOwner());
+        query.eq("strategy_id", strategy.getStrategyId());
+        List<OwnerOrder> ownerOrders = ownerOrderDAO.selectList(query);
         // 初始化订单扩展字段
         for (OwnerOrder ownerOrder : ownerOrders) {
             if (null == ownerOrder.getExt()) {

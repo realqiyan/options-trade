@@ -22,6 +22,11 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * API 控制器
+ *
+ * @author qiyan
+ */
 @Slf4j
 @RestController
 public class WebApiController {
@@ -33,20 +38,25 @@ public class WebApiController {
     private OptionsTradeService optionsTradeService;
 
 
+    /**
+     * 查询当前用户的证券和策略
+     *
+     * @return 用户的证券和策略
+     */
     @RequestMapping(value = "/options/owner/get", method = RequestMethod.GET)
     public WebResult<Owner> queryOwner() throws Exception {
         String owner = SessionUtils.getCurrentOwner();
         return WebResult.success(optionsQueryService.queryOwner(owner));
     }
 
-    @RequestMapping(value = "/options/strategy/get", method = RequestMethod.GET)
-    public WebResult<StrategySummary> queryStrategySummary(@RequestParam(value = "strategyId", required = true) String strategyId) throws Exception {
-        String owner = SessionUtils.getCurrentOwner();
-        return WebResult.success(optionsQueryService.queryStrategySummary(owner, strategyId));
-    }
-
+    /**
+     * 查询证券的期权链到期日
+     *
+     * @param security 证券
+     * @return 期权链到期日
+     */
     @RequestMapping(value = "/options/strike/list", method = RequestMethod.GET)
-    public WebResult<List<OptionsStrikeDate>> listOptionsExpDate(Security security) throws Exception {
+    public WebResult<List<OptionsStrikeDate>> listOptionsExpDate(Security security) {
         log.info("listOptionsExpDate. security:{}", security);
         if (null == security || StringUtils.isEmpty(security.getCode())) {
             return WebResult.success(Collections.emptyList());
@@ -58,6 +68,16 @@ public class WebApiController {
         return WebResult.success(optionsStrikeDates);
     }
 
+    /**
+     * 查询期权链
+     *
+     * @param market                   市场
+     * @param code                     证券代码
+     * @param strikeTime               期权链到期日
+     * @param strikeTimestamp          到期时间戳
+     * @param optionExpiryDateDistance 到期天数
+     * @return 期权链
+     */
     @RequestMapping(value = "/options/chain/get", method = RequestMethod.GET)
     public WebResult<OptionsChain> listOptionsChain(@RequestParam(value = "market", required = true) Integer market,
                                                     @RequestParam(value = "code", required = true) String code,
@@ -76,6 +96,14 @@ public class WebApiController {
 
         return WebResult.success(optionsQueryService.queryOptionsChain(security, optionsStrikeDate));
     }
+
+
+    @RequestMapping(value = "/options/strategy/get", method = RequestMethod.GET)
+    public WebResult<StrategySummary> queryStrategySummary(@RequestParam(value = "strategyId", required = true) String strategyId) throws Exception {
+        String owner = SessionUtils.getCurrentOwner();
+        return WebResult.success(optionsQueryService.queryStrategySummary(owner, strategyId));
+    }
+
 
     @RequestMapping(value = "/options/orderbook/get", method = RequestMethod.GET)
     public WebResult<SecurityOrderBook> listOrderBook(@RequestParam(value = "market", required = true) Integer market,

@@ -23,12 +23,12 @@
             <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
             <ul class="layui-nav layui-nav-tree">
                 <li class="layui-nav-item layui-nav-itemed">
-                    <a href="javascript:;">Main</a>
+                    <a href="javascript:;">证券标的</a>
                     <dl class="layui-nav-child" id="security" lay-filter="security">
                         <dd><a href="javascript:;">loading...</a></dd>
                     </dl>
                 </li>
-                <li class="layui-nav-item"><a href="order.html">Order</a></li>
+                <li class="layui-nav-item"><a href="order.html">策略订单</a></li>
             </ul>
         </div>
     </div>
@@ -36,12 +36,23 @@
         <!-- 内容主体区域 -->
         <div style="padding: 15px;">
             <input type="hidden" id="owner"/>
-            <div class="layui-form-item">
-                <label class="layui-form-label">交易验证码</label>
-                <div class="layui-input-inline">
-                    <input type="text" id="totp" name="totp" placeholder="请输入验证码" autocomplete="off" class="layui-input">
+            <div class="layui-form">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">交易验证码</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="totp" name="totp" placeholder="请输入OTP验证码" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label" for="strategyId">所属策略</label>
+                        <div class="layui-input-inline" id="strategyIdZone">
+                            <select id="strategyIdUnload" name="strategyId"  lay-search>
+                                <option value="">请选择证券标的</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div class="layui-form-mid layui-word-aux">OTP验证码</div>
             </div>
             <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
                 期权链
@@ -107,6 +118,21 @@
     <a href="javascript:;" onclick="ai()">提示词</a>
     -
     <a href="https://chat.deepseek.com/" target="_blank">DeepSeek</a>
+</script>
+<script id="currentStrategy" type="text/html">
+    <select id="strategyId" name="strategyId" lay-filter="strategyId">
+    <option value="">直接选择或搜索选择</option>
+    {{#
+        layui.each(d.list, function(index, item){
+        if(item.strategyId == d.strategyId) {
+            var selected = "selected";
+        } else {
+            var selected = "";
+        }
+    }}
+    <option value="{{= item.strategyId }}" {{= selected}}>{{= item.strategyName }}</option>
+    {{#  }); }}
+    </select>
 </script>
 <script type="text/html" id="TPL-recommendInfo">
     <div class="layui-font-12">

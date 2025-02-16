@@ -3,12 +3,27 @@ var currentStrategyId;
 var currentCode;
 var currentMarket;
 var currentAiPrompt;
+var currentOwnerData;
 
-function loadOptionsExpDate(strategyId, code, market){
+function filterStrategyByCode(jsonArray, code) {
+  return jsonArray.filter(item => item.code === code);
+}
+function filterStrategyById(jsonArray, strategyId) {
+  return jsonArray.filter(item => item.strategyId === strategyId);
+}
+function strategySelect(code,strategyId){
     currentStrategyId = strategyId;
+    localStorage.setItem(code+'_strategyId', currentStrategyId);
+}
+function strategyLoad(code){
+    currentStrategyId = localStorage.getItem(code+'_strategyId');
+}
+
+function loadOptionsExpDate(code, market){
     currentCode = code;
     currentMarket = market;
-    console.log('loadOptionsExpDate code:'+ code+' market:'+ market);
+    strategyLoad(code);
+    console.log('loadOptionsExpDate code:'+ code+' market:'+ market+' currentStrategyId:'+currentStrategyId);
     $.ajax({
       url: "/options/strike/list",
       data: {
@@ -31,6 +46,17 @@ function loadOptionsExpDate(strategyId, code, market){
         }
         output.innerHTML += '<li class="layui-nav-item"><a href="javascript:;">More</a><dl class="layui-nav-child">' + moreHtml + '</dl></li>';
         render();
+
+        // 渲染当前证券策略列表
+        var currentStrategyList = filterStrategyByCode(currentOwnerData.strategyList,currentCode);
+        laytpl(currentStrategy.innerHTML).render({list:currentStrategyList,code: code,strategyId:currentStrategyId}, function(html){
+          document.getElementById('strategyIdZone').innerHTML = html;
+          var form = layui.form;
+          form.on('select(strategyId)', function(elem){
+            strategySelect(code,elem.value);
+          });
+          form.render();
+        });
       }
     });
 }
@@ -104,6 +130,8 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
             ],
             //skin: 'line',
             //even: true,
+            height: 'full-320',
+            lineStyle: 'height: 100%;',
             initSort: {
               field: 'strikePrice',
               type: 'asc'
@@ -120,37 +148,55 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
 
 //owner: $("#owner").val(),
 function trade(side, options, orderBook){
-    layer.prompt({title: '请输入卖出份数', value: 1}, function(value, index, elem){
-        if(value === ''){
-            return elem.focus();
-        }
-        var quantity = util.escape(value);
-        layer.close(index);
-        layer.prompt({title: '请输入卖出价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）', value: options.realtimeData.curPrice}, function(value, index, elem){
-            if(value === ''){
-                return elem.focus();
-            }
-            // 下单
-            var price = util.escape(value);
-            $.ajax({
-              url: "/trade/submit",
-              method: 'POST',
-              data: {
-                owner: $("#owner").val(),
-                password: $("#totp").val(),
-                side: side,
-                strategyId: currentStrategyId,
-                quantity: quantity,
-                price: price,
-                options: JSON.stringify(options),
-              },
-              success: function( response ) {
-                layer.msg('交易完成 result:'+ JSON.stringify(response));
-              }
+    if(!currentStrategyId){
+        layer.msg('请先选择策略！');
+        return;
+    }
+    var selectStrategyArr = filterStrategyById(currentOwnerData.strategyList, currentStrategyId);
+    if(!selectStrategyArr || selectStrategyArr.length != 1){
+        layer.msg('无法匹配策略！');
+        return;
+    }
+
+    layer.confirm('确认交易策略名称：'+selectStrategyArr[0].strategyName, {
+            btn: ['确定', '取消'] //按钮
+          }, function(){
+            // 确认
+            layer.prompt({title: '请输入卖出份数', value: 1}, function(value, index, elem){
+                if(value === ''){
+                    return elem.focus();
+                }
+                var quantity = util.escape(value);
+                layer.close(index);
+                layer.prompt({title: '请输入卖出价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）', value: options.realtimeData.curPrice}, function(value, index, elem){
+                    if(value === ''){
+                        return elem.focus();
+                    }
+                    // 下单
+                    var price = util.escape(value);
+                    $.ajax({
+                      url: "/trade/submit",
+                      method: 'POST',
+                      data: {
+                        owner: $("#owner").val(),
+                        password: $("#totp").val(),
+                        side: side,
+                        strategyId: currentStrategyId,
+                        quantity: quantity,
+                        price: price,
+                        options: JSON.stringify(options),
+                      },
+                      success: function( response ) {
+                        layer.msg('交易完成 result:'+ JSON.stringify(response));
+                      }
+                    });
+                    layer.close(index);
+                });
             });
-            layer.close(index);
-        });
-    });
+
+       }, function(){
+                // 取消
+       });
 }
 
 function sell(options){
@@ -184,15 +230,14 @@ function reloadData(){
         time: new Date().getTime()
       },
       success: function( response ) {
-        var data = response.data;
-        $("#owner").val(data.owner);
+        currentOwnerData = response.data;
+        $("#owner").val(currentOwnerData.owner);
 
         var output = document.getElementById("security");
         output.innerHTML = "";
-        for(var i=0; i<data.strategyList.length; i++) {
-            var obj = data.strategyList[i];
-            //<dd><a href="javascript:;">loading...</a></dd>
-            output.innerHTML += '<dd onclick="loadOptionsExpDate(\''+obj.strategyId+'\',\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.strategyName+'</a></dd>'
+        for(var i=0; i<currentOwnerData.securityList.length; i++) {
+            var obj = currentOwnerData.securityList[i];
+            output.innerHTML += '<dd onclick="loadOptionsExpDate(\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.name+obj.code+'</a></dd>'
         }
         render();
       }
