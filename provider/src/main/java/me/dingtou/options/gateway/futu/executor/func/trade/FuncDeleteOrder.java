@@ -7,14 +7,17 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.Market;
 import me.dingtou.options.gateway.futu.executor.TradeExecutor;
 import me.dingtou.options.gateway.futu.executor.func.TradeFunctionCall;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 
 @Slf4j
 public class FuncDeleteOrder implements TradeFunctionCall<Boolean> {
 
+    private final OwnerAccount ownerAccount;
     private final OwnerOrder ownerOrder;
 
-    public FuncDeleteOrder(OwnerOrder ownerOrder) {
+    public FuncDeleteOrder(OwnerAccount ownerAccount,OwnerOrder ownerOrder) {
+        this.ownerAccount = ownerAccount;
         this.ownerOrder = ownerOrder;
     }
 
@@ -31,7 +34,7 @@ public class FuncDeleteOrder implements TradeFunctionCall<Boolean> {
         }
 
         TrdCommon.TrdHeader header = TrdCommon.TrdHeader.newBuilder()
-                .setAccID(Long.parseLong(ownerOrder.getAccountId()))
+                .setAccID(Long.parseLong(ownerAccount.getAccountId()))
                 .setTrdEnv(TrdCommon.TrdEnv.TrdEnv_Real_VALUE)
                 .setTrdMarket(trdMarket)
                 .build();

@@ -129,6 +129,10 @@ public class WebApiController {
         if (!OtpUtils.check(password)) {
             return WebResult.failure("验证码错误");
         }
+        String loginOwner = SessionUtils.getCurrentOwner();
+        if (!loginOwner.equals(owner)) {
+            return WebResult.failure("账号信息错误");
+        }
         Options optionsObj = JSON.parseObject(options, Options.class);
         BigDecimal sellPrice = new BigDecimal(price);
         return WebResult.success(optionsTradeService.submit(strategyId, TradeSide.of(side), quantity, sellPrice, optionsObj));
@@ -146,6 +150,10 @@ public class WebApiController {
             return WebResult.failure("验证码错误");
         }
         OwnerOrder orderObj = JSON.parseObject(order, OwnerOrder.class);
+        String loginOwner = SessionUtils.getCurrentOwner();
+        if (!loginOwner.equals(orderObj.getOwner())) {
+            return WebResult.failure("账号信息错误");
+        }
         return WebResult.success(optionsTradeService.close(orderObj, new BigDecimal(price)));
     }
 
@@ -161,11 +169,14 @@ public class WebApiController {
         }
         OrderAction orderAction = OrderAction.of(action);
         OwnerOrder orderObj = JSON.parseObject(order, OwnerOrder.class);
+        if (!loginOwner.equals(orderObj.getOwner())) {
+            return WebResult.failure("账号信息错误");
+        }
         return WebResult.success(optionsTradeService.modify(orderObj, orderAction));
     }
 
     @RequestMapping(value = "/trade/sync", method = RequestMethod.GET)
-    public WebResult<List<OwnerOrder>> sync(@RequestParam(value = "password", required = true) String password) throws Exception {
+    public WebResult<Boolean> sync(@RequestParam(value = "password", required = true) String password) throws Exception {
         String loginOwner = SessionUtils.getCurrentOwner();
         log.info("sync. owner:{}", loginOwner);
         if (!OtpUtils.check(password)) {

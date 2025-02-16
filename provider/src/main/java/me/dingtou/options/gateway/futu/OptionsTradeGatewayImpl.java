@@ -5,6 +5,8 @@ import me.dingtou.options.constant.Platform;
 import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.gateway.futu.executor.TradeExecutor;
 import me.dingtou.options.gateway.futu.executor.func.trade.*;
+import me.dingtou.options.model.Owner;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerStrategy;
 import org.springframework.stereotype.Component;
@@ -19,55 +21,36 @@ import java.util.Map;
 public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
 
     @Override
-    public OwnerOrder trade(OwnerOrder order) {
-        if (Platform.FUTU.getCode().equals(order.getPlatform())) {
-            return TradeExecutor.submit(new FuncPlaceOrder(order));
-        }
-        throw new IllegalArgumentException("不支持的平台");
+    public OwnerOrder trade(OwnerAccount account, OwnerOrder order) {
+        return TradeExecutor.submit(new FuncPlaceOrder(account, order));
     }
 
     @Override
-    public OwnerOrder cancel(OwnerOrder order) {
-        if (Platform.FUTU.getCode().equals(order.getPlatform())) {
-            return TradeExecutor.submit(new FuncCancelOrder(order));
-        }
-        throw new IllegalArgumentException("不支持的平台");
+    public OwnerOrder cancel(OwnerAccount account, OwnerOrder order) {
+        return TradeExecutor.submit(new FuncCancelOrder(account, order));
     }
 
     @Override
-    public Boolean delete(OwnerOrder order) {
-        if (Platform.FUTU.getCode().equals(order.getPlatform())) {
-            return TradeExecutor.submit(new FuncDeleteOrder(order));
-        }
-        throw new IllegalArgumentException("不支持的平台");
+    public Boolean delete(OwnerAccount account, OwnerOrder order) {
+        return TradeExecutor.submit(new FuncDeleteOrder(account, order));
     }
 
     @Override
-    public Map<String, BigDecimal> totalFee(OwnerStrategy strategy, List<OwnerOrder> orders) {
+    public Map<String, BigDecimal> totalFee(OwnerAccount account, List<OwnerOrder> orders) {
         if (null == orders || orders.isEmpty()) {
             return Collections.emptyMap();
         }
-        if (Platform.FUTU.getCode().equals(strategy.getPlatform())) {
-            return TradeExecutor.submit(new FuncGetOrderFee(strategy, orders));
-        }
-        throw new IllegalArgumentException("不支持的平台");
+        return TradeExecutor.submit(new FuncGetOrderFee(account, orders));
     }
 
 
     @Override
-    public List<OwnerOrder> pullOrder(OwnerStrategy strategy) {
-        if (!Platform.FUTU.getCode().equals(strategy.getPlatform())) {
-            return Collections.emptyList();
-        }
-
-        return TradeExecutor.submit(new FuncGetHistoryOrder(strategy));
+    public List<OwnerOrder> pullOrder(Owner owner) {
+        return TradeExecutor.submit(new FuncGetHistoryOrder(owner));
     }
 
     @Override
-    public List<OwnerOrder> pullOrderFill(OwnerStrategy strategy) {
-        if (!Platform.FUTU.getCode().equals(strategy.getPlatform())) {
-            return Collections.emptyList();
-        }
-        return TradeExecutor.submit(new FuncGetHistoryOrderFill(strategy));
+    public List<OwnerOrder> pullOrderFill(Owner owner) {
+        return TradeExecutor.submit(new FuncGetHistoryOrderFill(owner));
     }
 }

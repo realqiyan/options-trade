@@ -5,9 +5,7 @@ import me.dingtou.options.constant.OrderAction;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
-import me.dingtou.options.model.Options;
-import me.dingtou.options.model.OwnerOrder;
-import me.dingtou.options.model.OwnerStrategy;
+import me.dingtou.options.model.*;
 import me.dingtou.options.service.OptionsTradeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,32 +30,35 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
         if (null == ownerStrategy) {
             throw new IllegalArgumentException("策略不存在 strategyId:" + strategyId);
         }
-        return tradeManager.trade(ownerStrategy, side, quantity, price, options);
+        OwnerAccount account = ownerManager.queryOwnerAccount(ownerStrategy.getOwner());
+        return tradeManager.trade(account, ownerStrategy, side, quantity, price, options);
     }
 
     @Override
     public OwnerOrder close(OwnerOrder order, BigDecimal price) {
-        OwnerOrder ownerOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatform(), order.getPlatformOrderId(), order.getPlatformFillId());
+        OwnerOrder ownerOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatformOrderId(), order.getPlatformFillId());
         if (null == ownerOrder) {
             throw new IllegalArgumentException("订单不存在 platformOrderId:" + order.getPlatformOrderId());
         }
-        return tradeManager.close(ownerOrder, price);
+        OwnerAccount account = ownerManager.queryOwnerAccount(order.getOwner());
+        return tradeManager.close(account, ownerOrder, price);
     }
 
     @Override
     public OwnerOrder modify(OwnerOrder order, OrderAction action) {
-        if (null == order || null == order.getPlatform()) {
+        if (null == order) {
             return null;
         }
-        OwnerOrder oldOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatform(), order.getPlatformOrderId(), order.getPlatformFillId());
+        OwnerOrder oldOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatformOrderId(), order.getPlatformFillId());
         if (null == oldOrder) {
             return null;
         }
+        OwnerAccount account = ownerManager.queryOwnerAccount(oldOrder.getOwner());
         switch (action) {
             case CANCEL:
-                return tradeManager.cancel(oldOrder);
+                return tradeManager.cancel(account, oldOrder);
             case DELETE:
-                Boolean delete = tradeManager.delete(oldOrder);
+                Boolean delete = tradeManager.delete(account, oldOrder);
                 log.warn("delete orderId:{} result:{}", oldOrder.getPlatformOrderId(), delete);
                 return oldOrder;
             default:
@@ -66,13 +67,9 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
     }
 
     @Override
-    public List<OwnerOrder> sync(String owner) {
-        List<OwnerOrder> orders = new ArrayList<>();
-        List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
-        for (OwnerStrategy ownerStrategy : ownerStrategies) {
-            orders.addAll(tradeManager.syncOrder(ownerStrategy));
-        }
-        return orders;
+    public Boolean sync(String owner) {
+        Owner ownerObj = ownerManager.queryOwner(owner);
+        return tradeManager.syncOrder(ownerObj);
     }
 
 }

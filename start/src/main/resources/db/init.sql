@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： 10.0.12.220
--- 生成日期： 2024-12-28 19:10:41
+-- 生成日期： 2025-02-16 12:36:25
 -- 服务器版本： 8.2.0
 -- PHP 版本： 8.2.26
 
@@ -20,8 +20,35 @@ SET time_zone = "+00:00";
 --
 -- 数据库： `options`
 --
-CREATE DATABASE IF NOT EXISTS `options` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `options`;
+
+-- --------------------------------------------------------
+
+--
+-- 表的结构 `owner_account`
+--
+
+DROP TABLE IF EXISTS `owner_account`;
+CREATE TABLE `owner_account` (
+  `id` int NOT NULL COMMENT '主键ID',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `owner` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '唯一用户名',
+  `platform` varchar(16) COLLATE utf8mb4_general_ci NOT NULL COMMENT '平台',
+  `market` int NOT NULL COMMENT '市场',
+  `account_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '账号',
+  `status` int NOT NULL COMMENT '状态 1有效 0无效'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户账号表';
+
+--
+-- 插入之前先把表清空（truncate） `owner_account`
+--
+
+TRUNCATE TABLE `owner_account`;
+--
+-- 转存表中的数据 `owner_account`
+--
+
+INSERT INTO `owner_account` (`id`, `create_time`, `owner`, `platform`, `market`, `account_id`, `status`) VALUES
+(1, '2024-11-01 00:00:00', 'qiyan', 'futu', 11, '1234567890', 1);
 
 -- --------------------------------------------------------
 
@@ -34,10 +61,9 @@ CREATE TABLE `owner_order` (
   `id` int NOT NULL,
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `strategy_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `strategy_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `underlying_code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `account_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `market` int NOT NULL,
   `trade_from` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `trade_time` datetime NOT NULL,
@@ -52,9 +78,40 @@ CREATE TABLE `owner_order` (
   `platform_order_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `platform_order_id_ex` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `platform_fill_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `platform` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `ext` json DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 表的结构 `owner_security`
+--
+
+DROP TABLE IF EXISTS `owner_security`;
+CREATE TABLE `owner_security` (
+  `id` int NOT NULL COMMENT 'id主键',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `name` varchar(64) COLLATE utf8mb4_general_ci NOT NULL COMMENT '证券名字',
+  `code` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '证券代码',
+  `market` int NOT NULL COMMENT '市场',
+  `owner` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '拥有者',
+  `status` int NOT NULL DEFAULT '1' COMMENT '状态 1有效 0无效'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户证券表';
+
+--
+-- 插入之前先把表清空（truncate） `owner_security`
+--
+
+TRUNCATE TABLE `owner_security`;
+--
+-- 转存表中的数据 `owner_security`
+--
+
+INSERT INTO `owner_security` (`id`, `create_time`, `name`, `code`, `market`, `owner`, `status`) VALUES
+(1, '2025-02-16 14:08:13', '阿里巴巴', 'BABA', 11, 'qiyan', 1),
+(2, '2025-02-16 14:08:13', '中国海外互联网', 'KWEB', 11, 'qiyan', 1),
+(3, '2025-02-16 14:08:13', '京东', 'JD', 11, 'qiyan', 1),
+(4, '2025-02-16 14:08:13', '中国大盘股', 'FXI', 11, 'qiyan', 0);
 
 -- --------------------------------------------------------
 
@@ -69,11 +126,8 @@ CREATE TABLE `owner_strategy` (
   `start_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `strategy_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `status` int NOT NULL DEFAULT '1',
-  `platform` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `account_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `lot_size` int NOT NULL DEFAULT '100',
-  `market` int NOT NULL,
   `owner` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `ext` json NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -87,39 +141,64 @@ TRUNCATE TABLE `owner_strategy`;
 -- 转存表中的数据 `owner_strategy`
 --
 
-INSERT INTO `owner_strategy` (`id`, `strategy_id`, `start_time`, `strategy_name`, `status`, `platform`, `account_id`, `code`, `lot_size`, `market`, `owner`, `ext`) VALUES
-(18, '86c312eccaff4fe1865cf0e79432ebe3', '2024-11-01 00:00:00', 'BABA-富途', 1, 'futu', '123456', 'BABA', 100, 11, 'qiyan', '{}'),
-(28, '024cc086a560460e90705f2ef87cac7d', '2024-11-01 00:00:00', 'KWEB-富途', 1, 'futu', '123456', 'KWEB', 100, 11, 'qiyan', '{}'),
-(38, 'b3605b43f26345abbfa663abad867d38', '2024-11-01 00:00:00', 'JD-富途', 1, 'futu', '123456', 'JD', 100, 11, 'qiyan', '{}'),
-(58, 'a9f569b18f304c42ad602964d1c1b336', '2024-11-01 00:00:00', 'FXI-长桥', 1, 'longport', '', 'FXI', 100, 11, 'qiyan', '{}');
+INSERT INTO `owner_strategy` (`id`, `strategy_id`, `start_time`, `strategy_name`, `status`, `code`, `lot_size`, `owner`, `ext`) VALUES
+(18, '86c312eccaff4fe1865cf0e79432ebe3', '2024-11-01 00:00:00', '富途-BABA-默认策略', 1, 'BABA', 100, 'qiyan', '{}'),
+(19, '81bab49eac5d427b967e93e5e93c9c68', '2025-02-14 00:00:00', '富途-BABA-车轮策略', 1, 'BABA', 100, 'qiyan', '{}'),
+(28, '024cc086a560460e90705f2ef87cac7d', '2024-11-01 00:00:00', '富途-KWEB-默认策略', 1, 'KWEB', 100, 'qiyan', '{}'),
+(38, 'b3605b43f26345abbfa663abad867d38', '2024-11-01 00:00:00', '富途-JD-默认策略', 1, 'JD', 100, 'qiyan', '{}');
 
 --
 -- 转储表的索引
 --
 
 --
+-- 表的索引 `owner_account`
+--
+ALTER TABLE `owner_account`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_owner` (`owner`),
+  ADD UNIQUE KEY `uk_platform_market_account` (`platform`,`account_id`,`market`) USING BTREE;
+
+--
 -- 表的索引 `owner_order`
 --
 ALTER TABLE `owner_order`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `pk_p_o_f` (`platform`,`platform_order_id`,`platform_fill_id`) USING BTREE;
+  ADD UNIQUE KEY `uk_o_o_f` (`owner`,`platform_order_id`,`platform_fill_id`) USING BTREE;
+
+--
+-- 表的索引 `owner_security`
+--
+ALTER TABLE `owner_security`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- 表的索引 `owner_strategy`
 --
 ALTER TABLE `owner_strategy`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uk_p_a_c` (`platform`,`account_id`,`code`) USING BTREE;
+  ADD PRIMARY KEY (`id`);
 
 --
 -- 在导出的表使用AUTO_INCREMENT
 --
 
 --
+-- 使用表AUTO_INCREMENT `owner_account`
+--
+ALTER TABLE `owner_account`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT COMMENT '主键ID', AUTO_INCREMENT=2;
+
+--
 -- 使用表AUTO_INCREMENT `owner_order`
 --
 ALTER TABLE `owner_order`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- 使用表AUTO_INCREMENT `owner_security`
+--
+ALTER TABLE `owner_security`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT COMMENT 'id主键', AUTO_INCREMENT=5;
 
 --
 -- 使用表AUTO_INCREMENT `owner_strategy`

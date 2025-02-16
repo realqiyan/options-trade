@@ -6,6 +6,7 @@ import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.StrategyStatus;
 import me.dingtou.options.constant.TradeSide;
+import me.dingtou.options.dao.OwnerAccountDAO;
 import me.dingtou.options.dao.OwnerOrderDAO;
 import me.dingtou.options.dao.OwnerSecurityDAO;
 import me.dingtou.options.dao.OwnerStrategyDAO;
@@ -31,6 +32,9 @@ import java.util.stream.Collectors;
 public class OwnerManager {
 
     @Autowired
+    private OwnerAccountDAO ownerAccountDAO;
+
+    @Autowired
     private OwnerSecurityDAO ownerSecurityDAO;
 
     @Autowired
@@ -46,11 +50,18 @@ public class OwnerManager {
     public Owner queryOwner(String owner) {
         Owner ownerObj = new Owner();
         ownerObj.setOwner(owner);
+        ownerObj.setAccount(queryOwnerAccount(owner));
         ownerObj.setSecurityList(queryOwnerSecurity(owner));
         ownerObj.setStrategyList(queryOwnerStrategy(owner));
         return ownerObj;
     }
 
+    public OwnerAccount queryOwnerAccount(String owner) {
+        QueryWrapper<OwnerAccount> query = new QueryWrapper<>();
+        query.eq("owner", owner)
+                .eq("status", StrategyStatus.VALID.getCode());
+        return ownerAccountDAO.selectOne(query);
+    }
 
     public List<OwnerSecurity> queryOwnerSecurity(String owner) {
         QueryWrapper<OwnerSecurity> query = new QueryWrapper<>();
@@ -68,10 +79,9 @@ public class OwnerManager {
     }
 
 
-    public OwnerOrder queryOwnerOrder(String owner, String platform, String platformOrderId, String platformFillId) {
+    public OwnerOrder queryOwnerOrder(String owner, String platformOrderId, String platformFillId) {
         QueryWrapper<OwnerOrder> query = new QueryWrapper<>();
         query.eq("owner", owner);
-        query.eq("platform", platform);
         query.eq("platform_order_id", platformOrderId);
         List<OwnerOrder> ownerOrderList = ownerOrderDAO.selectList(query);
         if (null == ownerOrderList || ownerOrderList.isEmpty()) {

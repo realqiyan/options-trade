@@ -50,9 +50,9 @@ public interface OptionsTradeService {
      * 同步订单
      *
      * @param owner 账号
-     * @return 订单列表
+     * @return 同步结果
      */
-    List<OwnerOrder> sync(String owner);
+    Boolean sync(String owner);
 
 
 }

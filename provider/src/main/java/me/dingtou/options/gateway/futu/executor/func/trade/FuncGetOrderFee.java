@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.Market;
 import me.dingtou.options.gateway.futu.executor.TradeExecutor;
 import me.dingtou.options.gateway.futu.executor.func.TradeFunctionCall;
+import me.dingtou.options.model.Owner;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerStrategy;
 
@@ -18,11 +20,11 @@ import java.util.Map;
 @Slf4j
 public class FuncGetOrderFee implements TradeFunctionCall<Map<String, BigDecimal>> {
 
-    private final OwnerStrategy strategy;
+    private final OwnerAccount account;
     private final List<OwnerOrder> orders;
 
-    public FuncGetOrderFee(OwnerStrategy strategy, List<OwnerOrder> orders) {
-        this.strategy = strategy;
+    public FuncGetOrderFee(OwnerAccount account, List<OwnerOrder> orders) {
+        this.account = account;
         this.orders = orders;
     }
 
@@ -33,18 +35,17 @@ public class FuncGetOrderFee implements TradeFunctionCall<Map<String, BigDecimal
 
     @Override
     public void call(TradeExecutor<Map<String, BigDecimal>> client) {
-
         int trdMarket;
-        if (strategy.getMarket().equals(Market.HK.getCode())) {
+        if (account.getMarket().equals(Market.HK.getCode())) {
             trdMarket = TrdCommon.TrdMarket.TrdMarket_HK_VALUE;
-        } else if (strategy.getMarket().equals(Market.US.getCode())) {
+        } else if (account.getMarket().equals(Market.US.getCode())) {
             trdMarket = TrdCommon.TrdMarket.TrdMarket_US_VALUE;
         } else {
             throw new IllegalArgumentException("不支持的交易市场");
         }
 
         TrdCommon.TrdHeader header = TrdCommon.TrdHeader.newBuilder()
-                .setAccID(Long.parseLong(strategy.getAccountId()))
+                .setAccID(Long.parseLong(account.getAccountId()))
                 .setTrdEnv(TrdCommon.TrdEnv.TrdEnv_Real_VALUE)
                 .setTrdMarket(trdMarket)
                 .build();

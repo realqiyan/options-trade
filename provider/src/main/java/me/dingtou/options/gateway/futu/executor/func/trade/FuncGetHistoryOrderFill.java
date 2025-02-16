@@ -10,15 +10,14 @@ import me.dingtou.options.constant.TradeFrom;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.gateway.futu.executor.TradeExecutor;
 import me.dingtou.options.gateway.futu.executor.func.TradeFunctionCall;
+import me.dingtou.options.model.Owner;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
-import me.dingtou.options.model.OwnerStrategy;
+import me.dingtou.options.model.OwnerSecurity;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -26,10 +25,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FuncGetHistoryOrderFill implements TradeFunctionCall<List<OwnerOrder>> {
 
-    private final OwnerStrategy strategy;
+    private final Owner owner;
 
-    public FuncGetHistoryOrderFill(OwnerStrategy strategy) {
-        this.strategy = strategy;
+    public FuncGetHistoryOrderFill(Owner owner) {
+        this.owner = owner;
     }
 
     @Override
@@ -41,10 +40,11 @@ public class FuncGetHistoryOrderFill implements TradeFunctionCall<List<OwnerOrde
     @Override
     public void call(TradeExecutor<List<OwnerOrder>> client) {
         Date now = new Date();
+        OwnerAccount account = owner.getAccount();
         int trdMarket;
-        if (strategy.getMarket().equals(Market.HK.getCode())) {
+        if (account.getMarket().equals(Market.HK.getCode())) {
             trdMarket = TrdCommon.TrdMarket.TrdMarket_HK_VALUE;
-        } else if (strategy.getMarket().equals(Market.US.getCode())) {
+        } else if (account.getMarket().equals(Market.US.getCode())) {
             trdMarket = TrdCommon.TrdMarket.TrdMarket_US_VALUE;
         } else {
             throw new IllegalArgumentException("不支持的交易市场");
@@ -52,8 +52,8 @@ public class FuncGetHistoryOrderFill implements TradeFunctionCall<List<OwnerOrde
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-        TrdCommon.TrdHeader header = TrdCommon.TrdHeader.newBuilder().setAccID(Long.parseLong(strategy.getAccountId())).setTrdEnv(TrdCommon.TrdEnv.TrdEnv_Real_VALUE).setTrdMarket(trdMarket).build();
-        TrdCommon.TrdFilterConditions filter = TrdCommon.TrdFilterConditions.newBuilder().setBeginTime(dateFormat.format(this.strategy.getStartTime())).setEndTime(dateFormat.format(now)).build();
+        TrdCommon.TrdHeader header = TrdCommon.TrdHeader.newBuilder().setAccID(Long.parseLong(account.getAccountId())).setTrdEnv(TrdCommon.TrdEnv.TrdEnv_Real_VALUE).setTrdMarket(trdMarket).build();
+        TrdCommon.TrdFilterConditions filter = TrdCommon.TrdFilterConditions.newBuilder().setBeginTime(dateFormat.format(account.getCreateTime())).setEndTime(dateFormat.format(now)).build();
         TrdGetHistoryOrderFillList.C2S c2s = TrdGetHistoryOrderFillList.C2S.newBuilder().setHeader(header).setFilterConditions(filter).build();
         TrdGetHistoryOrderFillList.Request req = TrdGetHistoryOrderFillList.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.getHistoryOrderFillList(req);
@@ -81,28 +81,33 @@ public class FuncGetHistoryOrderFill implements TradeFunctionCall<List<OwnerOrde
 
             String code = order.getCode();
             Date strikeTime = null;
-            if (this.strategy.getCode().equals(code)) {
+
+
+            String regexStr = "^([A-Z0-9]*)([0-9]{6})([CP])([0-9]*)$";
+            Pattern codePattern = Pattern.compile(regexStr);
+            Matcher matcher = codePattern.matcher(code);
+            final String underlyingCode;
+            if (!matcher.find()) {
+                underlyingCode = code;
                 strikeTime = dateFormat.parse("2999-12-31 00:00:00.000");
             } else {
-                String regexStr = "^(" + this.strategy.getCode() + ')' + "([0-9]{6})" + "([CP])" + "([0-9]*)$";
-                Pattern codePattern = Pattern.compile(regexStr);
-                Matcher matcher = codePattern.matcher(code);
-                if (!matcher.find()) {
-                    log.warn("订单匹配错误: {} -> {}", code, regexStr);
-                    return null;
-                }
+                underlyingCode = matcher.group(1);
                 SimpleDateFormat strikeTimeFormat = new SimpleDateFormat("yyMMdd");
                 strikeTime = strikeTimeFormat.parse(matcher.group(2));
             }
 
-            SimpleDateFormat strikeTimeFormat = new SimpleDateFormat("yyMMdd");
+            // 检查是否属于目标股票
+            Optional<OwnerSecurity> securityOptional = this.owner.getSecurityList().stream()
+                    .filter(security -> security.getCode().equals(underlyingCode))
+                    .findAny();
+            if (securityOptional.isEmpty()) {
+                return null;
+            }
+
             OwnerOrder ownerOrder = new OwnerOrder();
-            ownerOrder.setOwner(this.strategy.getOwner());
-            ownerOrder.setPlatform(this.strategy.getPlatform());
-            ownerOrder.setUnderlyingCode(this.strategy.getCode());
-            ownerOrder.setMarket(this.strategy.getMarket());
-            ownerOrder.setStrategyId(this.strategy.getStrategyId());
-            ownerOrder.setAccountId(this.strategy.getAccountId());
+            ownerOrder.setOwner(this.owner.getOwner());
+            ownerOrder.setUnderlyingCode(underlyingCode);
+            ownerOrder.setMarket(this.owner.getAccount().getMarket());
 
             ownerOrder.setSide(TradeSide.of(order.getTrdSide()).getCode());
             ownerOrder.setPlatformOrderId(String.valueOf(order.getOrderID()));

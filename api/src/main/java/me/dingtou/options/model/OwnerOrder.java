@@ -51,11 +51,6 @@ public class OwnerOrder implements Cloneable {
     private Integer market;
 
     /**
-     * 账户的标识符，表示策略关联的账户或用户
-     */
-    private String accountId;
-
-    /**
      * 交易时间，表示订单的交易日期
      */
     private Date tradeTime;
@@ -121,10 +116,6 @@ public class OwnerOrder implements Cloneable {
      */
     private String platformFillId;
 
-    /**
-     * 平台的标识符，表示订单所属的平台或系统，默认为NULL
-     */
-    private String platform;
 
     /**
      * 扩展信息的集合，允许在订单中存储额外的自定义键值对，默认为NULL

@@ -22,12 +22,6 @@ public class OwnerStrategy {
      * 所有者的标识符，表示策略属于哪个用户或实体
      */
     private String owner;
-
-    /**
-     * 平台的标识符，表示策略所属的平台或系统
-     */
-    private String platform;
-
     /**
      * 策略的唯一标识符，用于区分不同的策略
      */
@@ -36,32 +30,18 @@ public class OwnerStrategy {
      * 策略的名称，用于在用户界面中显示
      */
     private String strategyName;
-
     /**
      * 策略的开始时间，用于记录策略的创建或启用时间
      */
     private Date startTime;
-
-    /**
-     * 账户的标识符，表示策略关联的账户或用户
-     */
-    private String accountId;
-
     /**
      * 策略的代码标识符，可能用于表示策略的版本或特定代码
      */
     private String code;
-
     /**
      * 每手数量
      */
     private Integer lotSize;
-
-    /**
-     * 市场的标识符，表示策略适用的市场或地区
-     */
-    private Integer market;
-
     /**
      * 策略的状态，用于表示策略的当前运行状态或状态
      */

@@ -65,8 +65,9 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         List<OwnerOrder> ownerOrders = ownerManager.queryStrategyOrder(ownerStrategy);
         summary.setStrategyOrders(ownerOrders);
 
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         // 订单费用
-        BigDecimal totalFee = tradeManager.queryTotalOrderFee(ownerStrategy, ownerOrders);
+        BigDecimal totalFee = tradeManager.queryTotalOrderFee(account, ownerOrders);
         summary.setTotalFee(totalFee);
 
         // 股票持有数量
@@ -77,7 +78,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         summary.setHoldSecurityNum(holdSecurityNum);
 
         // 股票现价
-        Security security = Security.of(ownerStrategy.getCode(), ownerStrategy.getMarket());
+        Security security = Security.of(ownerStrategy.getCode(), account.getMarket());
         SecurityQuote securityQuote = securityQuoteGateway.quote(security);
         BigDecimal lastDone = securityQuote.getLastDone();
 

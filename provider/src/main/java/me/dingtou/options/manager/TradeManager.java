@@ -40,27 +40,26 @@ public class TradeManager {
     /**
      * 执行交易操作
      *
-     * @param ownerStrategy 交易策略
-     * @param side          交易方向，买或卖
-     * @param quantity      交易数量
-     * @param price         交易价格
-     * @param options       交易选项配置
+     * @param account  账号
+     * @param strategy 交易策略
+     * @param side     交易方向，买或卖
+     * @param quantity 交易数量
+     * @param price    交易价格
+     * @param options  交易选项配置
      * @return 返回执行后的订单对象
      */
     @Transactional(rollbackFor = Exception.class)
-    public OwnerOrder trade(OwnerStrategy ownerStrategy, TradeSide side, Integer quantity, BigDecimal price, Options options) {
+    public OwnerOrder trade(OwnerAccount account, OwnerStrategy strategy, TradeSide side, Integer quantity, BigDecimal price, Options options) {
         // 获取基础配置中的证券信息
         Security security = options.getBasic().getSecurity();
 
         // 创建并初始化订单对象
         Date now = new Date();
         OwnerOrder ownerOrder = new OwnerOrder();
-        ownerOrder.setStrategyId(ownerStrategy.getStrategyId());
-        ownerOrder.setUnderlyingCode(ownerStrategy.getCode());
-        ownerOrder.setPlatform(ownerStrategy.getPlatform());
-        ownerOrder.setOwner(ownerStrategy.getOwner());
+        ownerOrder.setStrategyId(strategy.getStrategyId());
+        ownerOrder.setUnderlyingCode(strategy.getCode());
+        ownerOrder.setOwner(strategy.getOwner());
         ownerOrder.setMarket(security.getMarket());
-        ownerOrder.setAccountId(ownerStrategy.getAccountId());
         ownerOrder.setTradeTime(now);
         SimpleDateFormat strikeTimeFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date strikeTime = null;
@@ -86,7 +85,7 @@ public class TradeManager {
         ownerOrderDAO.insert(ownerOrder);
 
         // 通过交易网关执行交易操作
-        ownerOrder = optionsTradeGateway.trade(ownerOrder);
+        ownerOrder = optionsTradeGateway.trade(account, ownerOrder);
         ownerOrder.setStatus(OrderStatus.SUBMITTED.getCode());
         // 更新数据库中的订单信息
         ownerOrder.setUpdateTime(new Date());
@@ -104,7 +103,7 @@ public class TradeManager {
      * @return 订单
      */
     @Transactional(rollbackFor = Exception.class)
-    public OwnerOrder close(OwnerOrder hisOrder, BigDecimal price) {
+    public OwnerOrder close(OwnerAccount account, OwnerOrder hisOrder, BigDecimal price) {
         // 创建并初始化订单对象
         OwnerOrder ownerOrder = hisOrder.clone();
         Date now = new Date();
@@ -123,7 +122,7 @@ public class TradeManager {
         ownerOrderDAO.insert(ownerOrder);
 
         // 通过交易网关执行交易操作
-        ownerOrder = optionsTradeGateway.trade(ownerOrder);
+        ownerOrder = optionsTradeGateway.trade(account, ownerOrder);
         ownerOrder.setStatus(OrderStatus.SUBMITTED.getCode());
         // 更新数据库中的订单信息
         ownerOrder.setUpdateTime(new Date());
@@ -132,8 +131,8 @@ public class TradeManager {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public OwnerOrder cancel(OwnerOrder dbOrder) {
-        dbOrder = optionsTradeGateway.cancel(dbOrder);
+    public OwnerOrder cancel(OwnerAccount account, OwnerOrder dbOrder) {
+        dbOrder = optionsTradeGateway.cancel(account, dbOrder);
         dbOrder.setStatus(OrderStatus.CANCELLED_ALL.getCode());
         dbOrder.setUpdateTime(new Date());
         int update = ownerOrderDAO.updateById(dbOrder);
@@ -144,12 +143,12 @@ public class TradeManager {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Boolean delete(OwnerOrder oldOrder) {
+    public Boolean delete(OwnerAccount account, OwnerOrder oldOrder) {
         if (null == oldOrder || !Objects.equals(oldOrder.getStatus(), OrderStatus.CANCELLED_ALL.getCode())) {
             return false;
         }
         int updateRow = 0;
-        if (optionsTradeGateway.delete(oldOrder)) {
+        if (optionsTradeGateway.delete(account, oldOrder)) {
             List<Integer> orderIds = new ArrayList<>();
             orderIds.add(oldOrder.getId());
             updateRow = ownerOrderDAO.deleteByIds(orderIds);
@@ -158,33 +157,32 @@ public class TradeManager {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public List<OwnerOrder> syncOrder(OwnerStrategy strategy) {
+    public Boolean syncOrder(Owner owner) {
         Date now = new Date();
         QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
-        queryOrder.eq("owner", strategy.getOwner());
-        queryOrder.eq("strategy_id", strategy.getStrategyId());
-        // 本地订单
+        queryOrder.eq("owner", owner.getOwner());
+        // 本地所有订单
         List<OwnerOrder> dbOrders = ownerOrderDAO.selectList(queryOrder);
         // 拉取平台订单列表1:1
-        List<OwnerOrder> platformOrders = optionsTradeGateway.pullOrder(strategy);
+        List<OwnerOrder> platformOrders = optionsTradeGateway.pullOrder(owner);
         // 拉取平台成交单列表1:n
-        List<OwnerOrder> platformOrderFills = optionsTradeGateway.pullOrderFill(strategy);
+        List<OwnerOrder> platformOrderFills = optionsTradeGateway.pullOrderFill(owner);
         // 获取平台订单手续费
-        Map<String, BigDecimal> feeMap = optionsTradeGateway.totalFee(strategy, platformOrderFills);
+        Map<String, BigDecimal> feeMap = optionsTradeGateway.totalFee(owner.getAccount(), platformOrderFills);
 
-        // 组合订单platformOrders中拉取不到，成交单中会有多条记录
+        // 组合订单platformOrders中拉取不到，可以通过成交单拉取。
 
         // 平台订单订单号唯一
-        Map<String, OwnerOrder> orderMap = new HashMap<>();
+        Map<String, OwnerOrder> plateformOrderMap = new HashMap<>();
         platformOrders.forEach(platformOrder -> {
-            orderMap.put(platformOrder.getPlatformOrderId(), platformOrder);
+            plateformOrderMap.put(platformOrder.getPlatformOrderId(), platformOrder);
         });
 
         // 平台订单成交单一个订单号对应多条成交单
-        Map<String, List<OwnerOrder>> orderFillMap = platformOrderFills.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
-        // 使用过的成交单
-        Map<String, List<OwnerOrder>> usedOrderFillMap = new HashMap<>();
+        Map<String, List<OwnerOrder>> platformOrderFillMap = platformOrderFills.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
 
+        // 使用过的成交单
+        Map<String, List<OwnerOrder>> usedPlatformOrderFillMap = new HashMap<>();
 
         // 新订单
         List<OwnerOrder> platformNewOrders = new ArrayList<>();
@@ -192,21 +190,23 @@ public class TradeManager {
         // 更新本地订单
         for (OwnerOrder dbOrder : dbOrders) {
             String platformOrderId = dbOrder.getPlatformOrderId();
-            OwnerOrder platformOrder = orderMap.get(platformOrderId);
+            // 通过平台订单来更新本地订单
+            OwnerOrder platformOrder = plateformOrderMap.get(platformOrderId);
             if (null != platformOrder) {
                 dbOrder.setQuantity(platformOrder.getQuantity());
                 dbOrder.setStatus(platformOrder.getStatus());
                 dbOrder.setTradeTime(platformOrder.getTradeTime());
                 dbOrder.setStrikeTime(platformOrder.getStrikeTime());
                 dbOrder.setPlatformOrderIdEx(platformOrder.getPlatformOrderIdEx());
-                orderMap.remove(platformOrderId);
+                plateformOrderMap.remove(platformOrderId);
             }
 
             boolean subOrder = false;
-            List<OwnerOrder> orderFills = orderFillMap.get(platformOrderId);
+
+            List<OwnerOrder> orderFills = platformOrderFillMap.get(platformOrderId);
             if (null == orderFills) {
                 subOrder = true;
-                orderFills = usedOrderFillMap.get(platformOrderId);
+                orderFills = usedPlatformOrderFillMap.get(platformOrderId);
             }
             if (null != orderFills && !orderFills.isEmpty()) {
                 OwnerOrder orderFill = null;
@@ -214,7 +214,7 @@ public class TradeManager {
                 if (orderFills.size() == 1) {
                     orderFill = orderFills.get(0);
                 } else {
-                    // 多比成交单 如果订单成交单id不为空就走更新逻辑
+                    // 多比成交单 如果订单的成交单id不为空就从平台订单中找到对应的订单走更新逻辑
                     if (null != dbOrder.getPlatformFillId()) {
                         // 找到对应的成交单
                         Optional<OwnerOrder> orderOptional = orderFills.stream().filter(order -> order.getPlatformFillId().equals(dbOrder.getPlatformFillId())).findAny();
@@ -229,11 +229,10 @@ public class TradeManager {
                         subOrders.forEach(order -> order.setSubOrder(true));
                         platformNewOrders.addAll(subOrders);
                     }
-
                 }
-                List<OwnerOrder> removed = orderFillMap.remove(platformOrderId);
+                List<OwnerOrder> removed = platformOrderFillMap.remove(platformOrderId);
                 if (null != removed) {
-                    usedOrderFillMap.put(platformOrderId, removed);
+                    usedPlatformOrderFillMap.put(platformOrderId, removed);
                 }
 
                 if (null != orderFill) {
@@ -259,16 +258,16 @@ public class TradeManager {
 
 
         // 新订单
-        platformNewOrders.addAll(orderMap.values().stream().toList());
+        platformNewOrders.addAll(plateformOrderMap.values().stream().toList());
         for (OwnerOrder platformNewOrder : platformNewOrders) {
             String platformOrderId = platformNewOrder.getPlatformOrderId();
-            List<OwnerOrder> ownerOrderFills = orderFillMap.get(platformOrderId);
+            List<OwnerOrder> ownerOrderFills = platformOrderFillMap.get(platformOrderId);
             if (null != ownerOrderFills) {
                 if (ownerOrderFills.size() == 1) {
                     OwnerOrder ownerOrderFill = ownerOrderFills.get(0);
                     platformNewOrder.setPlatformFillId(ownerOrderFill.getPlatformFillId());
                 }
-                orderFillMap.remove(platformOrderId);
+                platformOrderFillMap.remove(platformOrderId);
             }
         }
 
@@ -276,7 +275,7 @@ public class TradeManager {
         List<OwnerOrder> newOrders = new ArrayList<>();
         newOrders.addAll(platformNewOrders);
         // 处理未使用过的订单 第一单为主订单，其他为子订单。
-        for (Map.Entry<String, List<OwnerOrder>> entries : orderFillMap.entrySet()) {
+        for (Map.Entry<String, List<OwnerOrder>> entries : platformOrderFillMap.entrySet()) {
             List<OwnerOrder> orderFills = entries.getValue();
             for (int i = 0; i < orderFills.size(); i++) {
                 boolean subOrder = i == 0 ? false : true;
@@ -294,10 +293,7 @@ public class TradeManager {
             }
             ownerOrderDAO.insert(newOrder);
         }
-        List<OwnerOrder> allOrders = new ArrayList<>();
-        allOrders.addAll(dbOrders);
-        allOrders.addAll(newOrders);
-        return allOrders;
+        return Boolean.TRUE;
 
     }
 
@@ -313,7 +309,7 @@ public class TradeManager {
 
     }
 
-    public BigDecimal queryTotalOrderFee(OwnerStrategy strategy, List<OwnerOrder> ownerOrders) {
+    public BigDecimal queryTotalOrderFee(OwnerAccount account, List<OwnerOrder> ownerOrders) {
         BigDecimal totalFee = ownerOrders.stream()
                 .map(OwnerOrder::getOrderFee)
                 .filter(Objects::nonNull)
@@ -322,7 +318,7 @@ public class TradeManager {
         if (!BigDecimal.ZERO.equals(totalFee)) {
             return totalFee;
         }
-        Map<String, BigDecimal> totalFeeMap = optionsTradeGateway.totalFee(strategy, ownerOrders);
+        Map<String, BigDecimal> totalFeeMap = optionsTradeGateway.totalFee(account, ownerOrders);
         return totalFeeMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
     }
 
