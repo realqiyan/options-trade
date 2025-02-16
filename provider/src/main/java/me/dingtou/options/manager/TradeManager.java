@@ -149,7 +149,7 @@ public class TradeManager {
         }
         int updateRow = 0;
         if (optionsTradeGateway.delete(account, oldOrder)) {
-            List<Integer> orderIds = new ArrayList<>();
+            List<Long> orderIds = new ArrayList<>();
             orderIds.add(oldOrder.getId());
             updateRow = ownerOrderDAO.deleteByIds(orderIds);
         }
@@ -329,5 +329,27 @@ public class TradeManager {
         }
         Security security = Security.of(code, market);
         return securityOrderBookGateway.getOrderBook(security);
+    }
+
+    public List<OwnerOrder> queryDraftOrder(String owner) {
+        QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
+        queryOrder.eq("owner", owner);
+        queryOrder.isNull("strategy_id");
+        // 本地所有未挂靠订单
+        return ownerOrderDAO.selectList(queryOrder);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Integer updateOrderStrategy(OwnerAccount account, List<Long> orderIds, OwnerStrategy strategy) {
+        int num = 0;
+        for (Long orderId : orderIds) {
+            OwnerOrder dbOrder = ownerOrderDAO.selectById(orderId);
+            if (null == dbOrder || !account.getOwner().equals(dbOrder.getOwner())) {
+                continue;
+            }
+            dbOrder.setStrategyId(strategy.getStrategyId());
+            num += ownerOrderDAO.updateById(dbOrder);
+        }
+        return num;
     }
 }

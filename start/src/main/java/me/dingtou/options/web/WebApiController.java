@@ -57,7 +57,7 @@ public class WebApiController {
      */
     @RequestMapping(value = "/options/strike/list", method = RequestMethod.GET)
     public WebResult<List<OptionsStrikeDate>> listOptionsExpDate(Security security) {
-        log.info("listOptionsExpDate. security:{}", security);
+        log.info("list strike. security:{}", security);
         if (null == security || StringUtils.isEmpty(security.getCode())) {
             return WebResult.success(Collections.emptyList());
         }
@@ -84,7 +84,7 @@ public class WebApiController {
                                                     @RequestParam(value = "strikeTime", required = true) String strikeTime,
                                                     @RequestParam(value = "strikeTimestamp", required = true) Long strikeTimestamp,
                                                     @RequestParam(value = "optionExpiryDateDistance", required = true) Integer optionExpiryDateDistance) throws Exception {
-        log.info("listOptionsChain. market:{}, code:{}, strikeTime:{}, strikeTimestamp:{}, optionExpiryDateDistance:{}", market, code, strikeTime, strikeTimestamp, optionExpiryDateDistance);
+        log.info("get options chain. market:{}, code:{}, strikeTime:{}, strikeTimestamp:{}, optionExpiryDateDistance:{}", market, code, strikeTime, strikeTimestamp, optionExpiryDateDistance);
         Security security = new Security();
         security.setMarket(market);
         security.setCode(code);
@@ -108,7 +108,7 @@ public class WebApiController {
     @RequestMapping(value = "/options/orderbook/get", method = RequestMethod.GET)
     public WebResult<SecurityOrderBook> listOrderBook(@RequestParam(value = "market", required = true) Integer market,
                                                       @RequestParam(value = "code", required = true) String code) throws Exception {
-        log.info("listOrderBook. market:{}, code:{}", market, code);
+        log.info("get orderbook. market:{}, code:{}", market, code);
         Security security = new Security();
         security.setMarket(market);
         security.setCode(code);
@@ -136,6 +136,17 @@ public class WebApiController {
         Options optionsObj = JSON.parseObject(options, Options.class);
         BigDecimal sellPrice = new BigDecimal(price);
         return WebResult.success(optionsTradeService.submit(strategyId, TradeSide.of(side), quantity, sellPrice, optionsObj));
+    }
+
+
+    @RequestMapping(value = "/trade/order/draft", method = RequestMethod.GET)
+    public WebResult<List<OwnerOrder>> queryDraftOrder(@RequestParam(value = "password", required = true) String password) throws Exception {
+        String loginOwner = SessionUtils.getCurrentOwner();
+        log.info("query order draft. owner:{}, password:{}", loginOwner, password);
+        if (!OtpUtils.check(password)) {
+            return WebResult.failure("验证码错误");
+        }
+        return WebResult.success(optionsQueryService.queryDraftOrder(loginOwner));
     }
 
 
@@ -178,11 +189,26 @@ public class WebApiController {
     @RequestMapping(value = "/trade/sync", method = RequestMethod.GET)
     public WebResult<Boolean> sync(@RequestParam(value = "password", required = true) String password) throws Exception {
         String loginOwner = SessionUtils.getCurrentOwner();
-        log.info("sync. owner:{}", loginOwner);
+        log.info("trade sync. owner:{}", loginOwner);
         if (!OtpUtils.check(password)) {
             return WebResult.failure("验证码错误");
         }
         return WebResult.success(optionsTradeService.sync(loginOwner));
+    }
+
+    @RequestMapping(value = "/trade/update", method = RequestMethod.POST)
+    public WebResult<Integer> updateOrderStrategy(@RequestParam(value = "strategyId", required = true) String strategyId,
+                                                  @RequestParam(value = "orderIds", required = true) List<Long> orderIds,
+                                                  @RequestParam(value = "password", required = true) String password) throws Exception {
+        String loginOwner = SessionUtils.getCurrentOwner();
+        log.info("trade update. owner:{}, strategyId:{}, orderIds:{}", loginOwner, strategyId, orderIds);
+        if (!OtpUtils.check(password)) {
+            return WebResult.failure("验证码错误");
+        }
+        if (orderIds.isEmpty()) {
+            return WebResult.success(0);
+        }
+        return WebResult.success(optionsTradeService.updateOrderStrategy(loginOwner, orderIds, strategyId));
     }
 
 }

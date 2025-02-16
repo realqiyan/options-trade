@@ -141,6 +141,11 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         return optionsChain;
     }
 
+    @Override
+    public List<OwnerOrder> queryDraftOrder(String owner) {
+        return tradeManager.queryDraftOrder(owner);
+    }
+
 
     /**
      * 计算策略数据

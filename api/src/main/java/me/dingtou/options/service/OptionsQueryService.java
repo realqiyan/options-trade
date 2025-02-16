@@ -55,4 +55,12 @@ public interface OptionsQueryService {
      */
     OptionsChain queryOptionsChain(Security security, OptionsStrikeDate optionsStrikeDate);
 
+    /**
+     * 查询owner的草稿订单
+     *
+     * @param owner 所有者
+     * @return 草稿订单
+     */
+    List<OwnerOrder> queryDraftOrder(String owner);
+
 }

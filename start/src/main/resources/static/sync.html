@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Options Trade Tools</title>
+    <link rel="icon" href="data:image/ico;base64,aWNv">
+    <link rel="stylesheet" href="layui/css/layui.css">
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo layui-hide-xs layui-bg-black">Options</div>
+        <!-- 头部区域（可配合layui 已有的水平导航） -->
+    </div>
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree">
+                <li class="layui-nav-item">
+                    <a href="index.html">证券标的</a>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="order.html">策略订单</a>
+                </li>
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a href="javascript:;">同步订单</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px;">
+        <input type="hidden" id="owner"/>
+        <div class="layui-form">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">交易验证码</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="totp" name="totp" placeholder="请输入OTP验证码" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">所属策略</label>
+                    <div class="layui-input-inline" id="strategyIdZone">
+                        <select id="strategyIdUnload" name="strategyId"  lay-search>
+                            <option value="">请点击查询</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
+            <button type="button" class="layui-btn layui-bg-blue" onClick="query()">查询订单</button>
+            <button type="button" class="layui-btn layui-bg-blue" onClick="sync()">同步订单</button>
+        </blockquote>
+        <div class="layui-card layui-panel">
+            <table class="layui-hide" id="result" lay-filter="result"></table>
+        </div>
+    </div>
+    </div>
+</div>
+<script src="layui/layui.js"></script>
+<script src="common.js"></script>
+<script src="sync.js"></script>
+<script id="currentStrategy" type="text/html">
+    <select id="strategyId" name="strategyId" lay-filter="strategyId">
+        <option value="">直接选择或搜索选择</option>
+        {{#
+        layui.each(d.list, function(index, item){
+        if(item.strategyId == d.strategyId) {
+        var selected = "selected";
+        } else {
+        var selected = "";
+        }
+        }}
+        <option value="{{= item.strategyId }}" {{= selected}}>{{= item.strategyName }}</option>
+        {{#  }); }}
+    </select>
+</script>
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="update">更新策略</button>
+    </div>
+</script>
+</body>
+</html>

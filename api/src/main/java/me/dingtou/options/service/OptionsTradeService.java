@@ -55,4 +55,13 @@ public interface OptionsTradeService {
     Boolean sync(String owner);
 
 
+    /**
+     * 更新订单策略
+     *
+     * @param owner      owner
+     * @param orderIds   订单ID
+     * @param strategyId 策略ID
+     * @return 更新数量
+     */
+    Integer updateOrderStrategy(String owner, List<Long> orderIds, String strategyId);
 }

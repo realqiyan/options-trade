@@ -17,7 +17,7 @@ public class OwnerStrategy {
     /**
      * ID
      */
-    private Integer id;
+    private Long id;
     /**
      * 所有者的标识符，表示策略属于哪个用户或实体
      */

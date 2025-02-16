@@ -14,7 +14,7 @@ public class OwnerAccount {
     /**
      * ID
      */
-    private Integer id;
+    private Long id;
     /**
      * 创建时间
      */

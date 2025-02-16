@@ -18,7 +18,7 @@ public class OwnerOrder implements Cloneable {
     /**
      * ID
      */
-    private Integer id;
+    private Long id;
 
     /**
      * 创建时间

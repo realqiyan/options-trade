@@ -72,4 +72,17 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
         return tradeManager.syncOrder(ownerObj);
     }
 
+    @Override
+    public Integer updateOrderStrategy(String owner, List<Long> orderIds, String strategyId) {
+        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
+        if (null == ownerAccount) {
+            return 0;
+        }
+        OwnerStrategy ownerStrategy = tradeManager.queryStrategy(strategyId);
+        if (null == ownerStrategy || !owner.equals(ownerStrategy.getOwner())) {
+            return 0;
+        }
+        return tradeManager.updateOrderStrategy(ownerAccount, orderIds, ownerStrategy);
+    }
+
 }

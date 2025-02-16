@@ -49,7 +49,7 @@ function loadOptionsExpDate(code, market){
 
         // 渲染当前证券策略列表
         var currentStrategyList = filterStrategyByCode(currentOwnerData.strategyList,currentCode);
-        laytpl(currentStrategy.innerHTML).render({list:currentStrategyList,code: code,strategyId:currentStrategyId}, function(html){
+        laytpl(currentStrategy.innerHTML).render({list:currentStrategyList,strategyId:currentStrategyId}, function(html){
           document.getElementById('strategyIdZone').innerHTML = html;
           var form = layui.form;
           form.on('select(strategyId)', function(elem){

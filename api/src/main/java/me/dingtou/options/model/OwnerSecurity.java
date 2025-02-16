@@ -16,7 +16,7 @@ public class OwnerSecurity extends Security {
     /**
      * ID
      */
-    private Integer id;
+    private Long id;
     /**
      * 名字
      */
