@@ -75,8 +75,12 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder aiPrompt = new StringBuilder();
         aiPrompt.append("我在做期权的车轮策略（WheelStrategy），底层资产是").append(securityQuote.getSecurity().toString())
-                .append("，当前阶段是").append(isSellPutStage ? "卖出看跌期权（Cash-Secured Put）" : "卖出看涨期权（Covered Call）")
-                .append("，当前股价").append(securityPrice)
+                .append("，当前阶段是").append(isSellPutStage ? "卖出看跌期权（Cash-Secured Put）" : "卖出看涨期权（Covered Call）");
+
+        if (isCoveredCallStage && null != finalUnderlyingOrder) {
+            aiPrompt.append("，当前指派的股票价格是").append(finalUnderlyingOrder.getPrice());
+        }
+        aiPrompt.append("，当前股价").append(securityPrice)
                 .append("，近一周价格波动").append(optionsChain.getWeekPriceRange())
                 .append("，近一月价格波动").append(optionsChain.getMonthPriceRange())
                 .append("，当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
