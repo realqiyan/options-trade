@@ -4,16 +4,20 @@ import com.alibaba.fastjson.JSON;
 import com.futu.openapi.*;
 import com.futu.openapi.pb.TrdCommon;
 import com.futu.openapi.pb.TrdGetAccList;
+import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.config.ConfigUtils;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
 /**
  * 获取交易账户列表
  */
+@Slf4j
 public class TrdGetAccListHelper implements FTSPI_Trd, FTSPI_Conn {
     FTAPI_Conn_Trd trd = new FTAPI_Conn_Trd();
 
@@ -23,12 +27,17 @@ public class TrdGetAccListHelper implements FTSPI_Trd, FTSPI_Conn {
         trd.setTrdSpi(this);   //设置交易回调
 
         try {
-            URI uri = Objects.requireNonNull(TrdGetAccListHelper.class.getResource("/key/private.key")).toURI();
-            byte[] buf = Files.readAllBytes(Paths.get(uri));
-            String pk = new String(buf, StandardCharsets.UTF_8);
-            trd.setRSAPrivateKey(pk);
+            String rasPrivateKey = ConfigUtils.getConfigDir() + "futu_rsa_private.key";
+            Path rasPrivateKeyPath = Paths.get(rasPrivateKey);
+            if (!Files.exists(rasPrivateKeyPath)) {
+                throw new RuntimeException(rasPrivateKey + " not exists");
+            }
+            byte[] buf = Files.readAllBytes(rasPrivateKeyPath);
+            String key = new String(buf, StandardCharsets.UTF_8);
+
+            trd.setRSAPrivateKey(key);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("setRSAPrivateKey error.", e);
         }
 
     }
