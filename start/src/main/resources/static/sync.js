@@ -201,6 +201,7 @@ function reloadData(){
         });
 
         render();
+        sync();
       }
     });
 }

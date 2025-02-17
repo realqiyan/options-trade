@@ -67,7 +67,7 @@
 <script src="common.js"></script>
 <script src="sync.js"></script>
 <script id="currentStrategy" type="text/html">
-    <select id="strategyId" name="strategyId" lay-filter="strategyId">
+    <select id="strategyId" name="strategyId" lay-filter="strategyId" lay-search>
         <option value="">直接选择或搜索选择</option>
         {{#
         layui.each(d.list, function(index, item){
