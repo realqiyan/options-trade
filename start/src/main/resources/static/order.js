@@ -16,7 +16,7 @@ function tradeModify(action, order){
                 order: order,
               },
               success: function( response ) {
-                layer.msg('执行完成 result:'+ JSON.stringify(response));
+                layer.msg(response.success ? '操作成功' : response.message);
                 loadStrategyOrder(currentStrategyId);
               }
             });
@@ -65,8 +65,8 @@ function tradeClose(order, orderBook){
             order: JSON.stringify(order),
           },
           success: function( response ) {
+            layer.msg(response.success ? '操作成功' : response.message);
             var result = response.data;
-            layer.msg('交易完成 result:'+ result.platformOrderId);
             loadStrategyOrder(currentStrategyId);
           }
         });

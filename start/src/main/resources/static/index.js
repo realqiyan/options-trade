@@ -186,13 +186,12 @@ function trade(side, options, orderBook){
                         options: JSON.stringify(options),
                       },
                       success: function( response ) {
-                        layer.msg('交易完成 result:'+ JSON.stringify(response));
+                        layer.msg(response.success ? '操作成功' : response.message);
+                        layer.close(index);
                       }
                     });
-                    layer.close(index);
                 });
             });
-
        }, function(){
                 // 取消
        });
