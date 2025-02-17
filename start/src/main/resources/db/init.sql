@@ -29,9 +29,8 @@ USE `options`;
 -- 表的结构 `owner_account`
 --
 
-DROP TABLE IF EXISTS `owner_account`;
 CREATE TABLE IF NOT EXISTS `owner_account` (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
   `owner` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '唯一用户名',
   `platform` varchar(16) COLLATE utf8mb4_general_ci NOT NULL COMMENT '平台',
@@ -45,11 +44,6 @@ CREATE TABLE IF NOT EXISTS `owner_account` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户账号表';
 
 --
--- 插入之前先把表清空（truncate） `owner_account`
---
-
-TRUNCATE TABLE `owner_account`;
---
 -- 转存表中的数据 `owner_account`
 --
 
@@ -62,9 +56,8 @@ INSERT INTO `owner_account` (`id`, `create_time`, `owner`, `platform`, `market`,
 -- 表的结构 `owner_order`
 --
 
-DROP TABLE IF EXISTS `owner_order`;
 CREATE TABLE IF NOT EXISTS `owner_order` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` bigint NOT NULL AUTO_INCREMENT,
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `strategy_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -95,9 +88,8 @@ CREATE TABLE IF NOT EXISTS `owner_order` (
 -- 表的结构 `owner_security`
 --
 
-DROP TABLE IF EXISTS `owner_security`;
 CREATE TABLE IF NOT EXISTS `owner_security` (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT 'id主键',
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'id主键',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `name` varchar(64) COLLATE utf8mb4_general_ci NOT NULL COMMENT '证券名字',
   `code` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '证券代码',
@@ -107,11 +99,6 @@ CREATE TABLE IF NOT EXISTS `owner_security` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户证券表';
 
---
--- 插入之前先把表清空（truncate） `owner_security`
---
-
-TRUNCATE TABLE `owner_security`;
 --
 -- 转存表中的数据 `owner_security`
 --
@@ -128,9 +115,8 @@ INSERT INTO `owner_security` (`id`, `create_time`, `name`, `code`, `market`, `ow
 -- 表的结构 `owner_strategy`
 --
 
-DROP TABLE IF EXISTS `owner_strategy`;
 CREATE TABLE IF NOT EXISTS `owner_strategy` (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `strategy_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '策略唯一编码',
   `start_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '开始时间',
   `strategy_name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '策略展示名字',
@@ -144,11 +130,6 @@ CREATE TABLE IF NOT EXISTS `owner_strategy` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- 插入之前先把表清空（truncate） `owner_strategy`
---
-
-TRUNCATE TABLE `owner_strategy`;
 --
 -- 转存表中的数据 `owner_strategy`
 --
