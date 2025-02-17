@@ -17,6 +17,7 @@ function strategySelect(code,strategyId){
 }
 function strategyLoad(code){
     currentStrategyId = localStorage.getItem(code+'_strategyId');
+    console.log('strategyLoad code:'+ code+' currentStrategyId:'+currentStrategyId);
 }
 
 function loadOptionsExpDate(code, market){
@@ -63,7 +64,7 @@ function loadOptionsExpDate(code, market){
 // /options/chain/get?code=BABA&market=11&time=1733652854662&strikeTime=2024-12-13&strikeTimestamp=1734066000&optionExpiryDateDistance=5
 function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance){
     currentAiPrompt = "";
-    console.log('loadOptionsChain strikeTime:'+ strikeTime+' optionExpiryDateDistance:'+ optionExpiryDateDistance);
+    console.log('loadOptionsChain strikeTime:'+ strikeTime+' optionExpiryDateDistance:'+ optionExpiryDateDistance+' currentStrategyId:'+currentStrategyId);
     document.getElementById("title").innerHTML = "loading...";
     $.ajax({
       url: "/options/chain/get",
@@ -73,6 +74,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
         strikeTime: strikeTime,
         strikeTimestamp: strikeTimestamp,
         optionExpiryDateDistance: optionExpiryDateDistance,
+        strategyId: currentStrategyId,
         time: new Date().getTime()
       },
       success: function( response ) {
@@ -213,7 +215,7 @@ function sell(options){
 }
 
 function ai(){
-    layer.prompt({title: '提示词', formType: 2, value: currentAiPrompt}, function(value, index, elem){
+    layer.prompt({title: '提示词', formType: 2, value: currentAiPrompt,area: ['600px', '420px']}, function(value, index, elem){
             if(value === '') return elem.focus();
             layer.msg('获得：'+ util.escape(value)); // 显示 value
             // 关闭 prompt

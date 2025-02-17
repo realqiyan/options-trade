@@ -1,5 +1,6 @@
 package me.dingtou.options.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class OptionsQueryServiceImpl implements OptionsQueryService {
 
@@ -51,9 +53,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     public StrategySummary queryStrategySummary(String owner, String strategyId) {
         StrategySummary summary = new StrategySummary();
         List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
-        Optional<OwnerStrategy> strategyOptional = ownerStrategies.stream()
-                .filter(ownerStrategy -> ownerStrategy.getStrategyId().equals(strategyId))
-                .findAny();
+        Optional<OwnerStrategy> strategyOptional = ownerStrategies.stream().filter(ownerStrategy -> ownerStrategy.getStrategyId().equals(strategyId)).findAny();
         if (strategyOptional.isEmpty()) {
             return summary;
         }
@@ -71,10 +71,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         summary.setTotalFee(totalFee);
 
         // 股票持有数量
-        int holdSecurityNum = ownerOrders.stream()
-                .filter(order -> order.getCode().equals(ownerStrategy.getCode()))
-                .mapToInt(order -> -1 * TradeSide.of(order.getSide()).getSign() * order.getQuantity())
-                .sum();
+        int holdSecurityNum = ownerOrders.stream().filter(order -> order.getCode().equals(ownerStrategy.getCode())).mapToInt(order -> -1 * TradeSide.of(order.getSide()).getSign() * order.getQuantity()).sum();
         summary.setHoldSecurityNum(holdSecurityNum);
 
         // 股票现价
@@ -83,12 +80,10 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         BigDecimal lastDone = securityQuote.getLastDone();
 
         // 股票总金额
-        List<BigDecimal> totalSecurityPriceList = ownerOrders.stream()
-                .filter(order -> order.getCode().equals(ownerStrategy.getCode()))
-                .map(order -> {
-                    BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-                    return order.getPrice().multiply(new BigDecimal(order.getQuantity())).multiply(sign);
-                }).toList();
+        List<BigDecimal> totalSecurityPriceList = ownerOrders.stream().filter(order -> order.getCode().equals(ownerStrategy.getCode())).map(order -> {
+            BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
+            return order.getPrice().multiply(new BigDecimal(order.getQuantity())).multiply(sign);
+        }).toList();
         BigDecimal totalSecurityPrice = totalSecurityPriceList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // 股票利润
@@ -97,28 +92,22 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
 
         // 期权总金额
-        List<OwnerOrder> allOptionsOrders = ownerOrders.stream()
-                .filter(order -> OrderStatus.of(order.getStatus()).isTraded())
-                .filter(order -> !order.getCode().equals(ownerStrategy.getCode()))
-                .toList();
+        List<OwnerOrder> allOptionsOrders = ownerOrders.stream().filter(order -> OrderStatus.of(order.getStatus()).isTraded()).filter(order -> !order.getCode().equals(ownerStrategy.getCode())).toList();
 
         BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
         // 所有期权利润
-        BigDecimal allOptionsIncome = allOptionsOrders.stream()
-                .map(order -> {
-                    BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-                    return order.getPrice().multiply(lotSize).multiply(sign);
-                }).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal allOptionsIncome = allOptionsOrders.stream().map(order -> {
+            BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
+            return order.getPrice().multiply(lotSize).multiply(sign);
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
         // 期权利润
         summary.setAllOptionsIncome(allOptionsIncome.subtract(totalFee));
 
         // 所有未平仓的期权利润
-        BigDecimal unrealizedOptionsIncome = allOptionsOrders.stream()
-                .filter(order -> Boolean.FALSE.equals(Boolean.valueOf(order.getExt().get(OrderExt.IS_CLOSE.getCode()))))
-                .map(order -> {
-                    BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-                    return order.getPrice().multiply(lotSize).multiply(sign);
-                }).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal unrealizedOptionsIncome = allOptionsOrders.stream().filter(order -> Boolean.FALSE.equals(Boolean.valueOf(order.getExt().get(OrderExt.IS_CLOSE.getCode())))).map(order -> {
+            BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
+            return order.getPrice().multiply(lotSize).multiply(sign);
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
         // 期权利润
         summary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
 
@@ -132,11 +121,11 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     }
 
     @Override
-    public OptionsChain queryOptionsChain(Security security, OptionsStrikeDate optionsStrikeDate) {
-        OptionsChain optionsChain = optionsManager.queryOptionsChain(security.getCode(), security.getMarket(), optionsStrikeDate);
+    public OptionsChain queryOptionsChain(Security security, OptionsStrikeDate optionsStrikeDate, OwnerStrategy strategy) {
+        OptionsChain optionsChain = optionsManager.queryOptionsChain(security, optionsStrikeDate);
 
         // 计算策略数据
-        calculateStrategyData(optionsStrikeDate, optionsChain);
+        calculateStrategyData(optionsStrikeDate, optionsChain, strategy);
 
         return optionsChain;
     }
@@ -152,13 +141,21 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
      *
      * @param optionsStrikeDate 期权到期日
      * @param optionsChain      期权链
+     * @param strategy          策略(可选)
      */
-    private void calculateStrategyData(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain) {
+    private void calculateStrategyData(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, OwnerStrategy strategy) {
         if (null == allOptionsStrategy || allOptionsStrategy.isEmpty()) {
             return;
         }
         for (OptionsStrategy optionsStrategy : allOptionsStrategy) {
-            optionsStrategy.calculate(optionsStrikeDate, optionsChain);
+            if (optionsStrategy.isSupport(strategy)) {
+                StrategySummary strategySummary = null;
+                if (null != strategy) {
+                    strategySummary = queryStrategySummary(strategy.getOwner(), strategy.getStrategyId());
+                }
+                optionsStrategy.calculate(optionsStrikeDate, optionsChain, strategySummary);
+                return;
+            }
         }
     }
 

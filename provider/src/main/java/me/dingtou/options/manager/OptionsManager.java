@@ -33,12 +33,11 @@ public class OptionsManager {
         return optionsChainGateway.getOptionsExpDate(Security.of(code, market));
     }
 
-    public OptionsChain queryOptionsChain(String code, Integer market, OptionsStrikeDate optionsStrikeDate) {
-        if (StringUtils.isBlank(code) || null == market || null == optionsStrikeDate || null == optionsStrikeDate.getStrikeTime()) {
+    public OptionsChain queryOptionsChain(Security security, OptionsStrikeDate optionsStrikeDate) {
+        if (null == security || null == optionsStrikeDate || null == optionsStrikeDate.getStrikeTime()) {
             return null;
         }
-        // 期权标的
-        Security security = Security.of(code, market);
+        // 期权标的价格
         SecurityQuote securityQuote = securityQuoteGateway.quote(security);
 
         // 周K线

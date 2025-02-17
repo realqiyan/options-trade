@@ -135,11 +135,11 @@ CREATE TABLE IF NOT EXISTS `owner_strategy` (
 --
 
 INSERT INTO `owner_strategy` (`id`, `strategy_id`, `start_time`, `strategy_name`, `strategy_code`, `stage`, `status`, `code`, `lot_size`, `owner`, `ext`) VALUES
-(18, '86c312eccaff4fe1865cf0e79432ebe3', '2024-11-01 00:00:00', '富途-BABA-默认策略', 'default', 'default', 1, 'BABA', 100, 'qiyan', '{}'),
-(19, '81bab49eac5d427b967e93e5e93c9c68', '2025-02-14 00:00:00', '富途-BABA-车轮2张', 'wheel_strategy', 'sellput', 1, 'BABA', 100, 'qiyan', '{}'),
-(20, 'aa9bcecb47ea454a9e38074f9efcd689', '2025-02-14 00:00:00', '富途-BABA-车轮1张', 'wheel_strategy', 'sellput', 1, 'BABA', 100, 'qiyan', '{}'),
-(28, '024cc086a560460e90705f2ef87cac7d', '2024-11-01 00:00:00', '富途-KWEB-默认策略', 'default', 'default', 1, 'KWEB', 100, 'qiyan', '{}'),
-(38, 'b3605b43f26345abbfa663abad867d38', '2024-11-01 00:00:00', '富途-JD-默认策略', 'default', 'default', 1, 'JD', 100, 'qiyan', '{}');
+(18, '86c312eccaff4fe1865cf0e79432ebe3', '2024-11-01 00:00:00', '富途-BABA-默认策略', 'default', 'running', 1, 'BABA', 100, 'qiyan', '{}'),
+(19, '81bab49eac5d427b967e93e5e93c9c68', '2025-02-14 00:00:00', '富途-BABA-车轮2张', 'wheel_strategy', 'running', 1, 'BABA', 100, 'qiyan', '{}'),
+(20, 'aa9bcecb47ea454a9e38074f9efcd689', '2025-02-14 00:00:00', '富途-BABA-车轮1张', 'wheel_strategy', 'running', 1, 'BABA', 100, 'qiyan', '{}'),
+(28, '024cc086a560460e90705f2ef87cac7d', '2024-11-01 00:00:00', '富途-KWEB-默认策略', 'default', 'running', 1, 'KWEB', 100, 'qiyan', '{}'),
+(38, 'b3605b43f26345abbfa663abad867d38', '2024-11-01 00:00:00', '富途-JD-默认策略', 'default', 'running', 1, 'JD', 100, 'qiyan', '{}');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

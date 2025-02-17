@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * API 控制器
@@ -87,8 +88,9 @@ public class WebApiController {
                                                     @RequestParam(value = "code", required = true) String code,
                                                     @RequestParam(value = "strikeTime", required = true) String strikeTime,
                                                     @RequestParam(value = "strikeTimestamp", required = true) Long strikeTimestamp,
-                                                    @RequestParam(value = "optionExpiryDateDistance", required = true) Integer optionExpiryDateDistance) throws Exception {
-        log.info("get options chain. market:{}, code:{}, strikeTime:{}, strikeTimestamp:{}, optionExpiryDateDistance:{}", market, code, strikeTime, strikeTimestamp, optionExpiryDateDistance);
+                                                    @RequestParam(value = "optionExpiryDateDistance", required = true) Integer optionExpiryDateDistance,
+                                                    @RequestParam(value = "strategyId", required = false) String strategyId) throws Exception {
+        log.info("get options chain. market:{}, code:{}, strikeTime:{}, strikeTimestamp:{}, optionExpiryDateDistance:{}, strategyId:{}", market, code, strikeTime, strikeTimestamp, optionExpiryDateDistance, strategyId);
         Security security = new Security();
         security.setMarket(market);
         security.setCode(code);
@@ -98,7 +100,17 @@ public class WebApiController {
         optionsStrikeDate.setStrikeTimestamp(strikeTimestamp);
         optionsStrikeDate.setOptionExpiryDateDistance(optionExpiryDateDistance);
 
-        return WebResult.success(optionsQueryService.queryOptionsChain(security, optionsStrikeDate));
+        // 当传入策略ID，则查询对应的策略进行期权链处理。
+        Owner owner = optionsQueryService.queryOwner(SessionUtils.getCurrentOwner());
+        OwnerStrategy strategy = null;
+        if (null != owner && null != strategyId) {
+            Optional<? extends OwnerStrategy> ownerStrategy = owner.getStrategyList().stream().filter(item -> item.getStrategyId().equals(strategyId)).findFirst();
+            if (ownerStrategy.isPresent()) {
+                strategy = ownerStrategy.get();
+            }
+        }
+
+        return WebResult.success(optionsQueryService.queryOptionsChain(security, optionsStrikeDate, strategy));
     }
 
 
