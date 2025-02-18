@@ -47,6 +47,8 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
             if (null != call) {
+                call.getRealtimeData().setDelta(call.getRealtimeData().getDelta().multiply(BigDecimal.valueOf(-1)));
+                call.getRealtimeData().setTheta(call.getRealtimeData().getTheta().multiply(BigDecimal.valueOf(-1)));
                 if (isSellPutStage) {
                     call.getStrategyData().setRecommend(false);
                     call.getStrategyData().setRecommendLevel(0);
@@ -62,6 +64,8 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
 
             Options put = optionsTuple.getPut();
             if (null != put) {
+                put.getRealtimeData().setDelta(put.getRealtimeData().getDelta().multiply(BigDecimal.valueOf(-1)));
+                put.getRealtimeData().setTheta(put.getRealtimeData().getTheta().multiply(BigDecimal.valueOf(-1)));
                 if (isCoveredCallStage) {
                     put.getStrategyData().setRecommend(false);
                     put.getStrategyData().setRecommendLevel(0);
