@@ -28,9 +28,9 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
             return;
         }
 
-        Integer holdSecurityNum = strategySummary.getHoldSecurityNum();
+        Integer holdStockNum = strategySummary.getHoldStockNum();
         // 空仓执行sell put 否则执行cc
-        boolean isSellPutStage = null == holdSecurityNum || holdSecurityNum == 0;
+        boolean isSellPutStage = null == holdStockNum || holdStockNum == 0;
         boolean isCoveredCallStage = !isSellPutStage;
 
 

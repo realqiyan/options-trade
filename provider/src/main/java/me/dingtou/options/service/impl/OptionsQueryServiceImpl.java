@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,25 +71,35 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         BigDecimal totalFee = tradeManager.queryTotalOrderFee(account, ownerOrders);
         summary.setTotalFee(totalFee);
 
-        // 股票持有数量
-        int holdSecurityNum = ownerOrders.stream().filter(order -> order.getCode().equals(ownerStrategy.getCode())).mapToInt(order -> -1 * TradeSide.of(order.getSide()).getSign() * order.getQuantity()).sum();
-        summary.setHoldSecurityNum(holdSecurityNum);
 
         // 股票现价
         Security security = Security.of(ownerStrategy.getCode(), account.getMarket());
         SecurityQuote securityQuote = securityQuoteGateway.quote(security);
         BigDecimal lastDone = securityQuote.getLastDone();
+        summary.setCurrentStockPrice(lastDone);
 
-        // 股票总金额
-        List<BigDecimal> totalSecurityPriceList = ownerOrders.stream().filter(order -> order.getCode().equals(ownerStrategy.getCode())).map(order -> {
-            BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-            return order.getPrice().multiply(new BigDecimal(order.getQuantity())).multiply(sign);
-        }).toList();
-        BigDecimal totalSecurityPrice = totalSecurityPriceList.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 股票订单
+        int holdStockNum = 0;
+        BigDecimal totalStockCost = BigDecimal.ZERO;
+        List<OwnerOrder> securityOrders = ownerOrders.stream().filter(order -> order.getCode().equals(ownerStrategy.getCode())).toList();
+        for (OwnerOrder securityOrder : securityOrders) {
+            TradeSide tradeSide = TradeSide.of(securityOrder.getSide());
 
-        // 股票利润
-        BigDecimal securityIncome = lastDone.multiply(BigDecimal.valueOf(holdSecurityNum)).add(totalSecurityPrice);
-        summary.setSecurityIncome(securityIncome);
+            if (tradeSide.getSign() == 1) {
+                holdStockNum += securityOrder.getQuantity();
+                totalStockCost = totalStockCost.add(securityOrder.getPrice().multiply(new BigDecimal(securityOrder.getQuantity())));
+            } else if (tradeSide.getSign() == -1) {
+                holdStockNum -= securityOrder.getQuantity();
+                totalStockCost = totalStockCost.subtract(securityOrder.getPrice().multiply(new BigDecimal(securityOrder.getQuantity())));
+            }
+
+        }
+        // 股票持有数量
+        summary.setHoldStockNum(holdStockNum);
+        // 股票成本
+        summary.setTotalStockCost(totalStockCost);
+        BigDecimal averageStockCost = holdStockNum == 0 ? BigDecimal.ZERO : totalStockCost.divide(new BigDecimal(holdStockNum), 4, RoundingMode.HALF_UP);
+        summary.setAverageStockCost(averageStockCost);
 
 
         // 期权总金额

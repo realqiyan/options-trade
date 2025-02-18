@@ -34,14 +34,24 @@ public class StrategySummary {
     private BigDecimal unrealizedOptionsIncome;
 
     /**
-     * 股票总收益
-     */
-    private BigDecimal securityIncome;
-
-    /**
      * 持有股票数
      */
-    private Integer holdSecurityNum;
+    private Integer holdStockNum;
+
+    /**
+     * 股票总成本
+     */
+    private BigDecimal totalStockCost;
+
+    /**
+     * 股票平均成本
+     */
+    private BigDecimal averageStockCost;
+
+    /**
+     * 当前股价
+     */
+    private BigDecimal currentStockPrice;
 
     /**
      * 订单列表
