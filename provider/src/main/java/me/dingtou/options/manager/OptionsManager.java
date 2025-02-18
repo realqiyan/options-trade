@@ -14,6 +14,7 @@ import org.springframework.util.CollectionUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Component
@@ -84,7 +85,7 @@ public class OptionsManager {
             return null;
         }
         // timestamp日期由远到近排序
-        candlesticks.sort((o1, o2) -> o2.getTimestamp().compareTo(o1.getTimestamp()));
+        candlesticks.sort(Comparator.comparing(Candlestick::getTimestamp));
         int endIndex = candlesticks.size();
         List<Candlestick> subList = candlesticks.subList(endIndex - size, endIndex);
         BigDecimal close = BigDecimal.ZERO;
