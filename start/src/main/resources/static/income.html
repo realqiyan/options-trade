@@ -25,11 +25,11 @@
                 <li class="layui-nav-item">
                     <a href="order.html">策略订单</a>
                 </li>
-                <li class="layui-nav-item layui-nav-itemed">
-                    <a href="javascript:;">同步订单</a>
-                </li>
                 <li class="layui-nav-item">
-                    <a href="income.html">账户收益</a>
+                    <a href="sync.html">同步订单</a>
+                </li>
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a href="javascript:;">账户收益</a>
                 </li>
             </ul>
         </div>
@@ -46,48 +46,46 @@
                         <input type="text" id="totp" name="totp" placeholder="请输入OTP验证码" autocomplete="off" class="layui-input">
                     </div>
                 </div>
-                <div class="layui-inline">
-                    <label class="layui-form-label">所属策略</label>
-                    <div class="layui-input-inline" id="strategyIdZone">
-                        <select id="strategyIdUnload" name="strategyId"  lay-search>
-                            <option value="">请点击查询</option>
-                        </select>
-                    </div>
-                </div>
             </div>
         </div>
-        <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
-            <button type="button" class="layui-btn layui-bg-blue" onClick="query()">查询订单</button>
-            <button type="button" class="layui-btn layui-bg-blue" onClick="sync()">同步订单</button>
-        </blockquote>
+
+
+
         <div class="layui-card layui-panel">
-            <table class="layui-hide" id="result" lay-filter="result"></table>
+            <div class="layui-card-body" id="result" lay-filter="result">
+            </div>
         </div>
     </div>
-    </div>
+
 </div>
+<script id="summary" type="text/html">
+    <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
+        <h3 class="layui-bg-gray">策略总收益: ${{ d.allOptionsIncome }}</h3>
+        <ul>
+            <li>总已到账收入:<span class="layui-badge layui-bg-blue">${{ d.allOptionsIncome }}</span> （已扣除手续费<span class="layui-badge layui-bg-blue">${{ d.totalFee }}</span>）</li>
+            <li>总未到期收入:<span class="layui-badge layui-bg-blue">${{ d.unrealizedOptionsIncome }}</span></li>
+        </ul>
+    </blockquote>
+
+    <div class="layui-collapse">
+    {{#  layui.each(d.strategySummaries, function(index, item){ }}
+        <div class="layui-colla-item">
+            <div class="layui-colla-title">{{ item.strategy.strategyName }} 收益:${{ item.allOptionsIncome }}（当前策略:{{ item.strategy.strategyCode }}）</div>
+            <div class="layui-colla-content">
+                <ul>
+                    <li>策略ID:{{ item.strategy.strategyId }}</span></li>
+                    <li>期权已到账收入:${{ item.allOptionsIncome }} (已扣除手续费${{ item.totalFee }})</li>
+                    <li>期权未到期收入:${{ item.unrealizedOptionsIncome }}</li>
+                    <li>策略持有股票:{{ item.holdStockNum }}（当前股价:${{ item.currentStockPrice }}</li>
+                    <li>策略股票花费:${{ item.totalStockCost }}（平均成本:${{ item.averageStockCost }}）</li>
+                </ul>
+            </div>
+        </div>
+    {{#  }); }}
+    </div>
+</script>
 <script src="layui/layui.js"></script>
 <script src="common.js"></script>
-<script src="sync.js"></script>
-<script id="currentStrategy" type="text/html">
-    <select id="strategyId" name="strategyId" lay-filter="strategyId" lay-search>
-        <option value="">直接选择或搜索选择</option>
-        {{#
-        layui.each(d.list, function(index, item){
-        if(item.strategyId == d.strategyId) {
-        var selected = "selected";
-        } else {
-        var selected = "";
-        }
-        }}
-        <option value="{{= item.strategyId }}" {{= selected}}>{{= item.strategyName }}</option>
-        {{#  }); }}
-    </select>
-</script>
-<script type="text/html" id="toolbar">
-    <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-sm" lay-event="update">更新策略</button>
-    </div>
-</script>
+<script src="income.js"></script>
 </body>
 </html>

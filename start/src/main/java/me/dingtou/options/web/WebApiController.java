@@ -48,10 +48,21 @@ public class WebApiController {
      *
      * @return 用户的证券和策略
      */
-    @RequestMapping(value = "/options/owner/get", method = RequestMethod.GET)
+    @RequestMapping(value = "/owner/get", method = RequestMethod.GET)
     public WebResult<Owner> queryOwner() throws Exception {
         String owner = SessionUtils.getCurrentOwner();
         return WebResult.success(optionsQueryService.queryOwner(owner));
+    }
+
+    /**
+     * 查询当前用户的证券和策略汇总
+     *
+     * @return 汇总信息
+     */
+    @RequestMapping(value = "/owner/summary", method = RequestMethod.GET)
+    public WebResult<OwnerSummary> queryOwnerSummary() throws Exception {
+        String owner = SessionUtils.getCurrentOwner();
+        return WebResult.success(optionsQueryService.queryOwnerSummary(owner));
     }
 
     /**

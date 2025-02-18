@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +43,31 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     @Override
     public Owner queryOwner(String owner) {
         return ownerManager.queryOwner(owner);
+    }
+
+
+    @Override
+    public OwnerSummary queryOwnerSummary(String owner) {
+        OwnerSummary ownerSummary = new OwnerSummary();
+
+        BigDecimal allOptionsIncome = BigDecimal.ZERO;
+        BigDecimal totalFee = BigDecimal.ZERO;
+        BigDecimal unrealizedOptionsIncome = BigDecimal.ZERO;
+
+        List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
+        List<StrategySummary> strategySummaries = new ArrayList<>();
+        for (OwnerStrategy ownerStrategy : ownerStrategies) {
+            StrategySummary strategySummary = queryStrategySummary(owner, ownerStrategy.getStrategyId());
+            allOptionsIncome = allOptionsIncome.add(strategySummary.getAllOptionsIncome());
+            totalFee = totalFee.add(strategySummary.getTotalFee());
+            unrealizedOptionsIncome = unrealizedOptionsIncome.add(strategySummary.getUnrealizedOptionsIncome());
+            strategySummaries.add(strategySummary);
+        }
+        ownerSummary.setAllOptionsIncome(allOptionsIncome);
+        ownerSummary.setTotalFee(totalFee);
+        ownerSummary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
+        ownerSummary.setStrategySummaries(strategySummaries);
+        return ownerSummary;
     }
 
 

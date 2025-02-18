@@ -19,6 +19,15 @@ public interface OptionsQueryService {
      */
     Owner queryOwner(String owner);
 
+
+    /**
+     * 查询owner汇总
+     *
+     * @param owner 所有者
+     * @return 汇总信息
+     */
+    OwnerSummary queryOwnerSummary(String owner);
+
     /**
      * 查询期权到期日列表
      *

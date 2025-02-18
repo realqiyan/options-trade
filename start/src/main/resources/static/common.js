@@ -12,6 +12,8 @@ function render(){
       var laytpl = layui.laytpl;
       var $ = layui.$;
       element.render('nav');
+      element.render('collapse');
+      // element.render();
     });
 }
 

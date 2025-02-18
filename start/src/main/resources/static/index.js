@@ -225,7 +225,7 @@ function ai(){
 
 function reloadData(){
     $.ajax({
-      url: "/options/owner/get",
+      url: "/owner/get",
       data: {
         time: new Date().getTime()
       },
