@@ -17,6 +17,14 @@ public abstract class BaseStrategy implements OptionsStrategy {
      * Sell年化收益率
      */
     private static final BigDecimal SELL_ANNUAL_YIELD = BigDecimal.valueOf(15);
+    /**
+     * call delta
+     */
+    private static final BigDecimal CALL_DELTA = BigDecimal.valueOf(0.3);
+    /**
+     * sell delta
+     */
+    private static final BigDecimal SELL_DELTA = BigDecimal.valueOf(0.3);
 
 
     /**
@@ -47,8 +55,8 @@ public abstract class BaseStrategy implements OptionsStrategy {
                     // 是否推荐卖出
                     int level = 0;
                     BigDecimal delta = call.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
-                    // delta小于0.20
-                    boolean deltaRecommend = delta.compareTo(BigDecimal.valueOf(0.20)) <= 0;
+                    // delta小于0.30
+                    boolean deltaRecommend = delta.compareTo(CALL_DELTA) <= 0;
                     // 卖出收益大于SELL_ANNUAL_YIELD
                     boolean annualYieldRecommend = sellCallAnnualYield.compareTo(SELL_ANNUAL_YIELD) > 0;
                     if (deltaRecommend && annualYieldRecommend) {
@@ -83,7 +91,7 @@ public abstract class BaseStrategy implements OptionsStrategy {
                     // 是否推荐卖出
                     BigDecimal delta = put.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
                     // delta小于0.30
-                    boolean deltaRecommend = delta.compareTo(BigDecimal.valueOf(0.30)) <= 0;
+                    boolean deltaRecommend = delta.compareTo(SELL_DELTA) <= 0;
                     // 卖出收益大于SELL_ANNUAL_YIELD
                     boolean annualYieldRecommend = sellPutAnnualYield.compareTo(SELL_ANNUAL_YIELD) > 0;
                     if (deltaRecommend && annualYieldRecommend) {
