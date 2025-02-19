@@ -1,14 +1,12 @@
 package me.dingtou.options.gateway.futu;
 
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.constant.Platform;
 import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.gateway.futu.executor.TradeExecutor;
 import me.dingtou.options.gateway.futu.executor.func.trade.*;
 import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
-import me.dingtou.options.model.OwnerStrategy;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
