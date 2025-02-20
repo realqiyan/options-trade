@@ -110,7 +110,7 @@
     var monthMin = (lastDone-Number(d.monthPriceRange)).toFixed(3);
     var monthMax = (lastDone+Number(d.monthPriceRange)).toFixed(3);
     }}
-    <span class="layui-badge layui-bg-blue">底层标的：{{= d.currentCode}}(<b id="stock_{{=d.securityQuote.security.market}}_{{=d.securityQuote.security.code}}" class="layui-font-16">{{= d.securityQuote.lastDone }}</b>)</span>
+    <span class="layui-badge layui-bg-blue">底层标的：{{= d.currentCode}}-{{= d.securityQuote.lastDone }}(<b id="stock_{{=d.securityQuote.security.market}}_{{=d.securityQuote.security.code}}" class="layui-font-16">{{= d.securityQuote.lastDone }}</b>)</span>
     -
     <span class="layui-badge layui-bg-green">到期日：{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})</span>
     -
