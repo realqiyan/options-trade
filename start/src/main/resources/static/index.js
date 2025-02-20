@@ -242,6 +242,55 @@ function reloadData(){
         render();
       }
     });
+
+
 }
 
 reloadData();
+
+let clientId = "20250220";
+if (window.EventSource) {
+    // 连接的建立
+    source = new EventSource("/connect?requestId=" + clientId);
+
+    source.addEventListener('open', function (e) {
+        console.log("sse open.")
+    }, false);
+
+    source.addEventListener("message", function (e) {
+        content = JSON.parse(e.data);
+        if(content.data.nyc_time){
+            document.getElementById("nyc_time").innerHTML = content.data.nyc_time;
+        }
+        if(content.data.stock_price){
+            var currentData = content.data.stock_price;
+            var priceEle = document.getElementById("stock_"+currentData.security.market+'_'+currentData.security.code);
+            if(priceEle){
+                priceEle.innerHTML = currentData.lastDone;
+            }
+        }
+    });
+
+    source.addEventListener('error', function (e) {
+        if (e.readyState === EventSource.CLOSED) {
+            console.log("sse close.")
+        } else {
+            console.log(e);
+        }
+    }, false);
+
+}
+
+// 监听窗口关闭事件，主动去关闭连接
+window.onbeforeunload = function () {
+    closeSse();
+};
+
+// 关闭Sse连接
+function closeSse() {
+    source.close();
+    const httpRequest = new XMLHttpRequest();
+    httpRequest.open('GET', '/close?requestId=' + clientId, true);
+    httpRequest.send();
+    console.log("close");
+}

@@ -1,10 +1,10 @@
 package me.dingtou.options.gateway;
 
-import me.dingtou.options.model.SecurityOrderBook;
 import me.dingtou.options.model.SecurityQuote;
 import me.dingtou.options.model.Security;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * 证券接口
@@ -28,4 +28,12 @@ public interface SecurityQuoteGateway {
      * @return 行情列表
      */
     List<SecurityQuote> quote(List<Security> securityList);
+
+    /**
+     * 订阅行情
+     *
+     * @param securities 证券列表
+     * @param callback   回调
+     */
+    void subscribeQuote(List<Security> securities, Function<SecurityQuote, Void> callback);
 }

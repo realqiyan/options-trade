@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import java.util.Date;
 
 /**
- * 用户期权策略
+ * 用户期权标的
  *
  * @author qiyan
  */

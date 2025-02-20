@@ -1,6 +1,7 @@
 package me.dingtou.options.gateway.longport;
 
-import com.longport.quote.QuoteContext;
+import com.longport.OpenApiException;
+import com.longport.quote.*;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.model.Security;
@@ -11,8 +12,12 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @Slf4j
@@ -65,6 +70,34 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
         }
 
         return quoteList;
+    }
+
+    @Override
+    public void subscribeQuote(List<Security> security, Function<SecurityQuote, Void> callback) {
+        try {
+            if (null == security || null == callback) {
+                return;
+            }
+            Set<String> securitySet = security.stream().map(Security::toString).collect(Collectors.toSet());
+            QuoteContext ctx = getQuoteContext(false);
+            CompletableFuture<Subscription[]> historySubscriptions = ctx.getSubscrptions();
+            Subscription[] subscriptions = historySubscriptions.get();
+            for (Subscription subscription : subscriptions) {
+                securitySet.remove(subscription.getSymbol());
+            }
+            ctx.subscribe(securitySet.toArray(String[]::new), SubFlags.Quote, true);
+
+            // 处理订阅回调
+            ctx.setOnQuote((symbol, event) -> {
+                SecurityQuote securityQuote = new SecurityQuote();
+                securityQuote.setSecurity(Security.from(symbol));
+                securityQuote.setLastDone(event.getLastDone());
+                callback.apply(securityQuote);
+            });
+        } catch (Exception e) {
+            getQuoteContext(true);
+            log.error("subscribeQuote error. message:{}", e.getMessage(), e);
+        }
     }
 
     private SecurityQuote convertSecurityQuote(com.longport.quote.SecurityQuote securityQuote) {

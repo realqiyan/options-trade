@@ -1,6 +1,7 @@
 package me.dingtou.options.constant;
 
 import lombok.Getter;
+import me.dingtou.options.model.SecurityQuote;
 
 /**
  * 数据推送类型
@@ -12,6 +13,10 @@ public enum PushDataType {
      * 纽约时间
      */
     NYC_TIME("nyc_time", String.class),
+    /**
+     * 股票价格
+     */
+    STOCK_PRICE("stock_price", SecurityQuote.class),
     ;
 
     /**
@@ -28,9 +33,9 @@ public enum PushDataType {
         this.dataClass = dataClass;
     }
 
-    public static StrategyStage of(String code) {
-        StrategyStage[] values = StrategyStage.values();
-        for (StrategyStage val : values) {
+    public static PushDataType of(String code) {
+        PushDataType[] values = PushDataType.values();
+        for (PushDataType val : values) {
             if (val.getCode().equals(code)) {
                 return val;
             }

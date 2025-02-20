@@ -49,7 +49,7 @@ function deleteOrder(order){
 }
 
 function tradeClose(order, orderBook){
-    var closePrice = (order.price * 0.2).toFixed(2);
+    var closePrice = Math.min((order.price * 0.2).toFixed(2),orderBook.askList);
     layer.prompt({title: '请输入买入价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）',value:closePrice}, function(value, index, elem){
         if(value === ''){
             return elem.focus();

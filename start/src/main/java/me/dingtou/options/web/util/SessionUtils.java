@@ -76,12 +76,24 @@ public class SessionUtils {
      */
     public static SseEmitter connect(String owner, String requestId) {
         log.info("connect, owner:{} requestId:{}", owner, requestId);
-        SseEmitter sseemitter = new SseEmitter(24 * 60 * 60 * 1000L);
+        SseEmitter sseemitter = new SseEmitter(5 * 60 * 1000L);
         sseemitter.onCompletion(onCompletion(owner, requestId));
         sseemitter.onError(onError(owner, requestId));
         sseemitter.onTimeout(onTimeout(owner, requestId));
         SSE_EMITTER_MAP.put(buildUniqueKey(owner, requestId), sseemitter);
         return sseemitter;
+    }
+
+
+    /**
+     * 获取sse连接
+     *
+     * @param owner     登陆用户
+     * @param requestId 请求id
+     * @return SseEmitter
+     */
+    public static SseEmitter getConnect(String owner, String requestId) {
+        return SSE_EMITTER_MAP.get(buildUniqueKey(owner, requestId));
     }
 
 
@@ -92,6 +104,7 @@ public class SessionUtils {
      * @param requestId 请求id
      */
     public static void close(String owner, String requestId) {
+        log.info("close, owner:{} requestId:{}", owner, requestId);
         SSE_EMITTER_MAP.remove(buildUniqueKey(owner, requestId));
     }
 
@@ -119,6 +132,5 @@ public class SessionUtils {
             close(owner, requestId);
         };
     }
-
 
 }

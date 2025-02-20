@@ -1,21 +1,27 @@
 package me.dingtou.options.service.impl;
 
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.PushDataType;
+import me.dingtou.options.dao.OwnerSecurityDAO;
+import me.dingtou.options.gateway.SecurityQuoteGateway;
+import me.dingtou.options.manager.PushManager;
+import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.PushData;
+import me.dingtou.options.model.Security;
 import me.dingtou.options.service.DataPushService;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -24,7 +30,11 @@ public class DataPushServiceImpl implements DataPushService, InitializingBean {
 
     private final static Map<PushDataType, Map<String, Function<PushData, Void>>> DATA_PUSH_MAP = new ConcurrentHashMap<>();
 
-    private final ExecutorService timerExecutor = Executors.newSingleThreadExecutor();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+
+    @Autowired
+    private PushManager pushManager;
 
 
     @Override
@@ -39,42 +49,36 @@ public class DataPushServiceImpl implements DataPushService, InitializingBean {
     }
 
     @Override
-    public void unsubscribe(String requestId) {
-        DATA_PUSH_MAP.values().forEach(callbackMap -> callbackMap.remove(requestId));
-    }
-
-    @Override
     public void afterPropertiesSet() throws Exception {
         //初始化推送数据
         initYncTimePush();
+        initStrategyStockPricePush();
+    }
+
+    private void initStrategyStockPricePush() {
+        pushManager.subscribeSecurityPrice((securityQuote) -> {
+            DATA_PUSH_MAP.computeIfAbsent(PushDataType.STOCK_PRICE, k -> new ConcurrentHashMap<>()).forEach((key, callback) -> {
+                PushData pushData = new PushData();
+                pushData.getData().put(PushDataType.STOCK_PRICE.getCode(), securityQuote);
+                callback.apply(pushData);
+            });
+            return null;
+        });
     }
 
     private void initYncTimePush() {
-        timerExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                // 定义日期时间格式
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                ZoneId zone = ZoneId.of("America/New_York");
-                while (true) {
-                    try {
-                        DATA_PUSH_MAP.computeIfAbsent(PushDataType.NYC_TIME, k -> new ConcurrentHashMap<>()).forEach((key, callback) -> {
-                            // 获取纽约时间，并转换成yyyy-MM-dd HH:mm:ss格式的时间字符串
-                            // 获取纽约时间的ZonedDateTime对象
-                            ZonedDateTime newYorkTime = ZonedDateTime.now(zone);
-                            // 将ZonedDateTime对象格式化为字符串
-                            String time = newYorkTime.format(formatter);
-                            PushData pushData = new PushData();
-                            pushData.getData().put(PushDataType.NYC_TIME.getCode(), time);
-                            callback.apply(pushData);
-                        });
-                        Thread.sleep(1000);
-                    } catch (Exception e) {
-                        log.error("push NYC_TIME error", e);
-                    }
-                }
-            }
-        });
+        // 定义日期时间格式
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        ZoneId zone = ZoneId.of("America/New_York");
+        scheduler.scheduleAtFixedRate(() -> DATA_PUSH_MAP.computeIfAbsent(PushDataType.NYC_TIME, k -> new ConcurrentHashMap<>()).forEach((key, callback) -> {
+            // 获取纽约时间，并转换成yyyy-MM-dd HH:mm:ss格式的时间字符串
+            ZonedDateTime newYorkTime = ZonedDateTime.now(zone);
+            String time = newYorkTime.format(formatter);
+            PushData pushData = new PushData();
+            pushData.getData().put(PushDataType.NYC_TIME.getCode(), time);
+            callback.apply(pushData);
+        }), 0, 1, TimeUnit.SECONDS);
+
     }
 
 

@@ -29,10 +29,4 @@ public interface DataPushService {
      */
     void unsubscribe(String requestId, PushDataType dataType);
 
-    /**
-     * 退订推送数据
-     *
-     * @param requestId 请求ID
-     */
-    void unsubscribe(String requestId);
 }
