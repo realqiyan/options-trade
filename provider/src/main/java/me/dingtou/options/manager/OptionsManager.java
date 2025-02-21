@@ -10,8 +10,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBarSeriesBuilder;
+import org.ta4j.core.indicators.CachedIndicator;
+import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.MACDIndicator;
+import org.ta4j.core.indicators.RSIIndicator;
+import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.num.Num;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,6 +31,7 @@ import java.util.List;
 @Component
 public class OptionsManager {
 
+    public static final int INDICATOR_SIZE = 10;
     @Autowired
     private OptionsChainGateway optionsChainGateway;
 
@@ -46,10 +58,12 @@ public class OptionsManager {
 
         // 期权链
         OptionsChain optionsChain = optionsChainGateway.queryOptionsChain(security, optionsStrikeDate.getStrikeTime(), securityQuote.getLastDone());
-        optionsChain.setSecurityQuote(securityQuote);
+        StockIndicator stockIndicator = new StockIndicator();
+        optionsChain.setStockIndicator(stockIndicator);
+        stockIndicator.setSecurityQuote(securityQuote);
 
         // 日K线
-        SecurityCandlestick dayCandlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 25, CandlestickAdjustType.FORWARD_ADJUST);
+        SecurityCandlestick dayCandlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 30, CandlestickAdjustType.FORWARD_ADJUST);
         if (null != dayCandlesticks && !CollectionUtils.isEmpty(dayCandlesticks.getCandlesticks())) {
 
             SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(dayCandlesticks, 5);
@@ -59,24 +73,55 @@ public class OptionsManager {
                 Candlestick candlestick = weekCandlesticks.getCandlesticks().get(0);
                 // 获取K线波动幅度
                 BigDecimal priceRange = candlestick.getHigh().subtract(candlestick.getLow());
-                optionsChain.setWeekPriceRange(priceRange);
-                optionsChain.setWeekCandlestick(candlestick);
+                stockIndicator.setWeekPriceRange(priceRange);
+                stockIndicator.setWeekCandlestick(candlestick);
             }
             if (null != monthCandlesticks && !CollectionUtils.isEmpty(monthCandlesticks.getCandlesticks())) {
                 Candlestick candlestick = monthCandlesticks.getCandlesticks().get(0);
                 // 获取K线波动幅度
                 BigDecimal priceRange = candlestick.getHigh().subtract(candlestick.getLow());
-                optionsChain.setMonthPriceRange(priceRange);
-                optionsChain.setMonthCandlestick(candlestick);
+                stockIndicator.setMonthPriceRange(priceRange);
+                stockIndicator.setMonthCandlestick(candlestick);
             }
+
+            // 技术指标
+            BarSeries barSeries = convertToBarSeries(dayCandlesticks);
+            ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
+
+            stockIndicator.setRsi(getValueList(new RSIIndicator(closePrice, 14), INDICATOR_SIZE));
+            stockIndicator.setEma5(getValueList(new EMAIndicator(closePrice, 5), INDICATOR_SIZE));
+            stockIndicator.setEma20(getValueList(new EMAIndicator(closePrice, 20), INDICATOR_SIZE));
+            stockIndicator.setMacd(getValueList(new MACDIndicator(closePrice, 12, 26), INDICATOR_SIZE));
+
         }
 
-        // 恐慌指数
-        //Security vixSecurity = Security.of("VIX", Market.US.getCode());
-        //SecurityQuote vixQuote = securityQuoteGateway.quote(vixSecurity);
-        //optionsChain.setVixQuote(vixQuote);
-
         return optionsChain;
+    }
+
+    private List<BigDecimal> getValueList(CachedIndicator<Num> indicator, int size) {
+        int endIndex = indicator.getBarSeries().getEndIndex();
+        List<BigDecimal> result = new ArrayList<>();
+        for (int i = endIndex; i >= endIndex - size && i >= 0; i--) {
+            Num value = indicator.getValue(i);
+            result.add(value.bigDecimalValue().setScale(2, RoundingMode.HALF_UP));
+        }
+        return result;
+    }
+
+    private BarSeries convertToBarSeries(SecurityCandlestick candlesticks) {
+        BarSeries series = new BaseBarSeriesBuilder().withName(candlesticks.getSecurity().toString()).build();
+        for (Candlestick candlestick : candlesticks.getCandlesticks()) {
+            // candlestick.getTimestamp()转ZonedDateTime
+            Instant instant = Instant.ofEpochSecond(candlestick.getTimestamp());
+            series.addBar(instant.atZone(ZoneId.systemDefault()),
+                    candlestick.getOpen(),
+                    candlestick.getHigh(),
+                    candlestick.getLow(),
+                    candlestick.getClose(),
+                    candlestick.getVolume(),
+                    candlestick.getTurnover());
+        }
+        return series;
     }
 
     private SecurityCandlestick summarySecurityCandlestick(SecurityCandlestick dayCandlesticks, int size) {

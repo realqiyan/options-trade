@@ -75,39 +75,48 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
 
 
         // AI分析提示词
-        SecurityQuote securityQuote = optionsChain.getSecurityQuote();
+        StockIndicator stockIndicator = optionsChain.getStockIndicator();
+        SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
         BigDecimal securityPrice = securityQuote.getLastDone();
-        StringBuilder aiPrompt = new StringBuilder();
-        aiPrompt.append("我在做期权的车轮策略（WheelStrategy），底层资产是").append(securityQuote.getSecurity().toString())
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("我在做期权的车轮策略（WheelStrategy），底层资产是").append(securityQuote.getSecurity().toString())
                 .append("，当前阶段是").append(isSellPutStage ? "卖出看跌期权（Cash-Secured Put）" : "卖出看涨期权（Covered Call）");
 
         if (isCoveredCallStage && null != finalUnderlyingOrder) {
-            aiPrompt.append("，当前指派的股票价格是").append(finalUnderlyingOrder.getPrice());
+            prompt.append("，当前指派的股票价格是").append(finalUnderlyingOrder.getPrice());
         }
-        aiPrompt.append("，当前股价").append(securityPrice)
-                .append("，近一周价格波动").append(optionsChain.getWeekPriceRange())
-                .append("，近一月价格波动").append(optionsChain.getMonthPriceRange())
-                .append("，当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
+        prompt.append("，当前股价").append(securityPrice)
+                .append("，近一周价格波动").append(stockIndicator.getWeekPriceRange())
+                .append("，近一月价格波动").append(stockIndicator.getMonthPriceRange())
+                .append("，当前EMA5为").append(stockIndicator.getEma5().get(0))
+                .append("（最近几天由近到远的EMA5分别是：").append(stockIndicator.getEma5().toString())
+                .append("），当前EMA20为").append(stockIndicator.getEma20().get(0))
+                .append("（最近几天由近到远的EMA20分别是：").append(stockIndicator.getEma20().toString())
+                .append("），当前RSI为").append(stockIndicator.getRsi().get(0))
+                .append("（最近几天由近到远的RSI分别是：").append(stockIndicator.getEma20().toString())
+                .append("），当前MACD为").append(stockIndicator.getMacd().get(0))
+                .append("（最近几天由近到远的MACD分别是：").append(stockIndicator.getMacd().toString())
+                .append("），当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
                 .append("天，我当前计划交易的期权实时信息如下：\n");
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
             if (null != call) {
-                buildOptionsAiPrompt(aiPrompt, call);
+                buildOptionsPrompt(prompt, call);
             }
             Options put = optionsTuple.getPut();
             if (null != put) {
-                buildOptionsAiPrompt(aiPrompt, put);
+                buildOptionsPrompt(prompt, put);
             }
         });
-        aiPrompt.append("请帮我分析这些期权标的，告诉我是否适合交易，给我最优交易建议。");
-        optionsChain.setAiPrompt(aiPrompt.toString());
+        prompt.append("请帮我分析这些期权标的，告诉我是否适合交易，给我最优交易建议。");
+        optionsChain.setPrompt(prompt.toString());
     }
 
-    private void buildOptionsAiPrompt(StringBuilder aiPrompt, Options options) {
+    private void buildOptionsPrompt(StringBuilder prompt, Options options) {
         if (Boolean.FALSE.equals(options.getStrategyData().getRecommend())) {
             return;
         }
-        aiPrompt.append("标的:").append(options.getBasic().getSecurity().getCode())
+        prompt.append("标的:").append(options.getBasic().getSecurity().getCode())
                 .append("，行权价:").append(options.getOptionExData().getStrikePrice())
                 .append("，当前价格:").append(options.getRealtimeData().getCurPrice())
                 .append("，隐含波动率:").append(options.getRealtimeData().getImpliedVolatility())

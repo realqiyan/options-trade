@@ -24,42 +24,20 @@ public class OptionsChain {
     private Long strikeTimestamp;
 
     /**
-     * 周价格幅度
+     * 股票指标
      */
-    private BigDecimal weekPriceRange;
+    private StockIndicator stockIndicator;
 
-    /**
-     * 周收盘行情
-     */
-    private Candlestick weekCandlestick;
 
-    /**
-     * 月价格幅度
-     */
-    private BigDecimal monthPriceRange;
-
-    /**
-     * 月收盘行情
-     */
-    private Candlestick monthCandlestick;
-
-    /**
-     * .VIX行情
-     */
-    private SecurityQuote vixQuote;
-
-    /**
-     * 期权标的行情
-     */
-    private SecurityQuote securityQuote;
 
     /**
      * 期权列表
      */
     private List<OptionsTuple> optionList;
 
+
     /**
      * AI提示词
      */
-    private String aiPrompt;
+    private String prompt;
 }

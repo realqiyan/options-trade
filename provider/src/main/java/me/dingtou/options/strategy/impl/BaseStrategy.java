@@ -39,7 +39,8 @@ public abstract class BaseStrategy implements OptionsStrategy {
 
     @Override
     final public void calculate(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary) {
-        SecurityQuote securityQuote = optionsChain.getSecurityQuote();
+        StockIndicator stockIndicator = optionsChain.getStockIndicator();
+        SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
         BigDecimal securityPrice = securityQuote.getLastDone();
         BigDecimal dte = new BigDecimal(optionsStrikeDate.getOptionExpiryDateDistance());
         optionsChain.getOptionList().forEach(optionsTuple -> {
@@ -65,10 +66,10 @@ public abstract class BaseStrategy implements OptionsStrategy {
                     level++;
                     // 当前价+价格波幅 行权价大于这个值 level++
                     // 周价格波幅
-                    BigDecimal maxWeekPriceRange = securityPrice.add(optionsChain.getWeekPriceRange());
+                    BigDecimal maxWeekPriceRange = securityPrice.add(stockIndicator.getWeekPriceRange());
                     if (maxWeekPriceRange.compareTo(call.getOptionExData().getStrikePrice()) < 0) level++;
                     // 月价格波幅
-                    BigDecimal maxMonthPriceRange = securityPrice.add(optionsChain.getMonthPriceRange());
+                    BigDecimal maxMonthPriceRange = securityPrice.add(stockIndicator.getMonthPriceRange());
                     if (maxMonthPriceRange.compareTo(call.getOptionExData().getStrikePrice()) < 0) level++;
                 }
 
@@ -100,10 +101,10 @@ public abstract class BaseStrategy implements OptionsStrategy {
                     level++;
                     // 当前价-价格波幅 行权价小于这个值 level++
                     // 周价格波幅
-                    BigDecimal minWeekPriceRange = securityPrice.subtract(optionsChain.getWeekPriceRange());
+                    BigDecimal minWeekPriceRange = securityPrice.subtract(stockIndicator.getWeekPriceRange());
                     if (minWeekPriceRange.compareTo(put.getOptionExData().getStrikePrice()) > 0) level++;
                     // 月价格波幅
-                    BigDecimal minMonthPriceRange = securityPrice.subtract(optionsChain.getMonthPriceRange());
+                    BigDecimal minMonthPriceRange = securityPrice.subtract(stockIndicator.getMonthPriceRange());
                     if (minMonthPriceRange.compareTo(put.getOptionExData().getStrikePrice()) > 0) level++;
                 }
 

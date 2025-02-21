@@ -1,15 +1,10 @@
 package me.dingtou.options.service.impl;
 
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.PushDataType;
-import me.dingtou.options.dao.OwnerSecurityDAO;
-import me.dingtou.options.gateway.SecurityQuoteGateway;
-import me.dingtou.options.manager.PushManager;
-import me.dingtou.options.model.OwnerSecurity;
+import me.dingtou.options.manager.PushDataManager;
 import me.dingtou.options.model.PushData;
-import me.dingtou.options.model.Security;
 import me.dingtou.options.service.DataPushService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Function;
@@ -34,7 +28,7 @@ public class DataPushServiceImpl implements DataPushService, InitializingBean {
 
 
     @Autowired
-    private PushManager pushManager;
+    private PushDataManager pushDataManager;
 
 
     @Override
@@ -56,7 +50,7 @@ public class DataPushServiceImpl implements DataPushService, InitializingBean {
     }
 
     private void initStrategyStockPricePush() {
-        pushManager.subscribeSecurityPrice((securityQuote) -> {
+        pushDataManager.subscribeSecurityPrice((securityQuote) -> {
             DATA_PUSH_MAP.computeIfAbsent(PushDataType.STOCK_PRICE, k -> new ConcurrentHashMap<>()).forEach((key, callback) -> {
                 PushData pushData = new PushData();
                 pushData.getData().put(PushDataType.STOCK_PRICE.getCode(), securityQuote);

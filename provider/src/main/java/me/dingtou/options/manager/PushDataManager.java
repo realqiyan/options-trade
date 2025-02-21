@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 @Slf4j
 @Component
-public class PushManager {
+public class PushDataManager {
     @Autowired
     private OwnerSecurityDAO ownerSecurityDAO;
 

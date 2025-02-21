@@ -104,25 +104,37 @@
 </script>
 <script id="commonInfo" type="text/html">
     {{#
-    var lastDone = Number(d.securityQuote.lastDone);
-    var weekMin = (lastDone-Number(d.weekPriceRange)).toFixed(3);
-    var weekMax = (lastDone+Number(d.weekPriceRange)).toFixed(3);
-    var monthMin = (lastDone-Number(d.monthPriceRange)).toFixed(3);
-    var monthMax = (lastDone+Number(d.monthPriceRange)).toFixed(3);
+    var lastDone = Number(d.stockIndicator.securityQuote.lastDone);
+    var weekMin = (lastDone-Number(d.stockIndicator.weekPriceRange)).toFixed(3);
+    var weekMax = (lastDone+Number(d.stockIndicator.weekPriceRange)).toFixed(3);
+    var monthMin = (lastDone-Number(d.stockIndicator.monthPriceRange)).toFixed(3);
+    var monthMax = (lastDone+Number(d.stockIndicator.monthPriceRange)).toFixed(3);
     }}
-    <span class="layui-badge layui-bg-blue">{{= d.currentCode}}:{{= d.securityQuote.lastDone }}(<b id="stock_{{=d.securityQuote.security.market}}_{{=d.securityQuote.security.code}}" class="layui-font-16">{{= d.securityQuote.lastDone }}</b>)</span>
+    <span class="layui-badge layui-bg-blue">
+        {{= d.currentCode}}:{{= d.stockIndicator.securityQuote.lastDone }}
+        (<b id="stock_{{=d.stockIndicator.securityQuote.security.market}}_{{=d.stockIndicator.securityQuote.security.code}}" class="layui-font-16">{{= d.stockIndicator.securityQuote.lastDone }}</b>)
+    </span>
     -
-    <span class="layui-badge layui-bg-green">到期日:{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})</span>
+    <span class="layui-badge layui-bg-blue">到期日:<b class="layui-font-16">{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})</b></span>
     -
-    <span class="layui-badge layui-bg-purple">周价格波动:{{= d.weekPriceRange}}({{= weekMin}} - {{= weekMax}})</span>
+    <span class="layui-badge layui-bg-blue">周价格波动:<b class="layui-font-16">{{= d.stockIndicator.weekPriceRange}}</b></span>({{= weekMin}} - {{= weekMax}})
     -
-    <span class="layui-badge">月价格波动:{{= d.monthPriceRange}}({{= monthMin}} - {{= monthMax}})</span>
+    <span class="layui-badge layui-bg-blue">月价格波动:<b class="layui-font-16">{{= d.stockIndicator.monthPriceRange}}</b></span>({{= monthMin}} - {{= monthMax}})
     -
-    <a href="javascript:;" onclick="ai()">提示词</a>
+    <a href="javascript:;" onclick="prompt()">提示词</a>
     -
     <a href="https://chat.deepseek.com/" target="_blank">DeepSeek</a>
     -
     <a href="https://yuanbao.tencent.com/chat/" target="_blank">元宝</a>
+    <br/>
+    <span class="layui-badge"><b class="layui-font-16">RSI:{{= d.stockIndicator.rsi[0] }}</b></span>({{= d.stockIndicator.rsi }})
+    -
+    <span class="layui-badge"><b class="layui-font-16">MACD:{{= d.stockIndicator.macd[0] }}</b></span>({{= d.stockIndicator.macd }})
+    <br/>
+    <span class="layui-badge"><b class="layui-font-16">EMA5:{{= d.stockIndicator.ema5[0] }}</b></span>({{= d.stockIndicator.ema5 }})
+    -
+    <span class="layui-badge"><b class="layui-font-16">EMA20:{{= d.stockIndicator.ema20[0] }}</b></span>({{= d.stockIndicator.ema20 }})
+
 </script>
 <script id="currentStrategy" type="text/html">
     <select id="strategyId" name="strategyId" lay-filter="strategyId">

@@ -12,11 +12,11 @@ public class DefaultSellStrategy extends BaseStrategy implements OptionsStrategy
 
     @Override
     void process(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary) {
-        String aiPrompt = buildAiPrompt(optionsStrikeDate, optionsChain);
-        optionsChain.setAiPrompt(aiPrompt);
+        String prompt = buildPrompt(optionsStrikeDate, optionsChain);
+        optionsChain.setPrompt(prompt);
     }
 
-    private String buildAiPrompt(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain) {
+    private String buildPrompt(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain) {
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
             if (null != call) {
@@ -30,40 +30,50 @@ public class DefaultSellStrategy extends BaseStrategy implements OptionsStrategy
             }
         });
         // AI分析提示词
-        SecurityQuote securityQuote = optionsChain.getSecurityQuote();
+        StockIndicator stockIndicator = optionsChain.getStockIndicator();
+        SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
         BigDecimal securityPrice = securityQuote.getLastDone();
-        StringBuilder aiPrompt = new StringBuilder();
+        StringBuilder prompt = new StringBuilder();
         // 股票{{=d.currentCode}}当前股价{{=lastDone}},近一周价格波动{{=d.weekPriceRange}}，近一月价格波动{{=d.monthPriceRange}}，当前齐全
-        aiPrompt.append("我在做卖期权的策略，目的是通过卖").append(securityQuote.getSecurity().toString())
+        prompt.append("我在做卖期权的策略，目的是通过卖").append(securityQuote.getSecurity().toString())
                 .append("的期权赚取权利金，当前股价").append(securityPrice)
-                .append("，近一周价格波动").append(optionsChain.getWeekPriceRange())
-                .append("，近一月价格波动").append(optionsChain.getMonthPriceRange())
+                .append("，近一周价格波动").append(stockIndicator.getWeekPriceRange())
+                .append("，近一月价格波动").append(stockIndicator.getMonthPriceRange())
+                .append("，当前EMA5为").append(stockIndicator.getEma5().get(0))
+                .append("（最近几天由近到远的EMA5分别是：").append(stockIndicator.getEma5().toString())
+                .append("），当前EMA20为").append(stockIndicator.getEma20().get(0))
+                .append("（最近几天由近到远的EMA20分别是：").append(stockIndicator.getEma20().toString())
+                .append("），当前RSI为").append(stockIndicator.getRsi().get(0))
+                .append("（最近几天由近到远的RSI分别是：").append(stockIndicator.getEma20().toString())
+                .append("），当前MACD为").append(stockIndicator.getMacd().get(0))
+                .append("（最近几天由近到远的MACD分别是：").append(stockIndicator.getMacd().toString())
+                .append("），当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
                 .append("，当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
                 .append("天，准备交易的期权实时信息如下：\n");
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
             if (null != call) {
-                buildOptionsAiPrompt(aiPrompt, call);
+                buildOptionsPrompt(prompt, call);
             }
             Options put = optionsTuple.getPut();
             if (null != put) {
-                buildOptionsAiPrompt(aiPrompt, put);
+                buildOptionsPrompt(prompt, put);
             }
         });
-        aiPrompt.append("请帮我分析这些期权标的，告诉我是否适合交易，给我最优交易建议。");
-        return aiPrompt.toString();
+        prompt.append("请帮我分析这些期权标的，告诉我是否适合交易，给我最优交易建议。");
+        return prompt.toString();
     }
 
-    private void buildOptionsAiPrompt(StringBuilder aiPrompt, Options options) {
+    private void buildOptionsPrompt(StringBuilder prompt, Options options) {
         if (null == options.getStrategyData() || Boolean.FALSE.equals(options.getStrategyData().getRecommend())) {
             return;
         }
         if (Integer.valueOf(1).equals(options.getOptionExData().getType())) {
-            aiPrompt.append("SellCall标的:");
+            prompt.append("SellCall标的:");
         } else if (Integer.valueOf(2).equals(options.getOptionExData().getType())) {
-            aiPrompt.append("SellPut标的:");
+            prompt.append("SellPut标的:");
         }
-        aiPrompt.append(options.getBasic().getSecurity().getCode())
+        prompt.append(options.getBasic().getSecurity().getCode())
                 .append("，行权价:").append(options.getOptionExData().getStrikePrice())
                 .append("，当前价格:").append(options.getRealtimeData().getCurPrice())
                 .append("，隐含波动率:").append(options.getRealtimeData().getImpliedVolatility())
