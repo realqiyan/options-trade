@@ -135,7 +135,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         // 所有期权利润
         BigDecimal allOptionsIncome = allOptionsOrders.stream().map(order -> {
             BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-            return order.getPrice().multiply(lotSize).multiply(sign);
+            return order.getPrice().multiply(lotSize).multiply(BigDecimal.valueOf(order.getQuantity())).multiply(sign);
         }).reduce(BigDecimal.ZERO, BigDecimal::add);
         // 期权利润
         summary.setAllOptionsIncome(allOptionsIncome.subtract(totalFee));
