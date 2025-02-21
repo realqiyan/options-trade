@@ -93,7 +93,7 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
                 .append("），当前EMA20为").append(stockIndicator.getEma20().get(0))
                 .append("（最近几天由近到远的EMA20分别是：").append(stockIndicator.getEma20().toString())
                 .append("），当前RSI为").append(stockIndicator.getRsi().get(0))
-                .append("（最近几天由近到远的RSI分别是：").append(stockIndicator.getEma20().toString())
+                .append("（最近几天由近到远的RSI分别是：").append(stockIndicator.getRsi().toString())
                 .append("），当前MACD为").append(stockIndicator.getMacd().get(0))
                 .append("（最近几天由近到远的MACD分别是：").append(stockIndicator.getMacd().toString())
                 .append("），当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
