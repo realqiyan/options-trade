@@ -110,13 +110,13 @@
     var monthMin = (lastDone-Number(d.monthPriceRange)).toFixed(3);
     var monthMax = (lastDone+Number(d.monthPriceRange)).toFixed(3);
     }}
-    <span class="layui-badge layui-bg-blue">底层标的：{{= d.currentCode}}-{{= d.securityQuote.lastDone }}(<b id="stock_{{=d.securityQuote.security.market}}_{{=d.securityQuote.security.code}}" class="layui-font-16">{{= d.securityQuote.lastDone }}</b>)</span>
+    <span class="layui-badge layui-bg-blue">{{= d.currentCode}}:{{= d.securityQuote.lastDone }}(<b id="stock_{{=d.securityQuote.security.market}}_{{=d.securityQuote.security.code}}" class="layui-font-16">{{= d.securityQuote.lastDone }}</b>)</span>
     -
-    <span class="layui-badge layui-bg-green">到期日：{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})</span>
+    <span class="layui-badge layui-bg-green">到期日:{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})</span>
     -
-    <span class="layui-badge layui-bg-purple">周价格波动：{{= d.weekPriceRange}}({{= weekMin}} - {{= weekMax}})</span>
+    <span class="layui-badge layui-bg-purple">周价格波动:{{= d.weekPriceRange}}({{= weekMin}} - {{= weekMax}})</span>
     -
-    <span class="layui-badge">月价格波动：{{= d.monthPriceRange}}({{= monthMin}} - {{= monthMax}})</span>
+    <span class="layui-badge">月价格波动:{{= d.monthPriceRange}}({{= monthMin}} - {{= monthMax}})</span>
     -
     <a href="javascript:;" onclick="ai()">提示词</a>
     -

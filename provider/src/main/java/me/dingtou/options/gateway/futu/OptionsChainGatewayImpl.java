@@ -31,8 +31,11 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             maxStrikePrice = lastDone.multiply(BigDecimal.valueOf(1.5));
         }
         OptionsChain optionsChain = QueryExecutor.query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
-        Set<Security> allSecurity = new HashSet<>();
+        if (null == optionsChain) {
+            throw new RuntimeException("FuncGetOptionChain result null");
+        }
 
+        Set<Security> allSecurity = new HashSet<>();
         ListIterator<OptionsTuple> optionsTupleListIterator = optionsChain.getOptionList().listIterator();
         while (optionsTupleListIterator.hasNext()) {
 

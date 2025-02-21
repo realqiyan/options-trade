@@ -55,7 +55,7 @@ public class DefaultSellStrategy extends BaseStrategy implements OptionsStrategy
     }
 
     private void buildOptionsAiPrompt(StringBuilder aiPrompt, Options options) {
-        if (Boolean.FALSE.equals(options.getStrategyData().getRecommend())) {
+        if (null == options.getStrategyData() || Boolean.FALSE.equals(options.getStrategyData().getRecommend())) {
             return;
         }
         if (Integer.valueOf(1).equals(options.getOptionExData().getType())) {

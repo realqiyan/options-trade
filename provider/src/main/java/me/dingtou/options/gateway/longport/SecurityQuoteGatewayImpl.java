@@ -1,7 +1,10 @@
 package me.dingtou.options.gateway.longport;
 
-import com.longport.OpenApiException;
-import com.longport.quote.*;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.longport.quote.QuoteContext;
+import com.longport.quote.SubFlags;
+import com.longport.quote.Subscription;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.model.Security;
@@ -17,11 +20,18 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 @Slf4j
 public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements SecurityQuoteGateway {
+
+    /**
+     * 价格实时缓存
+     */
+    private static final Cache<Security, SecurityQuote> SECURITY_QUOTE_CACHE = CacheBuilder.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(30, TimeUnit.SECONDS)
+            .build();
 
 
     @Override
@@ -49,12 +59,16 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
             if (null == ctx) {
                 return Collections.emptyList();
             }
-            String[] symbols = new String[securityList.size()];
-            for (int i = 0; i < securityList.size(); i++) {
-                Security security = securityList.get(i);
-                symbols[i] = security.toString();
+            List<String> symbols = new ArrayList<>();
+            for (Security security : securityList) {
+                SecurityQuote securityQuote = SECURITY_QUOTE_CACHE.getIfPresent(security);
+                if (null != securityQuote) {
+                    quoteList.add(securityQuote);
+                } else {
+                    symbols.add(security.toString());
+                }
             }
-            CompletableFuture<com.longport.quote.SecurityQuote[]> ctxQuote = ctx.getQuote(symbols);
+            CompletableFuture<com.longport.quote.SecurityQuote[]> ctxQuote = ctx.getQuote(symbols.toArray(new String[0]));
             com.longport.quote.SecurityQuote[] securityQuotes = ctxQuote.get(10, TimeUnit.SECONDS);
 
             for (com.longport.quote.SecurityQuote securityQuote : securityQuotes) {
@@ -90,8 +104,10 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
             // 处理订阅回调
             ctx.setOnQuote((symbol, event) -> {
                 SecurityQuote securityQuote = new SecurityQuote();
-                securityQuote.setSecurity(Security.from(symbol));
+                Security currSecurity = Security.from(symbol);
+                securityQuote.setSecurity(currSecurity);
                 securityQuote.setLastDone(event.getLastDone());
+                SECURITY_QUOTE_CACHE.put(currSecurity, securityQuote);
                 callback.apply(securityQuote);
             });
         } catch (Exception e) {
