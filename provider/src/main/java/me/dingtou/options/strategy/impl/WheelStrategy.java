@@ -87,16 +87,24 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
         }
         prompt.append("，当前股价").append(securityPrice)
                 .append("，近一周价格波动").append(stockIndicator.getWeekPriceRange())
-                .append("，近一月价格波动").append(stockIndicator.getMonthPriceRange())
-                .append("，当前EMA5为").append(stockIndicator.getEma5().get(0))
-                .append("（最近几天由近到远的EMA5分别是：").append(stockIndicator.getEma5().toString())
-                .append("），当前EMA20为").append(stockIndicator.getEma20().get(0))
-                .append("（最近几天由近到远的EMA20分别是：").append(stockIndicator.getEma20().toString())
-                .append("），当前RSI为").append(stockIndicator.getRsi().get(0))
-                .append("（最近几天由近到远的RSI分别是：").append(stockIndicator.getRsi().toString())
-                .append("），当前MACD为").append(stockIndicator.getMacd().get(0))
-                .append("（最近几天由近到远的MACD分别是：").append(stockIndicator.getMacd().toString())
-                .append("），当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
+                .append("，近一月价格波动").append(stockIndicator.getMonthPriceRange());
+        if (null != stockIndicator.getEma5()) {
+            prompt.append("，当前EMA5为").append(stockIndicator.getEma5().get(0))
+                    .append("（最近几天由近到远的EMA5分别是：").append(stockIndicator.getEma5().toString());
+        }
+        if (null != stockIndicator.getEma20()) {
+            prompt.append("），当前EMA20为").append(stockIndicator.getEma20().get(0))
+                    .append("（最近几天由近到远的EMA20分别是：").append(stockIndicator.getEma20().toString());
+        }
+        if (null != stockIndicator.getRsi()) {
+            prompt.append("），当前RSI为").append(stockIndicator.getRsi().get(0))
+                    .append("（最近几天由近到远的RSI分别是：").append(stockIndicator.getRsi().toString());
+        }
+        if (null != stockIndicator.getMacd()) {
+            prompt.append("），当前MACD为").append(stockIndicator.getMacd().get(0))
+                    .append("（最近几天由近到远的MACD分别是：").append(stockIndicator.getMacd().toString());
+        }
+        prompt.append("），当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
                 .append("天，我当前计划交易的期权实时信息如下：\n");
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();

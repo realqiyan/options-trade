@@ -127,13 +127,13 @@
     -
     <a href="https://yuanbao.tencent.com/chat/" target="_blank">元宝</a>
     <br/>
-    <span class="layui-badge"><b class="layui-font-16">RSI:{{= d.stockIndicator.rsi[0] }}</b></span>({{= d.stockIndicator.rsi }})
-    -
-    <span class="layui-badge"><b class="layui-font-16">MACD:{{= d.stockIndicator.macd[0] }}</b></span>({{= d.stockIndicator.macd }})
+    <span class="layui-badge"><b class="layui-font-16">RSI:{{= d.stockIndicator.rsi?d.stockIndicator.rsi[0]:0 }}</b></span>({{= d.stockIndicator.rsi }})
     <br/>
-    <span class="layui-badge"><b class="layui-font-16">EMA5:{{= d.stockIndicator.ema5[0] }}</b></span>({{= d.stockIndicator.ema5 }})
-    -
-    <span class="layui-badge"><b class="layui-font-16">EMA20:{{= d.stockIndicator.ema20[0] }}</b></span>({{= d.stockIndicator.ema20 }})
+    <span class="layui-badge"><b class="layui-font-16">MACD:{{= d.stockIndicator.macd?d.stockIndicator.macd[0]:0 }}</b></span>({{= d.stockIndicator.macd }})
+    <br/>
+    <span class="layui-badge"><b class="layui-font-16">EMA5:{{= d.stockIndicator.ema5?d.stockIndicator.ema5[0]:0 }}</b></span>({{= d.stockIndicator.ema5 }})
+    <br/>
+    <span class="layui-badge"><b class="layui-font-16">EMA20:{{= d.stockIndicator.ema20?d.stockIndicator.ema20[0]:0 }}</b></span>({{= d.stockIndicator.ema20 }})
 
 </script>
 <script id="currentStrategy" type="text/html">

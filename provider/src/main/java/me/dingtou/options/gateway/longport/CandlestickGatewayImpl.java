@@ -49,8 +49,11 @@ public class CandlestickGatewayImpl extends BaseLongPortGateway implements Candl
                 result.getCandlesticks().add(convertCandlestick(candlestick));
             }
         } catch (Exception e) {
-            log.error("获取K线数据失败,security:{},message:{}", security.toString(), e.getMessage(), e);
-            getQuoteContext(true);
+            try {
+                getQuoteContext(true);
+            } catch (Exception exception) {
+                log.error("获取K线数据失败,security:{},message:{}", security.toString(), exception.getMessage());
+            }
             return result;
         }
 

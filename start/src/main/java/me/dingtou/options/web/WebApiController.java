@@ -120,7 +120,7 @@ public class WebApiController {
             OptionsChain optionsChain = optionsQueryService.queryOptionsChain(security, optionsStrikeDate, strategy);
             return WebResult.success(optionsChain);
         } catch (Exception e) {
-            log.error("get options chain error. market:{}, code:{}, strikeTime:{}, message:{}", market, code, strikeTime, e.getMessage());
+            log.error("get options chain error. market:{}, code:{}, strikeTime:{}, message:{}", market, code, strikeTime, e.getMessage(), e);
             return WebResult.failure(e.getMessage());
         }
     }

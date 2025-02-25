@@ -130,7 +130,7 @@ public abstract class BaseStrategy implements OptionsStrategy {
     private BigDecimal calculateAnnualYield(Options options, BigDecimal securityPrice, BigDecimal dte) {
         BigDecimal lotSize = new BigDecimal(options.getBasic().getLotSize());
         OptionsRealtimeData realtimeData = options.getRealtimeData();
-        if (null == realtimeData) {
+        if (null == realtimeData || BigDecimal.ZERO.equals(securityPrice)) {
             return BigDecimal.ZERO;
         }
         BigDecimal curPrice = realtimeData.getCurPrice();
@@ -157,6 +157,9 @@ public abstract class BaseStrategy implements OptionsStrategy {
     }
 
     private BigDecimal calculateRange(BigDecimal strikePrice, BigDecimal securityPrice) {
+        if (BigDecimal.ZERO.equals(securityPrice)) {
+            return BigDecimal.ZERO;
+        }
         return strikePrice.subtract(securityPrice)
                 .divide(securityPrice, 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100))

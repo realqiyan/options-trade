@@ -50,14 +50,18 @@ public class DataPushServiceImpl implements DataPushService, InitializingBean {
     }
 
     private void initStrategyStockPricePush() {
-        pushDataManager.subscribeSecurityPrice((securityQuote) -> {
-            DATA_PUSH_MAP.computeIfAbsent(PushDataType.STOCK_PRICE, k -> new ConcurrentHashMap<>()).forEach((key, callback) -> {
-                PushData pushData = new PushData();
-                pushData.getData().put(PushDataType.STOCK_PRICE.getCode(), securityQuote);
-                callback.apply(pushData);
+        try {
+            pushDataManager.subscribeSecurityPrice((securityQuote) -> {
+                DATA_PUSH_MAP.computeIfAbsent(PushDataType.STOCK_PRICE, k -> new ConcurrentHashMap<>()).forEach((key, callback) -> {
+                    PushData pushData = new PushData();
+                    pushData.getData().put(PushDataType.STOCK_PRICE.getCode(), securityQuote);
+                    callback.apply(pushData);
+                });
+                return null;
             });
-            return null;
-        });
+        } catch (Throwable e) {
+            log.error("initStrategyStockPricePush error. message:{}", e.getMessage());
+        }
     }
 
     private void initYncTimePush() {

@@ -79,8 +79,11 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
 
             }
         } catch (Exception e) {
-            getQuoteContext(true);
-            throw new RuntimeException(e);
+            try {
+                getQuoteContext(true);
+            } catch (Exception exception) {
+                log.error("subscribeQuote error. message:{}", exception.getMessage());
+            }
         }
 
         return quoteList;

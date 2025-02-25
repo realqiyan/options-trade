@@ -12,6 +12,14 @@ import java.util.Date;
 @Data
 public class LoginInfo {
 
+    public static final String JWT = "jwt";
+    public static final String OTP = "otp";
+
+    /**
+     * 登录类型
+     */
+    private final String type;
+
     /**
      * 登录用户
      */
@@ -27,8 +35,16 @@ public class LoginInfo {
      */
     private final Date loginTime;
 
+    public LoginInfo(String owner) {
+        this.owner = owner;
+        this.type = LoginInfo.JWT;
+        this.otpPassword = null;
+        this.loginTime = new Date();
+    }
+
     public LoginInfo(String owner, String otpPassword) {
         this.owner = owner;
+        this.type = LoginInfo.OTP;
         this.otpPassword = otpPassword;
         this.loginTime = new Date();
     }
