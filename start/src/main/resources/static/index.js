@@ -6,10 +6,10 @@ var currentPrompt;
 var currentOwnerData;
 
 function filterStrategyByCode(jsonArray, code) {
-  return jsonArray.filter(item => item.code === code);
+    return jsonArray.filter(item => item.code === code);
 }
 function filterStrategyById(jsonArray, strategyId) {
-  return jsonArray.filter(item => item.strategyId === strategyId);
+    return jsonArray.filter(item => item.strategyId === strategyId);
 }
 function strategySelect(code,strategyId){
     currentStrategyId = strategyId;
@@ -19,7 +19,44 @@ function strategyLoad(code){
     currentStrategyId = localStorage.getItem(code+'_strategyId');
     console.log('strategyLoad code:'+ code+' currentStrategyId:'+currentStrategyId);
 }
-
+var currentLabel;
+var currentChart;
+function showChart(chartId,label,data,type){
+    const ctx = document.getElementById(chartId);
+    if(currentChart){
+        currentChart.destroy();
+        ctx.removeAttribute('width');
+    }
+    if(ctx.style.display != 'none' && currentLabel == label){
+        ctx.style.display = 'none';
+    }else{
+        data = data.reverse();
+        currentLabel = label;
+        ctx.style.display = 'block';
+        currentChart = new Chart(ctx, {
+            type: type,
+            data: {
+              labels: data,
+              datasets: [{
+                label: label,
+                data: data,
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: false,
+              scales: {
+                y: {
+                  //beginAtZero: true
+                }
+              },
+              onClick: function(event, elements) {
+                 ctx.style.display = 'none';
+              }
+            }
+        });
+    }
+}
 function loadOptionsExpDate(code, market){
     currentCode = code;
     currentMarket = market;

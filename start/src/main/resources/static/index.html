@@ -8,7 +8,12 @@
     <title>Options Trade Tools</title>
     <link rel="icon" href="data:image/ico;base64,aWNv">
     <link rel="stylesheet" href="layui/css/layui.css">
-</head>
+    <style>
+        #chartZone {
+            width: 100%; /* 设置宽度为 100% */
+        }
+    </style>
+    </head>
 <body>
 <div class="layui-layout layui-layout-admin">
     <div class="layui-header">
@@ -62,11 +67,8 @@
             <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
                 期权链
             </blockquote>
-            <!-- VIX
-            <blockquote class="layui-elem-quote layui-text" id="vix" lay-filter="vix">
+            <canvas id="chartZone" style="display:none;" height="200"></canvas>
 
-            </blockquote>
-            -->
             <div class="layui-card layui-panel">
                 <div class="layui-card-body" id="result" lay-filter="result">
                     依次点击：1.股票 2.期权策略 3.期权到期日
@@ -127,14 +129,34 @@
     -
     <a href="https://yuanbao.tencent.com/chat/" target="_blank">元宝</a>
     <br/>
-    <span class="layui-badge"><b class="layui-font-16">RSI:{{= d.stockIndicator.rsi?d.stockIndicator.rsi[0]:0 }}</b></span>({{= d.stockIndicator.rsi }})
-    <br/>
-    <span class="layui-badge"><b class="layui-font-16">MACD:{{= d.stockIndicator.macd?d.stockIndicator.macd[0]:0 }}</b></span>({{= d.stockIndicator.macd }})
-    <br/>
-    <span class="layui-badge"><b class="layui-font-16">EMA5:{{= d.stockIndicator.ema5?d.stockIndicator.ema5[0]:0 }}</b></span>({{= d.stockIndicator.ema5 }})
-    <br/>
-    <span class="layui-badge"><b class="layui-font-16">EMA20:{{= d.stockIndicator.ema20?d.stockIndicator.ema20[0]:0 }}</b></span>({{= d.stockIndicator.ema20 }})
-
+    <span class="layui-badge">
+        <b class="layui-font-16">
+            <a href="javascript:;" onclick="showChart('chartZone','RSI',[{{= d.stockIndicator.rsi }}],'line')">
+                RSI:{{= d.stockIndicator.rsi?d.stockIndicator.rsi[0]:0 }}
+            </a>
+        </b>
+    </span>
+    <span class="layui-badge">
+        <b class="layui-font-16">
+            <a href="javascript:;" onclick="showChart('chartZone','MACD',[{{= d.stockIndicator.macd }}],'bar')">
+                MACD:{{= d.stockIndicator.macd?d.stockIndicator.macd[0]:0 }}
+            </a>
+        </b>
+    </span>
+    <span class="layui-badge">
+        <b class="layui-font-16">
+            <a href="javascript:;" onclick="showChart('chartZone','EMA-5',[{{= d.stockIndicator.ema5 }}],'line')">
+                EMA5:{{= d.stockIndicator.ema5?d.stockIndicator.ema5[0]:0 }}
+            </a>
+        </b>
+    </span>
+    <span class="layui-badge">
+        <b class="layui-font-16">
+            <a href="javascript:;" onclick="showChart('chartZone','EMA-20',[{{= d.stockIndicator.ema20 }}],'line')">
+                EMA20:{{= d.stockIndicator.ema20?d.stockIndicator.ema20[0]:0 }}
+            </a>
+        </b>
+    </span>
 </script>
 <script id="currentStrategy" type="text/html">
     <select id="strategyId" name="strategyId" lay-filter="strategyId">
@@ -162,6 +184,7 @@
     <span class="layui-badge layui-bg-orange" title="价格涨跌幅">{{= d.data.strategyData.range}}%</span>
     </div>
 </script>
+<script src="chart/chart.js"></script>
 <script src="common.js"></script>
 <script src="index.js"></script>
 </body>
