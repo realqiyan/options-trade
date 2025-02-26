@@ -31,7 +31,6 @@ import java.util.List;
 @Component
 public class OptionsManager {
 
-    public static final int INDICATOR_SIZE = 10;
     @Autowired
     private OptionsChainGateway optionsChainGateway;
 
@@ -88,20 +87,20 @@ public class OptionsManager {
             BarSeries barSeries = convertToBarSeries(dayCandlesticks);
             ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
 
-            stockIndicator.setRsi(getValueList(new RSIIndicator(closePrice, 14), INDICATOR_SIZE));
-            stockIndicator.setEma5(getValueList(new EMAIndicator(closePrice, 5), INDICATOR_SIZE));
-            stockIndicator.setEma20(getValueList(new EMAIndicator(closePrice, 20), INDICATOR_SIZE));
-            stockIndicator.setMacd(getValueList(new MACDIndicator(closePrice, 12, 26), INDICATOR_SIZE));
+            stockIndicator.setRsi(getValueList(new RSIIndicator(closePrice, 14)));
+            stockIndicator.setEma5(getValueList(new EMAIndicator(closePrice, 5)));
+            stockIndicator.setEma20(getValueList(new EMAIndicator(closePrice, 20)));
+            stockIndicator.setMacd(getValueList(new MACDIndicator(closePrice, 12, 26)));
 
         }
 
         return optionsChain;
     }
 
-    private List<BigDecimal> getValueList(CachedIndicator<Num> indicator, int size) {
+    private List<BigDecimal> getValueList(CachedIndicator<Num> indicator) {
         int endIndex = indicator.getBarSeries().getEndIndex();
         List<BigDecimal> result = new ArrayList<>();
-        for (int i = endIndex; i >= endIndex - size && i >= 0; i--) {
+        for (int i = endIndex; i >= 0; i--) {
             Num value = indicator.getValue(i);
             result.add(value.bigDecimalValue().setScale(2, RoundingMode.HALF_UP));
         }
