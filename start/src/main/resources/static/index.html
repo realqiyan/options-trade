@@ -131,28 +131,28 @@
     <br/>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('chartZone','RSI',[{{= d.stockIndicator.rsi }}],'line')">
+            <a href="javascript:;" onclick="showChart('RSI',[{{= d.stockIndicator.rsi }}],'line')">
                 RSI:{{= d.stockIndicator.rsi?d.stockIndicator.rsi[0]:0 }}
             </a>
         </b>
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('chartZone','MACD',[{{= d.stockIndicator.macd }}],'bar')">
+            <a href="javascript:;" onclick="showChart('MACD',[{{= d.stockIndicator.macd }}],'bar')">
                 MACD:{{= d.stockIndicator.macd?d.stockIndicator.macd[0]:0 }}
             </a>
         </b>
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('chartZone','EMA-5',[{{= d.stockIndicator.ema5 }}],'line')">
+            <a href="javascript:;" onclick="showChart('EMA-5',[{{= d.stockIndicator.ema5 }}],'line')">
                 EMA5:{{= d.stockIndicator.ema5?d.stockIndicator.ema5[0]:0 }}
             </a>
         </b>
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('chartZone','EMA-20',[{{= d.stockIndicator.ema20 }}],'line')">
+            <a href="javascript:;" onclick="showChart('EMA-20',[{{= d.stockIndicator.ema20 }}],'line')">
                 EMA20:{{= d.stockIndicator.ema20?d.stockIndicator.ema20[0]:0 }}
             </a>
         </b>

@@ -62,7 +62,7 @@ public class OptionsManager {
         stockIndicator.setSecurityQuote(securityQuote);
 
         // 日K线
-        SecurityCandlestick dayCandlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 60, CandlestickAdjustType.FORWARD_ADJUST);
+        SecurityCandlestick dayCandlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 50, CandlestickAdjustType.FORWARD_ADJUST);
         if (null != dayCandlesticks && !CollectionUtils.isEmpty(dayCandlesticks.getCandlesticks())) {
 
             SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(dayCandlesticks, 5);
@@ -100,7 +100,8 @@ public class OptionsManager {
     private List<BigDecimal> getValueList(CachedIndicator<Num> indicator) {
         int endIndex = indicator.getBarSeries().getEndIndex();
         List<BigDecimal> result = new ArrayList<>();
-        for (int i = endIndex; i >= 0; i--) {
+        // 排除掉 unstableBars 和 最早3天的数据
+        for (int i = endIndex; i >= indicator.getUnstableBars() + 3; i--) {
             Num value = indicator.getValue(i);
             result.add(value.bigDecimalValue().setScale(2, RoundingMode.HALF_UP));
         }

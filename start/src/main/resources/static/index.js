@@ -2,8 +2,11 @@
 var currentStrategyId;
 var currentCode;
 var currentMarket;
-var currentPrompt;
 var currentOwnerData;
+
+var currentPrompt;
+var currentLabel;
+var currentChart;
 
 function filterStrategyByCode(jsonArray, code) {
     return jsonArray.filter(item => item.code === code);
@@ -19,21 +22,25 @@ function strategyLoad(code){
     currentStrategyId = localStorage.getItem(code+'_strategyId');
     console.log('strategyLoad code:'+ code+' currentStrategyId:'+currentStrategyId);
 }
-var currentLabel;
-var currentChart;
-function showChart(chartId,label,data,type){
-    const ctx = document.getElementById(chartId);
+function resetContent(title){
+    document.getElementById("title").innerHTML = title;
+    chartCanvas.style.display = 'none';
+    currentLabel = "";
+    currentPrompt = "";
+}
+var chartCanvas = document.getElementById('chartZone');
+function showChart(label,data,type){
     if(currentChart){
         currentChart.destroy();
-        ctx.removeAttribute('width');
+        chartCanvas.removeAttribute('width');
     }
-    if(ctx.style.display != 'none' && currentLabel == label){
-        ctx.style.display = 'none';
+    if(chartCanvas.style.display != 'none' && currentLabel == label){
+        chartCanvas.style.display = 'none';
     }else{
         data = data.reverse();
         currentLabel = label;
-        ctx.style.display = 'block';
-        currentChart = new Chart(ctx, {
+        chartCanvas.style.display = 'block';
+        currentChart = new Chart(chartCanvas, {
             type: type,
             data: {
               labels: data,
@@ -51,7 +58,7 @@ function showChart(chartId,label,data,type){
                 }
               },
               onClick: function(event, elements) {
-                 ctx.style.display = 'none';
+                 chartCanvas.style.display = 'none';
               }
             }
         });
@@ -70,6 +77,7 @@ function loadOptionsExpDate(code, market){
         time: new Date().getTime()
       },
       success: function( response ) {
+        resetContent("请选择期权到期日");
         var result = response.data;
         var output = document.getElementById("strike-list");
         output.innerHTML = "";
@@ -100,9 +108,8 @@ function loadOptionsExpDate(code, market){
 }
 // /options/chain/get?code=BABA&market=11&time=1733652854662&strikeTime=2024-12-13&strikeTimestamp=1734066000&optionExpiryDateDistance=5
 function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance){
-    currentPrompt = "";
     console.log('loadOptionsChain strikeTime:'+ strikeTime+' optionExpiryDateDistance:'+ optionExpiryDateDistance+' currentStrategyId:'+currentStrategyId);
-    document.getElementById("title").innerHTML = "loading...";
+    resetContent("loading...");
     $.ajax({
       url: "/options/chain/get",
       data: {
