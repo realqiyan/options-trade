@@ -63,11 +63,11 @@ public class OptionsManager {
         stockIndicator.setSecurityQuote(securityQuote);
 
         // 日K线
-        SecurityCandlestick dayCandlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 30, CandlestickAdjustType.FORWARD_ADJUST);
+        SecurityCandlestick dayCandlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 60, CandlestickAdjustType.FORWARD_ADJUST);
         if (null != dayCandlesticks && !CollectionUtils.isEmpty(dayCandlesticks.getCandlesticks())) {
 
             SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(dayCandlesticks, 5);
-            SecurityCandlestick monthCandlesticks = summarySecurityCandlestick(dayCandlesticks, dayCandlesticks.getCandlesticks().size());
+            SecurityCandlestick monthCandlesticks = summarySecurityCandlestick(dayCandlesticks, 25);
 
             if (null != weekCandlesticks && !CollectionUtils.isEmpty(weekCandlesticks.getCandlesticks())) {
                 Candlestick candlestick = weekCandlesticks.getCandlesticks().get(0);
