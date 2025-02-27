@@ -30,8 +30,17 @@ public enum TradeSide {
     BUY_BACK(4, -1, 2),
     ;
 
+    /**
+     * 交易类型
+     */
     private final int code;
+    /**
+     * 开销符号 -1花钱  1赚钱
+     */
     private final int sign;
+    /**
+     * 反向交易类型
+     */
     private final int reverseCode;
 
     TradeSide(int code, int sign, int reverseCode) {

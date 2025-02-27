@@ -111,12 +111,19 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         for (OwnerOrder securityOrder : securityOrders) {
             TradeSide tradeSide = TradeSide.of(securityOrder.getSide());
 
-            if (tradeSide.getSign() == 1) {
-                holdStockNum += securityOrder.getQuantity();
-                totalStockCost = totalStockCost.add(securityOrder.getPrice().multiply(new BigDecimal(securityOrder.getQuantity())));
-            } else if (tradeSide.getSign() == -1) {
-                holdStockNum -= securityOrder.getQuantity();
-                totalStockCost = totalStockCost.subtract(securityOrder.getPrice().multiply(new BigDecimal(securityOrder.getQuantity())));
+            switch (tradeSide) {
+                case BUY:
+                case BUY_BACK:
+                    holdStockNum += securityOrder.getQuantity();
+                    totalStockCost = totalStockCost.add(securityOrder.getPrice().multiply(new BigDecimal(securityOrder.getQuantity())));
+                    break;
+                case SELL:
+                case SELL_SHORT:
+                    holdStockNum -= securityOrder.getQuantity();
+                    totalStockCost = totalStockCost.subtract(securityOrder.getPrice().multiply(new BigDecimal(securityOrder.getQuantity())));
+                    break;
+                default:
+                    break;
             }
 
         }
