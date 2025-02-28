@@ -150,7 +150,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         // 所有未平仓的期权利润
         BigDecimal unrealizedOptionsIncome = allOptionsOrders.stream().filter(order -> Boolean.FALSE.equals(Boolean.valueOf(order.getExt().get(OrderExt.IS_CLOSE.getCode())))).map(order -> {
             BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-            return order.getPrice().multiply(lotSize).multiply(sign);
+            return order.getPrice().multiply(BigDecimal.valueOf(order.getQuantity())).multiply(lotSize).multiply(sign);
         }).reduce(BigDecimal.ZERO, BigDecimal::add);
         // 期权利润
         summary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
