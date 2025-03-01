@@ -59,7 +59,7 @@ public class DefaultSellStrategy extends BaseStrategy implements OptionsStrategy
             List<StockIndicatorItem> subList = value.subList(0, size);
 
             subList.forEach(item -> {
-                prompt.append(item.getDate()).append("的").append(key).append("为").append(item.getValue()).append("，");
+                prompt.append(item.getDate()).append("这周的").append(key).append("为").append(item.getValue()).append("，");
             });
         }
 
@@ -76,7 +76,7 @@ public class DefaultSellStrategy extends BaseStrategy implements OptionsStrategy
                 buildOptionsPrompt(prompt, put);
             }
         });
-        prompt.append("请帮我分析这些期权标的，告诉我是否适合交易，给我最优交易建议。");
+        prompt.append("请帮我分析当前股票指标和这些期权标的，帮我检查是否适合交易，如何适合交易请给我综合最优的交易建议和保守的交易建议。");
         return prompt.toString();
     }
 

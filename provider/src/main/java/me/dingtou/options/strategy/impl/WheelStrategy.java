@@ -90,9 +90,9 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
 
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
-        prompt.append("我在做期权的车轮策略（WheelStrategy），底层资产是").append(securityQuote.getSecurity().toString())
+        prompt.append("我在做期权的车轮策略（WheelStrategy），我会检查VIX是否大于30，VIX大于30我会暂停交易，其次会检查RSI，RSI小于30时MACD指标动量向上我才会继续交易，我还会检查关键支撑位")
+                .append("，当前操作的底层资产是").append(securityQuote.getSecurity().toString())
                 .append("，当前阶段是").append(isSellPutStage ? "卖出看跌期权（Cash-Secured Put）" : "卖出看涨期权（Covered Call）");
-
 
         if (isCoveredCallStage && null != finalUnderlyingOrder) {
             prompt.append("，当前指派的股票价格是").append(finalUnderlyingOrder.getPrice());
@@ -117,7 +117,7 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
             List<StockIndicatorItem> subList = value.subList(0, size);
 
             subList.forEach(item -> {
-                prompt.append(item.getDate()).append("的").append(key).append("为").append(item.getValue()).append("，");
+                prompt.append(item.getDate()).append("这周的").append(key).append("为").append(item.getValue()).append("，");
             });
         }
 
@@ -133,7 +133,7 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
                 buildOptionsPrompt(prompt, put);
             }
         });
-        prompt.append("请帮我分析这些期权标的，告诉我是否适合交易，给我最优交易建议。");
+        prompt.append("请帮我分析当前股票指标和这些期权标的，帮我检查是否适合交易，如何适合交易请给我综合最优的交易建议和保守的交易建议。");
         optionsChain.setPrompt(prompt.toString());
     }
 
