@@ -16,5 +16,5 @@ public class IndicatorKey {
     /**
      * EMA50
      */
-    public static final String EMA50 = "EMA50";
+    public static final String EMA50 = "ema50";
 }
