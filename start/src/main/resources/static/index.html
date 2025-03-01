@@ -131,19 +131,22 @@
     <br/>
     <span class="layui-badge layui-bg-orange">
         <b class="layui-font-16">
-            交易级别: {{= d.tradeLevel }}<b class="layui-font-12">(1:正常 0:不推荐)</b>
+            交易级别: {{= d.tradeLevel }}
         </b>
+        (1:正常 0:不推荐)
     </span>
     <span class="layui-badge layui-bg-orange">
         <b class="layui-font-16">
             VIX: {{= d.vixIndicator&&d.vixIndicator.currentVix?d.vixIndicator.currentVix.value:0 }}
         </b>
     </span>
+    <!--
     <span class="layui-badge layui-bg-orange">
         <b class="layui-font-16">
             S&P500: {{= d.vixIndicator&&d.vixIndicator.currentSp500?d.vixIndicator.currentSp500.value:0 }}
         </b>
     </span>
+    -->
     <span class="layui-badge">
         <b class="layui-font-16">
             <a href="javascript:;" onclick="showChart('RSI(Week)',{{= JSON.stringify(d.stockIndicator.indicatorMap.rsi) }},'line')">

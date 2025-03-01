@@ -6,8 +6,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.VixQueryGateway;
-import me.dingtou.options.model.Security;
-import me.dingtou.options.model.SecurityQuote;
 import me.dingtou.options.model.StockIndicatorItem;
 import me.dingtou.options.model.VixIndicator;
 import org.springframework.stereotype.Component;
@@ -33,7 +31,7 @@ public class VixQueryGatewayImpl implements VixQueryGateway {
      */
     private static final Cache<String, VixIndicator> VIX_CACHE = CacheBuilder.newBuilder()
             .maximumSize(1)
-            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
             .build();
 
     private static final String URL = "https://www.spglobal.com/spdji/zh/util/redesign/get-index-comparison-data.dot?compareArray=92026376&compareArray=340&periodFlag=monthToDateFlag&language_id=142";
