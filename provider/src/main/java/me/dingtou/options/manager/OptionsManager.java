@@ -2,14 +2,17 @@ package me.dingtou.options.manager;
 
 import me.dingtou.options.constant.CandlestickAdjustType;
 import me.dingtou.options.constant.CandlestickPeriod;
+import me.dingtou.options.constant.IndicatorKey;
 import me.dingtou.options.gateway.CandlestickGateway;
 import me.dingtou.options.gateway.OptionsChainGateway;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
+import me.dingtou.options.gateway.VixQueryGateway;
 import me.dingtou.options.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.indicators.CachedIndicator;
@@ -23,6 +26,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,6 +44,9 @@ public class OptionsManager {
 
     @Autowired
     private CandlestickGateway candlestickGateway;
+
+    @Autowired
+    private VixQueryGateway vixQueryGateway;
 
     public List<OptionsStrikeDate> queryOptionsExpDate(String code, Integer market) {
         if (StringUtils.isBlank(code) || null == market) {
@@ -62,11 +70,13 @@ public class OptionsManager {
         stockIndicator.setSecurityQuote(securityQuote);
 
         // 日K线
-        SecurityCandlestick dayCandlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 50, CandlestickAdjustType.FORWARD_ADJUST);
-        if (null != dayCandlesticks && !CollectionUtils.isEmpty(dayCandlesticks.getCandlesticks())) {
+        // SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 60, CandlestickAdjustType.FORWARD_ADJUST);
+        // 周K线
+        SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.WEEK, 60, CandlestickAdjustType.FORWARD_ADJUST);
+        if (null != candlesticks && !CollectionUtils.isEmpty(candlesticks.getCandlesticks())) {
 
-            SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(dayCandlesticks, 5);
-            SecurityCandlestick monthCandlesticks = summarySecurityCandlestick(dayCandlesticks, 25);
+            SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(candlesticks, 2);
+            SecurityCandlestick monthCandlesticks = summarySecurityCandlestick(candlesticks, 5);
 
             if (null != weekCandlesticks && !CollectionUtils.isEmpty(weekCandlesticks.getCandlesticks())) {
                 Candlestick candlestick = weekCandlesticks.getCandlesticks().get(0);
@@ -84,26 +94,31 @@ public class OptionsManager {
             }
 
             // 技术指标
-            BarSeries barSeries = convertToBarSeries(dayCandlesticks);
+            BarSeries barSeries = convertToBarSeries(candlesticks);
             ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
 
-            stockIndicator.setRsi(getValueList(new RSIIndicator(closePrice, 14)));
-            stockIndicator.setEma5(getValueList(new EMAIndicator(closePrice, 5)));
-            stockIndicator.setEma20(getValueList(new EMAIndicator(closePrice, 20)));
-            stockIndicator.setMacd(getValueList(new MACDIndicator(closePrice, 12, 26)));
+            stockIndicator.addIndicator(IndicatorKey.RSI, getValueList(new RSIIndicator(closePrice, 14), 14));
+            stockIndicator.addIndicator(IndicatorKey.MACD, getValueList(new MACDIndicator(closePrice, 12, 26), 26));
+            stockIndicator.addIndicator(IndicatorKey.EMA50, getValueList(new EMAIndicator(closePrice, 50), 0));
 
         }
+
+        VixIndicator vixIndicator = vixQueryGateway.queryCurrentVix();
+        optionsChain.setVixIndicator(vixIndicator);
 
         return optionsChain;
     }
 
-    private List<BigDecimal> getValueList(CachedIndicator<Num> indicator) {
+    private List<StockIndicatorItem> getValueList(CachedIndicator<Num> indicator, int offset) {
         int endIndex = indicator.getBarSeries().getEndIndex();
-        List<BigDecimal> result = new ArrayList<>();
+        List<StockIndicatorItem> result = new ArrayList<>();
+        DateTimeFormatter dateTimeFormatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd").toFormatter();
         // 排除掉 unstableBars 和 最早3天的数据
-        for (int i = endIndex; i >= indicator.getUnstableBars() + 3; i--) {
+        for (int i = endIndex; i >= indicator.getUnstableBars() + offset; i--) {
             Num value = indicator.getValue(i);
-            result.add(value.bigDecimalValue().setScale(2, RoundingMode.HALF_UP));
+            Bar bar = indicator.getBarSeries().getBar(i);
+            BigDecimal val = value.bigDecimalValue().setScale(2, RoundingMode.HALF_UP);
+            result.add(new StockIndicatorItem(bar.getEndTime().format(dateTimeFormatter), val));
         }
         return result;
     }

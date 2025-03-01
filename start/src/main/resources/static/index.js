@@ -43,10 +43,10 @@ function showChart(label,data,type){
         currentChart = new Chart(chartCanvas, {
             type: type,
             data: {
-              labels: data,
+              labels: data.map(item => item.date),
               datasets: [{
                 label: label,
-                data: data,
+                data: data.map(item => item.value),
                 borderWidth: 1
               }]
             },

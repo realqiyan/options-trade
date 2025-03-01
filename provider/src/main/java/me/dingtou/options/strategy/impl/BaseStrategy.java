@@ -43,6 +43,7 @@ public abstract class BaseStrategy implements OptionsStrategy {
         SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
         BigDecimal securityPrice = securityQuote.getLastDone();
         BigDecimal dte = new BigDecimal(optionsStrikeDate.getOptionExpiryDateDistance());
+        optionsChain.setTradeLevel(1);
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
             if (null != call) {

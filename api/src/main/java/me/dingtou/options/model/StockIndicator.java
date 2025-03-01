@@ -3,7 +3,9 @@ package me.dingtou.options.model;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 股票行情
@@ -38,24 +40,29 @@ public class StockIndicator {
      */
     private Candlestick monthCandlestick;
 
-    /**
-     * 近几天RSI
-     */
-    private List<BigDecimal> rsi;
 
     /**
-     * 近几天EMA5
+     * 趋势指标
      */
-    private List<BigDecimal> ema5;
+    private final Map<String, List<StockIndicatorItem>> indicatorMap = new HashMap<>();
 
     /**
-     * 近几天EMA20
+     * 加入趋势指标
+     *
+     * @param key  指标key
+     * @param line 指标线
      */
-    private List<BigDecimal> ema20;
+    public void addIndicator(String key, List<StockIndicatorItem> line) {
+        this.indicatorMap.put(key, line);
+    }
 
     /**
-     * 近几天MACD
+     * 移除趋势指标
+     *
+     * @param key 指标key
      */
-    private List<BigDecimal> macd;
+    public void removeIndicator(String key) {
+        this.indicatorMap.remove(key);
+    }
 
 }

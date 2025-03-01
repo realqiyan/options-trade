@@ -2,11 +2,14 @@ package me.dingtou.options.strategy.impl;
 
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.IndicatorKey;
 import me.dingtou.options.model.*;
 import me.dingtou.options.strategy.OptionsStrategy;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -73,37 +76,51 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
             }
         });
 
+        VixIndicator vixIndicator = optionsChain.getVixIndicator();
+        StockIndicator stockIndicator = optionsChain.getStockIndicator();
+
+
+        int tradeLevel = tradeLevel(vixIndicator, stockIndicator);
+        optionsChain.setTradeLevel(tradeLevel);
+
 
         // AI分析提示词
-        StockIndicator stockIndicator = optionsChain.getStockIndicator();
+
         SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
+
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
         prompt.append("我在做期权的车轮策略（WheelStrategy），底层资产是").append(securityQuote.getSecurity().toString())
                 .append("，当前阶段是").append(isSellPutStage ? "卖出看跌期权（Cash-Secured Put）" : "卖出看涨期权（Covered Call）");
 
+
         if (isCoveredCallStage && null != finalUnderlyingOrder) {
             prompt.append("，当前指派的股票价格是").append(finalUnderlyingOrder.getPrice());
         }
+        if (null != vixIndicator && null != vixIndicator.getCurrentVix()) {
+            prompt.append("，当前VIX指数为").append(vixIndicator.getCurrentVix().getValue());
+        }
         prompt.append("，当前股价").append(securityPrice)
                 .append("，近一周价格波动").append(stockIndicator.getWeekPriceRange())
+                .append("，近一周价格波动").append(stockIndicator.getWeekPriceRange())
                 .append("，近一月价格波动").append(stockIndicator.getMonthPriceRange());
-        if (null != stockIndicator.getEma5()) {
-            prompt.append("，当前EMA5为").append(stockIndicator.getEma5().get(0))
-                    .append("（最近几天由近到远的EMA5分别是：").append(stockIndicator.getEma5().toString());
+
+        Map<String, List<StockIndicatorItem>> lineMap = stockIndicator.getIndicatorMap();
+        int weekSize = 10;
+        for (Map.Entry<String, List<StockIndicatorItem>> entry : lineMap.entrySet()) {
+            String key = entry.getKey();
+            List<StockIndicatorItem> value = entry.getValue();
+            prompt.append("，当前").append(key).append("为").append(value.get(0).getValue())
+                    .append("（最近").append(weekSize).append("周的周线").append(key).append("分别是：");
+
+            int size = Math.min(value.size(), weekSize);
+            List<StockIndicatorItem> subList = value.subList(0, size);
+
+            subList.forEach(item -> {
+                prompt.append(item.getDate()).append("的").append(key).append("为").append(item.getValue()).append("，");
+            });
         }
-        if (null != stockIndicator.getEma20()) {
-            prompt.append("），当前EMA20为").append(stockIndicator.getEma20().get(0))
-                    .append("（最近几天由近到远的EMA20分别是：").append(stockIndicator.getEma20().toString());
-        }
-        if (null != stockIndicator.getRsi()) {
-            prompt.append("），当前RSI为").append(stockIndicator.getRsi().get(0))
-                    .append("（最近几天由近到远的RSI分别是：").append(stockIndicator.getRsi().toString());
-        }
-        if (null != stockIndicator.getMacd()) {
-            prompt.append("），当前MACD为").append(stockIndicator.getMacd().get(0))
-                    .append("（最近几天由近到远的MACD分别是：").append(stockIndicator.getMacd().toString());
-        }
+
         prompt.append("），当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
                 .append("天，我当前计划交易的期权实时信息如下：\n");
         optionsChain.getOptionList().forEach(optionsTuple -> {
@@ -118,6 +135,57 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
         });
         prompt.append("请帮我分析这些期权标的，告诉我是否适合交易，给我最优交易建议。");
         optionsChain.setPrompt(prompt.toString());
+    }
+
+    private int tradeLevel(VixIndicator vixIndicator, StockIndicator stockIndicator) {
+        // 1. 市场安全评估,检查VIX恐慌指数. VIX＞30：停止操作（市场波动剧烈）
+        if (null != vixIndicator && null != vixIndicator.getCurrentVix()) {
+            BigDecimal vixVal = vixIndicator.getCurrentVix().getValue();
+            if (vixVal.compareTo(BigDecimal.valueOf(30)) > 0) {
+                log.warn("当前VIX指数为{}，不建议交易", vixVal);
+                return 0;
+            }
+        }
+
+        // 2. 个股交易安全性,检查期权到期前是否有财报发布
+        // 暂且人工确认
+
+        // 3. 技术指标分析（基于周线图）
+        // 	  ➠ 检查相对强弱指数RSI
+        //	    • RSI＜30（超卖区域）：进行MACD验证
+        //      • RSI≥30：直接进入第四项检查
+        //	  ➠ MACD指标验证（参数12,26,9）
+        //	    • 动量向上：表明股价可能从支撑位反弹，进入最终检查
+        //	    • 动量向下：规避该股（存在强烈下跌趋势）
+        if (null != stockIndicator) {
+            // 检查当前相对强弱指数RSI
+            List<StockIndicatorItem> rsiList = stockIndicator.getIndicatorMap().get(IndicatorKey.RSI);
+            if (null != rsiList && !rsiList.isEmpty()) {
+                BigDecimal rsiVal = rsiList.get(0).getValue();
+                // RSI＜30（超卖区域）：进行MACD验证
+                if (rsiVal.compareTo(BigDecimal.valueOf(30)) < 0) {
+                    List<StockIndicatorItem> macdList = stockIndicator.getIndicatorMap().get(IndicatorKey.MACD);
+                    if (null != macdList && macdList.size() > 1) {
+                        // 最近一周小于上一周 则不建议交易
+                        if (macdList.get(0).getValue().compareTo(macdList.get(1).getValue()) < 0) {
+                            log.warn("当前RSI为{}，近两周MACD为{}，{}，不建议交易", rsiVal, macdList.get(0).getValue(), macdList.get(1).getValue());
+                            return 0;
+                        }
+                    }
+                }
+
+                // 【加项】RSI>70也不推荐
+                if (rsiVal.compareTo(BigDecimal.valueOf(70)) > 0) {
+                    log.warn("当前RSI为{}，超买状态不建议交易", rsiVal);
+                    return 0;
+                }
+            }
+        }
+
+        // 4. 关键支撑位判定  观察1年周期周线图
+        // 暂且人工确认 Bollinger Bands (Length: 20; Deviations: 2)
+
+        return 1;
     }
 
     private void buildOptionsPrompt(StringBuilder prompt, Options options) {

@@ -129,31 +129,39 @@
     -
     <a href="https://yuanbao.tencent.com/chat/" target="_blank">元宝</a>
     <br/>
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+            交易级别: {{= d.tradeLevel }}<b class="layui-font-12">(1:正常 0:不推荐)</b>
+        </b>
+    </span>
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+            VIX: {{= d.vixIndicator&&d.vixIndicator.currentVix?d.vixIndicator.currentVix.value:0 }}
+        </b>
+    </span>
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+            S&P500: {{= d.vixIndicator&&d.vixIndicator.currentSp500?d.vixIndicator.currentSp500.value:0 }}
+        </b>
+    </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('RSI',[{{= d.stockIndicator.rsi }}],'line')">
-                RSI:{{= d.stockIndicator.rsi?d.stockIndicator.rsi[0]:0 }}
+            <a href="javascript:;" onclick="showChart('RSI(Week)',{{= JSON.stringify(d.stockIndicator.indicatorMap.rsi) }},'line')">
+                RSI: {{= d.stockIndicator.indicatorMap.rsi?d.stockIndicator.indicatorMap.rsi[0].value:0 }}
             </a>
         </b>
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('MACD',[{{= d.stockIndicator.macd }}],'bar')">
-                MACD:{{= d.stockIndicator.macd?d.stockIndicator.macd[0]:0 }}
+            <a href="javascript:;" onclick="showChart('MACD(Week)',{{= JSON.stringify(d.stockIndicator.indicatorMap.macd) }},'bar')">
+                MACD: {{= d.stockIndicator.indicatorMap.macd?d.stockIndicator.indicatorMap.macd[0].value:0 }}
             </a>
         </b>
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('EMA-5',[{{= d.stockIndicator.ema5 }}],'line')">
-                EMA5:{{= d.stockIndicator.ema5?d.stockIndicator.ema5[0]:0 }}
-            </a>
-        </b>
-    </span>
-    <span class="layui-badge">
-        <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('EMA-20',[{{= d.stockIndicator.ema20 }}],'line')">
-                EMA20:{{= d.stockIndicator.ema20?d.stockIndicator.ema20[0]:0 }}
+            <a href="javascript:;" onclick="showChart('EMA-50(Week)',{{= JSON.stringify(d.stockIndicator.indicatorMap.ema50) }},'line')">
+                EMA50: {{= d.stockIndicator.indicatorMap.ema50?d.stockIndicator.indicatorMap.ema50[0].value:0 }}
             </a>
         </b>
     </span>

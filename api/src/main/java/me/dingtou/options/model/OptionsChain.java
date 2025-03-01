@@ -24,17 +24,26 @@ public class OptionsChain {
     private Long strikeTimestamp;
 
     /**
+     * VIX指标
+     */
+    private VixIndicator vixIndicator;
+
+    /**
      * 股票指标
      */
     private StockIndicator stockIndicator;
-
-
 
     /**
      * 期权列表
      */
     private List<OptionsTuple> optionList;
 
+    /**
+     * 交易级别
+     * 0: 不推荐
+     * 1: 正常
+     */
+    private Integer tradeLevel;
 
     /**
      * AI提示词

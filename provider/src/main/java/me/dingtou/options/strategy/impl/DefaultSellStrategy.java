@@ -5,6 +5,9 @@ import me.dingtou.options.strategy.OptionsStrategy;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Component
 public class DefaultSellStrategy extends BaseStrategy implements OptionsStrategy {
@@ -36,25 +39,30 @@ public class DefaultSellStrategy extends BaseStrategy implements OptionsStrategy
         StringBuilder prompt = new StringBuilder();
         // 股票{{=d.currentCode}}当前股价{{=lastDone}},近一周价格波动{{=d.weekPriceRange}}，近一月价格波动{{=d.monthPriceRange}}，当前齐全
         prompt.append("我在做卖期权的策略，目的是通过卖").append(securityQuote.getSecurity().toString())
-                .append("的期权赚取权利金，当前股价").append(securityPrice)
-                .append("，近一周价格波动").append(stockIndicator.getWeekPriceRange())
+                .append("的期权赚取权利金，当前股价").append(securityPrice);
+        if (null != optionsChain.getVixIndicator()) {
+            VixIndicator vixIndicator = optionsChain.getVixIndicator();
+            prompt.append("，当前VIX指数为").append(vixIndicator.getCurrentVix().getValue());
+        }
+        prompt.append("，近一周价格波动").append(stockIndicator.getWeekPriceRange())
                 .append("，近一月价格波动").append(stockIndicator.getMonthPriceRange());
-        if (null != stockIndicator.getEma5()) {
-            prompt.append("，当前EMA5为").append(stockIndicator.getEma5().get(0))
-                    .append("（最近几天由近到远的EMA5分别是：").append(stockIndicator.getEma5().toString());
+
+        Map<String, List<StockIndicatorItem>> lineMap = stockIndicator.getIndicatorMap();
+        int weekSize = 10;
+        for (Map.Entry<String, List<StockIndicatorItem>> entry : lineMap.entrySet()) {
+            String key = entry.getKey();
+            List<StockIndicatorItem> value = entry.getValue();
+            prompt.append("，当前").append(key).append("为").append(value.get(0).getValue())
+                    .append("（最近").append(weekSize).append("周的周线").append(key).append("分别是：");
+
+            int size = Math.min(value.size(), weekSize);
+            List<StockIndicatorItem> subList = value.subList(0, size);
+
+            subList.forEach(item -> {
+                prompt.append(item.getDate()).append("的").append(key).append("为").append(item.getValue()).append("，");
+            });
         }
-        if (null != stockIndicator.getEma20()) {
-            prompt.append("），当前EMA20为").append(stockIndicator.getEma20().get(0))
-                    .append("（最近几天由近到远的EMA20分别是：").append(stockIndicator.getEma20().toString());
-        }
-        if (null != stockIndicator.getRsi()) {
-            prompt.append("），当前RSI为").append(stockIndicator.getRsi().get(0))
-                    .append("（最近几天由近到远的RSI分别是：").append(stockIndicator.getRsi().toString());
-        }
-        if (null != stockIndicator.getMacd()) {
-            prompt.append("），当前MACD为").append(stockIndicator.getMacd().get(0))
-                    .append("（最近几天由近到远的MACD分别是：").append(stockIndicator.getMacd().toString());
-        }
+
         prompt.append("），当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
                 .append("，当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
                 .append("天，准备交易的期权实时信息如下：\n");
