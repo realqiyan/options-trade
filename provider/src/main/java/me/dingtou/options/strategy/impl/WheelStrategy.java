@@ -90,7 +90,7 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
 
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
-        prompt.append("我在做期权的车轮策略（WheelStrategy），我会检查VIX是否大于30，VIX大于30我会暂停交易，其次会检查RSI，RSI小于30时MACD指标动量向上我才会继续交易，我还会检查关键支撑位")
+        prompt.append("我在做期权的车轮策略（WheelStrategy），我会检查VIX是否大于30，VIX大于30我会暂停交易，其次会检查RSI是否在30到70之间，如果RSI小于30时MACD指标动量向上我也会继续交易，我还会检查关键支撑位")
                 .append("，当前操作的底层资产是").append(securityQuote.getSecurity().toString())
                 .append("，当前阶段是").append(isSellPutStage ? "卖出看跌期权（Cash-Secured Put）" : "卖出看涨期权（Covered Call）");
 
