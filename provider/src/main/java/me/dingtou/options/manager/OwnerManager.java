@@ -14,6 +14,7 @@ import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncGetOptionsRealtimeData;
 import me.dingtou.options.model.*;
+import me.dingtou.options.util.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -212,7 +213,7 @@ public class OwnerManager {
             ownerOrder.getExt().put(OrderExt.CUR_PRICE.getCode(), curPrice.toString());
             TradeSide tradeSide = TradeSide.of(ownerOrder.getSide());
             if (TradeSide.SELL.equals(tradeSide) || TradeSide.SELL_SHORT.equals(tradeSide)) {
-                BigDecimal profitRatio = ownerOrder.getPrice().subtract(curPrice).divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal profitRatio = NumberUtils.scale(ownerOrder.getPrice().subtract(curPrice).divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)));
                 ownerOrder.getExt().put(OrderExt.PROFIT_RATIO.getCode(), profitRatio.toString());
             }
 

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.VixQueryGateway;
 import me.dingtou.options.model.StockIndicatorItem;
 import me.dingtou.options.model.VixIndicator;
+import me.dingtou.options.util.NumberUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -98,7 +99,8 @@ public class VixQueryGatewayImpl implements VixQueryGateway {
             String indexCode = item.path("indexCode").asText();
             long effectiveDate = item.path("effectiveDate").asLong();
             BigDecimal indexValue = new BigDecimal(item.path("indexValue").asText());
-            indexValue = indexValue.setScale(2, RoundingMode.HALF_UP);
+            // 保留三位小数并截断，避免进位。
+            indexValue = NumberUtils.scale(indexValue);
 
             String date = Instant.ofEpochMilli(effectiveDate)
                     .atZone(ZoneId.systemDefault())

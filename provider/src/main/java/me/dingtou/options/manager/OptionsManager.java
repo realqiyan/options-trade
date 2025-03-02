@@ -8,6 +8,7 @@ import me.dingtou.options.gateway.OptionsChainGateway;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.gateway.VixQueryGateway;
 import me.dingtou.options.model.*;
+import me.dingtou.options.util.NumberUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -138,7 +139,8 @@ public class OptionsManager {
         for (int i = endIndex; i >= indicator.getUnstableBars() + offset; i--) {
             Num value = indicator.getValue(i);
             Bar bar = indicator.getBarSeries().getBar(i);
-            BigDecimal val = value.bigDecimalValue().setScale(2, RoundingMode.HALF_UP);
+            // 保留3位小数后直接截断
+            BigDecimal val = NumberUtils.scale(value.bigDecimalValue());
             result.add(new StockIndicatorItem(bar.getEndTime().format(dateTimeFormatter), val));
         }
         return result;

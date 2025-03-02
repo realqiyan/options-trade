@@ -2,6 +2,7 @@ package me.dingtou.options.strategy.impl;
 
 import me.dingtou.options.model.*;
 import me.dingtou.options.strategy.OptionsStrategy;
+import me.dingtou.options.util.NumberUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -58,7 +59,7 @@ public abstract class BaseStrategy implements OptionsStrategy {
 
                 // 是否推荐卖出
                 int level = 0;
-                BigDecimal delta = call.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
+                BigDecimal delta = NumberUtils.scale(call.getRealtimeData().getDelta().abs());
                 // delta小于0.30
                 boolean deltaRecommend = delta.compareTo(CALL_DELTA) <= 0;
                 // 卖出收益大于SELL_ANNUAL_YIELD
@@ -93,7 +94,7 @@ public abstract class BaseStrategy implements OptionsStrategy {
                 BigDecimal sellPutAnnualYield = calculateAnnualYield(put, securityPrice, dte);
                 putStrategyData.setSellAnnualYield(sellPutAnnualYield);
                 // 是否推荐卖出
-                BigDecimal delta = put.getRealtimeData().getDelta().abs().setScale(4, RoundingMode.HALF_UP);
+                BigDecimal delta = NumberUtils.scale(put.getRealtimeData().getDelta().abs());
                 // delta小于0.30
                 boolean deltaRecommend = delta.compareTo(SELL_DELTA) <= 0;
                 // 卖出收益大于SELL_ANNUAL_YIELD
@@ -144,12 +145,11 @@ public abstract class BaseStrategy implements OptionsStrategy {
         if (dte.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
-        return afterIncome
+        return NumberUtils.scale(afterIncome
                 .divide(dte, 4, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal(365))
                 .divide(totalPrice, 4, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100))
-                .setScale(2, RoundingMode.HALF_UP);
+                .multiply(BigDecimal.valueOf(100)));
     }
 
     private BigDecimal calculateFee(Security security) {
@@ -161,9 +161,8 @@ public abstract class BaseStrategy implements OptionsStrategy {
         if (BigDecimal.ZERO.equals(securityPrice)) {
             return BigDecimal.ZERO;
         }
-        return strikePrice.subtract(securityPrice)
+        return NumberUtils.scale(strikePrice.subtract(securityPrice)
                 .divide(securityPrice, 4, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100))
-                .setScale(2, RoundingMode.HALF_UP);
+                .multiply(BigDecimal.valueOf(100)));
     }
 }
