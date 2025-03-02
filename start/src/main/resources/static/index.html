@@ -163,19 +163,23 @@
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('EMA-50(Week)',{{= JSON.stringify(d.stockIndicator.indicatorMap.ema50) }},'line')">
-                EMA50: {{= d.stockIndicator.indicatorMap.ema50?d.stockIndicator.indicatorMap.ema50[0].value:0 }}
+            <a href="javascript:;" onclick="showChart('EMA(Week)', {
+                'EMA5(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.ema5) }},
+                'EMA50(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.ema50) }}
+            }, 'line')">
+                EMA(5 50): {{= d.stockIndicator.indicatorMap.ema5?d.stockIndicator.indicatorMap.ema5[0].value:0 }}
+                {{= d.stockIndicator.indicatorMap.ema50?d.stockIndicator.indicatorMap.ema50[0].value:0 }}
             </a>
         </b>
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('BOLL指标(Week)', {
+            <a href="javascript:;" onclick="showChart('BOLL(Week)', {
+                'BOLL下轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_lower) }},
                 'BOLL中轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_middle) }},
-                'BOLL上轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_upper) }},
-                'BOLL下轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_lower) }}
+                'BOLL上轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_upper) }}
             }, 'line')">
-                BOLL指标:
+                BOLL(下轨 中轨 上轨):
                 {{= d.stockIndicator.indicatorMap.boll_lower?d.stockIndicator.indicatorMap.boll_lower[0].value:0 }}
                 {{= d.stockIndicator.indicatorMap.boll_middle?d.stockIndicator.indicatorMap.boll_middle[0].value:0 }}
                 {{= d.stockIndicator.indicatorMap.boll_upper?d.stockIndicator.indicatorMap.boll_upper[0].value:0 }}

@@ -14,6 +14,10 @@ public enum IndicatorKey {
      */
     MACD("macd", "MACD"),
     /**
+     * EMA5
+     */
+    EMA5("ema5", "EMA5"),
+    /**
      * EMA50
      */
     EMA50("ema50", "EMA50"),

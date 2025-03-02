@@ -66,6 +66,15 @@ function showChart(label, data, type) {
             }
         }
 
+        // 对齐数据 找到最大长度
+        const maxLength = Math.max(...datasets.map(dataset => dataset.data.length));
+        // 填充数据
+        datasets.forEach(dataset => {
+            while (dataset.data.length < maxLength) {
+                dataset.data.unshift(null);
+            }
+        });
+
         currentChart = new Chart(chartCanvas, {
             type: type,
             data: {

@@ -109,7 +109,8 @@ public class OptionsManager {
             stockIndicator.addIndicator(IndicatorKey.RSI.getKey(), getValueList(new RSIIndicator(closePrice, 14), 14));
             // MACD
             stockIndicator.addIndicator(IndicatorKey.MACD.getKey(), getValueList(new MACDIndicator(closePrice, 12, 26), 26));
-            // EMA50
+            // EMA
+            stockIndicator.addIndicator(IndicatorKey.EMA5.getKey(), getValueList(new EMAIndicator(closePrice, 5), 20));
             stockIndicator.addIndicator(IndicatorKey.EMA50.getKey(), getValueList(new EMAIndicator(closePrice, 50), 0));
             // BOLL
             BollingerBandsMiddleIndicator bollingerMiddle = new BollingerBandsMiddleIndicator(new EMAIndicator(closePrice, 20));
