@@ -54,7 +54,7 @@ public class DefaultSellStrategy extends BaseStrategy implements OptionsStrategy
             IndicatorKey indicatorKey = IndicatorKey.of(entry.getKey());
             List<StockIndicatorItem> value = entry.getValue();
             prompt.append("，当前").append(indicatorKey.getDisplayName()).append("为").append(value.get(0).getValue())
-                    .append("（最近").append(weekSize).append("周的周K").append(indicatorKey.getDisplayName()).append("如下：");
+                    .append("（最近").append(weekSize).append("周的周K线").append(indicatorKey.getDisplayName()).append("如下：");
 
             int size = Math.min(value.size(), weekSize);
             List<StockIndicatorItem> subList = value.subList(0, size);
