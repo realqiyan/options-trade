@@ -29,37 +29,59 @@ function resetContent(title){
     currentPrompt = "";
 }
 var chartCanvas = document.getElementById('chartZone');
-function showChart(label,data,type){
-    if(currentChart){
+function showChart(label, data, type) {
+    if (currentChart) {
         currentChart.destroy();
         chartCanvas.removeAttribute('width');
     }
-    if(chartCanvas.style.display != 'none' && currentLabel == label){
+    if (chartCanvas.style.display != 'none' && currentLabel == label) {
         chartCanvas.style.display = 'none';
-    }else{
-        data = data.reverse();
-        currentLabel = label;
+    } else {
         chartCanvas.style.display = 'block';
+        currentLabel = label;
+
+        var labels;
+        const datasets = [];
+        if (Array.isArray(data)) {
+            // 单图表情况
+            const reversedData = data.reverse();
+            labels = reversedData.map(item => item.date);
+            datasets.push({
+                label: label,
+                data: reversedData.map(item => item.value),
+                borderWidth: 1
+            });
+        } else {
+            // 多图表情况
+            for (const [key, value] of Object.entries(data)) {
+                const reversedData = value.reverse();
+                if(!labels || labels.length < reversedData.length){
+                    labels = reversedData.map(item => item.date);
+                }
+                datasets.push({
+                    label: key,
+                    data: reversedData.map(item => item.value),
+                    borderWidth: 1
+                });
+            }
+        }
+
         currentChart = new Chart(chartCanvas, {
             type: type,
             data: {
-              labels: data.map(item => item.date),
-              datasets: [{
-                label: label,
-                data: data.map(item => item.value),
-                borderWidth: 1
-              }]
+                labels: labels,
+                datasets: datasets
             },
             options: {
-              responsive: false,
-              scales: {
-                y: {
-                  //beginAtZero: true
+                responsive: false,
+                scales: {
+                    y: {
+                        // beginAtZero: true
+                    }
+                },
+                onClick: function (event, elements) {
+                    chartCanvas.style.display = 'none';
                 }
-              },
-              onClick: function(event, elements) {
-                 chartCanvas.style.display = 'none';
-              }
             }
         });
     }

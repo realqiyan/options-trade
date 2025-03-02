@@ -1,20 +1,60 @@
 package me.dingtou.options.constant;
 
-public class IndicatorKey {
+import lombok.Getter;
+
+@Getter
+public enum IndicatorKey {
+
     /**
      * RSI
      */
-    public static final String RSI = "rsi";
+    RSI("rsi", "RSI"),
     /**
      * MACD
      */
-    public static final String MACD = "macd";
-    /**
-     * BOLL
-     */
-    public static final String BOLL = "boll";
+    MACD("macd", "MACD"),
     /**
      * EMA50
      */
-    public static final String EMA50 = "ema50";
+    EMA50("ema50", "EMA50"),
+    /**
+     * BOLL_MIDDLE
+     */
+    BOLL_MIDDLE("boll_middle", "BOLL中轨"),
+    /**
+     * BOLL_UPPER
+     */
+    BOLL_UPPER("boll_upper", "BOLL上轨"),
+    /**
+     * BOLL_LOWER
+     */
+    BOLL_LOWER("boll_lower", "BOLL下轨"),
+    ;
+
+
+    /**
+     * key
+     */
+    private final String key;
+    /**
+     * display name
+     */
+    private final String displayName;
+
+    IndicatorKey(String key, String displayName) {
+        this.key = key;
+        this.displayName = displayName;
+    }
+
+    public static IndicatorKey of(String key) {
+        IndicatorKey[] values = IndicatorKey.values();
+        for (IndicatorKey val : values) {
+            if (val.getKey().equals(key)) {
+                return val;
+            }
+        }
+        throw new IllegalArgumentException(key + " not found.");
+    }
+
+
 }

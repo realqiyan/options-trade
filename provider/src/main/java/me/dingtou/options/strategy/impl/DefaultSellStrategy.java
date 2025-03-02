@@ -1,5 +1,6 @@
 package me.dingtou.options.strategy.impl;
 
+import me.dingtou.options.constant.IndicatorKey;
 import me.dingtou.options.model.*;
 import me.dingtou.options.strategy.OptionsStrategy;
 import org.springframework.stereotype.Component;
@@ -50,16 +51,16 @@ public class DefaultSellStrategy extends BaseStrategy implements OptionsStrategy
         Map<String, List<StockIndicatorItem>> lineMap = stockIndicator.getIndicatorMap();
         int weekSize = 10;
         for (Map.Entry<String, List<StockIndicatorItem>> entry : lineMap.entrySet()) {
-            String key = entry.getKey();
+            IndicatorKey indicatorKey = IndicatorKey.of(entry.getKey());
             List<StockIndicatorItem> value = entry.getValue();
-            prompt.append("，当前").append(key).append("为").append(value.get(0).getValue())
-                    .append("（最近").append(weekSize).append("周的周线").append(key).append("分别是：");
+            prompt.append("，当前").append(indicatorKey.getDisplayName()).append("为").append(value.get(0).getValue())
+                    .append("（最近").append(weekSize).append("周的周K").append(indicatorKey.getDisplayName()).append("如下：");
 
             int size = Math.min(value.size(), weekSize);
             List<StockIndicatorItem> subList = value.subList(0, size);
 
             subList.forEach(item -> {
-                prompt.append(item.getDate()).append("这周的").append(key).append("为").append(item.getValue()).append("，");
+                prompt.append(item.getDate()).append("这周的").append(indicatorKey.getDisplayName()).append("为").append(item.getValue()).append("，");
             });
         }
 

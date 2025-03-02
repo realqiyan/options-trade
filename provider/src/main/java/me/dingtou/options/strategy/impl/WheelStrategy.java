@@ -108,16 +108,16 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
         Map<String, List<StockIndicatorItem>> lineMap = stockIndicator.getIndicatorMap();
         int weekSize = 10;
         for (Map.Entry<String, List<StockIndicatorItem>> entry : lineMap.entrySet()) {
-            String key = entry.getKey();
+            IndicatorKey indicatorKey = IndicatorKey.of(entry.getKey());
             List<StockIndicatorItem> value = entry.getValue();
-            prompt.append("，当前").append(key).append("为").append(value.get(0).getValue())
-                    .append("（最近").append(weekSize).append("周的周线").append(key).append("分别是：");
+            prompt.append("，当前").append(indicatorKey.getDisplayName()).append("为").append(value.get(0).getValue())
+                    .append("（最近").append(weekSize).append("周的周K").append(indicatorKey.getDisplayName()).append("如下：");
 
             int size = Math.min(value.size(), weekSize);
             List<StockIndicatorItem> subList = value.subList(0, size);
 
             subList.forEach(item -> {
-                prompt.append(item.getDate()).append("这周的").append(key).append("为").append(item.getValue()).append("，");
+                prompt.append(item.getDate()).append("这周的").append(indicatorKey.getDisplayName()).append("为").append(item.getValue()).append("，");
             });
         }
 
@@ -159,12 +159,12 @@ public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
         //	    • 动量向下：规避该股（存在强烈下跌趋势）
         if (null != stockIndicator) {
             // 检查当前相对强弱指数RSI
-            List<StockIndicatorItem> rsiList = stockIndicator.getIndicatorMap().get(IndicatorKey.RSI);
+            List<StockIndicatorItem> rsiList = stockIndicator.getIndicatorMap().get(IndicatorKey.RSI.getKey());
             if (null != rsiList && !rsiList.isEmpty()) {
                 BigDecimal rsiVal = rsiList.get(0).getValue();
                 // RSI＜30（超卖区域）：进行MACD验证
                 if (rsiVal.compareTo(BigDecimal.valueOf(30)) < 0) {
-                    List<StockIndicatorItem> macdList = stockIndicator.getIndicatorMap().get(IndicatorKey.MACD);
+                    List<StockIndicatorItem> macdList = stockIndicator.getIndicatorMap().get(IndicatorKey.MACD.getKey());
                     if (null != macdList && macdList.size() > 1) {
                         // 最近一周小于上一周 则不建议交易
                         if (macdList.get(0).getValue().compareTo(macdList.get(1).getValue()) < 0) {

@@ -15,11 +15,18 @@ import org.springframework.util.CollectionUtils;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
+import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.CachedIndicator;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.MACDIndicator;
 import org.ta4j.core.indicators.RSIIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandWidthIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
+import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
+import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 import java.math.BigDecimal;
@@ -65,10 +72,11 @@ public class OptionsManager {
 
         // 期权链
         OptionsChain optionsChain = optionsChainGateway.queryOptionsChain(security, optionsStrikeDate.getStrikeTime(), securityQuote.getLastDone());
-        StockIndicator stockIndicator = new StockIndicator();
-        optionsChain.setStockIndicator(stockIndicator);
-        stockIndicator.setSecurityQuote(securityQuote);
 
+
+        // 策略分析提供基础指标数据
+        StockIndicator stockIndicator = new StockIndicator();
+        stockIndicator.setSecurityQuote(securityQuote);
         // 日K线
         // SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 60, CandlestickAdjustType.FORWARD_ADJUST);
         // 周K线
@@ -97,12 +105,24 @@ public class OptionsManager {
             BarSeries barSeries = convertToBarSeries(candlesticks);
             ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
 
-            stockIndicator.addIndicator(IndicatorKey.RSI, getValueList(new RSIIndicator(closePrice, 14), 14));
-            stockIndicator.addIndicator(IndicatorKey.MACD, getValueList(new MACDIndicator(closePrice, 12, 26), 26));
-            stockIndicator.addIndicator(IndicatorKey.EMA50, getValueList(new EMAIndicator(closePrice, 50), 0));
+            // RSI
+            stockIndicator.addIndicator(IndicatorKey.RSI.getKey(), getValueList(new RSIIndicator(closePrice, 14), 14));
+            // MACD
+            stockIndicator.addIndicator(IndicatorKey.MACD.getKey(), getValueList(new MACDIndicator(closePrice, 12, 26), 26));
+            // EMA50
+            stockIndicator.addIndicator(IndicatorKey.EMA50.getKey(), getValueList(new EMAIndicator(closePrice, 50), 0));
+            // BOLL
+            BollingerBandsMiddleIndicator bollingerMiddle = new BollingerBandsMiddleIndicator(new EMAIndicator(closePrice, 20));
+            Indicator<Num> deviation = new StandardDeviationIndicator(closePrice, 20);
+            Num k = DecimalNum.valueOf(2);
+            BollingerBandsUpperIndicator bollingerUpper = new BollingerBandsUpperIndicator(bollingerMiddle, deviation, k); // 上轨通常是中轨加上2倍标准差
+            BollingerBandsLowerIndicator bollingerLower = new BollingerBandsLowerIndicator(bollingerMiddle, deviation, k); // 下轨通常是中轨减去2倍标准差
+            stockIndicator.addIndicator(IndicatorKey.BOLL_MIDDLE.getKey(), getValueList(bollingerMiddle, 20));
+            stockIndicator.addIndicator(IndicatorKey.BOLL_UPPER.getKey(), getValueList(bollingerUpper, 20));
+            stockIndicator.addIndicator(IndicatorKey.BOLL_LOWER.getKey(), getValueList(bollingerLower, 20));
 
         }
-
+        optionsChain.setStockIndicator(stockIndicator);
         VixIndicator vixIndicator = vixQueryGateway.queryCurrentVix();
         optionsChain.setVixIndicator(vixIndicator);
 

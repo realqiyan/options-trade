@@ -168,6 +168,20 @@
             </a>
         </b>
     </span>
+    <span class="layui-badge">
+        <b class="layui-font-16">
+            <a href="javascript:;" onclick="showChart('BOLL指标(Week)', {
+                'BOLL中轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_middle) }},
+                'BOLL上轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_upper) }},
+                'BOLL下轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_lower) }}
+            }, 'line')">
+                BOLL指标:
+                {{= d.stockIndicator.indicatorMap.boll_lower?d.stockIndicator.indicatorMap.boll_lower[0].value:0 }}
+                {{= d.stockIndicator.indicatorMap.boll_middle?d.stockIndicator.indicatorMap.boll_middle[0].value:0 }}
+                {{= d.stockIndicator.indicatorMap.boll_upper?d.stockIndicator.indicatorMap.boll_upper[0].value:0 }}
+            </a>
+        </b>
+    </span>
 </script>
 <script id="currentStrategy" type="text/html">
     <select id="strategyId" name="strategyId" lay-filter="strategyId">
