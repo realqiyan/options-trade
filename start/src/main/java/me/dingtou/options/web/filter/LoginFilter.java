@@ -89,7 +89,7 @@ public class LoginFilter implements Filter {
      * 获取登录信息
      *
      * @param httpRequest  request
-     * @param httpResponse
+     * @param httpResponse httpResponse
      * @return LoginInfo
      */
     private LoginInfo getLoginInfo(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
@@ -107,9 +107,7 @@ public class LoginFilter implements Filter {
                 }
             }
 
-            LoginInfo user = loginFromCookie(httpRequest.getCookies());
-
-            return user;
+            return loginFromCookie(httpRequest.getCookies());
         } catch (Exception ex) {
             log.error("getLoginInfo error.", ex);
             return null;
