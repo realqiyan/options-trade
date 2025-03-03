@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.service.AuthService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +23,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Boolean auth(String owner, String otpPassword) {
-        String otpAuth = otpAuth(owner);
+        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
+        if (null == ownerAccount) {
+            log.warn("owner:{} not exist", owner);
+            return false;
+        }
+        String otpAuth = ownerAccount.getOtpAuth();
         // 内网环境不配置otpAuth时不检查
         if (null == otpAuth) {
-            log.warn("otpAuth is null, owner:{}", owner);
+            log.warn("auth,otpAuth is null, owner:{}", owner);
             return true;
         }
 
@@ -40,20 +46,16 @@ public class AuthServiceImpl implements AuthService {
 
     }
 
-    private String otpAuth(String owner) {
-        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
-        if (null == ownerAccount) {
-            log.warn("owner:{} not exist", owner);
-            return null;
-        }
-        return ownerAccount.getOtpAuth();
-    }
 
     @Override
     public String secretKeySha256(String owner) {
-        String otpAuth = otpAuth(owner);
+        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
+        if (null == ownerAccount) {
+            return StringUtils.EMPTY;
+        }
+        String otpAuth = ownerAccount.getOtpAuth();
         if (null == otpAuth) {
-            log.warn("otpAuth is null, owner:{}", owner);
+            log.warn("secretKeySha256,otpAuth is null, owner:{}", owner);
             return null;
         }
 
