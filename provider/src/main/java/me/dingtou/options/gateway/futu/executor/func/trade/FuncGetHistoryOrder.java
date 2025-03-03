@@ -98,7 +98,7 @@ public class FuncGetHistoryOrder implements TradeFunctionCall<List<OwnerOrder>> 
             final String underlyingCode;
             if (!matcher.find()) {
                 underlyingCode = code;
-                strikeTime = dateFormat.parse("2999-12-31 00:00:00.000");
+                strikeTime = dateFormat.parse(order.getCreateTime());
             } else {
                 underlyingCode = matcher.group(1);
                 SimpleDateFormat strikeTimeFormat = new SimpleDateFormat("yyMMdd");
