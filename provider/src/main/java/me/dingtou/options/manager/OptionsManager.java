@@ -29,6 +29,7 @@ import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -122,7 +123,7 @@ public class OptionsManager {
 
             //计算支撑位
             String lowSupport = calculateLowSupport(barSeries);
-            String maSupport = calculateMaSupport(barSeries);
+            String maSupport = calculateSMaSupport(barSeries);
             String bollSupport = calBollSupport(barSeries);
             optionsChain.setLowSupport(lowSupport);
             optionsChain.setMaSupport(maSupport);
@@ -137,29 +138,29 @@ public class OptionsManager {
     }
 
     private String calBollSupport(BarSeries barSeries) {
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
+        SMAIndicator sma = new SMAIndicator(closePrice, 20);
+        StandardDeviationIndicator stdDev = new StandardDeviationIndicator(closePrice, 20);
+        BollingerBandsLowerIndicator bollingerLower = new BollingerBandsLowerIndicator(new BollingerBandsMiddleIndicator(sma), stdDev);
+        Num bollingerSupport = bollingerLower.getValue(barSeries.getEndIndex());
+        return bollingerSupport.bigDecimalValue().setScale(2, RoundingMode.HALF_UP).toString();
+    }
+
+
+    private String calculateSMaSupport(BarSeries barSeries) {
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
+        SMAIndicator sma = new SMAIndicator(closePrice, 20);
+        Num dynamicSupport = sma.getValue(barSeries.getEndIndex());
+        return dynamicSupport.bigDecimalValue().setScale(2, RoundingMode.HALF_UP).toString();
+    }
+
+    private String calculateLowSupport(BarSeries barSeries) {
         // 创建低价指标
         LowPriceIndicator lowPrice = new LowPriceIndicator(barSeries);
         LowestValueIndicator lowest = new LowestValueIndicator(lowPrice, barSeries.getBarCount());
         // 获取最新支撑位
         Num supportLevel = lowest.getValue(barSeries.getEndIndex());
-        return null;
-    }
-
-
-    private String calculateMaSupport(BarSeries barSeries) {
-        ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
-        SMAIndicator sma = new SMAIndicator(closePrice, barSeries.getBarCount());
-        Num dynamicSupport = sma.getValue(barSeries.getEndIndex());
-        return null;
-    }
-
-    private String calculateLowSupport(BarSeries barSeries) {
-        ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
-        SMAIndicator sma = new SMAIndicator(closePrice, 20);
-        StandardDeviationIndicator stdDev = new StandardDeviationIndicator(closePrice, barSeries.getBarCount());
-        BollingerBandsLowerIndicator bollingerLower = new BollingerBandsLowerIndicator(new BollingerBandsMiddleIndicator(sma), stdDev);
-        Num bollingerSupport = bollingerLower.getValue(barSeries.getEndIndex());
-        return null;
+        return supportLevel.bigDecimalValue().setScale(2, RoundingMode.HALF_UP).toString();
     }
 
 
