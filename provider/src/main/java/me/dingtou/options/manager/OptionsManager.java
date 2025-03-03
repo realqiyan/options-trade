@@ -17,21 +17,18 @@ import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Indicator;
-import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.EMAIndicator;
-import org.ta4j.core.indicators.MACDIndicator;
-import org.ta4j.core.indicators.RSIIndicator;
-import org.ta4j.core.indicators.bollinger.BollingerBandWidthIndicator;
+import org.ta4j.core.indicators.*;
 import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.helpers.LowPriceIndicator;
+import org.ta4j.core.indicators.helpers.LowestValueIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -123,13 +120,48 @@ public class OptionsManager {
             stockIndicator.addIndicator(IndicatorKey.BOLL_UPPER.getKey(), getValueList(bollingerUpper, 20));
             stockIndicator.addIndicator(IndicatorKey.BOLL_LOWER.getKey(), getValueList(bollingerLower, 20));
 
+            //计算支撑位
+            String lowSupport = calculateLowSupport(barSeries);
+            String maSupport = calculateMaSupport(barSeries);
+            String bollSupport = calBollSupport(barSeries);
+            optionsChain.setLowSupport(lowSupport);
+            optionsChain.setMaSupport(maSupport);
+            optionsChain.setBollSupport(bollSupport);
         }
         optionsChain.setStockIndicator(stockIndicator);
         VixIndicator vixIndicator = vixQueryGateway.queryCurrentVix();
         optionsChain.setVixIndicator(vixIndicator);
 
+
         return optionsChain;
     }
+
+    private String calBollSupport(BarSeries barSeries) {
+        // 创建低价指标
+        LowPriceIndicator lowPrice = new LowPriceIndicator(barSeries);
+        LowestValueIndicator lowest = new LowestValueIndicator(lowPrice, barSeries.getBarCount());
+        // 获取最新支撑位
+        Num supportLevel = lowest.getValue(barSeries.getEndIndex());
+        return null;
+    }
+
+
+    private String calculateMaSupport(BarSeries barSeries) {
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
+        SMAIndicator sma = new SMAIndicator(closePrice, barSeries.getBarCount());
+        Num dynamicSupport = sma.getValue(barSeries.getEndIndex());
+        return null;
+    }
+
+    private String calculateLowSupport(BarSeries barSeries) {
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
+        SMAIndicator sma = new SMAIndicator(closePrice, 20);
+        StandardDeviationIndicator stdDev = new StandardDeviationIndicator(closePrice, barSeries.getBarCount());
+        BollingerBandsLowerIndicator bollingerLower = new BollingerBandsLowerIndicator(new BollingerBandsMiddleIndicator(sma), stdDev);
+        Num bollingerSupport = bollingerLower.getValue(barSeries.getEndIndex());
+        return null;
+    }
+
 
     private List<StockIndicatorItem> getValueList(CachedIndicator<Num> indicator, int offset) {
         int endIndex = indicator.getBarSeries().getEndIndex();
@@ -151,13 +183,7 @@ public class OptionsManager {
         for (Candlestick candlestick : candlesticks.getCandlesticks()) {
             // candlestick.getTimestamp()转ZonedDateTime
             Instant instant = Instant.ofEpochSecond(candlestick.getTimestamp());
-            series.addBar(instant.atZone(ZoneId.systemDefault()),
-                    candlestick.getOpen(),
-                    candlestick.getHigh(),
-                    candlestick.getLow(),
-                    candlestick.getClose(),
-                    candlestick.getVolume(),
-                    candlestick.getTurnover());
+            series.addBar(instant.atZone(ZoneId.systemDefault()), candlestick.getOpen(), candlestick.getHigh(), candlestick.getLow(), candlestick.getClose(), candlestick.getVolume(), candlestick.getTurnover());
         }
         return series;
     }
@@ -216,5 +242,6 @@ public class OptionsManager {
         summary.setCandlesticks(summaryCandlesticks);
         return summary;
     }
+
 
 }

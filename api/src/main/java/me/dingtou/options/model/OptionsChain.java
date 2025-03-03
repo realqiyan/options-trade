@@ -49,4 +49,19 @@ public class OptionsChain {
      * AI提示词
      */
     private String prompt;
+
+    /**
+     * 最低价支撑位
+     */
+    private String lowSupport;
+
+    /**
+     * 移动平均支撑位
+     */
+    private String maSupport;
+
+    /**
+     * 布林带下轨支撑位
+     */
+    private String bollSupport;
 }
