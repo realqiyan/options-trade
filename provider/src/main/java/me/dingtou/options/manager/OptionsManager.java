@@ -17,11 +17,7 @@ import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.Indicator;
-import org.ta4j.core.indicators.CachedIndicator;
-import org.ta4j.core.indicators.EMAIndicator;
-import org.ta4j.core.indicators.MACDIndicator;
-import org.ta4j.core.indicators.RSIIndicator;
-import org.ta4j.core.indicators.bollinger.BollingerBandWidthIndicator;
+import org.ta4j.core.indicators.*;
 import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
@@ -31,7 +27,6 @@ import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -114,7 +109,7 @@ public class OptionsManager {
             stockIndicator.addIndicator(IndicatorKey.EMA5.getKey(), getValueList(new EMAIndicator(closePrice, 5), 20));
             stockIndicator.addIndicator(IndicatorKey.EMA50.getKey(), getValueList(new EMAIndicator(closePrice, 50), 0));
             // BOLL
-            BollingerBandsMiddleIndicator bollingerMiddle = new BollingerBandsMiddleIndicator(new EMAIndicator(closePrice, 20));
+            BollingerBandsMiddleIndicator bollingerMiddle = new BollingerBandsMiddleIndicator(new SMAIndicator(closePrice, 20));
             Indicator<Num> deviation = new StandardDeviationIndicator(closePrice, 20);
             Num k = DecimalNum.valueOf(2);
             BollingerBandsUpperIndicator bollingerUpper = new BollingerBandsUpperIndicator(bollingerMiddle, deviation, k); // 上轨通常是中轨加上2倍标准差
