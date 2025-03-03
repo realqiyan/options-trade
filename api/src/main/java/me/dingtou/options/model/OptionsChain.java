@@ -49,9 +49,4 @@ public class OptionsChain {
      * AI提示词
      */
     private String prompt;
-
-    /**
-     * 支撑位
-     */
-    private SupportPriceIndicator supportPriceIndicator;
 }
