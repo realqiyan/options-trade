@@ -125,7 +125,7 @@ public class OptionsManager {
             SupportPriceIndicator supportPriceIndicator = new SupportPriceIndicator();
             supportPriceIndicator.setLowestSupportPrice(calculateLowSupport(barSeries));
             supportPriceIndicator.setSmaSupportPrice(calculateSMaSupport(barSeries));
-            supportPriceIndicator.setBollingerLowerSupportPrice(calBollSupport(barSeries));
+            supportPriceIndicator.setBollingerLowerSupportPrice(calBollSupport(bollingerLower));
             stockIndicator.setSupportPriceIndicator(supportPriceIndicator);
         }
         optionsChain.setStockIndicator(stockIndicator);
@@ -136,12 +136,8 @@ public class OptionsManager {
         return optionsChain;
     }
 
-    private BigDecimal calBollSupport(BarSeries barSeries) {
-        ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
-        SMAIndicator sma = new SMAIndicator(closePrice, 20);
-        StandardDeviationIndicator stdDev = new StandardDeviationIndicator(closePrice, 20);
-        BollingerBandsLowerIndicator bollingerLower = new BollingerBandsLowerIndicator(new BollingerBandsMiddleIndicator(sma), stdDev);
-        Num bollingerSupport = bollingerLower.getValue(barSeries.getEndIndex());
+    private BigDecimal calBollSupport(BollingerBandsLowerIndicator bollingerLower) {
+        Num bollingerSupport = bollingerLower.getValue(bollingerLower.getBarSeries().getEndIndex());
         return bollingerSupport.bigDecimalValue().setScale(2, RoundingMode.HALF_UP);
     }
 
