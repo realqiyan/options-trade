@@ -15,7 +15,10 @@ import java.util.*;
 @Component
 @Slf4j
 public class OptionsChainGatewayImpl implements OptionsChainGateway {
-
+    /**
+     * 期权链的长度
+     */
+    private static final int STRIKE_DATE_SIZE = 10;
     /**
      * 期权链上下浮动的价格范围
      */
@@ -24,7 +27,12 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
 
     @Override
     public List<OptionsStrikeDate> getOptionsExpDate(Security security) {
-        return QueryExecutor.query(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
+        List<OptionsStrikeDate> strikeDateList = QueryExecutor.query(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
+        if (null == strikeDateList || strikeDateList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        int min = Math.min(STRIKE_DATE_SIZE, strikeDateList.size());
+        return strikeDateList.subList(0, min);
     }
 
     @Override
