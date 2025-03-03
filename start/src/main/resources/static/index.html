@@ -186,6 +186,22 @@
             </a>
         </b>
     </span>
+    <br/>
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+             最低价支撑位: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.lowestSupportPrice?d.stockIndicator.supportPriceIndicator.lowestSupportPrice:0 }}
+        </b>
+    </span>
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+            SMA支撑位: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.smaSupportPrice?d.stockIndicator.supportPriceIndicator.smaSupportPrice:0 }}
+        </b>
+    </span>
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+            Bolling下轨支撑位: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.bollingerLowerSupportPrice?d.stockIndicator.supportPriceIndicator.bollingerLowerSupportPrice:0 }}
+        </b>
+    </span>
 </script>
 <script id="currentStrategy" type="text/html">
     <select id="strategyId" name="strategyId" lay-filter="strategyId">
