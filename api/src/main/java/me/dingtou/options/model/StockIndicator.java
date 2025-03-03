@@ -40,6 +40,10 @@ public class StockIndicator {
      */
     private Candlestick monthCandlestick;
 
+    /**
+     * 支撑位
+     */
+    private SupportPriceIndicator supportPriceIndicator;
 
     /**
      * 趋势指标
@@ -64,5 +68,6 @@ public class StockIndicator {
     public void removeIndicator(String key) {
         this.indicatorMap.remove(key);
     }
+
 
 }

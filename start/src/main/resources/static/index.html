@@ -147,6 +147,12 @@
         </b>
     </span>
     -->
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+            支撑位: {{= d.supportPriceIndicator&&d.supportPriceIndicator.lowestSupportPrice?d.supportPriceIndicator.lowestSupportPrice.value:0 }}
+        </b>
+    </span>
+
     <span class="layui-badge">
         <b class="layui-font-16">
             <a href="javascript:;" onclick="showChart('RSI(Week)',{{= JSON.stringify(d.stockIndicator.indicatorMap.rsi) }},'line')">
