@@ -16,6 +16,11 @@ import java.util.*;
 @Slf4j
 public class OptionsChainGatewayImpl implements OptionsChainGateway {
 
+    /**
+     * 期权链上下浮动的价格范围
+     */
+    private static final BigDecimal PRICE_RANGE = BigDecimal.valueOf(0.25);
+
 
     @Override
     public List<OptionsStrikeDate> getOptionsExpDate(Security security) {
@@ -27,8 +32,8 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
         BigDecimal minStrikePrice = BigDecimal.ZERO;
         BigDecimal maxStrikePrice = BigDecimal.valueOf(Long.MAX_VALUE);
         if (null != lastDone && !BigDecimal.ZERO.equals(lastDone)) {
-            minStrikePrice = lastDone.multiply(BigDecimal.valueOf(0.6));
-            maxStrikePrice = lastDone.multiply(BigDecimal.valueOf(1.5));
+            minStrikePrice = lastDone.multiply(BigDecimal.ONE.subtract(PRICE_RANGE));
+            maxStrikePrice = lastDone.multiply(BigDecimal.ONE.add(PRICE_RANGE));
         }
         OptionsChain optionsChain = QueryExecutor.query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
         if (null == optionsChain) {

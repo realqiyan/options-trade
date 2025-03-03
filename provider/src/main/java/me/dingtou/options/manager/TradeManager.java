@@ -278,7 +278,7 @@ public class TradeManager {
         for (Map.Entry<String, List<OwnerOrder>> entries : platformOrderFillMap.entrySet()) {
             List<OwnerOrder> orderFills = entries.getValue();
             for (int i = 0; i < orderFills.size(); i++) {
-                boolean subOrder = i == 0 ? false : true;
+                boolean subOrder = i != 0;
                 OwnerOrder platformNewOrderFill = orderFills.get(i);
                 platformNewOrderFill.setSubOrder(subOrder);
                 newOrders.add(platformNewOrderFill);

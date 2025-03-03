@@ -66,6 +66,4 @@ function loadInput() {
 inputField.onchange = saveInput;
 $(document).ready(function() {
     loadInput();
-    // 清除历史记录
-    localStorage.removeItem('password');
 });

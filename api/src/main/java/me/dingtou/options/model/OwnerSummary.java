@@ -31,4 +31,9 @@ public class OwnerSummary {
      * 策略汇总
      */
     private List<StrategySummary> strategySummaries;
+
+    /**
+     * 未实现期权
+     */
+    private List<OwnerOrder> unrealizedOrders;
 }

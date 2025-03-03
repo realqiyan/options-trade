@@ -54,6 +54,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         BigDecimal totalFee = BigDecimal.ZERO;
         BigDecimal unrealizedOptionsIncome = BigDecimal.ZERO;
 
+        List<OwnerOrder> unrealizedOrders = new ArrayList<>();
         List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
         List<StrategySummary> strategySummaries = new ArrayList<>();
         for (OwnerStrategy ownerStrategy : ownerStrategies) {
@@ -62,11 +63,21 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
             totalFee = totalFee.add(strategySummary.getTotalFee());
             unrealizedOptionsIncome = unrealizedOptionsIncome.add(strategySummary.getUnrealizedOptionsIncome());
             strategySummaries.add(strategySummary);
+
+            strategySummary.getStrategyOrders().stream().filter(order -> {
+                if (null == order.getExt()) {
+                    return false;
+                }
+                String isClose = order.getExt().get(OrderExt.IS_CLOSE.getCode());
+                return Boolean.FALSE.equals(Boolean.valueOf(isClose));
+            }).forEach(unrealizedOrders::add);
+
         }
         ownerSummary.setAllOptionsIncome(allOptionsIncome);
         ownerSummary.setTotalFee(totalFee);
         ownerSummary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
         ownerSummary.setStrategySummaries(strategySummaries);
+        ownerSummary.setUnrealizedOrders(unrealizedOrders);
         return ownerSummary;
     }
 

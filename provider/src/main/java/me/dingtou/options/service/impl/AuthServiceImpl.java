@@ -32,7 +32,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             URI uri = new URI(otpAuth);
             TOTPGenerator totpGenerator = TOTPGenerator.fromURI(uri);
-            return totpGenerator.verify(otpPassword, 12);
+            return totpGenerator.verify(otpPassword, 2);
         } catch (URISyntaxException e) {
             log.error("otpAuth 初始化失败 otpAuth:{}", otpAuth, e);
             return false;
