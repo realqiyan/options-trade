@@ -55,7 +55,6 @@
             <div class="layui-card-body" id="result" lay-filter="result">
                 loading...
             </div>
-            <div id="orderTable"></div>
         </div>
     </div>
 
@@ -72,7 +71,9 @@
     <div class="layui-collapse">
     {{#  layui.each(d.strategySummaries, function(index, item){ }}
         <div class="layui-colla-item">
-            <div class="layui-colla-title">{{ item.strategy.strategyName }} 收益:${{ item.allOptionsIncome }}（当前策略:{{ item.strategy.strategyCode }}）</div>
+            <div class="layui-colla-title">
+                {{ item.strategy.strategyName }} 收益:<span class="layui-badge layui-bg-blue">${{ item.allOptionsIncome }}</span>（当前策略:{{ item.strategy.strategyCode }}）
+            </div>
             <div class="layui-colla-content">
                 <ul>
                     <li>策略ID:{{ item.strategy.strategyId }}</span></li>
@@ -84,6 +85,16 @@
             </div>
         </div>
     {{#  }); }}
+    </div>
+    <div class="layui-collapse">
+        <div class="layui-colla-item">
+            <div class="layui-colla-title">
+                策略未平仓期权订单 （<span class="layui-badge">未平仓订单:{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span>）
+            </div>
+            <div class="layui-colla-content">
+                <div id="orderTable"></div>
+            </div>
+        </div>
     </div>
 </script>
 <script src="layui/layui.js"></script>
