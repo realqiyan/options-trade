@@ -19,6 +19,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 @Service
@@ -54,15 +55,22 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         BigDecimal totalFee = BigDecimal.ZERO;
         BigDecimal unrealizedOptionsIncome = BigDecimal.ZERO;
 
-        List<OwnerOrder> unrealizedOrders = new ArrayList<>();
+
         List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
-        List<StrategySummary> strategySummaries = new ArrayList<>();
-        for (OwnerStrategy ownerStrategy : ownerStrategies) {
+        List<StrategySummary> strategySummaries = new CopyOnWriteArrayList<>();
+        // 批量拉取策略数据
+        ownerStrategies.parallelStream().forEach(ownerStrategy -> {
             StrategySummary strategySummary = queryStrategySummary(owner, ownerStrategy.getStrategyId());
+            strategySummaries.add(strategySummary);
+        });
+
+
+        // 统计
+        List<OwnerOrder> unrealizedOrders = new ArrayList<>();
+        for (StrategySummary strategySummary : strategySummaries) {
             allOptionsIncome = allOptionsIncome.add(strategySummary.getAllOptionsIncome());
             totalFee = totalFee.add(strategySummary.getTotalFee());
             unrealizedOptionsIncome = unrealizedOptionsIncome.add(strategySummary.getUnrealizedOptionsIncome());
-            strategySummaries.add(strategySummary);
 
             strategySummary.getStrategyOrders().stream().filter(order -> {
                 if (null == order.getExt()) {
@@ -71,7 +79,6 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
                 String isClose = order.getExt().get(OrderExt.IS_CLOSE.getCode());
                 return Boolean.FALSE.equals(Boolean.valueOf(isClose));
             }).forEach(unrealizedOrders::add);
-
         }
         ownerSummary.setAllOptionsIncome(allOptionsIncome);
         ownerSummary.setTotalFee(totalFee);
