@@ -16,10 +16,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -85,6 +85,36 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         ownerSummary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
         ownerSummary.setStrategySummaries(strategySummaries);
         ownerSummary.setUnrealizedOrders(unrealizedOrders);
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM");
+        Map<String, List<OwnerOrder>> monthOrder = strategySummaries.stream()
+                .flatMap(strategy -> strategy.getStrategyOrders().stream())
+                .collect(Collectors.groupingBy(order -> simpleDateFormat.format(order.getTradeTime())));
+
+        // 月度收益
+        Map<String, BigDecimal> stockLotSizeMap = new HashMap<>();
+        for (OwnerStrategy ownerStrategy : ownerStrategies) {
+            stockLotSizeMap.put(ownerStrategy.getCode(), BigDecimal.valueOf(ownerStrategy.getLotSize()));
+        }
+
+        TreeMap<String, BigDecimal> monthlyIncome = new TreeMap<>();
+        for (Map.Entry<String, List<OwnerOrder>> entry : monthOrder.entrySet()) {
+            BigDecimal income = entry.getValue().stream()
+                    .filter(order -> !order.getUnderlyingCode().equals(order.getCode()))
+                    .map(order -> {
+                        BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
+                        BigDecimal quantity = new BigDecimal(order.getQuantity());
+                        BigDecimal lotSize = stockLotSizeMap.getOrDefault(order.getUnderlyingCode(), BigDecimal.valueOf(100));
+                        return order.getPrice()
+                                .multiply(quantity)
+                                .multiply(lotSize)
+                                .multiply(sign)
+                                .subtract(order.getOrderFee());
+                    }).reduce(BigDecimal.ZERO, BigDecimal::add);
+            monthlyIncome.put(entry.getKey(), income);
+        }
+        ownerSummary.setMonthlyIncome(monthlyIncome);
+
         return ownerSummary;
     }
 

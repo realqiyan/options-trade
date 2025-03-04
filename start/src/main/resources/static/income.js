@@ -61,6 +61,38 @@ function renderOrderTable(orderList){
 
 }
 
+function showChart(label, data, type) {
+    const ctx = document.getElementById('monthlyIncomeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: label,
+            datasets: [{
+                label: '月度收益',
+                data: data,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: '月份'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: '收入'
+                    }
+                }
+            }
+        }
+    });
+}
 
 function reloadData(){
     $.ajax({
@@ -77,6 +109,14 @@ function reloadData(){
           view.innerHTML = html;
         });
         renderOrderTable(result.unrealizedOrders);
+
+        // 准备月度收益数据
+        const monthlyIncome = result.monthlyIncome;
+        const labels = Object.keys(monthlyIncome);
+        const data = Object.values(monthlyIncome);
+
+        // 调用 showChart 函数绘制折线图
+        showChart(labels, data, 'line');
         render();
       }
     });
