@@ -25,15 +25,15 @@ function renderOrderTable(orderList){
       var inst = table.render({
         elem: '#orderTable',
         cols: [[
-          {field: 'strikeTime', title: '行权时间', width: 135, sort: true},
-          {field: 'code', title: '证券代码', width: 200, sort: true},
-          {field: 'side', title: '类型', width: 80},
-          {field: 'price', title: '价格', width: 100},
-          {field: 'quantity', title: '数量', width: 80},
-          {field: 'totalIncome', title: '收入', width: 100},
-          {field: 'orderFee', title: '订单费用', width: 100},
+          {field: 'strikeTime', title: '行权时间', width: 130, sort: true},
           {field: 'tradeTime', title: '交易时间', width: 180, sort: true},
+          {field: 'code', title: '证券代码', width: 180, sort: true},
+          {field: 'side', title: '类型', width: 80},
+          {field: 'quantity', title: '数量', width: 80},
+          {field: 'price', title: '价格', width: 100},
+          {field: 'totalIncome', title: '收入', width: 100},
           {field: 'curPrice', title: '现价', width: 100},
+          {field: 'orderFee', title: '订单费用', width: 100},
           {field: 'profitRatio', title: '盈亏', width: 100},
         ]],
         data: convertedData,
@@ -61,6 +61,38 @@ function renderOrderTable(orderList){
 
 }
 
+function showChart(label, data, type) {
+    const ctx = document.getElementById('monthlyIncomeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: label,
+            datasets: [{
+                label: '月度收益',
+                data: data,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: '月份'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: '收入'
+                    }
+                }
+            }
+        }
+    });
+}
 
 function reloadData(){
     $.ajax({
@@ -77,6 +109,14 @@ function reloadData(){
           view.innerHTML = html;
         });
         renderOrderTable(result.unrealizedOrders);
+
+        // 准备月度收益数据
+        const monthlyIncome = result.monthlyIncome;
+        const labels = Object.keys(monthlyIncome);
+        const data = Object.values(monthlyIncome);
+
+        // 调用 showChart 函数绘制折线图
+        showChart(labels, data, 'line');
         render();
       }
     });

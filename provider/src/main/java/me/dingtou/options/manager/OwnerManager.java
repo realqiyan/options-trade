@@ -10,7 +10,6 @@ import me.dingtou.options.dao.OwnerAccountDAO;
 import me.dingtou.options.dao.OwnerOrderDAO;
 import me.dingtou.options.dao.OwnerSecurityDAO;
 import me.dingtou.options.dao.OwnerStrategyDAO;
-import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncGetOptionsRealtimeData;
 import me.dingtou.options.model.*;
@@ -43,10 +42,6 @@ public class OwnerManager {
 
     @Autowired
     private OwnerOrderDAO ownerOrderDAO;
-
-    @Autowired
-    private OptionsTradeGateway optionsTradeGateway;
-
 
     public Owner queryOwner(String owner) {
         Owner ownerObj = new Owner();
@@ -146,12 +141,12 @@ public class OwnerManager {
 
         for (OwnerOrder ownerOrder : ownerOrders) {
             if (!ownerOrder.getCode().equals(ownerOrder.getUnderlyingCode())) {
-                BigDecimal totalIncome = ownerOrder.getPrice()
+                BigDecimal totalIncome = NumberUtils.scale(ownerOrder.getPrice()
                         .multiply(new BigDecimal(ownerOrder.getQuantity()))
                         .multiply(new BigDecimal(strategy.getLotSize()))
-                        .multiply(new BigDecimal(TradeSide.of(ownerOrder.getSide()).getSign()));
+                        .multiply(new BigDecimal(TradeSide.of(ownerOrder.getSide()).getSign())));
                 // 订单收益
-                ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getCode(), totalIncome.toString());
+                ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getCode(), totalIncome.toPlainString());
             }
 
             if (!OrderStatus.of(ownerOrder.getStatus()).isValid()) {
@@ -210,11 +205,11 @@ public class OwnerManager {
                 continue;
             }
             BigDecimal curPrice = any.get().getCurPrice();
-            ownerOrder.getExt().put(OrderExt.CUR_PRICE.getCode(), curPrice.toString());
+            ownerOrder.getExt().put(OrderExt.CUR_PRICE.getCode(), curPrice.toPlainString());
             TradeSide tradeSide = TradeSide.of(ownerOrder.getSide());
             if (TradeSide.SELL.equals(tradeSide) || TradeSide.SELL_SHORT.equals(tradeSide)) {
                 BigDecimal profitRatio = NumberUtils.scale(ownerOrder.getPrice().subtract(curPrice).divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)));
-                ownerOrder.getExt().put(OrderExt.PROFIT_RATIO.getCode(), profitRatio.toString());
+                ownerOrder.getExt().put(OrderExt.PROFIT_RATIO.getCode(), profitRatio.toPlainString());
             }
 
         }

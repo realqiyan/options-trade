@@ -16,9 +16,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -54,15 +55,22 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         BigDecimal totalFee = BigDecimal.ZERO;
         BigDecimal unrealizedOptionsIncome = BigDecimal.ZERO;
 
-        List<OwnerOrder> unrealizedOrders = new ArrayList<>();
+
         List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
-        List<StrategySummary> strategySummaries = new ArrayList<>();
-        for (OwnerStrategy ownerStrategy : ownerStrategies) {
+        List<StrategySummary> strategySummaries = new CopyOnWriteArrayList<>();
+        // 批量拉取策略数据
+        ownerStrategies.parallelStream().forEach(ownerStrategy -> {
             StrategySummary strategySummary = queryStrategySummary(owner, ownerStrategy.getStrategyId());
+            strategySummaries.add(strategySummary);
+        });
+
+
+        // 统计
+        List<OwnerOrder> unrealizedOrders = new ArrayList<>();
+        for (StrategySummary strategySummary : strategySummaries) {
             allOptionsIncome = allOptionsIncome.add(strategySummary.getAllOptionsIncome());
             totalFee = totalFee.add(strategySummary.getTotalFee());
             unrealizedOptionsIncome = unrealizedOptionsIncome.add(strategySummary.getUnrealizedOptionsIncome());
-            strategySummaries.add(strategySummary);
 
             strategySummary.getStrategyOrders().stream().filter(order -> {
                 if (null == order.getExt()) {
@@ -71,13 +79,42 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
                 String isClose = order.getExt().get(OrderExt.IS_CLOSE.getCode());
                 return Boolean.FALSE.equals(Boolean.valueOf(isClose));
             }).forEach(unrealizedOrders::add);
-
         }
         ownerSummary.setAllOptionsIncome(allOptionsIncome);
         ownerSummary.setTotalFee(totalFee);
         ownerSummary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
         ownerSummary.setStrategySummaries(strategySummaries);
         ownerSummary.setUnrealizedOrders(unrealizedOrders);
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM");
+        Map<String, List<OwnerOrder>> monthOrder = strategySummaries.stream()
+                .flatMap(strategy -> strategy.getStrategyOrders().stream())
+                .collect(Collectors.groupingBy(order -> simpleDateFormat.format(order.getTradeTime())));
+
+        // 月度收益
+        Map<String, BigDecimal> stockLotSizeMap = new HashMap<>();
+        for (OwnerStrategy ownerStrategy : ownerStrategies) {
+            stockLotSizeMap.put(ownerStrategy.getCode(), BigDecimal.valueOf(ownerStrategy.getLotSize()));
+        }
+
+        TreeMap<String, BigDecimal> monthlyIncome = new TreeMap<>();
+        for (Map.Entry<String, List<OwnerOrder>> entry : monthOrder.entrySet()) {
+            BigDecimal income = entry.getValue().stream()
+                    .filter(order -> !order.getUnderlyingCode().equals(order.getCode()))
+                    .map(order -> {
+                        BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
+                        BigDecimal quantity = new BigDecimal(order.getQuantity());
+                        BigDecimal lotSize = stockLotSizeMap.getOrDefault(order.getUnderlyingCode(), BigDecimal.valueOf(100));
+                        return order.getPrice()
+                                .multiply(quantity)
+                                .multiply(lotSize)
+                                .multiply(sign)
+                                .subtract(order.getOrderFee());
+                    }).reduce(BigDecimal.ZERO, BigDecimal::add);
+            monthlyIncome.put(entry.getKey(), income);
+        }
+        ownerSummary.setMonthlyIncome(monthlyIncome);
+
         return ownerSummary;
     }
 
