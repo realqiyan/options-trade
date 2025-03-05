@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 @Slf4j
 @Service

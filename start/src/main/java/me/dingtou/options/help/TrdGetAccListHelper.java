@@ -7,12 +7,10 @@ import com.futu.openapi.pb.TrdGetAccList;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.config.ConfigUtils;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 
 /**
  * 获取交易账户列表

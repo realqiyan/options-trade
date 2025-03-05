@@ -2,11 +2,8 @@ package me.dingtou.options.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import me.dingtou.options.constant.Market;
-
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 证券摆盘

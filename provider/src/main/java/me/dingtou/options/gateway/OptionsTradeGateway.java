@@ -3,8 +3,6 @@ package me.dingtou.options.gateway;
 import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
-import me.dingtou.options.model.OwnerStrategy;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;

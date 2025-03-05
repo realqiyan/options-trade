@@ -2,16 +2,14 @@ package me.dingtou.options.strategy.impl;
 
 import me.dingtou.options.constant.IndicatorKey;
 import me.dingtou.options.model.*;
-import me.dingtou.options.strategy.OptionsStrategy;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Component
-public class DefaultSellStrategy extends BaseStrategy implements OptionsStrategy {
+public class DefaultSellStrategy extends BaseStrategy {
 
 
     @Override

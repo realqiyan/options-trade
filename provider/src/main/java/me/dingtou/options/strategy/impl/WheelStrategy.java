@@ -4,7 +4,6 @@ package me.dingtou.options.strategy.impl;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.IndicatorKey;
 import me.dingtou.options.model.*;
-import me.dingtou.options.strategy.OptionsStrategy;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -14,7 +13,7 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-public class WheelStrategy extends BaseStrategy implements OptionsStrategy {
+public class WheelStrategy extends BaseStrategy {
 
 
     @Override

@@ -2,9 +2,6 @@ package me.dingtou.options.gateway;
 
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityOrderBook;
-import me.dingtou.options.model.SecurityQuote;
-
-import java.util.List;
 
 /**
  * 证券接口

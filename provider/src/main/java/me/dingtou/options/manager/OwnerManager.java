@@ -10,7 +10,6 @@ import me.dingtou.options.dao.OwnerAccountDAO;
 import me.dingtou.options.dao.OwnerOrderDAO;
 import me.dingtou.options.dao.OwnerSecurityDAO;
 import me.dingtou.options.dao.OwnerStrategyDAO;
-import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncGetOptionsRealtimeData;
 import me.dingtou.options.model.*;
@@ -43,10 +42,6 @@ public class OwnerManager {
 
     @Autowired
     private OwnerOrderDAO ownerOrderDAO;
-
-    @Autowired
-    private OptionsTradeGateway optionsTradeGateway;
-
 
     public Owner queryOwner(String owner) {
         Owner ownerObj = new Owner();

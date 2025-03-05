@@ -1,8 +1,9 @@
 package me.dingtou.options.web.filter;
 
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.*;
@@ -14,13 +15,14 @@ import me.dingtou.options.service.AuthService;
 import me.dingtou.options.web.model.LoginInfo;
 import me.dingtou.options.web.util.SessionUtils;
 
-
 import java.io.IOException;
-import java.security.Key;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.crypto.SecretKey;
 
 @Slf4j
 public class LoginFilter implements Filter {
@@ -34,7 +36,8 @@ public class LoginFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         httpResponse.setCharacterEncoding("UTF-8");
@@ -50,17 +53,14 @@ public class LoginFilter implements Filter {
         // 记录cookie
         saveCookie(httpResponse, loginInfo);
 
-
         SessionUtils.setCurrentOwner(loginInfo.getOwner());
         chain.doFilter(request, response);
         SessionUtils.clearCurrentOwner();
     }
 
-
     @Override
     public void destroy() {
     }
-
 
     /**
      * 检查登录信息
@@ -83,7 +83,6 @@ public class LoginFilter implements Filter {
             return auth;
         }
     }
-
 
     /**
      * 获取登录信息
@@ -137,12 +136,15 @@ public class LoginFilter implements Filter {
 
         String secretKey = authService.secretKeySha256(owner);
         try {
-            Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
-            Jws<Claims> jwt = Jwts.parser()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(jwtStr);
-            Claims body = jwt.getBody();
+            SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+
+            JwtParser jwtParser = Jwts.parser()
+                    // 设置签名的秘钥
+                    .verifyWith(key)
+                    .build();
+
+            Jws<Claims> jwt = jwtParser.parseSignedClaims(jwtStr);
+            Claims body = jwt.getPayload();
             return new LoginInfo(body.getSubject());
         } catch (Exception e) {
             log.error("parseClaimsJws error, jwtStr:{}, message:{}", jwtStr, e.getMessage());
@@ -158,15 +160,18 @@ public class LoginFilter implements Filter {
      */
     private void saveCookie(HttpServletResponse httpResponse, LoginInfo loginInfo) {
         String secretKeySha256 = authService.secretKeySha256(loginInfo.getOwner());
-        Key key = Keys.hmacShaKeyFor(secretKeySha256.getBytes());
+        SecretKey key = Keys.hmacShaKeyFor(secretKeySha256.getBytes(StandardCharsets.UTF_8));
 
         int oneDay = 24 * 60 * 60;
-        String jwt = Jwts.builder()
-                .subject(loginInfo.getOwner())
+        // 设置jwt的body
+        JwtBuilder builder = Jwts.builder()
                 .signWith(key)
+                .subject(loginInfo.getOwner())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + oneDay * 7 * 1000))
-                .compact();
+                // 设置过期时间
+                .expiration(new Date(System.currentTimeMillis() + oneDay * 7 * 1000));
+
+        String jwt = builder.compact();
         Cookie jwtCookie = new Cookie(JWT, jwt);
         jwtCookie.setSecure(true);
         jwtCookie.setPath("/");
