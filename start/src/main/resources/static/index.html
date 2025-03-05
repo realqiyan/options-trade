@@ -8,6 +8,7 @@
     <title>Options Trade Tools</title>
     <link rel="icon" href="data:image/ico;base64,aWNv">
     <link rel="stylesheet" href="layui/css/layui.css">
+    <link rel="stylesheet" href="aichat.css">
     <style>
         #chartZone {
             width: 1180px;
@@ -77,7 +78,25 @@
             <br><br>
         </div>
     </div>
+</div>
 
+<!-- 在body结束标签前添加聊天窗口结构 -->
+<div id="chat-box" class="layui-col-md4" style="z-index:999;position:fixed;right:20px;bottom:20px;display:none;background:#fff;border:1px solid #ddd;border-radius:5px;max-height:60vh;">
+    <div class="layui-card">
+        <div class="layui-card-header">AI 助手</div>
+        <div class="layui-card-body" id="chat-history" style="height:300px;overflow-y:auto;">
+            <!-- 聊天历史消息 -->
+        </div>
+        <div class="layui-card-footer">
+            <div class="layui-form">
+                <textarea id="chat-input" class="layui-textarea" placeholder="输入消息..." rows="3"></textarea>
+                <div style="margin-top:5px;">
+                    <button class="layui-btn layui-btn-sm" onclick="sendMessage()">发送</button>
+                    <button class="layui-btn layui-btn-sm layui-btn-danger" onclick="clearChat()" style="margin-left:5px;">清理</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="layui/layui.js"></script>
@@ -123,7 +142,7 @@
     -
     <span class="layui-badge layui-bg-blue">月价格波动:<b class="layui-font-16">{{= d.stockIndicator.monthPriceRange}}</b></span>({{= monthMin}} - {{= monthMax}})
     -
-    <a href="javascript:;" onclick="prompt()"><i class="layui-icon layui-icon-link"></i>提示词</a>
+    <a href="javascript:;" onclick="showChat()"><i class="layui-icon layui-icon-link"></i>提示词</a>
     -
     <a href="https://chat.deepseek.com/" target="_blank"><i class="layui-icon layui-icon-link"></i>DeepSeek</a>
     -
@@ -211,5 +230,6 @@
 <script src="chart/chart.js"></script>
 <script src="common.js"></script>
 <script src="index.js"></script>
+<script src="aichat.js"></script>
 </body>
 </html>

@@ -289,15 +289,6 @@ function sell(options){
        });
 }
 
-function prompt(){
-    layer.prompt({title: '提示词', formType: 2, value: currentPrompt,area: ['800px', '600px']}, function(value, index, elem){
-            if(value === '') return elem.focus();
-            layer.msg('获得：'+ util.escape(value)); // 显示 value
-            // 关闭 prompt
-            layer.close(index);
-          });
-}
-
 function reloadData(){
     $.ajax({
       url: "/owner/get",
@@ -323,7 +314,8 @@ function reloadData(){
 
 reloadData();
 
-let clientId = "20250220";
+let clientId = "realtime_data_" + new Date().getTime();
+let source = null;
 if (window.EventSource) {
     // 连接的建立
     source = new EventSource("/connect?requestId=" + clientId);
