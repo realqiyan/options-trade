@@ -111,19 +111,39 @@ public class WheelStrategy extends BaseStrategy {
         prompt.append("* 3.根据技术指标和K线检查其他关键支持\n");
         prompt.append("\n");
 
+        // 最近几周的周K线
+        prompt.append("## 原始周K线\n");
+        List<Candlestick> weekCandlesticks = stockIndicator.getWeekCandlesticks();
+        int subListSize = Math.min(weekCandlesticks.size(), 30);
+        weekCandlesticks = weekCandlesticks.subList(weekCandlesticks.size() - subListSize, weekCandlesticks.size());
+        weekCandlesticks.forEach(candlestick -> {
+            Long timestamp = candlestick.getTimestamp();
+            prompt.append("* 日期：").append(sdf.format(new Date(timestamp * 1000)))
+                    .append(" 开盘价：").append(candlestick.getOpen())
+                    .append(" 收盘价：").append(candlestick.getClose())
+                    .append(" 最高价：").append(candlestick.getHigh())
+                    .append(" 最低价：").append(candlestick.getLow())
+                    .append(" 成交量：").append(candlestick.getVolume())
+                    .append(" 成交额：").append(candlestick.getTurnover())
+                    .append("\n");
+        });
+        prompt.append("\n");
+
         prompt.append("## 技术指标（周K线）\n");
         prompt.append("* 当前价格：").append(securityPrice).append("\n");
         if (null != vixIndicator && null != vixIndicator.getCurrentVix()) {
             prompt.append("* VIX指数：").append(vixIndicator.getCurrentVix().getValue()).append("\n");
         }
-        prompt.append("* 周价格波动：").append(stockIndicator.getWeekPriceRange()).append("\n");
-        prompt.append("* 月价格波动：").append(stockIndicator.getMonthPriceRange()).append("\n");
+        //prompt.append("* 周价格波动：").append(stockIndicator.getWeekPriceRange()).append("\n");
+        //prompt.append("* 月价格波动：").append(stockIndicator.getMonthPriceRange()).append("\n");
         Map<String, List<StockIndicatorItem>> lineMap = stockIndicator.getIndicatorMap();
+        /*
         for (Map.Entry<String, List<StockIndicatorItem>> entry : lineMap.entrySet()) {
             IndicatorKey indicatorKey = IndicatorKey.of(entry.getKey());
             List<StockIndicatorItem> value = entry.getValue();
             prompt.append("* 当前").append(indicatorKey.getDisplayName()).append(":").append(value.get(0).getValue()).append("\n");
         }
+        */
         prompt.append("\n");
 
         int weekSize = 10;
@@ -144,27 +164,9 @@ public class WheelStrategy extends BaseStrategy {
             prompt.append("\n");
         }
 
-        // 最近一周的周K线
-        prompt.append("#### 周K线\n");
-        List<Candlestick> weekCandlesticks = stockIndicator.getWeekCandlesticks();
-        // 截取后10个元素
-        int subListSize = Math.min(weekCandlesticks.size(), weekSize);
-        weekCandlesticks = weekCandlesticks.subList(weekCandlesticks.size() - subListSize, weekCandlesticks.size());
-        weekCandlesticks.forEach(candlestick -> {
-            Long timestamp = candlestick.getTimestamp();
-            prompt.append("* 日期：").append(sdf.format(new Date(timestamp * 1000)))
-                    .append(" 开盘价：").append(candlestick.getOpen())
-                    .append(" 收盘价：").append(candlestick.getClose())
-                    .append(" 最高价：").append(candlestick.getHigh())
-                    .append(" 最低价：").append(candlestick.getLow())
-                    .append(" 成交量：").append(candlestick.getVolume())
-                    .append(" 成交额：").append(candlestick.getTurnover())
-                    .append("\n");
-        });
-
         prompt.append("\n");
-        prompt.append("## 交易期权\n");
-        prompt.append("* 当前时间").append(sdf.format(new Date())).append("，距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天。\n");
+        prompt.append("## 交易标的\n");
+        prompt.append("* 当前日期").append(sdf.format(new Date())).append("，距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天。\n");
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
             if (null != call) {
@@ -177,9 +179,10 @@ public class WheelStrategy extends BaseStrategy {
         });
         prompt.append("\n");
         prompt.append("## 要求\n");
-        prompt.append("* 1.分析总结当前股票指标。\n");
-        prompt.append("* 2.分析当前期权策略是否适合交易。\n");
-        prompt.append("* 3.列出综合最优和保守的交易建议。");
+        prompt.append("* 1.根据提供的原始周K线信息、技术指标信息总结当前股票方向和风险程度。\n");
+        prompt.append("* 2.根据总结信息分析当前股票是否适合进行期权交易。\n");
+        prompt.append("* 3.结合用户诉求和以上分析结论，列出综合最优和保守的交易策略建议。\n");
+        prompt.append("* 4.提供可能的风险和注意事项。");
         optionsChain.setPrompt(prompt.toString());
     }
 
@@ -238,7 +241,7 @@ public class WheelStrategy extends BaseStrategy {
         if (Boolean.FALSE.equals(options.getStrategyData().getRecommend())) {
             return;
         }
-        prompt.append("* 标的:").append(options.getBasic().getSecurity().getCode())
+        prompt.append("* 代码:").append(options.getBasic().getSecurity().getCode())
                 .append("，行权价:").append(options.getOptionExData().getStrikePrice())
                 .append("，当前价格:").append(options.getRealtimeData().getCurPrice())
                 .append("，隐含波动率:").append(options.getRealtimeData().getImpliedVolatility())
@@ -249,7 +252,7 @@ public class WheelStrategy extends BaseStrategy {
                 .append("，当天交易量:").append(options.getRealtimeData().getVolume())
                 .append("，预估年化收益率:").append(options.getStrategyData().getSellAnnualYield())
                 .append("%，距离行权价涨跌幅:").append(options.getStrategyData().getRange())
-                .append("%，我的购买倾向").append(options.getStrategyData().getRecommendLevel() <= 2 ? "一般" : "较强")
+                .append("%，购买倾向").append(options.getStrategyData().getRecommendLevel() <= 2 ? "一般" : "较强")
                 .append("；\n");
     }
 }
