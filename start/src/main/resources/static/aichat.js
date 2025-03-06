@@ -33,7 +33,8 @@ function appendMessage(type, content, role, messageId) {
     const id = `${type}-${messageId}`;
     const messageDiv = document.getElementById(id);
     if (messageDiv) {
-        messageDiv.innerHTML = messageDiv.innerHTML + content;
+        const htmlContent = marked.parse(content);
+        messageDiv.innerHTML = messageDiv.innerHTML + htmlContent;
     } else {
         const messageDiv = document.createElement('div');
         messageDiv.id = id;
@@ -42,8 +43,9 @@ function appendMessage(type, content, role, messageId) {
         messageDiv.style.padding = '8px';
         messageDiv.style.borderRadius = '4px';
         messageDiv.style.backgroundColor = role === 'user' ? '#e6f7ff' : type === 'reasoning_content' ? '#f0f0f0' : '#fff';
-        messageDiv.innerHTML = content;
-        historyDiv.appendChild(messageDiv);
+        const htmlContent = marked.parse(content);
+       messageDiv.innerHTML = htmlContent;
+       historyDiv.appendChild(messageDiv);
     }
     historyDiv.scrollTop = historyDiv.scrollHeight;
 }
