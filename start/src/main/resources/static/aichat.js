@@ -8,7 +8,7 @@ function initAIChat() {
         aiSource = new EventSource("/ai/init?requestId=" + currentClientId);
         aiSource.addEventListener("message", function(e) {
             const response = JSON.parse(e.data);
-            appendMessage(response.type, response.message, 'ai', response.id);
+            appendMessage(response.type, response.message, 'assistant', response.id);
         });
     }
 }
@@ -27,13 +27,19 @@ function clearChat() {
     historyDiv.innerHTML = ''; // 清空聊天记录
     document.getElementById('chat-input').value = ''; // 清空输入框
 }
-
+let allMessages = {};
 function appendMessage(type, content, role, messageId) {
     const historyDiv = document.getElementById('chat-history');
-    const id = `${type}-${messageId}`;
+    const id = `${role}-${type}-${messageId}`;
+    if (!allMessages[id]){
+        allMessages[id] = "";
+    }
+    allMessages[id] = allMessages[id] + content;
+
+    const htmlContent = marked.parse(allMessages[id]);
     const messageDiv = document.getElementById(id);
     if (messageDiv) {
-        messageDiv.innerHTML = messageDiv.innerHTML + content;
+        messageDiv.innerHTML = htmlContent;
     } else {
         const messageDiv = document.createElement('div');
         messageDiv.id = id;
@@ -42,7 +48,7 @@ function appendMessage(type, content, role, messageId) {
         messageDiv.style.padding = '8px';
         messageDiv.style.borderRadius = '4px';
         messageDiv.style.backgroundColor = role === 'user' ? '#e6f7ff' : type === 'reasoning_content' ? '#f0f0f0' : '#fff';
-        messageDiv.innerHTML = content;
+        messageDiv.innerHTML = htmlContent;
         historyDiv.appendChild(messageDiv);
     }
     historyDiv.scrollTop = historyDiv.scrollHeight;
