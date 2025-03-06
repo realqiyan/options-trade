@@ -7,9 +7,8 @@ import me.dingtou.options.model.*;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -87,41 +86,85 @@ public class WheelStrategy extends BaseStrategy {
 
         SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
-        prompt.append("我在做期权的车轮策略（WheelStrategy），我会检查VIX是否大于30，VIX大于30我会暂停交易，其次会检查RSI是否在30到70之间，如果RSI小于30时MACD指标动量向上我也会继续交易，我还会检查关键支撑位")
-                .append("，当前操作的底层资产是").append(securityQuote.getSecurity().toString())
-                .append("，当前阶段是").append(isSellPutStage ? "卖出看跌期权（Cash-Secured Put）" : "卖出看涨期权（Covered Call）");
+        prompt.append("## 期权策略\n");
+        prompt.append("* 车轮策略（WheelStrategy）\n");
+        prompt.append("* 底层资产：").append(securityQuote.getSecurity().toString()).append("\n");
+        prompt.append("\n");
 
+        prompt.append("## 当前阶段\n");
+        prompt.append("* ").append(isSellPutStage ? "卖出看跌期权（Cash-Secured Put）" : "卖出看涨期权（Covered Call）").append("\n");
         if (isCoveredCallStage && null != finalUnderlyingOrder) {
-            prompt.append("，当前指派的股票价格是").append(finalUnderlyingOrder.getPrice());
+            prompt.append("* 当前指派的股票价格：").append(finalUnderlyingOrder.getPrice());
         }
-        if (null != vixIndicator && null != vixIndicator.getCurrentVix()) {
-            prompt.append("，当前VIX指数为").append(vixIndicator.getCurrentVix().getValue());
-        }
-        prompt.append("，当前股价").append(securityPrice)
-                .append("，近一周价格波动").append(stockIndicator.getWeekPriceRange())
-                .append("，近一周价格波动").append(stockIndicator.getWeekPriceRange())
-                .append("，近一月价格波动").append(stockIndicator.getMonthPriceRange());
+        prompt.append("\n");
 
+        prompt.append("## 策略执行条件\n");
+        prompt.append("* 1.检查VIX是否小于等于30\n");
+        prompt.append("\t* VIX小于等于30本条通过；\n");
+        prompt.append("* 2.RSI是否在30到70之间\n");
+        prompt.append("\t* RSI在30到70本条通过\n");
+        prompt.append("\t* 如果RSI小于30，检查MACD指标动量向上，MACD动量向上也通过；\n");
+        prompt.append("* 3.根据技术指标和K线检查其他关键支持\n");
+        prompt.append("\n");
+
+        prompt.append("## 技术指标（周K线）\n");
+        prompt.append("* 当前价格：").append(securityPrice).append("\n");
+        if (null != vixIndicator && null != vixIndicator.getCurrentVix()) {
+            prompt.append("* VIX指数：").append(vixIndicator.getCurrentVix().getValue()).append("\n");
+        }
+        prompt.append("* 周价格波动：").append(stockIndicator.getWeekPriceRange()).append("\n");
+        prompt.append("* 月价格波动：").append(stockIndicator.getMonthPriceRange()).append("\n");
         Map<String, List<StockIndicatorItem>> lineMap = stockIndicator.getIndicatorMap();
-        int weekSize = 10;
         for (Map.Entry<String, List<StockIndicatorItem>> entry : lineMap.entrySet()) {
             IndicatorKey indicatorKey = IndicatorKey.of(entry.getKey());
             List<StockIndicatorItem> value = entry.getValue();
-            prompt.append("，当前").append(indicatorKey.getDisplayName()).append("为").append(value.get(0).getValue())
-                    .append("（最近").append(weekSize).append("周的周K线").append(indicatorKey.getDisplayName()).append("如下：");
+            prompt.append("* 当前").append(indicatorKey.getDisplayName()).append(":").append(value.get(0).getValue()).append("\n");
+        }
+        prompt.append("\n");
 
+        int weekSize = 10;
+        prompt.append("### 近").append(weekSize).append("周技术指标\n");
+        for (Map.Entry<String, List<StockIndicatorItem>> entry : lineMap.entrySet()) {
+            IndicatorKey indicatorKey = IndicatorKey.of(entry.getKey());
+            List<StockIndicatorItem> value = entry.getValue();
+            prompt.append("#### ").append(indicatorKey.getDisplayName()).append("\n");
             int size = Math.min(value.size(), weekSize);
             List<StockIndicatorItem> subList = value.subList(0, size);
-
+            subList.sort(Comparator.comparing(StockIndicatorItem::getDate));
+            prompt.append("* ");
             subList.forEach(item -> {
-                prompt.append(item.getDate()).append("这周的").append(indicatorKey.getDisplayName()).append("为").append(item.getValue()).append("，");
+                prompt.append("日期：").append(item.getDate())
+                        .append("指标：").append(item.getValue()).append(" ");
             });
+            prompt.append("\n");
+            prompt.append("\n");
         }
 
-        prompt.append("），当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
-                .append("天，我当前计划交易的期权实时信息如下：\n");
+        // 最近一周的周K线
+        prompt.append("#### 周K线\n");
+        List<Candlestick> weekCandlesticks = stockIndicator.getWeekCandlesticks();
+        // 截取后10个元素
+        int subListSize = Math.min(weekCandlesticks.size(), weekSize);
+        weekCandlesticks = weekCandlesticks.subList(weekCandlesticks.size() - subListSize, weekCandlesticks.size());
+        weekCandlesticks.forEach(candlestick -> {
+            Long timestamp = candlestick.getTimestamp();
+            prompt.append("* 日期：").append(sdf.format(new Date(timestamp * 1000)))
+                    .append(" 开盘价：").append(candlestick.getOpen())
+                    .append(" 收盘价：").append(candlestick.getClose())
+                    .append(" 最高价：").append(candlestick.getHigh())
+                    .append(" 最低价：").append(candlestick.getLow())
+                    .append(" 成交量：").append(candlestick.getVolume())
+                    .append(" 成交额：").append(candlestick.getTurnover())
+                    .append("\n");
+        });
+
+        prompt.append("\n");
+        prompt.append("## 交易期权\n");
+        prompt.append("* 当前时间").append(sdf.format(new Date())).append("，距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天。\n");
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
             if (null != call) {
@@ -132,7 +175,11 @@ public class WheelStrategy extends BaseStrategy {
                 buildOptionsPrompt(prompt, put);
             }
         });
-        prompt.append("请帮我分析当前股票指标和这些期权标的，帮我检查是否适合交易，如何适合交易请给我综合最优的交易建议和保守的交易建议。");
+        prompt.append("\n");
+        prompt.append("## 要求\n");
+        prompt.append("* 1.分析总结当前股票指标。\n");
+        prompt.append("* 2.分析当前期权策略是否适合交易。\n");
+        prompt.append("* 3.列出综合最优和保守的交易建议。");
         optionsChain.setPrompt(prompt.toString());
     }
 
@@ -191,7 +238,7 @@ public class WheelStrategy extends BaseStrategy {
         if (Boolean.FALSE.equals(options.getStrategyData().getRecommend())) {
             return;
         }
-        prompt.append("标的:").append(options.getBasic().getSecurity().getCode())
+        prompt.append("* 标的:").append(options.getBasic().getSecurity().getCode())
                 .append("，行权价:").append(options.getOptionExData().getStrikePrice())
                 .append("，当前价格:").append(options.getRealtimeData().getCurPrice())
                 .append("，隐含波动率:").append(options.getRealtimeData().getImpliedVolatility())

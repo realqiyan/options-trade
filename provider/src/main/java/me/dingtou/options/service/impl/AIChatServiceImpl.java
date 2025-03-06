@@ -29,6 +29,16 @@ public class AIChatServiceImpl implements AIChatService {
     private static final String MODEL;
     private static final Double TEMPERATURE;
 
+    private static final String SYSTEM_MESSAGE = """
+            #### 定位
+            - 期权交易专家 ：熟悉股票和期权交易策略。
+            - 主要任务 ：对输入股票技术指标进行分析，给出交易建议。
+            
+            #### 能力
+            - 技术指标分析 ：能够准确股票和期权分析技术指标。
+            - 交易策略制定 ：根据分析结果，制定交易策略。
+            """;
+
     static {
         // 模型
         MODEL = ConfigUtils.getConfig("ai.api.model");
@@ -47,7 +57,12 @@ public class AIChatServiceImpl implements AIChatService {
     @Override
     public void chat(String message, Function<Message, Void> callback) {
 
-        ChatCompletionCreateParams createParams = ChatCompletionCreateParams.builder().model(MODEL).temperature(TEMPERATURE).maxCompletionTokens(8192).addUserMessage(message).build();
+        ChatCompletionCreateParams createParams = ChatCompletionCreateParams.builder()
+                .model(MODEL)
+                .temperature(TEMPERATURE)
+                .maxCompletionTokens(16384)
+                .addSystemMessage(SYSTEM_MESSAGE)
+                .addUserMessage(message).build();
 
         CLIENT.chat().completions().createStreaming(createParams).subscribe(chatCompletionChunk -> {
             String id = chatCompletionChunk.id();

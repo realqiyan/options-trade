@@ -40,6 +40,11 @@ public class StockIndicator {
      */
     private Candlestick monthCandlestick;
 
+    /**
+     * 近期周K线
+     */
+    private List<Candlestick> weekCandlesticks;
+
 
     /**
      * 趋势指标

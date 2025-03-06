@@ -78,6 +78,7 @@ public class OptionsManager {
         // 周K线
         SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.WEEK, 60, CandlestickAdjustType.FORWARD_ADJUST);
         if (null != candlesticks && !CollectionUtils.isEmpty(candlesticks.getCandlesticks())) {
+            stockIndicator.setWeekCandlesticks(candlesticks.getCandlesticks());
 
             SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(candlesticks, 2);
             SecurityCandlestick monthCandlesticks = summarySecurityCandlestick(candlesticks, 5);
