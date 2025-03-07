@@ -40,7 +40,7 @@ public class AIChatServiceImpl implements AIChatService {
         ChatManager.ChatResult result = chatManager.sendChatMessage(message, callback);
 
         // 保存AI助手的完整回复
-        if (result.getContent().length() > 0) {
+        if (!result.getContent().isEmpty()) {
             OwnerChatRecord assistantRecord = new OwnerChatRecord(
                     owner,
                     sessionId,

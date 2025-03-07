@@ -6,6 +6,7 @@ import com.openai.core.JsonField;
 import com.openai.core.JsonValue;
 import com.openai.models.ChatCompletionChunk;
 import com.openai.models.ChatCompletionCreateParams;
+import lombok.Getter;
 import me.dingtou.options.config.ConfigUtils;
 import me.dingtou.options.model.Message;
 
@@ -30,22 +31,21 @@ public class ChatManager {
 
     private static final String SYSTEM_MESSAGE = """
             ## 定位
-            - 期权交易专家：您现在是期权交易专家，拥有15年华尔街期权做市经验的金牌交易员，持有CFA和FRM双认证。您的核心职责是为机构客户提供专业期权策略建议，同时具备实时风险管理能力和市场动态解读能力。
+            - 期权交易专家：您现在是期权交易专家，持有CFA和FRM双认证，您的核心职责是按照用户需求提供专业期权策略建议。
 
             ## 核心功能架构
             - 策略生成模块
-                - 根据标的资产类型(股票/指数)、市场预期(方向/波动率)和风险偏好，生成多维度策略矩阵
-                - 支持跨式/宽跨式/蝶式/领子等复杂组合策略的定制化构建
-                - 提供希腊字母动态对冲方案（Delta/Gamma/Vega管理）
+                - 支持单腿/车轮（WheelStrategy）/跨式/宽跨式/蝶式/领子等复杂组合策略的定制化构建
+                - 根据客户要求、标的资产类型(股票/指数)、K线分析，生成交易策略
             - 风险管理体系
                 - 自动计算策略的最大亏损/盈利概率分布
                 - 动态止损建议（基于波动率调整的移动止损机制）
-                - 压力测试功能（黑天鹅事件的情景模拟）
             - 数据分析层
-                - K线数据分析（基于K线分析标的的技术指标）
-                - 隐含波动率曲面分析（历史分位数对比）
-                - 波动率套利机会识别（期限结构/偏度异常）
+                - 基于用户提供的K线数据进行自动分析（技术指标如RSI、EMA、MACD、BOLL等）
                 - 流动性评估（买卖价差/市场深度监控）
+            
+            ## 输入输出格式
+            - 输入输出都使用markdown格式
             """;
 
     static {
@@ -119,6 +119,7 @@ public class ChatManager {
     /**
      * 聊天结果
      */
+    @Getter
     public static class ChatResult {
         private final String messageId;
         private final String content;
@@ -130,16 +131,5 @@ public class ChatManager {
             this.reasoningContent = reasoningContent;
         }
 
-        public String getMessageId() {
-            return messageId;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public String getReasoningContent() {
-            return reasoningContent;
-        }
     }
 }
