@@ -76,7 +76,7 @@ public class SessionUtils {
      */
     public static SseEmitter connect(String owner, String requestId) {
         log.info("connect, owner:{} requestId:{}", owner, requestId);
-        SseEmitter sseemitter = new SseEmitter(5 * 60 * 1000L);
+        SseEmitter sseemitter = new SseEmitter(24 * 60 * 60 * 1000L);
         sseemitter.onCompletion(onCompletion(owner, requestId));
         sseemitter.onError(onError(owner, requestId));
         sseemitter.onTimeout(onTimeout(owner, requestId));
