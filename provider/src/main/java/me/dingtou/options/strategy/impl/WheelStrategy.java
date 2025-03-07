@@ -152,7 +152,6 @@ public class WheelStrategy extends BaseStrategy {
             prompt.append("#### ").append(indicatorKey.getDisplayName()).append("\n");
             int size = Math.min(value.size(), weekSize);
             List<StockIndicatorItem> subList = value.subList(0, size);
-            subList.sort(Comparator.comparing(StockIndicatorItem::getDate));
             prompt.append("| 日期 ").append("| 指标值 ").append("|\n");
             prompt.append("| --- ").append("| --- ").append("|\n");
             subList.forEach(item -> {
