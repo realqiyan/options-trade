@@ -9,8 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * AI 控制器
@@ -20,6 +24,8 @@ import java.util.List;
 @Slf4j
 @RestController
 public class WebAIController {
+
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10, new ThreadFactoryBuilder().setNameFormat("ai-chat-%d").build());
 
     @Autowired
     private AIChatService aiChatService;
@@ -49,16 +55,28 @@ public class WebAIController {
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "message", required = true) String message) {
         String owner = SessionUtils.getCurrentOwner();
+
+        // 使用线程池提交
         SseEmitter connect = SessionUtils.getConnect(owner, requestId);
-        aiChatService.chat(owner, title, message, msg -> {
-            try {
-                connect.send(msg);
-            } catch (IOException e) {
-                log.error("send message error", e);
-            }
-            return null;
-        });
-        connect.complete();
+        try {
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    aiChatService.chat(owner, title, message, msg -> {
+                        try {
+                            connect.send(msg);
+                        } catch (IOException e) {
+                            log.error("send message error", e);
+                        }
+                        return null;
+                    });
+                    connect.complete();
+                }
+            });
+        } catch (Exception e) {
+            return WebResult.failure("chat error: " + e.getMessage());
+        }
+        
         return WebResult.success(true);
     }
 
