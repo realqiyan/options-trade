@@ -6,6 +6,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import me.dingtou.options.dao.OwnerChatRecordDAO;
 import me.dingtou.options.manager.ChatManager;
@@ -55,16 +56,15 @@ public class AIChatServiceImpl implements AIChatService {
 
     @Override
     public List<String> listSessionIds(String owner) {
-        // 查询所有不同的会话ID
-        LambdaQueryWrapper<OwnerChatRecord> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(OwnerChatRecord::getOwner, owner)
-                .select(OwnerChatRecord::getSessionId)
-                .groupBy(OwnerChatRecord::getSessionId);
+        // 首先查询所有满足条件的记录
+        QueryWrapper<OwnerChatRecord> query = new QueryWrapper<>();
+        query.select("session_id")
+                .eq("owner", owner)
+                .groupBy("session_id")
+                .orderByDesc("max(create_time)");
+        List<OwnerChatRecord> allRecords = ownerChatRecordDAO.selectList(query);
 
-        return ownerChatRecordDAO.selectList(wrapper)
-                .stream()
-                .map(OwnerChatRecord::getSessionId)
-                .collect(Collectors.toList());
+        return allRecords.stream().map(OwnerChatRecord::getSessionId).collect(Collectors.toList());
     }
 
     @Override

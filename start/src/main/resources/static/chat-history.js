@@ -66,10 +66,15 @@ layui.use(['layer', 'form', 'util'], function() {
         refreshBtn.onclick = loadChatSessions;
         chatListEl.appendChild(refreshBtn);
         
-        // 为每个会话创建一个列表项
-        sessions.forEach(sessionId => {
-            // 先获取会话详情，以便显示标题和时间
-            fetch(`/ai/record/list?sessionId=${sessionId}`)
+        // 添加加载提示
+        const loadingEl = document.createElement('div');
+        loadingEl.className = 'empty-state';
+        loadingEl.innerHTML = '<i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i><p>加载中...</p>';
+        chatListEl.appendChild(loadingEl);
+        
+        // 创建一个Promise数组，用于存储所有会话详情的加载Promise
+        const fetchPromises = sessions.map(sessionId => {
+            return fetch(`/ai/record/list?sessionId=${sessionId}`)
                 .then(response => response.json())
                 .then(result => {
                     if (result.success && result.data && result.data.length > 0) {
@@ -77,51 +82,83 @@ layui.use(['layer', 'form', 'util'], function() {
                         const firstRecord = records[0];
                         const lastRecord = records[records.length - 1];
                         
-                        // 创建会话项
-                        const chatItem = document.createElement('div');
-                        chatItem.className = 'chat-item';
-                        chatItem.dataset.sessionId = sessionId;
-                        
-                        // 获取会话标题
-                        const title = firstRecord.title || '未命名会话';
-                        
-                        // 获取会话时间
-                        const time = new Date(firstRecord.createTime);
-                        const timeStr = util.toDateString(time, 'yyyy-MM-dd HH:mm:ss');
-                        
-                        // 获取会话内容预览
-                        const preview = firstRecord.content.length > 50 
-                            ? firstRecord.content.substring(0, 50) + '...' 
-                            : firstRecord.content;
-                        
-                        chatItem.innerHTML = `
-                            <div class="chat-item-title">${title}</div>
-                            <div class="chat-item-preview">${preview}</div>
-                            <div class="chat-item-time">${timeStr}</div>
-                        `;
-                        
-                        // 点击会话项加载详情
-                        chatItem.addEventListener('click', () => {
-                            // 移除其他项的选中状态
-                            document.querySelectorAll('.chat-item').forEach(item => {
-                                item.classList.remove('active');
-                            });
-                            
-                            // 添加选中状态
-                            chatItem.classList.add('active');
-                            
-                            // 加载会话详情
-                            currentSessionId = sessionId;
-                            loadChatDetail(sessionId);
-                        });
-                        
-                        chatListEl.appendChild(chatItem);
+                        return {
+                            sessionId: sessionId,
+                            title: firstRecord.title || '未命名会话',
+                            time: new Date(firstRecord.createTime),
+                            preview: firstRecord.content.length > 50 
+                                ? firstRecord.content.substring(0, 50) + '...' 
+                                : firstRecord.content
+                        };
                     }
+                    return null;
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Error fetching session details:', error);
+                    return null;
                 });
         });
+        
+        // 等待所有Promise完成后，一次性渲染会话列表
+        Promise.all(fetchPromises)
+            .then(sessionDetails => {
+                // 移除加载提示
+                chatListEl.removeChild(loadingEl);
+                
+                // 过滤掉加载失败的会话
+                const validSessions = sessionDetails.filter(session => session !== null);
+                
+                if (validSessions.length === 0) {
+                    chatListEl.innerHTML += `
+                        <div class="empty-state">
+                            <i class="layui-icon layui-icon-face-surprised" style="font-size: 48px;"></i>
+                            <p>无法加载会话详情</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 渲染会话列表
+                validSessions.forEach(session => {
+                    const chatItem = document.createElement('div');
+                    chatItem.className = 'chat-item';
+                    chatItem.dataset.sessionId = session.sessionId;
+                    
+                    const timeStr = util.toDateString(session.time, 'yyyy-MM-dd HH:mm:ss');
+                    
+                    chatItem.innerHTML = `
+                        <div class="chat-item-title">${session.title}</div>
+                        <div class="chat-item-preview">${session.preview}</div>
+                        <div class="chat-item-time">${timeStr}</div>
+                    `;
+                    
+                    // 点击会话项加载详情
+                    chatItem.addEventListener('click', () => {
+                        // 移除其他项的选中状态
+                        document.querySelectorAll('.chat-item').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        
+                        // 添加选中状态
+                        chatItem.classList.add('active');
+                        
+                        // 加载会话详情
+                        currentSessionId = session.sessionId;
+                        loadChatDetail(session.sessionId);
+                    });
+                    
+                    chatListEl.appendChild(chatItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error rendering sessions:', error);
+                chatListEl.innerHTML = `
+                    <div class="empty-state">
+                        <i class="layui-icon layui-icon-face-cry" style="font-size: 48px;"></i>
+                        <p>加载失败，请重试</p>
+                    </div>
+                `;
+            });
     }
     
     // 加载聊天详情
