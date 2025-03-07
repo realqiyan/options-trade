@@ -43,7 +43,7 @@ public class DefaultSellStrategy extends BaseStrategy {
 
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
-        prompt.append("我准备卖期权收取权利金，交易").append(securityQuote.getSecurity().toString()).append("距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天的期权。\n");
+        prompt.append("我准备卖单腿期权收取权利金，交易").append(securityQuote.getSecurity().toString()).append("距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天的期权。\n");
         prompt.append("当前日期是").append(sdf.format(new Date())).append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我交易建议。\n\n");
 
         // 最近几周的周K线
@@ -118,7 +118,7 @@ public class DefaultSellStrategy extends BaseStrategy {
         prompt.append("## 要求\n");
         prompt.append("* 1.根据提供的原始周K线信息、以及技术指标分析总结当前股票走势方向和风险程度。\n");
         prompt.append("* 2.根据总结信息分析当前股票是否适合进行期权交易。\n");
-        prompt.append("* 3.结合以上分析结论，列出综合最优和保守的交易策略建议。\n");
+        prompt.append("* 3.结合以上分析结论，列出综合最优和保守的单腿期权交易策略建议。\n");
         return prompt.toString();
     }
 

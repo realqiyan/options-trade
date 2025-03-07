@@ -12,6 +12,183 @@
         #chartZone {
             width: 1180px;
         }
+        
+        /* Markdown 内容美化样式 */
+        .user-message, .assistant-message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        
+        .user-message {
+            background-color: #e6f7ff;
+        }
+        
+        .assistant-message {
+            background-color: #fff;
+            border: 1px solid #eee;
+        }
+        
+        .reasoning-message {
+            background-color: #f6f6f6;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px dashed #ddd;
+        }
+        
+        .reasoning-header {
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        /* Markdown 内容样式 */
+        #chat-history h1, 
+        #chat-history h2, 
+        #chat-history h3, 
+        #chat-history h4, 
+        #chat-history h5, 
+        #chat-history h6 {
+            margin-top: 16px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            line-height: 1.25;
+            color: #333;
+        }
+        
+        #chat-history h1 {
+            font-size: 1.8em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        
+        #chat-history h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        
+        #chat-history h3 {
+            font-size: 1.25em;
+        }
+        
+        #chat-history h4 {
+            font-size: 1em;
+        }
+        
+        #chat-history p {
+            margin-top: 0;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        #chat-history blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin: 0 0 16px 0;
+        }
+        
+        #chat-history ul, 
+        #chat-history ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        
+        #chat-history li {
+            margin-bottom: 4px;
+        }
+        
+        #chat-history li + li {
+            margin-top: 0.25em;
+        }
+        
+        #chat-history code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27,31,35,0.05);
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        
+        #chat-history pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            margin-bottom: 16px;
+        }
+        
+        #chat-history pre code {
+            padding: 0;
+            margin: 0;
+            font-size: 100%;
+            background-color: transparent;
+            border: 0;
+            display: inline;
+            overflow: visible;
+            line-height: inherit;
+            word-wrap: normal;
+        }
+        
+        #chat-history table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        
+        #chat-history table th,
+        #chat-history table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        
+        #chat-history table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+        
+        #chat-history table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        
+        #chat-history img {
+            max-width: 100%;
+            box-sizing: content-box;
+            background-color: #fff;
+        }
+        
+        #chat-history hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+        
+        #chat-history a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        
+        #chat-history a:hover {
+            text-decoration: underline;
+        }
+        
+        /* 代码高亮 */
+        #chat-history .hljs {
+            display: block;
+            overflow-x: auto;
+            padding: 0.5em;
+            color: #333;
+            background: #f8f8f8;
+        }
     </style>
     </head>
 <body>
