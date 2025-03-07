@@ -14,12 +14,12 @@ import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncGetOptionsRealtimeData;
 import me.dingtou.options.model.*;
 import me.dingtou.options.util.NumberUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -116,7 +116,7 @@ public class OwnerManager {
         if (null == ownerOrders || ownerOrders.isEmpty()) {
             return;
         }
-        Date now = new Date();
+
         // 计算提交的交易单是否已经平仓用
         Map<String, List<OwnerOrder>> codeOrdersMap = ownerOrders.stream().collect(Collectors.groupingBy(OwnerOrder::getCode));
         Map<String, Boolean> orderClose = new HashMap<>();
@@ -139,6 +139,11 @@ public class OwnerManager {
         }
 
 
+        // 使用America/New_York时区
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        ZoneId zoneId = ZoneId.of("America/New_York");
+        LocalDate nyLocalDate = new Date().toInstant().atZone(zoneId).toLocalDate();
+
         for (OwnerOrder ownerOrder : ownerOrders) {
             if (!ownerOrder.getCode().equals(ownerOrder.getUnderlyingCode())) {
                 BigDecimal totalIncome = NumberUtils.scale(ownerOrder.getPrice()
@@ -149,21 +154,21 @@ public class OwnerManager {
                 ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getCode(), totalIncome.toPlainString());
             }
 
+            String strikeDateStr = simpleDateFormat.format(ownerOrder.getStrikeTime());
+            LocalDate strikeDate = LocalDate.parse(strikeDateStr);
             if (!OrderStatus.of(ownerOrder.getStatus()).isValid()) {
                 // 无效订单直接标记关闭
                 ownerOrder.getExt().put(OrderExt.IS_CLOSE.getCode(), Boolean.TRUE.toString());
             } else {
                 // 订单是不是已经过了行权日
-                boolean isTimeout = ownerOrder.getStrikeTime().before(now) && !DateUtils.isSameDay(ownerOrder.getStrikeTime(), now);
+                boolean isTimeout = strikeDate.isBefore(nyLocalDate) && !strikeDate.isEqual(nyLocalDate);
                 // 订单是否已经平仓
                 Boolean isClose = isTimeout || orderClose.getOrDefault(ownerOrder.getCode(), false);
                 ownerOrder.getExt().put(OrderExt.IS_CLOSE.getCode(), String.valueOf(isClose));
             }
 
             //计算期权到期日ownerOrder.getStrikeTime()和now的间隔天数
-            LocalDate strikeTime = ownerOrder.getStrikeTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            LocalDate currentDate = now.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            long daysToExpiration = ChronoUnit.DAYS.between(currentDate, strikeTime);
+            long daysToExpiration = ChronoUnit.DAYS.between(nyLocalDate, strikeDate);
             ownerOrder.getExt().put(OrderExt.CUR_DTE.getCode(), String.valueOf(daysToExpiration));
 
         }
@@ -175,10 +180,12 @@ public class OwnerManager {
         if (null == ownerOrders || ownerOrders.isEmpty()) {
             return;
         }
-        Date now = new Date();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        LocalDate nyLocalDate = new Date().toInstant().atZone(ZoneId.of("America/New_York")).toLocalDate();
         List<Security> securityList = new ArrayList<>();
         for (OwnerOrder ownerOrder : ownerOrders) {
-            if (ownerOrder.getStrikeTime().before(now)) {
+            LocalDate strikeDate = LocalDate.parse(simpleDateFormat.format(ownerOrder.getStrikeTime()));
+            if (strikeDate.isBefore(nyLocalDate) && !strikeDate.isEqual(nyLocalDate)) {
                 continue;
             }
             if (!ownerOrder.getCode().equals(ownerOrder.getUnderlyingCode())) {
