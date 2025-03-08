@@ -2,8 +2,6 @@ package me.dingtou.options.model;
 
 import lombok.Data;
 
-import java.util.Optional;
-
 /**
  * 消息
  *
