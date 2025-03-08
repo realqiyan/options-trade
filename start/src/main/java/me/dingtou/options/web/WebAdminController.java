@@ -1,6 +1,7 @@
 package me.dingtou.options.web;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.service.AdminService;
@@ -99,6 +100,44 @@ public class WebAdminController {
     @RequestMapping(value = "/strategy/status", method = RequestMethod.POST)
     public WebResult<Boolean> updateStrategyStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status) {
         boolean result = adminService.updateStrategyStatus(id, status);
+        return WebResult.success(result);
+    }
+    
+    /**
+     * 获取所有用户账户
+     *
+     * @return 用户账户列表
+     */
+    @RequestMapping(value = "/account/list", method = RequestMethod.GET)
+    public WebResult<List<OwnerAccount>> listAccounts() {
+        String owner = SessionUtils.getCurrentOwner();
+        List<OwnerAccount> accounts = adminService.listAccounts(owner);
+        return WebResult.success(accounts);
+    }
+    
+    /**
+     * 保存用户账户
+     *
+     * @param account 用户账户
+     * @return 保存后的用户账户
+     */
+    @RequestMapping(value = "/account/save", method = RequestMethod.POST)
+    public WebResult<OwnerAccount> saveAccount(@RequestBody OwnerAccount account) {
+        String owner = SessionUtils.getCurrentOwner();
+        account.setOwner(owner);
+        OwnerAccount savedAccount = adminService.saveAccount(account);
+        return WebResult.success(savedAccount);
+    }
+    
+    /**
+     * 删除用户账户
+     *
+     * @param id 账户ID
+     * @return 是否删除成功
+     */
+    @RequestMapping(value = "/account/delete", method = RequestMethod.POST)
+    public WebResult<Boolean> deleteAccount(@RequestParam("id") Long id) {
+        boolean result = adminService.updateAccountStatus(id, 0);
         return WebResult.success(result);
     }
 } 

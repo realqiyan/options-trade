@@ -53,10 +53,7 @@ public class OwnerManager {
     }
 
     public OwnerAccount queryOwnerAccount(String owner) {
-        QueryWrapper<OwnerAccount> query = new QueryWrapper<>();
-        query.eq("owner", owner)
-                .eq("status", StrategyStatus.VALID.getCode());
-        return ownerAccountDAO.selectOne(query);
+        return ownerAccountDAO.queryOwner(owner);
     }
 
     public List<OwnerSecurity> queryOwnerSecurity(String owner) {

@@ -1,5 +1,6 @@
 package me.dingtou.options.service;
 
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
 
@@ -61,4 +62,29 @@ public interface AdminService {
      * @return 是否更新成功
      */
     boolean updateStrategyStatus(Long id, Integer status);
+    
+    /**
+     * 获取所有用户账户
+     *
+     * @param owner 所有者
+     * @return 用户账户列表
+     */
+    List<OwnerAccount> listAccounts(String owner);
+    
+    /**
+     * 保存用户账户
+     *
+     * @param account 用户账户
+     * @return 保存后的用户账户
+     */
+    OwnerAccount saveAccount(OwnerAccount account);
+    
+    /**
+     * 更新用户账户状态
+     *
+     * @param id     账户ID
+     * @param status 状态
+     * @return 是否更新成功
+     */
+    boolean updateAccountStatus(Long id, Integer status);
 } 

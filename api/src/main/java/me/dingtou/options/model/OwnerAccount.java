@@ -1,8 +1,12 @@
 package me.dingtou.options.model;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 账户信息
@@ -40,4 +44,38 @@ public class OwnerAccount {
      * otp认证信息
      */
     private String otpAuth;
+    
+    /**
+     * 扩展配置，存储额外的配置信息
+     * 只支持一层配置，且只支持字符串类型
+     */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, String> ext;
+    
+    /**
+     * 获取扩展字段值
+     *
+     * @param extKey 扩展字段枚举
+     * @return 扩展字段值
+     */
+    public String getExtValue(AccountExt extKey) {
+        if (ext == null) {
+            return null;
+        }
+        return ext.get(extKey.getKey());
+    }
+    
+    /**
+     * 设置扩展字段值
+     *
+     * @param extKey 扩展字段枚举
+     * @param value  扩展字段值
+     */
+    public void setExtValue(AccountExt extKey, String value) {
+        if (ext == null) {
+            ext = new HashMap<>();
+        }
+        ext.put(extKey.getKey(), value);
+    }
+    
 }

@@ -3,8 +3,10 @@ package me.dingtou.options.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.dao.OwnerAccountDAO;
 import me.dingtou.options.dao.OwnerSecurityDAO;
 import me.dingtou.options.dao.OwnerStrategyDAO;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.service.AdminService;
@@ -13,9 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.HashMap;
 
 /**
  * 管理服务实现类
@@ -31,6 +35,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     private OwnerStrategyDAO ownerStrategyDAO;
+
+    @Autowired
+    private OwnerAccountDAO ownerAccountDAO;
 
     @Override
     public List<OwnerSecurity> listSecurities(String owner) {
@@ -105,4 +112,42 @@ public class AdminServiceImpl implements AdminService {
         updateWrapper.set(OwnerStrategy::getStatus, status);
         return ownerStrategyDAO.update(null, updateWrapper) > 0;
     }
-} 
+
+    @Override
+    public List<OwnerAccount> listAccounts(String owner) {
+        List<OwnerAccount> result = new ArrayList<>();
+        OwnerAccount ownerAccount = ownerAccountDAO.queryOwner(owner);
+        if (null != ownerAccount) {
+            result.add(ownerAccount);
+        }
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OwnerAccount saveAccount(OwnerAccount account) {
+        if (account.getId() == null) {
+            // 新增
+            account.setCreateTime(new Date());
+            // 确保ext字段不为null
+            if (account.getExt() == null) {
+                account.setExt(new HashMap<>());
+            }
+            ownerAccountDAO.insert(account);
+        } else {
+            // 更新
+            // 确保ext字段不为null
+            if (account.getExt() == null) {
+                account.setExt(new HashMap<>());
+            }
+            ownerAccountDAO.updateById(account);
+        }
+        return account;
+    }
+
+    @Override
+    public boolean updateAccountStatus(Long id, Integer status) {
+        // 由于OwnerAccount没有status字段，我们直接通过id删除账户
+        return ownerAccountDAO.deleteById(id) > 0;
+    }
+}
