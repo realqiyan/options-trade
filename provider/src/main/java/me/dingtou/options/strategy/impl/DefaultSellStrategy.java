@@ -79,7 +79,7 @@ public class DefaultSellStrategy extends BaseStrategy {
         
         prompt.append("\n");
         prompt.append("## 交易标的\n");
-        prompt.append("| 代码 ").append("| 期权交易类型 ").append("| 行权价 ").append("| 当前价格 ").append("| 隐含波动率 ").append("| Delta ").append("| Theta ").append("| Gamma ").append("| 未平仓合约数 ").append("| 当天交易量 ").append("| 预估年化收益率 ").append("| 距离行权价涨跌幅 ").append("| 购买倾向 ").append("|\n");
+        prompt.append("| 代码 ").append("| 期权类型 ").append("| 行权价 ").append("| 当前价格 ").append("| 隐含波动率 ").append("| Delta ").append("| Theta ").append("| Gamma ").append("| 未平仓合约数 ").append("| 当天交易量 ").append("| 预估年化收益率 ").append("| 距离行权价涨跌幅 ").append("| 购买倾向 ").append("|\n");
         prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("|\n");
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
