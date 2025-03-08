@@ -49,9 +49,12 @@
 #### 4.2 config.properties 配置说明
 ```properties
 # 富途配置
-futu.host=localhost
-futu.port=11111
-futu.rsa_private_key_file=~/.options-trade/futu_rsa_private.key
+### 富途opend的ip
+futu.api.ip=127.0.0.1
+### 富途opend的端口
+futu.api.port=1111
+### 富途交易密码的MD5值
+futu.api.unlock=e10adc3949ba59abbe56e057f20f883e
 ```
 
 #### 4.3 application.yml 配置说明
