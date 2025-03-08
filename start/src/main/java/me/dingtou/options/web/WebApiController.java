@@ -107,7 +107,8 @@ public class WebApiController {
         optionsStrikeDate.setOptionExpiryDateDistance(optionExpiryDateDistance);
 
         // 当传入策略ID，则查询对应的策略进行期权链处理。
-        Owner owner = optionsQueryService.queryOwner(SessionUtils.getCurrentOwner());
+        String currentOwner = SessionUtils.getCurrentOwner();
+        Owner owner = optionsQueryService.queryOwner(currentOwner);
         OwnerStrategy strategy = null;
         if (null != owner && null != strategyId) {
             Optional<? extends OwnerStrategy> ownerStrategy = owner.getStrategyList().stream().filter(item -> item.getStrategyId().equals(strategyId)).findFirst();
@@ -117,7 +118,7 @@ public class WebApiController {
         }
 
         try {
-            OptionsChain optionsChain = optionsQueryService.queryOptionsChain(security, optionsStrikeDate, strategy);
+            OptionsChain optionsChain = optionsQueryService.queryOptionsChain(currentOwner, security, optionsStrikeDate, strategy);
             return WebResult.success(optionsChain);
         } catch (Exception e) {
             log.error("get options chain error. market:{}, code:{}, strikeTime:{}, message:{}", market, code, strikeTime, e.getMessage(), e);

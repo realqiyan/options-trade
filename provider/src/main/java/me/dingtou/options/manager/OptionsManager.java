@@ -58,12 +58,12 @@ public class OptionsManager {
         return optionsChainGateway.getOptionsExpDate(Security.of(code, market));
     }
 
-    public OptionsChain queryOptionsChain(Security security, OptionsStrikeDate optionsStrikeDate) {
+    public OptionsChain queryOptionsChain(OwnerAccount ownerAccount, Security security, OptionsStrikeDate optionsStrikeDate) {
         if (null == security || null == optionsStrikeDate || null == optionsStrikeDate.getStrikeTime()) {
             return null;
         }
         // 期权标的价格
-        SecurityQuote securityQuote = securityQuoteGateway.quote(security);
+        SecurityQuote securityQuote = securityQuoteGateway.quote(ownerAccount, security);
 
 
         // 期权链
@@ -76,7 +76,7 @@ public class OptionsManager {
         // 日K线
         // SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 60, CandlestickAdjustType.FORWARD_ADJUST);
         // 周K线
-        SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.WEEK, 60, CandlestickAdjustType.FORWARD_ADJUST);
+        SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(ownerAccount, security, CandlestickPeriod.WEEK, 60, CandlestickAdjustType.FORWARD_ADJUST);
         if (null != candlesticks && !CollectionUtils.isEmpty(candlesticks.getCandlesticks())) {
             stockIndicator.setWeekCandlesticks(candlesticks.getCandlesticks());
 

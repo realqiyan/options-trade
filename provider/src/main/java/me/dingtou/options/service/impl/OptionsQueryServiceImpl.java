@@ -148,7 +148,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
         // 股票现价
         Security security = Security.of(ownerStrategy.getCode(), account.getMarket());
-        SecurityQuote securityQuote = securityQuoteGateway.quote(security);
+        SecurityQuote securityQuote = securityQuoteGateway.quote(account, security);
         BigDecimal lastDone = securityQuote.getLastDone();
         summary.setCurrentStockPrice(lastDone);
 
@@ -213,8 +213,9 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     }
 
     @Override
-    public OptionsChain queryOptionsChain(Security security, OptionsStrikeDate optionsStrikeDate, OwnerStrategy strategy) {
-        OptionsChain optionsChain = optionsManager.queryOptionsChain(security, optionsStrikeDate);
+    public OptionsChain queryOptionsChain(String owner, Security security, OptionsStrikeDate optionsStrikeDate, OwnerStrategy strategy) {
+        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
+        OptionsChain optionsChain = optionsManager.queryOptionsChain(ownerAccount, security, optionsStrikeDate);
 
         // 计算策略数据
         calculateStrategyData(optionsStrikeDate, optionsChain, strategy);

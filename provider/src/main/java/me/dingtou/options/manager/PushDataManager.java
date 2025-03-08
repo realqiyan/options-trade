@@ -2,9 +2,11 @@ package me.dingtou.options.manager;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.constant.StrategyStatus;
+import me.dingtou.options.constant.Status;
+import me.dingtou.options.dao.OwnerAccountDAO;
 import me.dingtou.options.dao.OwnerSecurityDAO;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
@@ -23,6 +25,9 @@ public class PushDataManager {
     private OwnerSecurityDAO ownerSecurityDAO;
 
     @Autowired
+    private OwnerAccountDAO ownerAccountDAO;
+
+    @Autowired
     private SecurityQuoteGateway securityQuoteGateway;
 
     /**
@@ -30,14 +35,15 @@ public class PushDataManager {
      *
      * @param callback 回调
      */
-    public void subscribeSecurityPrice(Function<SecurityQuote, Void> callback) {
+    public void subscribeSecurityPrice(String owner, Function<SecurityQuote, Void> callback) {
+        OwnerAccount ownerAccount = ownerAccountDAO.queryOwner(owner);
         QueryWrapper<OwnerSecurity> query = new QueryWrapper<>();
-        query.eq("status", StrategyStatus.VALID.getCode());
+        query.eq("owner", owner).eq("status", Status.VALID.getCode());
         List<OwnerSecurity> ownerSecurities = ownerSecurityDAO.selectList(query);
         List<Security> securities = new ArrayList<>();
         for (OwnerSecurity security : ownerSecurities) {
             securities.add(Security.of(security.getCode(), security.getMarket()));
         }
-        securityQuoteGateway.subscribeQuote(securities, callback);
+        securityQuoteGateway.subscribeQuote(ownerAccount, securities, callback);
     }
 }

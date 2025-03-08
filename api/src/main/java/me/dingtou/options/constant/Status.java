@@ -8,7 +8,7 @@ import lombok.Getter;
  * @author qiyan
  */
 @Getter
-public enum StrategyStatus {
+public enum Status {
 
 
     VALID(1), //有效
@@ -20,13 +20,13 @@ public enum StrategyStatus {
      */
     private final Integer code;
 
-    StrategyStatus(int code) {
+    Status(int code) {
         this.code = code;
     }
 
-    public static StrategyStatus of(Integer code) {
-        StrategyStatus[] values = StrategyStatus.values();
-        for (StrategyStatus val : values) {
+    public static Status of(Integer code) {
+        Status[] values = Status.values();
+        for (Status val : values) {
             if (val.getCode().equals(code)) {
                 return val;
             }
