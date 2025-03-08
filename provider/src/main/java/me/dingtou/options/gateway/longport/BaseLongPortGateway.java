@@ -4,42 +4,30 @@ import com.longport.Config;
 import com.longport.ConfigBuilder;
 import com.longport.quote.QuoteContext;
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.config.ConfigUtils;
+import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.util.AccountExtUtils;
 
 @Slf4j
 public class BaseLongPortGateway {
 
-    private static Config LONGPORT_CONFIG = null;
-
-    static {
-        try {
-            // Init config without ENV
-            // https://longportapp.github.io/openapi-sdk/java/com/longport/ConfigBuilder.html
-            // 读取属性值
-            String appKey = ConfigUtils.getConfig("longport.app.key");
-            String appSecret = ConfigUtils.getConfig("longport.app.secret");
-            String accessToken = ConfigUtils.getConfig("longport.access.token");
-            if (null != appKey && null != appSecret && null != accessToken) {
-                LONGPORT_CONFIG = new ConfigBuilder(appKey, appSecret, accessToken).build();
-            } else {
-                LONGPORT_CONFIG = Config.fromEnv();
-            }
-        } catch (Throwable e) {
-            log.error("init longport_java error. message:{}", e.getMessage());
-        }
-    }
-
+    private Config config;
     private QuoteContext quoteContext;
 
-    protected QuoteContext getQuoteContext(boolean refresh) {
+    protected QuoteContext getQuoteContext(OwnerAccount ownerAccount, boolean refresh) {
         try {
+            if (null == config) {
+                config = new ConfigBuilder(AccountExtUtils.getLongportAppKey(ownerAccount),
+                        AccountExtUtils.getLongportAppSecret(ownerAccount),
+                        AccountExtUtils.getLongportAccessToken(ownerAccount)).build();
+            }
             if (refresh) {
-                quoteContext = QuoteContext.create(LONGPORT_CONFIG).get();
+                quoteContext = QuoteContext.create(config).get();
             }
             if (null == quoteContext) {
-                quoteContext = QuoteContext.create(LONGPORT_CONFIG).get();
+                quoteContext = QuoteContext.create(config).get();
             }
         } catch (Exception e) {
+            log.error("init longport_java error. message:{}", e.getMessage());
             throw new RuntimeException(e);
         }
         return quoteContext;

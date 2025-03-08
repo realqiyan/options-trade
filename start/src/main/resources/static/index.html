@@ -8,10 +8,186 @@
     <title>Options Trade Tools</title>
     <link rel="icon" href="data:image/ico;base64,aWNv">
     <link rel="stylesheet" href="layui/css/layui.css">
-    <link rel="stylesheet" href="aichat.css">
     <style>
         #chartZone {
             width: 1180px;
+        }
+        
+        /* Markdown 内容美化样式 */
+        .user-message, .assistant-message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        
+        .user-message {
+            background-color: #e6f7ff;
+        }
+        
+        .assistant-message {
+            background-color: #fff;
+            border: 1px solid #eee;
+        }
+        
+        .reasoning-message {
+            background-color: #f6f6f6;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px dashed #ddd;
+        }
+        
+        .reasoning-header {
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        /* Markdown 内容样式 */
+        #chat-history h1, 
+        #chat-history h2, 
+        #chat-history h3, 
+        #chat-history h4, 
+        #chat-history h5, 
+        #chat-history h6 {
+            margin-top: 16px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            line-height: 1.25;
+            color: #333;
+        }
+        
+        #chat-history h1 {
+            font-size: 1.8em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        
+        #chat-history h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        
+        #chat-history h3 {
+            font-size: 1.25em;
+        }
+        
+        #chat-history h4 {
+            font-size: 1em;
+        }
+        
+        #chat-history p {
+            margin-top: 0;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        #chat-history blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin: 0 0 16px 0;
+        }
+        
+        #chat-history ul, 
+        #chat-history ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        
+        #chat-history li {
+            margin-bottom: 4px;
+        }
+        
+        #chat-history li + li {
+            margin-top: 0.25em;
+        }
+        
+        #chat-history code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27,31,35,0.05);
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        
+        #chat-history pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            margin-bottom: 16px;
+        }
+        
+        #chat-history pre code {
+            padding: 0;
+            margin: 0;
+            font-size: 100%;
+            background-color: transparent;
+            border: 0;
+            display: inline;
+            overflow: visible;
+            line-height: inherit;
+            word-wrap: normal;
+        }
+        
+        #chat-history table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        
+        #chat-history table th,
+        #chat-history table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        
+        #chat-history table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+        
+        #chat-history table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        
+        #chat-history img {
+            max-width: 100%;
+            box-sizing: content-box;
+            background-color: #fff;
+        }
+        
+        #chat-history hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+        
+        #chat-history a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        
+        #chat-history a:hover {
+            text-decoration: underline;
+        }
+        
+        /* 代码高亮 */
+        #chat-history .hljs {
+            display: block;
+            overflow-x: auto;
+            padding: 0.5em;
+            color: #333;
+            background: #f8f8f8;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -38,6 +214,8 @@
                 <li class="layui-nav-item"><a href="order.html">策略订单</a></li>
                 <li class="layui-nav-item"><a href="sync.html">同步订单</a></li>
                 <li class="layui-nav-item"><a href="income.html">账户收益</a></li>
+                <li class="layui-nav-item"><a href="chat-history.html">分析管理</a></li>
+                <li class="layui-nav-item"><a href="admin.html">后台管理</a></li>
             </ul>
         </div>
     </div>
@@ -82,17 +260,22 @@
 </div>
 
 <!-- 在body结束标签前添加聊天窗口结构 -->
-<div id="chat-box" class="layui-col-md4" style="z-index:999;position:fixed;right:20px;bottom:20px;display:none;background:#fff;border:1px solid #ddd;border-radius:5px;max-height:60vh;">
+<div id="chat-box" class="layui-col-md4" style="width:60%;z-index:999;position:fixed;right:20px;bottom:20px;display:none;background:#fff;border:1px solid #ddd;border-radius:5px;max-height:100vh;">
     <div class="layui-card">
-        <div class="layui-card-header">AI 助手</div>
-        <div class="layui-card-body" id="chat-history" style="height:300px;overflow-y:auto;">
+        <div class="layui-card-header">
+            AI 助手
+            <button class="layui-btn layui-btn-xs layui-btn-primary" style="float:right;" onclick="showChatHistory()">
+                <i class="layui-icon layui-icon-list"></i> 历史记录
+            </button>
+        </div>
+        <div class="layui-card-body" id="chat-history" style="height:600px;overflow-y:auto;">
             <!-- 聊天历史消息 -->
         </div>
         <div class="layui-card-footer">
             <div class="layui-form">
-                <textarea id="chat-input" class="layui-textarea" placeholder="输入消息..." rows="3"></textarea>
+                <textarea id="chat-input" class="layui-textarea" placeholder="输入消息..." rows="8"></textarea>
                 <div style="margin-top:5px;">
-                    <button class="layui-btn layui-btn-sm" onclick="sendMessage()">发送</button>
+                    <button class="layui-btn layui-btn-sm" onclick="sendMessage(layui.jquery('#strategyId').find('option:selected').text())">发送</button>
                     <button class="layui-btn layui-btn-sm layui-btn-danger" onclick="clearChat()" style="margin-left:5px;">清理</button>
                 </div>
             </div>
@@ -101,6 +284,11 @@
 </div>
 
 <script src="layui/layui.js"></script>
+<script src="chart/chart.js"></script>
+<script src="marked/marked.js"></script>
+<script src="common.js"></script>
+<script src="index.js"></script>
+<script src="aichat.js"></script>
 <script type="text/html" id="id-table-put-info">
     {{# if(d.putObj) { }}
     <span class="layui-badge-rim layui-bg-green" title="delta">Δ:{{= d.putObj.realtimeData.delta }}</span>
@@ -112,7 +300,6 @@
     <span class="layui-badge-rim layui-bg-green" title="隐含波动率">IV:{{= d.putObj.realtimeData.impliedVolatility }}</span>
     {{# } }}
 </script>
-
 <script type="text/html" id="id-table-call-info">
     {{# if(d.callObj) { }}
     <span class="layui-badge-rim layui-bg-green" title="delta">Δ:{{= d.callObj.realtimeData.delta }}</span>
@@ -132,6 +319,12 @@
     var monthMin = (lastDone-Number(d.stockIndicator.monthPriceRange)).toFixed(3);
     var monthMax = (lastDone+Number(d.stockIndicator.monthPriceRange)).toFixed(3);
     }}
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+            <a href="javascript:;" onclick="showChat()"><i class="layui-icon layui-icon-link"></i>AI助手</a>
+        </b>
+    </span>
+    -
     <span class="layui-badge layui-bg-blue">
         {{= d.currentCode}}:{{= d.stockIndicator.securityQuote.lastDone }}
         (<b id="stock_{{=d.stockIndicator.securityQuote.security.market}}_{{=d.stockIndicator.securityQuote.security.code}}" class="layui-font-16">{{= d.stockIndicator.securityQuote.lastDone }}</b>)
@@ -142,12 +335,6 @@
     <span class="layui-badge layui-bg-blue">周价格波动:<b class="layui-font-16">{{= d.stockIndicator.weekPriceRange}}</b></span>({{= weekMin}} - {{= weekMax}})
     -
     <span class="layui-badge layui-bg-blue">月价格波动:<b class="layui-font-16">{{= d.stockIndicator.monthPriceRange}}</b></span>({{= monthMin}} - {{= monthMax}})
-    -
-    <a href="javascript:;" onclick="showChat()"><i class="layui-icon layui-icon-link"></i>提示词</a>
-    -
-    <a href="https://chat.deepseek.com/" target="_blank"><i class="layui-icon layui-icon-link"></i>DeepSeek</a>
-    -
-    <a href="https://yuanbao.tencent.com/chat/" target="_blank"><i class="layui-icon layui-icon-link"></i>元宝</a>
     <br/>
     <span class="layui-badge layui-bg-orange">
         <b class="layui-font-16">
@@ -244,9 +431,5 @@
     <span class="layui-badge layui-bg-orange" title="价格涨跌幅">{{= d.data.strategyData.range}}%</span>
     </div>
 </script>
-<script src="chart/chart.js"></script>
-<script src="common.js"></script>
-<script src="index.js"></script>
-<script src="aichat.js"></script>
 </body>
 </html>

@@ -1,22 +1,19 @@
 package me.dingtou.options.service.impl;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import com.openai.client.OpenAIClient;
-import com.openai.client.OpenAIClientAsync;
-import com.openai.client.okhttp.OpenAIOkHttpClient;
-import com.openai.client.okhttp.OpenAIOkHttpClientAsync;
-import com.openai.core.JsonField;
-import com.openai.core.JsonValue;
-import com.openai.core.http.AsyncStreamResponse;
-import com.openai.core.http.StreamResponse;
-import com.openai.models.ChatCompletionChunk;
-import com.openai.models.ChatCompletionCreateParams;
-import com.openai.models.ChatModel;
-import me.dingtou.options.config.ConfigUtils;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import me.dingtou.options.dao.OwnerChatRecordDAO;
+import me.dingtou.options.manager.ChatManager;
 import me.dingtou.options.model.Message;
+import me.dingtou.options.model.OwnerChatRecord;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import me.dingtou.options.service.AIChatService;
@@ -24,46 +21,81 @@ import me.dingtou.options.service.AIChatService;
 @Service
 public class AIChatServiceImpl implements AIChatService {
 
+    @Autowired
+    private OwnerChatRecordDAO ownerChatRecordDAO;
 
-    private static final OpenAIClientAsync CLIENT;
-    private static final String MODEL;
-    private static final Double TEMPERATURE;
-
-    static {
-        // 模型
-        MODEL = ConfigUtils.getConfig("ai.api.model");
-
-        // 基础配置
-        String baseUrl = ConfigUtils.getConfig("ai.base_url");
-        String apiKey = ConfigUtils.getConfig("ai.api.key");
-        CLIENT = OpenAIOkHttpClientAsync.builder().apiKey(apiKey).baseUrl(baseUrl).build();
-
-        // 温度
-        String temperature = ConfigUtils.getConfig("ai.api.temperature");
-        TEMPERATURE = null == temperature ? 1.0 : Float.parseFloat(temperature);
-    }
-
+    @Autowired
+    private ChatManager chatManager;
 
     @Override
-    public void chat(String message, Function<Message, Void> callback) {
+    public void chat(String owner, String title, String message, Function<Message, Void> callback) {
+        // 生成会话ID
+        String sessionId = UUID.randomUUID().toString();
 
-        ChatCompletionCreateParams createParams = ChatCompletionCreateParams.builder().model(MODEL).temperature(TEMPERATURE).maxCompletionTokens(8192).addUserMessage(message).build();
+        // 保存用户消息
+        OwnerChatRecord userRecord = new OwnerChatRecord(owner, sessionId, null, title, "user", message, null);
 
-        CLIENT.chat().completions().createStreaming(createParams).subscribe(chatCompletionChunk -> {
-            String id = chatCompletionChunk.id();
-            chatCompletionChunk.choices().forEach(choice -> {
-                JsonField<ChatCompletionChunk.Choice.Delta> deltaJsonField = choice._delta();
-                Optional<Map<String, JsonValue>> object = deltaJsonField.asObject();
-                if (object.isEmpty()) {
-                    return;
-                }
-                object.get().forEach((key, value) -> {
-                    if (null != value && !value.isNull() && value.asString().isPresent()) {
-                        callback.apply(new Message(id, key, value.asString().get().toString()));
-                    }
-                });
-            });
-        }).onCompleteFuture().join();
+        ownerChatRecordDAO.insert(userRecord);
+
+        // 使用ChatManager发送消息并获取响应
+        ChatManager.ChatResult result = chatManager.sendChatMessage(message, callback);
+
+        // 保存AI助手的完整回复
+        if (!result.getContent().isEmpty()) {
+            OwnerChatRecord assistantRecord = new OwnerChatRecord(
+                    owner,
+                    sessionId,
+                    result.getMessageId(),
+                    title,
+                    "assistant",
+                    result.getContent(),
+                    result.getReasoningContent());
+            ownerChatRecordDAO.insert(assistantRecord);
+        }
     }
 
+    @Override
+    public List<String> listSessionIds(String owner) {
+        // 首先查询所有满足条件的记录
+        QueryWrapper<OwnerChatRecord> query = new QueryWrapper<>();
+        query.select("session_id")
+                .eq("owner", owner)
+                .groupBy("session_id")
+                .orderByDesc("max(create_time)");
+        List<OwnerChatRecord> allRecords = ownerChatRecordDAO.selectList(query);
+
+        return allRecords.stream().map(OwnerChatRecord::getSessionId).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OwnerChatRecord> listRecordsBySessionId(String owner, String sessionId) {
+        // 根据会话ID查询记录
+        LambdaQueryWrapper<OwnerChatRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OwnerChatRecord::getOwner, owner)
+                .eq(OwnerChatRecord::getSessionId, sessionId)
+                .orderByAsc(OwnerChatRecord::getCreateTime);
+
+        return ownerChatRecordDAO.selectList(wrapper);
+    }
+
+    @Override
+    public boolean deleteBySessionId(String owner, String sessionId) {
+        // 根据会话ID删除记录
+        LambdaQueryWrapper<OwnerChatRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OwnerChatRecord::getOwner, owner)
+                .eq(OwnerChatRecord::getSessionId, sessionId);
+
+        return ownerChatRecordDAO.delete(wrapper) > 0;
+    }
+
+    @Override
+    public boolean updateSessionTitle(String owner, String sessionId, String title) {
+        // 更新会话标题
+        LambdaUpdateWrapper<OwnerChatRecord> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(OwnerChatRecord::getOwner, owner)
+                .eq(OwnerChatRecord::getSessionId, sessionId)
+                .set(OwnerChatRecord::getTitle, title);
+
+        return ownerChatRecordDAO.update(null, updateWrapper) > 0;
+    }
 }

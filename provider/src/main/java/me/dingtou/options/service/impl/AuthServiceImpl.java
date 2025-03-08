@@ -63,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
             // 获取MessageDigest实例，指定算法为SHA-256
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             // 计算输入字符串的哈希值
-            byte[] hashBytes = digest.digest(otpAuth.getBytes());
+            byte[] hashBytes = digest.digest(otpAuth.getBytes("UTF-8"));
             // 将哈希值转换为十六进制字符串
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {

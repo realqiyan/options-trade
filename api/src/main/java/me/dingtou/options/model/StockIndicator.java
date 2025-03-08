@@ -3,9 +3,9 @@ package me.dingtou.options.model;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * 股票行情
@@ -41,6 +41,11 @@ public class StockIndicator {
     private Candlestick monthCandlestick;
 
     /**
+     * 近期周K线
+     */
+    private List<Candlestick> weekCandlesticks;
+
+    /**
      * 支撑位
      */
     private SupportPriceIndicator supportPriceIndicator;
@@ -48,7 +53,7 @@ public class StockIndicator {
     /**
      * 趋势指标
      */
-    private final Map<String, List<StockIndicatorItem>> indicatorMap = new HashMap<>();
+    private final Map<String, List<StockIndicatorItem>> indicatorMap = new TreeMap<>();
 
     /**
      * 加入趋势指标

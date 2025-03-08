@@ -1,19 +1,17 @@
 package me.dingtou.options.service.impl;
 
+import me.dingtou.options.manager.ChatManager;
 import me.dingtou.options.model.Message;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class AIChatServiceImplTest {
-
 
     @Test
     void chat() {
-        final String[] lastType = {null};
-        new AIChatServiceImpl().chat("你是谁？", new Function<Message, Void>() {
+        final String[] lastType = { null };
+        new ChatManager().sendChatMessage("你是谁？", new Function<Message, Void>() {
             @Override
             public Void apply(Message message) {
                 if (lastType[0] == null) {

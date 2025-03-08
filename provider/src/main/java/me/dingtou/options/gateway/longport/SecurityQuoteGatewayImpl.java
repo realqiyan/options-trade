@@ -7,6 +7,7 @@ import com.longport.quote.SubFlags;
 import com.longport.quote.Subscription;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
 import org.springframework.stereotype.Component;
@@ -35,10 +36,10 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
 
 
     @Override
-    public SecurityQuote quote(Security security) {
+    public SecurityQuote quote(OwnerAccount ownerAccount, Security security) {
         List<Security> securityList = new ArrayList<>(1);
         securityList.add(security);
-        List<SecurityQuote> quoteList = quote(securityList);
+        List<SecurityQuote> quoteList = quote(ownerAccount, securityList);
         if (null == quoteList || quoteList.isEmpty()) {
             SecurityQuote securityQuote = new SecurityQuote();
             securityQuote.setSecurity(security);
@@ -49,13 +50,13 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
     }
 
     @Override
-    public List<SecurityQuote> quote(List<Security> securityList) {
+    public List<SecurityQuote> quote(OwnerAccount ownerAccount, List<Security> securityList) {
         if (null == securityList || securityList.isEmpty()) {
             return Collections.emptyList();
         }
         List<SecurityQuote> quoteList = new ArrayList<>(securityList.size());
         try {
-            QuoteContext ctx = getQuoteContext(false);
+            QuoteContext ctx = getQuoteContext(ownerAccount, false);
             if (null == ctx) {
                 return Collections.emptyList();
             }
@@ -79,8 +80,9 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
 
             }
         } catch (Exception e) {
+            log.error("quote error. message:{}", e.getMessage(), e);
             try {
-                getQuoteContext(true);
+                getQuoteContext(ownerAccount, true);
             } catch (Exception exception) {
                 log.error("subscribeQuote error. message:{}", exception.getMessage());
             }
@@ -90,13 +92,13 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
     }
 
     @Override
-    public void subscribeQuote(List<Security> security, Function<SecurityQuote, Void> callback) {
+    public void subscribeQuote(OwnerAccount ownerAccount, List<Security> security, Function<SecurityQuote, Void> callback) {
         try {
             if (null == security || null == callback) {
                 return;
             }
             Set<String> securitySet = security.stream().map(Security::toString).collect(Collectors.toSet());
-            QuoteContext ctx = getQuoteContext(false);
+            QuoteContext ctx = getQuoteContext(ownerAccount, false);
             CompletableFuture<Subscription[]> historySubscriptions = ctx.getSubscrptions();
             Subscription[] subscriptions = historySubscriptions.get();
             for (Subscription subscription : subscriptions) {
@@ -114,7 +116,7 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
                 callback.apply(securityQuote);
             });
         } catch (Exception e) {
-            getQuoteContext(true);
+            getQuoteContext(ownerAccount, true);
             log.error("subscribeQuote error. message:{}", e.getMessage(), e);
         }
     }

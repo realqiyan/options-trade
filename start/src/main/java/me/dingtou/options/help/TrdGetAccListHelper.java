@@ -46,7 +46,7 @@ public class TrdGetAccListHelper implements FTSPI_Trd, FTSPI_Conn {
 
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
-        System.out.printf("Trd onInitConnect: ret=%b desc=%s connID=%d\n", errCode, desc, client.getConnectID());
+        log.info("Trd onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
         if (errCode != 0)
             return;
 
@@ -56,21 +56,21 @@ public class TrdGetAccListHelper implements FTSPI_Trd, FTSPI_Conn {
                 .build();
         TrdGetAccList.Request req = TrdGetAccList.Request.newBuilder().setC2S(c2s).build();
         int seqNo = trd.getAccList(req);
-        System.out.printf("Send TrdGetAccList: %d\n", seqNo);
+        log.info("Send TrdGetAccList: {}", seqNo);
     }
 
     @Override
     public void onDisconnect(FTAPI_Conn client, long errCode) {
-        System.out.printf("Trd onDisConnect: %d\n", errCode);
+        log.info("Trd onDisConnect: {}", errCode);
     }
 
     @Override
     public void onReply_GetAccList(FTAPI_Conn client, int nSerialNo, TrdGetAccList.Response rsp) {
         if (rsp.getRetType() != 0) {
-            System.out.printf("TrdGetAccList failed: %s\n", rsp.getRetMsg());
+            log.warn("TrdGetAccList failed: {}", rsp.getRetMsg());
         } else {
             String json = JSON.toJSONString(rsp);
-            System.out.printf("Receive TrdGetAccList: %s\n", json);
+            log.info("Receive TrdGetAccList: {}", json);
         }
     }
 

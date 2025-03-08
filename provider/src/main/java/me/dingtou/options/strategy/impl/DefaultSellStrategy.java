@@ -1,12 +1,13 @@
 package me.dingtou.options.strategy.impl;
 
-import me.dingtou.options.constant.IndicatorKey;
 import me.dingtou.options.model.*;
+import me.dingtou.options.util.IndicatorDataFrameUtil;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class DefaultSellStrategy extends BaseStrategy {
@@ -32,39 +33,54 @@ public class DefaultSellStrategy extends BaseStrategy {
             }
         });
         // AI分析提示词
+        VixIndicator vixIndicator = optionsChain.getVixIndicator();
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
         SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
-        // 股票{{=d.currentCode}}当前股价{{=lastDone}},近一周价格波动{{=d.weekPriceRange}}，近一月价格波动{{=d.monthPriceRange}}，当前齐全
-        prompt.append("我在做卖期权的策略，目的是通过卖").append(securityQuote.getSecurity().toString())
-                .append("的期权赚取权利金，当前股价").append(securityPrice);
-        if (null != optionsChain.getVixIndicator()) {
-            VixIndicator vixIndicator = optionsChain.getVixIndicator();
-            prompt.append("，当前VIX指数为").append(vixIndicator.getCurrentVix().getValue());
-        }
-        prompt.append("，近一周价格波动").append(stockIndicator.getWeekPriceRange())
-                .append("，近一月价格波动").append(stockIndicator.getMonthPriceRange());
+        prompt.append("我准备卖出").append(securityQuote.getSecurity().toString())
+                .append("距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天的期权，");
+               
+        prompt.append("当前股票价格是").append(securityPrice)
+                .append(null != vixIndicator && null != vixIndicator.getCurrentVix() ? "，当前VIX指数是"+ vixIndicator.getCurrentVix().getValue() : "")
+                .append("，当前日期是").append(sdf.format(new Date()))
+                .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我交易建议。\n\n");
 
-        Map<String, List<StockIndicatorItem>> lineMap = stockIndicator.getIndicatorMap();
-        int weekSize = 10;
-        for (Map.Entry<String, List<StockIndicatorItem>> entry : lineMap.entrySet()) {
-            IndicatorKey indicatorKey = IndicatorKey.of(entry.getKey());
-            List<StockIndicatorItem> value = entry.getValue();
-            prompt.append("，当前").append(indicatorKey.getDisplayName()).append("为").append(value.get(0).getValue())
-                    .append("（最近").append(weekSize).append("周的周K线").append(indicatorKey.getDisplayName()).append("如下：");
+        // 最近几周的周K线
+        prompt.append("## 原始周K线\n");
+        List<Candlestick> weekCandlesticks = stockIndicator.getWeekCandlesticks();
+        int subListSize = Math.min(weekCandlesticks.size(), 30);
+        weekCandlesticks = weekCandlesticks.subList(weekCandlesticks.size() - subListSize, weekCandlesticks.size());
 
-            int size = Math.min(value.size(), weekSize);
-            List<StockIndicatorItem> subList = value.subList(0, size);
+        prompt.append("| 日期 ").append("| 开盘价 ").append("| 收盘价 ").append("| 最高价 ").append("| 最低价 ").append("| 成交量 ").append("| 成交额 ").append("|\n");
+        prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("|\n");
 
-            subList.forEach(item -> {
-                prompt.append(item.getDate()).append("这周的").append(indicatorKey.getDisplayName()).append("为").append(item.getValue()).append("，");
-            });
-        }
+        weekCandlesticks.forEach(candlestick -> {
+            Long timestamp = candlestick.getTimestamp();
+            prompt.append("| ").append(sdf.format(new Date(timestamp * 1000)))
+                    .append(" | ").append(candlestick.getOpen())
+                    .append(" | ").append(candlestick.getClose())
+                    .append(" | ").append(candlestick.getHigh())
+                    .append(" | ").append(candlestick.getLow())
+                    .append(" | ").append(candlestick.getVolume())
+                    .append(" | ").append(candlestick.getTurnover())
+                    .append(" |\n");
+        });
+        prompt.append("\n");
 
-        prompt.append("），当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
-                .append("，当前期权距离到期时间").append(optionsStrikeDate.getOptionExpiryDateDistance())
-                .append("天，准备交易的期权实时信息如下：\n");
+        int weekSize = 20;
+        prompt.append("### 近").append(weekSize).append("周技术指标\n");
+        
+        // 使用IndicatorDataFrameUtil生成技术指标表格
+        prompt.append(IndicatorDataFrameUtil.createMarkdownTable(stockIndicator, weekSize));
+        
+        prompt.append("\n");
+        prompt.append("## 交易标的\n");
+        prompt.append("| 代码 ").append("| 期权类型 ").append("| 行权价 ").append("| 当前价格 ").append("| 隐含波动率 ").append("| Delta ").append("| Theta ").append("| Gamma ").append("| 未平仓合约数 ").append("| 当天交易量 ").append("| 预估年化收益率 ").append("| 距离行权价涨跌幅 ").append("| 购买倾向 ").append("|\n");
+        prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("|\n");
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
             if (null != call) {
@@ -75,32 +91,28 @@ public class DefaultSellStrategy extends BaseStrategy {
                 buildOptionsPrompt(prompt, put);
             }
         });
-        prompt.append("请帮我分析当前股票指标和这些期权标的，帮我检查是否适合交易，如何适合交易请给我综合最优的交易建议和保守的交易建议。");
+
         return prompt.toString();
     }
 
     private void buildOptionsPrompt(StringBuilder prompt, Options options) {
-        if (null == options.getStrategyData() || Boolean.FALSE.equals(options.getStrategyData().getRecommend())) {
+        if (Boolean.FALSE.equals(options.getStrategyData().getRecommend())) {
             return;
         }
-        if (Integer.valueOf(1).equals(options.getOptionExData().getType())) {
-            prompt.append("SellCall标的:");
-        } else if (Integer.valueOf(2).equals(options.getOptionExData().getType())) {
-            prompt.append("SellPut标的:");
-        }
-        prompt.append(options.getBasic().getSecurity().getCode())
-                .append("，行权价:").append(options.getOptionExData().getStrikePrice())
-                .append("，当前价格:").append(options.getRealtimeData().getCurPrice())
-                .append("，隐含波动率:").append(options.getRealtimeData().getImpliedVolatility())
-                .append("，Delta:").append(options.getRealtimeData().getDelta())
-                .append("，Theta:").append(options.getRealtimeData().getTheta())
-                .append("，Gamma:").append(options.getRealtimeData().getGamma())
-                .append("，未平仓合约数:").append(options.getRealtimeData().getOpenInterest())
-                .append("，当天交易量:").append(options.getRealtimeData().getVolume())
-                .append("，预估年化收益率:").append(options.getStrategyData().getSellAnnualYield())
-                .append("%，距离行权价涨跌幅:").append(options.getStrategyData().getRange())
-                .append("%，我的购买倾向").append(options.getStrategyData().getRecommendLevel() <= 2 ? "一般" : "较强")
-                .append("；\n");
+        prompt.append("| ").append(options.getBasic().getSecurity().getCode())
+                .append(" | ").append(Integer.valueOf(1).equals(options.getOptionExData().getType()) ? "Call" : "Put")
+                .append(" | ").append(options.getOptionExData().getStrikePrice())
+                .append(" | ").append(options.getRealtimeData().getCurPrice())
+                .append(" | ").append(options.getRealtimeData().getImpliedVolatility())
+                .append(" | ").append(options.getRealtimeData().getDelta())
+                .append(" | ").append(options.getRealtimeData().getTheta())
+                .append(" | ").append(options.getRealtimeData().getGamma())
+                .append(" | ").append(options.getRealtimeData().getOpenInterest())
+                .append(" | ").append(options.getRealtimeData().getVolume())
+                .append(" | ").append(options.getStrategyData().getSellAnnualYield()).append("%")
+                .append(" | ").append(options.getStrategyData().getRange()).append("%")
+                .append(" | ").append(options.getStrategyData().getRecommendLevel() <= 1 ? "一般" : "倾向")
+                .append(" |\n");
     }
 
     @Override

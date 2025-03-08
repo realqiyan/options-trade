@@ -2,8 +2,6 @@ package me.dingtou.options.model;
 
 import lombok.Data;
 
-import java.util.Optional;
-
 /**
  * 消息
  *
@@ -23,6 +21,10 @@ public class Message {
      * 消息内容
      */
     private String message;
+    /**
+     * 思考内容
+     */
+    private String reasoningMessage;
 
     public Message() {
     }
@@ -32,12 +34,20 @@ public class Message {
         this.type = type;
         this.message = message;
     }
+    
+    public Message(String id, String type, String message, String reasoningMessage) {
+        this.id = id;
+        this.type = type;
+        this.message = message;
+        this.reasoningMessage = reasoningMessage;
+    }
 
     @Override
     public String toString() {
         return "Message{" +
                 "type='" + type + '\'' +
                 ", message='" + message + '\'' +
+                ", reasoningMessage='" + reasoningMessage + '\'' +
                 '}';
     }
 }

@@ -1,6 +1,5 @@
 package me.dingtou.options.gateway.longport;
 
-
 import com.longport.quote.AdjustType;
 import com.longport.quote.Period;
 import com.longport.quote.QuoteContext;
@@ -9,6 +8,7 @@ import me.dingtou.options.constant.CandlestickAdjustType;
 import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.gateway.CandlestickGateway;
 import me.dingtou.options.model.Candlestick;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityCandlestick;
 import org.springframework.stereotype.Component;
@@ -21,12 +21,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CandlestickGatewayImpl extends BaseLongPortGateway implements CandlestickGateway {
     @Override
-    public SecurityCandlestick getCandlesticks(Security security, CandlestickPeriod period, Integer count, CandlestickAdjustType adjustType) {
+    public SecurityCandlestick getCandlesticks(OwnerAccount ownerAccount, Security security, CandlestickPeriod period,
+            Integer count, CandlestickAdjustType adjustType) {
         SecurityCandlestick result = new SecurityCandlestick();
         result.setSecurity(security);
         result.setCandlesticks(new ArrayList<>());
         try {
-            QuoteContext ctx = getQuoteContext(false);
+            QuoteContext ctx = getQuoteContext(ownerAccount, false);
             if (null == ctx) {
                 return result;
             }
@@ -40,7 +41,8 @@ public class CandlestickGatewayImpl extends BaseLongPortGateway implements Candl
                 case FORWARD_ADJUST -> AdjustType.ForwardAdjust;
                 case NO_ADJUST -> AdjustType.NoAdjust;
             };
-            CompletableFuture<com.longport.quote.Candlestick[]> completableFuture = ctx.getCandlesticks(security.toString(), queryPeriod, count, queryAdjustType);
+            CompletableFuture<com.longport.quote.Candlestick[]> completableFuture = ctx
+                    .getCandlesticks(security.toString(), queryPeriod, count, queryAdjustType);
             com.longport.quote.Candlestick[] candlesticks = completableFuture.get(10, TimeUnit.SECONDS);
             for (com.longport.quote.Candlestick candlestick : candlesticks) {
                 if (null == candlestick) {
@@ -49,10 +51,11 @@ public class CandlestickGatewayImpl extends BaseLongPortGateway implements Candl
                 result.getCandlesticks().add(convertCandlestick(candlestick));
             }
         } catch (Exception e) {
+            log.error("获取K线数据失败,security:{},message:{}", security.toString(), e.getMessage());
             try {
-                getQuoteContext(true);
+                getQuoteContext(ownerAccount, true);
             } catch (Exception exception) {
-                log.error("获取K线数据失败,security:{},message:{}", security.toString(), exception.getMessage());
+                log.error("获取K线数据再次失败,security:{},message:{}", security.toString(), exception.getMessage());
             }
             return result;
         }

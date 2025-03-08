@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Options Trade Tools</title>
+    <link rel="stylesheet" href="layui/css/layui.css">
+    <style>
+        .layui-card {
+            margin-bottom: 15px;
+        }
+        .layui-card-header {
+            font-weight: bold;
+        }
+        .layui-form-item {
+            margin-bottom: 10px;
+        }
+        .layui-btn-group {
+            margin-bottom: 10px;
+        }
+        .layui-table-tool {
+            padding: 5px 10px;
+        }
+        .layui-tab-content {
+            padding: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="layui-layout layui-layout-admin">
+        <div class="layui-header">
+            <div class="layui-logo layui-hide-xs">Options</div>
+            <ul class="layui-nav layui-layout-left">
+            </ul>
+        </div>
+
+        <div class="layui-side layui-bg-black">
+            <div class="layui-side-scroll">
+                <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+                <ul class="layui-nav layui-nav-tree">
+                    <li class="layui-nav-item"><a href="index.html">证券标的</a></li>
+                    <li class="layui-nav-item"><a href="order.html">策略订单</a></li>
+                    <li class="layui-nav-item"><a href="sync.html">同步订单</a></li>
+                    <li class="layui-nav-item"><a href="income.html">账户收益</a></li>
+                    <li class="layui-nav-item"><a href="chat-history.html">分析管理</a></li>
+                    <li class="layui-nav-item layui-nav-itemed layui-this"><a href="admin.html">后台管理</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="layui-body" style="padding: 15px;">
+            <!-- Tab选项卡 -->
+            <div class="layui-tab layui-tab-brief" lay-filter="adminTab">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">期权标的管理</li>
+                    <li>期权策略管理</li>
+                    <li>账户管理</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <!-- 期权标的管理 -->
+                    <div class="layui-tab-item layui-show">
+                        <div class="layui-card">
+                            <div class="layui-card-header">期权标的管理</div>
+                            <div class="layui-card-body">
+                                <div class="layui-btn-group">
+                                    <button type="button" class="layui-btn layui-btn-sm" id="addSecurityBtn">
+                                        <i class="layui-icon">&#xe654;</i> 添加标的
+                                    </button>
+                                    <button type="button" class="layui-btn layui-btn-sm layui-btn-danger" id="deleteSecurityBtn">
+                                        <i class="layui-icon">&#xe640;</i> 删除
+                                    </button>
+                                    <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="refreshSecurityBtn">
+                                        <i class="layui-icon">&#xe669;</i> 刷新
+                                    </button>
+                                </div>
+                                <table id="securityTable" lay-filter="securityTable"></table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 期权策略管理 -->
+                    <div class="layui-tab-item">
+                        <div class="layui-card">
+                            <div class="layui-card-header">期权策略管理</div>
+                            <div class="layui-card-body">
+                                <div class="layui-btn-group">
+                                    <button type="button" class="layui-btn layui-btn-sm" id="addStrategyBtn">
+                                        <i class="layui-icon">&#xe654;</i> 添加策略
+                                    </button>
+                                    <button type="button" class="layui-btn layui-btn-sm layui-btn-danger" id="deleteStrategyBtn">
+                                        <i class="layui-icon">&#xe640;</i> 删除
+                                    </button>
+                                    <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="refreshStrategyBtn">
+                                        <i class="layui-icon">&#xe669;</i> 刷新
+                                    </button>
+                                </div>
+                                <table id="strategyTable" lay-filter="strategyTable"></table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 账户管理 -->
+                    <div class="layui-tab-item">
+                        <div class="layui-card">
+                            <div class="layui-card-header">账户管理</div>
+                            <div class="layui-card-body">
+                                <div class="layui-btn-group">
+                                    <button type="button" class="layui-btn layui-btn-sm" id="addAccountBtn">
+                                        <i class="layui-icon">&#xe654;</i> 添加账户
+                                    </button>
+                                    <button type="button" class="layui-btn layui-btn-sm layui-btn-danger" id="deleteAccountBtn">
+                                        <i class="layui-icon">&#xe640;</i> 删除
+                                    </button>
+                                    <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="refreshAccountBtn">
+                                        <i class="layui-icon">&#xe669;</i> 刷新
+                                    </button>
+                                </div>
+                                <table id="accountTable" lay-filter="accountTable"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 期权标的表格操作按钮 -->
+    <script type="text/html" id="securityTableBar">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="toggle">{{d.status === 1 ? '禁用' : '启用'}}</a>
+    </script>
+
+    <!-- 期权策略表格操作按钮 -->
+    <script type="text/html" id="strategyTableBar">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="toggle">{{d.status === 1 ? '禁用' : '启用'}}</a>
+    </script>
+
+    <!-- 账户表格操作按钮 -->
+    <script type="text/html" id="accountTableBar">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+    </script>
+
+    <!-- 期权标的编辑表单 -->
+    <script type="text/html" id="securityFormTpl">
+        <form class="layui-form" id="securityForm" lay-filter="securityForm" style="padding: 20px;">
+            <input type="hidden" name="id">
+            <div class="layui-form-item">
+                <label class="layui-form-label">标的名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" required lay-verify="required" placeholder="请输入标的名称" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">标的代码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="code" required lay-verify="required" placeholder="请输入标的代码" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">市场</label>
+                <div class="layui-input-block">
+                    <input type="number" name="market" required lay-verify="required" placeholder="请输入市场代码" autocomplete="off" class="layui-input" value="11">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status" value="1" title="启用" checked>
+                    <input type="radio" name="status" value="0" title="禁用">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="securitySubmit">立即提交</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </script>
+
+    <!-- 期权策略编辑表单 -->
+    <script type="text/html" id="strategyFormTpl">
+        <form class="layui-form" id="strategyForm" lay-filter="strategyForm" style="padding: 20px;">
+            <input type="hidden" name="id">
+            <input type="hidden" name="ext" value="{}">
+            <div class="layui-form-item">
+                <label class="layui-form-label">策略ID</label>
+                <div class="layui-input-block">
+                    <input type="text" name="strategyId" placeholder="自动生成，可留空" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">策略名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="strategyName" required lay-verify="required" placeholder="请输入策略名称" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">策略代码</label>
+                <div class="layui-input-block">
+                    <select name="strategyCode" lay-verify="required">
+                        <option value="">请选择策略代码</option>
+                        <option value="default">默认策略</option>
+                        <option value="wheel_strategy">车轮策略</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">策略阶段</label>
+                <div class="layui-input-block">
+                    <select name="stage" lay-verify="required">
+                        <option value="">请选择策略阶段</option>
+                        <option value="running">运行中</option>
+                        <option value="suspend">暂停</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">标的代码</label>
+                <div class="layui-input-block">
+                    <select name="code" lay-verify="required" id="securitySelect" lay-filter="securitySelect">
+                        <option value="">请选择标的代码</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">合约股数</label>
+                <div class="layui-input-block">
+                    <input type="number" name="lotSize" required lay-verify="required" placeholder="请输入每份合约股票数" autocomplete="off" class="layui-input" value="100">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status" value="1" title="启用" checked>
+                    <input type="radio" name="status" value="0" title="禁用">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="strategySubmit">立即提交</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </script>
+
+    <!-- 账户编辑表单 -->
+    <script type="text/html" id="accountFormTpl">
+        <form class="layui-form" id="accountForm" lay-filter="accountForm" style="padding: 20px;">
+            <input type="hidden" name="id">
+            <div class="layui-form-item">
+                <label class="layui-form-label">平台</label>
+                <div class="layui-input-block">
+                    <select name="platform" lay-verify="required" lay-filter="platform">
+                        <option value="">请选择平台</option>
+                        <option value="futu">富途</option>
+                        <option value="longport">长桥</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">市场</label>
+                <div class="layui-input-block">
+                    <input type="number" name="market" required lay-verify="required" placeholder="请输入市场代码" autocomplete="off" class="layui-input" value="11">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">账号</label>
+                <div class="layui-input-block">
+                    <input type="text" name="accountId" required lay-verify="required" placeholder="请输入账号" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">OTP认证</label>
+                <div class="layui-input-block">
+                    <input type="text" name="otpAuth" placeholder="请输入OTP认证信息" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            
+            <!-- 长桥平台配置 -->
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>长桥平台配置</legend>
+            </fieldset>
+            <div class="layui-form-item">
+                <label class="layui-form-label">App Key</label>
+                <div class="layui-input-block">
+                    <input type="text" id="longport_app_key" placeholder="请输入App Key" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">App Secret</label>
+                <div class="layui-input-block">
+                    <input type="text" id="longport_app_secret" placeholder="请输入App Secret" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">Access Token</label>
+                <div class="layui-input-block">
+                    <input type="text" id="longport_access_token" placeholder="请输入Access Token" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            
+            <!-- AI配置 -->
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>AI配置</legend>
+            </fieldset>
+            <div class="layui-form-item">
+                <label class="layui-form-label">Base URL</label>
+                <div class="layui-input-block">
+                    <input type="text" id="ai_base_url" placeholder="请输入Base URL" autocomplete="off" class="layui-input" value="https://dashscope.aliyuncs.com/compatible-mode/v1">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">API Model</label>
+                <div class="layui-input-block">
+                    <input type="text" id="ai_api_model" placeholder="请输入API Model" autocomplete="off" class="layui-input" value="deepseek-r1">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">API Key</label>
+                <div class="layui-input-block">
+                    <input type="text" id="ai_api_key" placeholder="请输入API Key" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">Temperature</label>
+                <div class="layui-input-block">
+                    <input type="text" id="ai_api_temperature" placeholder="请输入Temperature" autocomplete="off" class="layui-input" value="1.0">
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="accountSubmit">立即提交</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </script>
+
+    <script src="layui/layui.js"></script>
+    <script src="common.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html> 

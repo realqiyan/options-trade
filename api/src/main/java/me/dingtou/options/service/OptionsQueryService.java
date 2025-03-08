@@ -58,12 +58,13 @@ public interface OptionsQueryService {
     /**
      * 查询期权链
      *
+     * @param owner             所有者
      * @param security          底层资产
      * @param optionsStrikeDate 期权到期日
      * @param strategy          策略
      * @return 期权链
      */
-    OptionsChain queryOptionsChain(Security security, OptionsStrikeDate optionsStrikeDate, OwnerStrategy strategy);
+    OptionsChain queryOptionsChain(String owner, Security security, OptionsStrikeDate optionsStrikeDate, OwnerStrategy strategy);
 
     /**
      * 查询owner的草稿订单

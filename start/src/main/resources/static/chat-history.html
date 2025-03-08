@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Options Trade Tools</title>
+    <link rel="icon" href="data:image/ico;base64,aWNv">
+    <link rel="stylesheet" href="layui/css/layui.css">
+    <style>
+        .chat-container {
+            display: flex;
+            height: calc(100vh - 120px);
+        }
+        .chat-list {
+            width: 300px;
+            border-right: 1px solid #eee;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .chat-detail {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .chat-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .chat-item:hover, .chat-item.active {
+            background-color: #f2f2f2;
+        }
+        .chat-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .chat-item-time {
+            font-size: 12px;
+            color: #999;
+        }
+        .user-message {
+            background-color: #e6f7ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .assistant-message {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+        }
+        .reasoning-message {
+            background-color: #f6f6f6;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px dashed #ddd;
+        }
+        .reasoning-header {
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: bold;
+        }
+        .reasoning-content {
+            font-size: 13px;
+            color: #555;
+        }
+        .chat-actions {
+            margin-bottom: 10px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+        .title-input {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        /* Markdown 内容美化样式 */
+        .message-content h1, 
+        .message-content h2, 
+        .message-content h3, 
+        .message-content h4, 
+        .message-content h5, 
+        .message-content h6 {
+            margin-top: 16px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            line-height: 1.25;
+            color: #333;
+        }
+        
+        .message-content h1 {
+            font-size: 1.8em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        
+        .message-content h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        
+        .message-content h3 {
+            font-size: 1.25em;
+        }
+        
+        .message-content h4 {
+            font-size: 1em;
+        }
+        
+        .message-content p {
+            margin-top: 0;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        .message-content blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin: 0 0 16px 0;
+        }
+        
+        .message-content ul, 
+        .message-content ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        
+        .message-content li {
+            margin-bottom: 4px;
+        }
+        
+        .message-content li + li {
+            margin-top: 0.25em;
+        }
+        
+        .message-content code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27,31,35,0.05);
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        
+        .message-content pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            margin-bottom: 16px;
+        }
+        
+        .message-content pre code {
+            padding: 0;
+            margin: 0;
+            font-size: 100%;
+            background-color: transparent;
+            border: 0;
+            display: inline;
+            overflow: visible;
+            line-height: inherit;
+            word-wrap: normal;
+        }
+        
+        .message-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        
+        .message-content table th,
+        .message-content table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        
+        .message-content table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+        
+        .message-content table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        
+        .message-content img {
+            max-width: 100%;
+            box-sizing: content-box;
+            background-color: #fff;
+        }
+        
+        .message-content hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+        
+        .message-content a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        
+        .message-content a:hover {
+            text-decoration: underline;
+        }
+        
+        /* 代码高亮 */
+        .message-content .hljs {
+            display: block;
+            overflow-x: auto;
+            padding: 0.5em;
+            color: #333;
+            background: #f8f8f8;
+        }
+        
+    </style>
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo layui-hide-xs layui-bg-black">Options</div>
+        <!-- 头部区域（可配合layui 已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item layui-hide-xs"><a href="javascript:;">AI分析记录管理</a></li>
+        </ul>
+    </div>
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree">
+                <li class="layui-nav-item"><a href="index.html">证券标的</a></li>
+                <li class="layui-nav-item"><a href="order.html">策略订单</a></li>
+                <li class="layui-nav-item"><a href="sync.html">同步订单</a></li>
+                <li class="layui-nav-item"><a href="income.html">账户收益</a></li>
+                <li class="layui-nav-item layui-nav-itemed layui-this"><a href="chat-history.html">分析管理</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px;">
+            <div class="layui-card">
+                <div class="layui-card-header">AI分析记录管理</div>
+                <div class="layui-card-body">
+                    <div class="chat-container">
+                        <div class="chat-list" id="chat-list">
+                            <!-- 聊天会话列表将在这里动态生成 -->
+                            <div class="empty-state">加载中...</div>
+                        </div>
+                        <div class="chat-detail" id="chat-detail">
+                            <!-- 选中的聊天记录详情将在这里显示 -->
+                            <div class="empty-state">
+                                <i class="layui-icon layui-icon-dialogue" style="font-size: 48px;"></i>
+                                <p>请选择一个聊天会话</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="layui/layui.js"></script>
+<script src="marked/marked.js"></script>
+<script src="common.js"></script>
+<script src="chat-history.js"></script>
+</body>
+</html> 
