@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： 10.0.12.220
--- 生成日期： 2025-03-07 15:08:09
+-- 生成日期： 2025-03-08 07:00:26
 -- 服务器版本： 8.2.0
 -- PHP 版本： 8.2.27
 
@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `owner_account` (
   `account_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT '账号',
   `otp_auth` varchar(256) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'otp认证信息',
   `status` int NOT NULL COMMENT '状态 1有效 0无效',
+  `ext` json DEFAULT NULL COMMENT '扩展配置，存储额外的配置信息，只支持一层配置，且只支持字符串类型',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_owner` (`owner`),
   UNIQUE KEY `uk_platform_market_account` (`platform`,`account_id`,`market`) USING BTREE
@@ -45,8 +46,8 @@ CREATE TABLE IF NOT EXISTS `owner_account` (
 -- 转存表中的数据 `owner_account`
 --
 
-INSERT INTO `owner_account` (`id`, `create_time`, `owner`, `platform`, `market`, `account_id`, `otp_auth`, `status`) VALUES
-(1, '2024-11-01 00:00:00', 'qiyan', 'futu', 11, '123456789', 'otpauth://totp/issuer?secret=ABCDEFG&algorithm=SHA1&digits=6&period=300', 1);
+INSERT INTO `owner_account` (`id`, `create_time`, `owner`, `platform`, `market`, `account_id`, `otp_auth`, `status`, `ext`) VALUES
+(1, '2024-11-01 00:00:00', 'qiyan', 'futu', 11, '123456789', 'otpauth://totp/issuer?secret=ABCDEFG&algorithm=SHA1&digits=6&period=300', 1, '{\"ai_api_key\": \"{ai_api_key}\", \"ai_base_url\": \"https://dashscope.aliyuncs.com/compatible-mode/v1\", \"ai_api_model\": \"deepseek-r1\", \"longport_app_key\": \"{longport_app_key}\", \"ai_api_temperature\": \"1.0\", \"longport_app_secret\": \"{longport_app_secret}\", \"longport_access_token\": \"{longport_access_token}\"}');
 
 -- --------------------------------------------------------
 
@@ -69,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `owner_chat_record` (
   KEY `idx_owner_session` (`owner`,`session_id`),
   KEY `idx_session_id` (`session_id`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB AUTO_INCREMENT=1898018556435902466 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='AI助手沟通记录表';
+) ENGINE=InnoDB AUTO_INCREMENT=1898088647515967490 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='AI助手沟通记录表';
 
 -- --------------------------------------------------------
 
@@ -101,7 +102,7 @@ CREATE TABLE IF NOT EXISTS `owner_order` (
   `ext` json DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_o_o_f` (`owner`,`platform_order_id`,`platform_fill_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1896961783490826242 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1898086399083810819 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 

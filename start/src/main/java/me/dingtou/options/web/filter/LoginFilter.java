@@ -16,6 +16,7 @@ import me.dingtou.options.web.model.LoginInfo;
 import me.dingtou.options.web.util.SessionUtils;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
@@ -201,7 +202,7 @@ public class LoginFilter implements Filter {
         Base64.Decoder decoder = Base64.getDecoder();
         try {
             byte[] b = decoder.decode(auth);
-            return new String(b);
+            return new String(b, Charset.forName("UTF-8"));
         } catch (Exception e) {
             return null;
         }
