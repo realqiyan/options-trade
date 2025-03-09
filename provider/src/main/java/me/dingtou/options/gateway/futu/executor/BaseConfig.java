@@ -9,13 +9,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
+
 /**
  * 富途基础配置
  *
  * @author qiyan
  */
+@Component
 @Slf4j
-public class BaseConfig {
+public class BaseConfig implements InitializingBean {
 
     protected static final String FU_TU_API_IP;
     protected static final int FU_TU_API_PORT;
@@ -38,7 +42,6 @@ public class BaseConfig {
             FU_TU_API_PORT = Integer.parseInt(apiPort);
             FU_TU_TRADE_PWD_MD5 = apiUnlockPasswordMd5;
 
-
             String rasPrivateKey = ConfigUtils.getConfigDir() + "futu_rsa_private.key";
             Path rasPrivateKeyPath = Paths.get(rasPrivateKey);
             if (!Files.exists(rasPrivateKeyPath)) {
@@ -53,8 +56,13 @@ public class BaseConfig {
         }
     }
 
-    public static void init() {
+    public void init() {
         log.warn("load config succeed. ip:{} port:{}", FU_TU_API_IP, FU_TU_API_PORT);
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        init();
     }
 
 }
