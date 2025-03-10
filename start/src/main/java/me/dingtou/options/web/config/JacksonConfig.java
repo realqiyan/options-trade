@@ -23,6 +23,7 @@ public class JacksonConfig {
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule module = new SimpleModule();
         module.addSerializer(BigDecimal.class, new BigDecimalSerializer());
+        module.addSerializer(Long.class, new LongSerializer());
         module.addSerializer(Date.class, new DateSerializer());
         mapper.registerModule(module);
         return mapper;
@@ -32,6 +33,13 @@ public class JacksonConfig {
         @Override
         public void serialize(BigDecimal value, JsonGenerator gen, SerializerProvider provider) throws IOException {
             gen.writeNumber(NumberUtils.scale(value).toPlainString());
+        }
+    }
+
+    static class LongSerializer extends JsonSerializer<Long> {
+        @Override
+        public void serialize(Long value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeString(null == value ? StringUtils.EMPTY : value.toString());
         }
     }
 
