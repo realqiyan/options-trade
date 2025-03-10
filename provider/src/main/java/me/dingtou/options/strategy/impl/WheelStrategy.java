@@ -108,28 +108,30 @@ public class WheelStrategy extends BaseStrategy {
         // prompt.append("\n");
 
         // 最近几周的周K线
-        prompt.append("## 原始周K线\n");
         List<Candlestick> weekCandlesticks = stockIndicator.getWeekCandlesticks();
-        int subListSize = Math.min(weekCandlesticks.size(), 30);
-        weekCandlesticks = weekCandlesticks.subList(weekCandlesticks.size() - subListSize, weekCandlesticks.size());
+        if(null != weekCandlesticks && !weekCandlesticks.isEmpty()) {
+            prompt.append("## 原始周K线\n");
+            int subListSize = Math.min(weekCandlesticks.size(), 30);
+            weekCandlesticks = weekCandlesticks.subList(weekCandlesticks.size() - subListSize, weekCandlesticks.size());
 
-        prompt.append("| 日期 ").append("| 开盘价 ").append("| 收盘价 ").append("| 最高价 ").append("| 最低价 ").append("| 成交量 ")
-                .append("| 成交额 ").append("|\n");
-        prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
-                .append("| --- ").append("|\n");
+            prompt.append("| 日期 ").append("| 开盘价 ").append("| 收盘价 ").append("| 最高价 ").append("| 最低价 ").append("| 成交量 ")
+                    .append("| 成交额 ").append("|\n");
+            prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
+                    .append("| --- ").append("|\n");
 
-        weekCandlesticks.forEach(candlestick -> {
-            Long timestamp = candlestick.getTimestamp();
-            prompt.append("| ").append(sdf.format(new Date(timestamp * 1000)))
-                    .append(" | ").append(candlestick.getOpen())
-                    .append(" | ").append(candlestick.getClose())
-                    .append(" | ").append(candlestick.getHigh())
-                    .append(" | ").append(candlestick.getLow())
-                    .append(" | ").append(candlestick.getVolume())
-                    .append(" | ").append(candlestick.getTurnover())
-                    .append(" |\n");
-        });
-        prompt.append("\n");
+            weekCandlesticks.forEach(candlestick -> {
+                Long timestamp = candlestick.getTimestamp();
+                prompt.append("| ").append(sdf.format(new Date(timestamp * 1000)))
+                        .append(" | ").append(candlestick.getOpen())
+                        .append(" | ").append(candlestick.getClose())
+                        .append(" | ").append(candlestick.getHigh())
+                        .append(" | ").append(candlestick.getLow())
+                        .append(" | ").append(candlestick.getVolume())
+                        .append(" | ").append(candlestick.getTurnover())
+                        .append(" |\n");
+            });
+            prompt.append("\n");
+        }
 
         // Map<String, List<StockIndicatorItem>> lineMap = stockIndicator.getIndicatorMap();
         // prompt.append("## 技术指标汇总（周K线）\n");

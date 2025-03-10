@@ -10,9 +10,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import me.dingtou.options.dao.OwnerChatRecordDAO;
 import me.dingtou.options.manager.ChatManager;
+import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.Message;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
 
+import me.dingtou.options.util.AccountExtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,12 +26,19 @@ public class AIChatServiceImpl implements AIChatService {
 
     @Autowired
     private OwnerChatRecordDAO ownerChatRecordDAO;
-
     @Autowired
     private ChatManager chatManager;
+    @Autowired
+    private OwnerManager ownerManager;
 
     @Override
     public void chat(String owner, String title, String message, Function<Message, Void> callback) {
+        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
+        if (null == ownerAccount
+                || null == AccountExtUtils.getAiApiKey(ownerAccount)
+        ) {
+            return;
+        }
         // 生成会话ID
         String sessionId = UUID.randomUUID().toString();
 
@@ -38,7 +48,7 @@ public class AIChatServiceImpl implements AIChatService {
         ownerChatRecordDAO.insert(userRecord);
 
         // 使用ChatManager发送消息并获取响应
-        ChatManager.ChatResult result = chatManager.sendChatMessage(message, callback);
+        ChatManager.ChatResult result = chatManager.sendChatMessage(ownerAccount, message, callback);
 
         // 保存AI助手的完整回复
         if (!result.getContent().isEmpty()) {
