@@ -404,6 +404,11 @@
             Bolling下轨支撑位: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.bollingerLowerSupportPrice?d.stockIndicator.supportPriceIndicator.bollingerLowerSupportPrice:0 }}
         </b>
     </span>
+    <span class="layui-badge layui-bg-blue">
+        <a href="javascript:void(0);" onclick="window.open('https://stockunlock.com/stockDetails/{{=d.stockIndicator.securityQuote.security.code}}/general')" style="color: #fff;">
+            <i class="layui-icon layui-icon-chart"></i> 查看Insights
+        </a>
+    </span>
 </script>
 <script id="currentStrategy" type="text/html">
     <select id="strategyId" name="strategyId" lay-filter="strategyId">
