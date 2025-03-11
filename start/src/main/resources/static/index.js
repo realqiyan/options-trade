@@ -29,7 +29,7 @@ function resetContent(title){
     currentPrompt = "";
 }
 var chartCanvas = document.getElementById('chartZone');
-function showChart(label, data, type) {
+function showChart(label, data, type, options) {
     if (currentChart) {
         currentChart.destroy();
         chartCanvas.removeAttribute('width');
@@ -42,6 +42,19 @@ function showChart(label, data, type) {
 
         var labels;
         const datasets = [];
+        
+        // 图表配置选项
+        const chartOptions = options || {};
+        
+        // 默认颜色配置
+        const defaultColors = [
+            { borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)' },
+            { borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 0.2)' },
+            { borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.5)' },
+            { borderColor: 'rgba(255, 206, 86, 1)', backgroundColor: 'rgba(255, 206, 86, 0.2)' },
+            { borderColor: 'rgba(153, 102, 255, 1)', backgroundColor: 'rgba(153, 102, 255, 0.2)' }
+        ];
+        
         if (Array.isArray(data)) {
             // 单图表情况
             const reversedData = data.reverse();
@@ -49,20 +62,34 @@ function showChart(label, data, type) {
             datasets.push({
                 label: label,
                 data: reversedData.map(item => item.value),
-                borderWidth: 1
+                borderWidth: 1,
+                ...defaultColors[0]
             });
         } else {
             // 多图表情况
+            let colorIndex = 0;
+            
             for (const [key, value] of Object.entries(data)) {
                 const reversedData = value.reverse();
                 if(!labels || labels.length < reversedData.length){
                     labels = reversedData.map(item => item.date);
                 }
-                datasets.push({
+                
+                // 基本配置
+                let datasetConfig = {
                     label: key,
                     data: reversedData.map(item => item.value),
-                    borderWidth: 1
-                });
+                    borderWidth: 1,
+                    ...defaultColors[colorIndex % defaultColors.length]
+                };
+                
+                // 应用特定系列的配置
+                if (chartOptions.seriesConfig && chartOptions.seriesConfig[key]) {
+                    Object.assign(datasetConfig, chartOptions.seriesConfig[key]);
+                }
+                
+                datasets.push(datasetConfig);
+                colorIndex++;
             }
         }
 
@@ -75,8 +102,14 @@ function showChart(label, data, type) {
             }
         });
 
+        // 使用传入的图表类型，如果有混合类型的配置则忽略
+        let finalChartType = type;
+        if (datasets.some(dataset => dataset.type)) {
+            finalChartType = 'line'; // 当有混合类型时，基础类型设为line
+        }
+
         currentChart = new Chart(chartCanvas, {
-            type: type,
+            type: finalChartType,
             data: {
                 labels: labels,
                 datasets: datasets

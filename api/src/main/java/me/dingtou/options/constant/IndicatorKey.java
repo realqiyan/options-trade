@@ -14,6 +14,14 @@ public enum IndicatorKey {
      */
     MACD("macd", "MACD"),
     /**
+     * MACD DIF (快线)
+     */
+    MACD_DIF("macd_dif", "MACD DIF"),
+    /**
+     * MACD DEA (慢线)
+     */
+    MACD_DEA("macd_dea", "MACD DEA"),
+    /**
      * EMA5
      */
     EMA5("ema5", "EMA5"),

@@ -104,11 +104,21 @@ public class OptionsManager {
 
             // RSI
             stockIndicator.addIndicator(IndicatorKey.RSI.getKey(), getValueList(new RSIIndicator(closePrice, 14), 14));
-            // MACD
-            stockIndicator.addIndicator(IndicatorKey.MACD.getKey(), getValueList(new MACDIndicator(closePrice, 12, 26), 26));
+            
+            // MACD相关指标
+            MACDIndicator macdIndicator = new MACDIndicator(closePrice, 12, 26);
+            // MACD柱状图
+            stockIndicator.addIndicator(IndicatorKey.MACD.getKey(), getValueList(macdIndicator, 26));
+            // DIF快线 - 短期EMA与长期EMA的差值
+            stockIndicator.addIndicator(IndicatorKey.MACD_DIF.getKey(), getValueList(macdIndicator, 26));
+            // DEA慢线 - DIF的9日EMA
+            EMAIndicator signalLine = macdIndicator.getSignalLine(9);
+            stockIndicator.addIndicator(IndicatorKey.MACD_DEA.getKey(), getValueList(signalLine, 26));
+            
             // EMA
             stockIndicator.addIndicator(IndicatorKey.EMA5.getKey(), getValueList(new EMAIndicator(closePrice, 5), 20));
             stockIndicator.addIndicator(IndicatorKey.EMA50.getKey(), getValueList(new EMAIndicator(closePrice, 50), 0));
+            
             // BOLL
             BollingerBandsMiddleIndicator bollingerMiddle = new BollingerBandsMiddleIndicator(new SMAIndicator(closePrice, 20));
             Indicator<Num> deviation = new StandardDeviationIndicator(closePrice, 20);
