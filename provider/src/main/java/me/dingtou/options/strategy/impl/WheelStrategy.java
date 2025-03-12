@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.IndicatorKey;
 import me.dingtou.options.model.*;
 import me.dingtou.options.util.IndicatorDataFrameUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -43,6 +44,21 @@ public class WheelStrategy extends BaseStrategy {
             }
         }
         final OwnerOrder finalUnderlyingOrder = currentUnderlyingOrder;
+        
+        // 获取sellput可接受的行权价配置
+        BigDecimal sellPutAcceptableStrikePrice = null;
+        if (isSellPutStage && strategySummary.getStrategy() != null) {
+            String sellPutStrikePriceStr = strategySummary.getStrategy().getExtValue(StrategyExt.WHEEL_SELLPUT_STRIKE_PRICE);
+            if (StringUtils.isNotBlank(sellPutStrikePriceStr)) {
+                try {
+                    sellPutAcceptableStrikePrice = new BigDecimal(sellPutStrikePriceStr);
+                    log.info("车轮策略Sell Put可接受的行权价配置: {}", sellPutAcceptableStrikePrice);
+                } catch (Exception e) {
+                    log.warn("解析车轮策略Sell Put可接受的行权价配置失败: {}", sellPutStrikePriceStr, e);
+                }
+            }
+        }
+        final BigDecimal finalSellPutAcceptableStrikePrice = sellPutAcceptableStrikePrice;
 
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
@@ -92,6 +108,9 @@ public class WheelStrategy extends BaseStrategy {
                 .append(isSellPutStage ? "看跌期权（Cash-Secured Put）" : "看涨期权（Covered Call）");
         if (isCoveredCallStage && null != finalUnderlyingOrder) {
             prompt.append("，当前指派的股票价格：").append(finalUnderlyingOrder.getPrice());
+        }
+        if (isSellPutStage && finalSellPutAcceptableStrikePrice != null) {
+            prompt.append("，Sell Put可接受的最高行权价：").append(finalSellPutAcceptableStrikePrice).append("（可以接受Rolling）");
         }
         prompt.append("，当前股票价格是").append(securityPrice)
                 .append(null != vixIndicator && null != vixIndicator.getCurrentVix() ? "，当前VIX指数是"+ vixIndicator.getCurrentVix().getValue() : "")

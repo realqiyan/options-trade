@@ -70,11 +70,7 @@ public class OwnerManager {
     }
 
     public List<OwnerStrategy> queryOwnerStrategy(String owner) {
-        QueryWrapper<OwnerStrategy> query = new QueryWrapper<>();
-        query.eq("owner", owner)
-                .eq("status", Status.VALID.getCode());
-
-        return ownerStrategyDAO.selectList(query);
+        return ownerStrategyDAO.queryOwnerStrategies(owner);
     }
 
 

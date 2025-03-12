@@ -202,7 +202,7 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">策略代码</label>
                 <div class="layui-input-block">
-                    <select name="strategyCode" lay-verify="required">
+                    <select name="strategyCode" lay-verify="required" lay-filter="strategyCode">
                         <option value="">请选择策略代码</option>
                         <option value="default">默认策略</option>
                         <option value="wheel_strategy">车轮策略</option>
@@ -231,6 +231,13 @@
                 <label class="layui-form-label">合约股数</label>
                 <div class="layui-input-block">
                     <input type="number" name="lotSize" required lay-verify="required" placeholder="请输入每份合约股票数" autocomplete="off" class="layui-input" value="100">
+                </div>
+            </div>
+            <div class="layui-form-item" id="wheelStrategyConfig" style="display: none;">
+                <label class="layui-form-label">Sell Put行权价</label>
+                <div class="layui-input-block">
+                    <input type="text" name="sellPutStrikePrice" placeholder="请输入Sell Put可接受的最低行权价" autocomplete="off" class="layui-input">
+                    <div class="layui-form-mid layui-word-aux">配置后，低于此行权价的Put期权将不会被推荐</div>
                 </div>
             </div>
             <div class="layui-form-item">

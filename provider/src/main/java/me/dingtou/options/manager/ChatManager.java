@@ -9,18 +9,15 @@ import com.openai.core.JsonValue;
 import com.openai.models.ChatCompletionChunk;
 import com.openai.models.ChatCompletionCreateParams;
 import lombok.Getter;
-import me.dingtou.options.config.ConfigUtils;
 import me.dingtou.options.model.Message;
 
 import me.dingtou.options.model.OwnerAccount;
-import me.dingtou.options.model.VixIndicator;
 import me.dingtou.options.util.AccountExtUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -39,7 +36,6 @@ public class ChatManager {
             .maximumSize(100)
             .expireAfterWrite(1, TimeUnit.MINUTES)
             .build();
-
 
     private static final String SYSTEM_MESSAGE = """
             您现在是期权交易专家，您的职责是分析用户提交的数据，解读市场图表形态和技术指标信号，然后按照用户需求提供期权策交易略建议，要求：
@@ -63,7 +59,7 @@ public class ChatManager {
         StringBuilder reasoningContent = new StringBuilder();
         StringBuilder finalContent = new StringBuilder();
         // 保存消息ID
-        final String[] messageId = {null};
+        final String[] messageId = { null };
 
         String aiApiTemperature = AccountExtUtils.getAiApiTemperature(account);
         ChatCompletionCreateParams createParams = ChatCompletionCreateParams.builder()

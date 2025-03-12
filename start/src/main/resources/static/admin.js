@@ -79,6 +79,17 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     }
                 },
                 {
+                    field: 'ext', title: '扩展配置', width: 200, templet: function(d) {
+                        var extStr = '';
+                        if (d.ext && typeof d.ext === 'object') {
+                            if (d.ext.wheel_sellput_strike_price) {
+                                extStr += 'Sell Put行权价: ' + d.ext.wheel_sellput_strike_price;
+                            }
+                        }
+                        return extStr;
+                    }
+                },
+                {
                     field: 'status', title: '状态', width: 80,
                     templet: function (d) {
                         return d.status === 1 ? 
@@ -259,34 +270,31 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     // 先渲染表单
                     form.render();
                     
-                    // 保存当前策略的标的代码
-                    const currentCode = data.code;
-                    
-                    // 在表单打开后加载标的列表
+                    // 加载标的列表
                     $.ajax({
                         url: '/admin/security/list',
                         type: 'GET',
                         success: function (res) {
                             if (res.success) {
-                                let html = '<option value="">请选择标的代码</option>';
-                                if (res.data && res.data.length > 0) {
-                                    res.data.forEach(function (item) {
-                                        if (item.status === 1) {
-                                            // 如果当前标的代码与策略的标的代码相同，则设置为选中
-                                            const selected = item.code === currentCode ? 'selected' : '';
-                                            html += '<option value="' + item.code + '" ' + selected + '>' + item.name + ' (' + item.code + ')</option>';
-                                        }
-                                    });
-                                } else {
-                                    html += '<option value="">暂无可用标的，请先添加标的</option>';
-                                }
+                                var securityList = res.data;
+                                var securitySelect = $('#securitySelect');
+                                securitySelect.empty();
+                                securitySelect.append('<option value="">请选择标的代码</option>');
+                                $.each(securityList, function (index, item) {
+                                    securitySelect.append('<option value="' + item.code + '">' + item.code + ' - ' + item.name + '</option>');
+                                });
                                 
-                                $('#securitySelect').html(html);
-                                
-                                // 设置表单其他值
+                                // 设置表单值
                                 form.val('strategyForm', data);
                                 
-                                // 确保表单重新渲染
+                                // 处理ext字段中的wheel_sellput_strike_price
+                                if (data.ext && typeof data.ext === 'object' && data.ext.wheel_sellput_strike_price) {
+                                    $('input[name="sellPutStrikePrice"]').val(data.ext.wheel_sellput_strike_price);
+                                }
+                                
+                                // 根据策略代码显示或隐藏特定配置
+                                toggleStrategyConfig(data.strategyCode);
+                                
                                 form.render('select');
                             } else {
                                 layer.msg('加载标的列表失败：' + res.message, {icon: 2});
@@ -302,6 +310,44 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         }
                     });
                     
+                    // 监听策略代码选择变化
+                    form.on('select(strategyCode)', function(data){
+                        toggleStrategyConfig(data.value);
+                    });
+                    
+                    // 根据策略代码显示或隐藏特定配置
+                    function toggleStrategyConfig(strategyCode) {
+                        if (strategyCode === 'wheel_strategy') {
+                            $('#wheelStrategyConfig').show();
+                            
+                            // 获取当前表单数据
+                            var formData = form.val('strategyForm');
+                            
+                            // 如果有ext数据，尝试从中提取wheel_sellput_strike_price
+                            if (formData.ext) {
+                                var extData;
+                                if (typeof formData.ext === 'string') {
+                                    try {
+                                        extData = JSON.parse(formData.ext);
+                                    } catch (e) {
+                                        console.error('解析ext数据失败', e);
+                                        extData = {};
+                                    }
+                                } else {
+                                    extData = formData.ext;
+                                }
+                                
+                                if (extData.wheel_sellput_strike_price) {
+                                    $('input[name="sellPutStrikePrice"]').val(extData.wheel_sellput_strike_price);
+                                }
+                            }
+                        } else {
+                            $('#wheelStrategyConfig').hide();
+                            // 清空sellPutStrikePrice字段
+                            $('input[name="sellPutStrikePrice"]').val('');
+                        }
+                    }
+                    
                     // 监听表单提交事件
                     form.on('submit(strategySubmit)', function (data) {
                         // 处理ext字段
@@ -314,6 +360,16 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                                 data.field.ext = {};
                             }
                         }
+                        
+                        // 处理车轮策略特有的配置
+                        if (data.field.strategyCode === 'wheel_strategy' && data.field.sellPutStrikePrice) {
+                            data.field.ext.wheel_sellput_strike_price = data.field.sellPutStrikePrice;
+                        }
+                        
+                        // 删除临时字段
+                        delete data.field.sellPutStrikePrice;
+                        
+                        console.log('提交的数据:', JSON.stringify(data.field));
                         
                         $.ajax({
                             url: '/admin/strategy/save',
@@ -426,27 +482,39 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                 // 先渲染表单
                 form.render();
                 
-                // 在表单打开后加载标的列表
+                // 加载标的列表
                 $.ajax({
                     url: '/admin/security/list',
                     type: 'GET',
                     success: function (res) {
                         if (res.success) {
-                            let html = '<option value="">请选择标的代码</option>';
-                            if (res.data && res.data.length > 0) {
-                                res.data.forEach(function (item) {
-                                    if (item.status === 1) {
-                                        html += '<option value="' + item.code + '">' + item.name + ' (' + item.code + ')</option>';
-                                    }
-                                });
-                            } else {
-                                html += '<option value="">暂无可用标的，请先添加标的</option>';
-                            }
-                            
-                            $('#securitySelect').html(html);
-                            
-                            // 确保表单重新渲染
+                            var securityList = res.data;
+                            var securitySelect = $('#securitySelect');
+                            securitySelect.empty();
+                            securitySelect.append('<option value="">请选择标的代码</option>');
+                            $.each(securityList, function (index, item) {
+                                securitySelect.append('<option value="' + item.code + '">' + item.code + ' - ' + item.name + '</option>');
+                            });
                             form.render('select');
+                            
+                            // 默认隐藏车轮策略特有配置
+                            $('#wheelStrategyConfig').hide();
+                            
+                            // 监听策略代码选择变化
+                            form.on('select(strategyCode)', function(data){
+                                toggleStrategyConfig(data.value);
+                            });
+                            
+                            // 根据策略代码显示或隐藏特定配置
+                            function toggleStrategyConfig(strategyCode) {
+                                if (strategyCode === 'wheel_strategy') {
+                                    $('#wheelStrategyConfig').show();
+                                } else {
+                                    $('#wheelStrategyConfig').hide();
+                                    // 清空sellPutStrikePrice字段
+                                    $('input[name="sellPutStrikePrice"]').val('');
+                                }
+                            }
                         } else {
                             layer.msg('加载标的列表失败：' + res.message, {icon: 2});
                         }
@@ -469,6 +537,16 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                             data.field.ext = {};
                         }
                     }
+                    
+                    // 处理车轮策略特有的配置
+                    if (data.field.strategyCode === 'wheel_strategy' && data.field.sellPutStrikePrice) {
+                        data.field.ext.wheel_sellput_strike_price = data.field.sellPutStrikePrice;
+                    }
+                    
+                    // 删除临时字段
+                    delete data.field.sellPutStrikePrice;
+                    
+                    console.log('提交的数据:', JSON.stringify(data.field));
                     
                     $.ajax({
                         url: '/admin/strategy/save',
