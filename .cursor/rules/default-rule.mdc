@@ -4,10 +4,8 @@ globs:
 alwaysApply: true
 ---
 
-# Your rule content
+# 架构和环境规则
 
 - JDK使用17；
 - UI使用layui v2.9.20；
 - SpringBoot使用3.2.8；
-- 不要出现硬编码，实现尽可能抽象；
-- 每次做最小改动，不要修改不相关的文件和功能；
