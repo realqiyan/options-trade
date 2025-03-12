@@ -32,23 +32,22 @@ public class AIChatServiceImpl implements AIChatService {
     private OwnerManager ownerManager;
 
     @Override
-    public void chat(String owner, String title, String message, Function<Message, Void> callback) {
+    public void chat(String owner, String title, List<Message> messages, Function<Message, Void> callback) {
         OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
-        if (null == ownerAccount
-                || null == AccountExtUtils.getAiApiKey(ownerAccount)
-        ) {
+        if (null == messages || messages.isEmpty() || null == ownerAccount || null == AccountExtUtils.getAiApiKey(ownerAccount)) {
             return;
         }
         // 生成会话ID
         String sessionId = UUID.randomUUID().toString();
 
-        // 保存用户消息
-        OwnerChatRecord userRecord = new OwnerChatRecord(owner, sessionId, null, title, "user", message, null);
-
-        ownerChatRecordDAO.insert(userRecord);
+        // 保存用户新消息
+        messages.stream().filter(message -> "user".equals(message.getRole()) && null == message.getId()).forEach(message -> {
+            OwnerChatRecord userRecord = new OwnerChatRecord(owner, sessionId, null, title, "user", message.getContent(), null);
+            ownerChatRecordDAO.insert(userRecord);
+        });
 
         // 使用ChatManager发送消息并获取响应
-        ChatManager.ChatResult result = chatManager.sendChatMessage(ownerAccount, message, callback);
+        ChatManager.ChatResult result = chatManager.sendChatMessage(ownerAccount, messages, callback);
 
         // 保存AI助手的完整回复
         if (!result.getContent().isEmpty()) {

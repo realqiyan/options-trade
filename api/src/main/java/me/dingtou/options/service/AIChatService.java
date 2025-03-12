@@ -18,10 +18,10 @@ public interface AIChatService {
      * 
      * @param owner     所有者
      * @param title     标题（股票+策略）
-     * @param message   消息
+     * @param messages  消息列表
      * @param callback  回调
      */
-    void chat(String owner, String title, String message, Function<Message, Void> callback);
+    void chat(String owner, String title, List<Message> messages, Function<Message, Void> callback);
     
     /**
      * 获取所有会话ID列表

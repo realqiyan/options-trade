@@ -9,8 +9,8 @@ function initAIChat() {
         currentClientId = "ai_chat_" + new Date().getTime();
         aiSource = new EventSource("/ai/init?requestId=" + currentClientId);
         aiSource.addEventListener("message", function(e) {
-            const response = JSON.parse(e.data);
-            appendMessage(response.type, response.message, 'assistant', response.id);
+            const message = JSON.parse(e.data);
+            appendMessage(message);
         });
     }
 }
@@ -31,13 +31,13 @@ function clearChat() {
     allMessages = {}; // 清空消息缓存
 }
 
-function appendMessage(type, content, role, messageId) {
+function appendMessage(message) {
     const historyDiv = document.getElementById('chat-history');
-    const id = `${role}-${type}-${messageId}`;
+    const id = `${message.role}-${message.id}`;
     if (!allMessages[id]){
         allMessages[id] = "";
     }
-    allMessages[id] = allMessages[id] + content;
+    allMessages[id] = allMessages[id] + (message.reasoningContent ? message.reasoningContent : message.content);
 
     // 使用marked.parse格式化消息内容
     const htmlContent = marked.parse(allMessages[id]);
@@ -47,14 +47,14 @@ function appendMessage(type, content, role, messageId) {
     } else {
         const messageDiv = document.createElement('div');
         messageDiv.id = id;
-        messageDiv.className = `layui-font-14 ${role}-message`;
+        messageDiv.className = `layui-font-14 ${message.role}-message`;
         messageDiv.style.margin = '5px 0';
         messageDiv.style.padding = '8px';
         messageDiv.style.borderRadius = '4px';
-        messageDiv.style.backgroundColor = role === 'user' ? '#e6f7ff' : type === 'reasoning_content' ? '#f6f6f6' : '#fff';
+        messageDiv.style.backgroundColor = message.role === 'user' ? '#e6f7ff' : message.reasoningContent ? '#f6f6f6' : '#fff';
         
         // 如果是reasoning_content类型，添加思考图标和标题
-        if (type === 'reasoning_content') {
+        if (message.reasoningContent) {
             messageDiv.innerHTML = `
                 <div class="reasoning-header" style="margin-bottom: 5px; color: #666;">
                     <i class="layui-icon layui-icon-think"></i> AI思考过程
@@ -76,7 +76,7 @@ function sendMessage(title) {
     if (!message) return;
     input.value = '';
     
-    appendMessage('content', message, 'user', new Date().getTime());
+    appendMessage({'content': message, 'role': 'user', 'id': new Date().getTime()} );
 
     // 构建请求参数
     const params = {

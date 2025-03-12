@@ -1,6 +1,7 @@
 package me.dingtou.options.web;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.service.AIChatService;
 import me.dingtou.options.web.model.WebResult;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,7 +64,10 @@ public class WebAIController {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    aiChatService.chat(owner, title, message, msg -> {
+                    List<Message> messages = new ArrayList<>();
+                    Message chatMessage = new Message(null, "user", message, null);
+                    messages.add(chatMessage);
+                    aiChatService.chat(owner, title, messages, msg -> {
                         try {
                             connect.send(msg);
                         } catch (IOException e) {
@@ -74,7 +79,7 @@ public class WebAIController {
                 }
             });
         } catch (Exception e) {
-            return WebResult.failure("chat error: " + e.getMessage());
+            log.error("chat error, requestId: {}, message: {}", requestId, message, e);
         }
         
         return WebResult.success(true);
