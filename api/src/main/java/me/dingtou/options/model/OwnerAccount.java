@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,6 +52,16 @@ public class OwnerAccount {
      */
     @TableField(typeHandler = JacksonTypeHandler.class)
     private Map<String, String> ext;
+    
+    /**
+     * 账户资金规模（单位：元）
+     */
+    private BigDecimal accountSize;
+
+    /**
+     * 保证金比例（例如：0.2 表示 20%）
+     */
+    private BigDecimal marginRatio;
     
     /**
      * 获取扩展字段值

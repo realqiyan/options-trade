@@ -54,6 +54,11 @@ public class StrategySummary {
     private BigDecimal currentStockPrice;
 
     /**
+     * PUT订单保证金占用
+     */
+    private BigDecimal putMarginOccupied;
+
+    /**
      * 订单列表
      */
     private List<OwnerOrder> strategyOrders;

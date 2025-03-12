@@ -66,6 +66,14 @@
         <ul>
             <li>总已到账收入:<span class="layui-badge layui-bg-blue">${{ d.allOptionsIncome }}</span> （已扣除手续费<span class="layui-badge layui-bg-blue">${{ d.totalFee }}</span>）</li>
             <li>总未到期收入:<span class="layui-badge layui-bg-blue">${{ d.unrealizedOptionsIncome }}</span></li>
+            <li>账户总规模:<span class="layui-badge layui-bg-green">${{ d.accountSize }}</span></li>
+            <li>当前投资预占用:<span class="layui-badge layui-bg-orange">${{ d.totalInvestment }}</span>
+                <ul style="margin-left: 20px;">
+                    <li>PUT订单保证金占用:<span class="layui-badge layui-bg-orange">${{ d.putMarginOccupied }}</span> (保证金比例:{{ d.marginRatio * 100 }}%)</li>
+                    <li>持有正股成本:<span class="layui-badge layui-bg-orange">${{ d.totalStockCost }}</span></li>
+                </ul>
+            </li>
+            <li>可用资金:<span class="layui-badge layui-bg-green">${{ d.availableFunds }}</span></li>
         </ul>
     </blockquote>
 
@@ -82,6 +90,7 @@
                     <li>期权未到期收入:${{ item.unrealizedOptionsIncome }}</li>
                     <li>策略持有股票:{{ item.holdStockNum }}（当前股价:${{ item.currentStockPrice }})</li>
                     <li>策略股票花费:${{ item.totalStockCost }}（平均成本:${{ item.averageStockCost }}）</li>
+                    <li>策略PUT保证金占用:${{ item.putMarginOccupied }}</li>
                 </ul>
             </div>
         </div>

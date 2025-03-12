@@ -115,9 +115,26 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         }
         ownerSummary.setMonthlyIncome(monthlyIncome);
 
+        // 获取账户信息
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+        ownerSummary.setAccountSize(account.getAccountSize());
+        ownerSummary.setMarginRatio(account.getMarginRatio());
+
+        // 计算PUT订单保证金占用和持有股票总成本
+        BigDecimal putMarginOccupied = BigDecimal.ZERO;
+        BigDecimal totalStockCost = BigDecimal.ZERO;
+        for (StrategySummary strategySummary : strategySummaries) {
+            putMarginOccupied = putMarginOccupied.add(strategySummary.getPutMarginOccupied());
+            totalStockCost = totalStockCost.add(strategySummary.getTotalStockCost());
+        }
+        ownerSummary.setPutMarginOccupied(putMarginOccupied);
+        ownerSummary.setTotalStockCost(totalStockCost);
+
+        // 计算可用资金
+        ownerSummary.setAvailableFunds(account.getAccountSize().subtract(putMarginOccupied).subtract(totalStockCost));
+        ownerSummary.setTotalInvestment(putMarginOccupied.add(totalStockCost));
         return ownerSummary;
     }
-
 
     @Override
     public List<OptionsStrikeDate> queryOptionsExpDate(Security security) {
@@ -198,11 +215,30 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         // 所有未平仓的期权利润
         BigDecimal unrealizedOptionsIncome = allOptionsOrders.stream().filter(order -> Boolean.FALSE.equals(Boolean.valueOf(order.getExt().get(OrderExt.IS_CLOSE.getCode())))).map(order -> {
             BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-            return order.getPrice().multiply(BigDecimal.valueOf(order.getQuantity())).multiply(lotSize).multiply(sign);
+            return order.getPrice().multiply(lotSize).multiply(BigDecimal.valueOf(order.getQuantity())).multiply(sign);
         }).reduce(BigDecimal.ZERO, BigDecimal::add);
         // 期权利润
         summary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
 
+        // 计算PUT订单保证金占用
+        BigDecimal putMarginOccupied = allOptionsOrders.stream()
+                .filter(order -> Boolean.FALSE.equals(Boolean.valueOf(order.getExt().get(OrderExt.IS_CLOSE.getCode()))))
+                .map(order -> {
+                    String underlyingCode = order.getUnderlyingCode();
+                    String s = order.getCode().split(underlyingCode)[1];
+                    boolean isPut = s.contains("P");
+                    BigDecimal result = new BigDecimal(0);
+                    if (isPut) {
+                        String[] split = s.split("P");
+                        BigDecimal strikePrice = new BigDecimal(Long.parseLong(split[1]) / 1000);
+                        result = strikePrice.multiply(lotSize).multiply(BigDecimal.valueOf(order.getQuantity()))
+                                .multiply(account.getMarginRatio());
+                    }
+                    return result;
+
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        summary.setPutMarginOccupied(putMarginOccupied);
 
         return summary;
     }
