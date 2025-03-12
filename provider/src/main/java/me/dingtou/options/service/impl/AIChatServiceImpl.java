@@ -37,12 +37,36 @@ public class AIChatServiceImpl implements AIChatService {
         if (null == messages || messages.isEmpty() || null == ownerAccount || null == AccountExtUtils.getAiApiKey(ownerAccount)) {
             return;
         }
-        // 生成会话ID
-        String sessionId = UUID.randomUUID().toString();
+        
+        // 检查是否是继续对话
+        String sessionId = null;
+        boolean isContinueChat = false;
+        
+        // 检查消息列表中是否有已存在的消息ID
+        for (Message message : messages) {
+            if (message.getId() != null) {
+                isContinueChat = true;
+                // 查询这条消息的会话ID
+                LambdaQueryWrapper<OwnerChatRecord> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(OwnerChatRecord::getOwner, owner)
+                        .eq(OwnerChatRecord::getMessageId, message.getId());
+                OwnerChatRecord record = ownerChatRecordDAO.selectOne(queryWrapper);
+                if (record != null) {
+                    sessionId = record.getSessionId();
+                    break;
+                }
+            }
+        }
+        
+        // 如果不是继续对话或者没有找到会话ID，则生成新的会话ID
+        if (!isContinueChat || sessionId == null) {
+            sessionId = UUID.randomUUID().toString();
+        }
 
         // 保存用户新消息
+        final String finalSessionId = sessionId;
         messages.stream().filter(message -> "user".equals(message.getRole()) && null == message.getId()).forEach(message -> {
-            OwnerChatRecord userRecord = new OwnerChatRecord(owner, sessionId, null, title, "user", message.getContent(), null);
+            OwnerChatRecord userRecord = new OwnerChatRecord(owner, finalSessionId, null, title, "user", message.getContent(), null);
             ownerChatRecordDAO.insert(userRecord);
         });
 
@@ -53,7 +77,7 @@ public class AIChatServiceImpl implements AIChatService {
         if (!result.getContent().isEmpty()) {
             OwnerChatRecord assistantRecord = new OwnerChatRecord(
                     owner,
-                    sessionId,
+                    finalSessionId,
                     result.getMessageId(),
                     title,
                     "assistant",

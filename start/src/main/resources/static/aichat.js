@@ -3,6 +3,7 @@
 let aiSource = null;
 let currentClientId = null;
 let allMessages = {};
+let currentSessionId = null;
 
 function initAIChat() {
     if (window.EventSource) {
@@ -17,6 +18,69 @@ function initAIChat() {
 
 // 初始化时调用
 initAIChat();
+
+// 检查是否有继续对话的会话ID
+function checkContinueSession() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const continueChatSession = urlParams.get('continueChatSession');
+    
+    if (continueChatSession === 'true') {
+        const sessionId = localStorage.getItem('continueSessionId');
+        const sessionTitle = localStorage.getItem('continueSessionTitle');
+        
+        if (sessionId) {
+            // 保存会话ID，用于后续继续对话
+            currentSessionId = sessionId;
+            
+            // 加载历史消息
+            fetch(`/ai/record/list?sessionId=${sessionId}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success && result.data && result.data.length > 0) {
+                        // 清空当前聊天记录
+                        clearChat();
+                        
+                        // 显示聊天框
+                        const chatBox = document.getElementById('chat-box');
+                        chatBox.style.display = 'block';
+                        
+                        // 设置当前会话标题
+                        if (sessionTitle) {
+                            currentPrompt = sessionTitle;
+                        }
+                        
+                        // 显示历史消息
+                        result.data.forEach(record => {
+                            const message = {
+                                id: record.messageId || new Date().getTime(),
+                                role: record.role,
+                                content: record.content,
+                                reasoningContent: record.reasoningContent
+                            };
+                            appendMessage(message);
+                        });
+                        
+                        // 提示用户可以继续对话
+                        layer.msg('已加载历史对话，您可以继续对话了');
+                    } else {
+                        layer.msg('加载历史对话失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    layer.msg('加载历史对话失败');
+                })
+                .finally(() => {
+                    // 清除localStorage中的会话ID和标题
+                    localStorage.removeItem('continueSessionId');
+                    localStorage.removeItem('continueSessionTitle');
+                });
+        }
+    }
+}
+
+// 页面加载完成后检查是否有继续对话的会话ID
+document.addEventListener('DOMContentLoaded', checkContinueSession);
 
 function showChat() {
     const chatBox = document.getElementById('chat-box');
@@ -85,18 +149,36 @@ function sendMessage(title) {
         message: message
     };
 
-    // 调用后端接口
-    fetch(`/ai/chat`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams(params)
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);
-    });
+    // 如果有会话ID，则调用继续对话接口
+    if (currentSessionId) {
+        params.sessionId = currentSessionId;
+        
+        // 调用继续对话接口
+        fetch(`/ai/chat/continue`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(params)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+        });
+    } else {
+        // 调用普通对话接口
+        fetch(`/ai/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(params)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+        });
+    }
 }
 
 // 添加聊天记录管理入口

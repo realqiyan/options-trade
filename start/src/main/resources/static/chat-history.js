@@ -216,6 +216,9 @@ layui.use(['layer', 'form', 'util'], function() {
         // 操作按钮
         const buttonsDiv = document.createElement('div');
         buttonsDiv.innerHTML = `
+            <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" id="continue-chat-btn">
+                <i class="layui-icon layui-icon-dialogue"></i> 继续对话
+            </button>
             <button type="button" class="layui-btn layui-btn-danger layui-btn-sm" id="delete-chat-btn">
                 <i class="layui-icon layui-icon-delete"></i> 删除会话
             </button>
@@ -284,6 +287,11 @@ layui.use(['layer', 'form', 'util'], function() {
             }, function() {
                 deleteChat(currentSessionId);
             });
+        });
+        
+        // 绑定继续对话按钮事件
+        document.getElementById('continue-chat-btn').addEventListener('click', () => {
+            continueChatSession(currentSessionId, records);
         });
     }
     
@@ -361,6 +369,21 @@ layui.use(['layer', 'form', 'util'], function() {
             console.error('Error:', error);
             layer.msg('会话删除失败');
         });
+    }
+    
+    // 继续对话功能
+    function continueChatSession(sessionId, records) {
+        if (!sessionId || !records || records.length === 0) {
+            layer.msg('无法继续对话，会话数据不完整');
+            return;
+        }
+        
+        // 将会话ID和记录保存到localStorage
+        localStorage.setItem('continueSessionId', sessionId);
+        localStorage.setItem('continueSessionTitle', records[0].title || '未命名会话');
+        
+        // 跳转到AI聊天页面
+        window.location.href = 'index.html?continueChatSession=true';
     }
     
     // 初始化页面
