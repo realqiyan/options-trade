@@ -25,12 +25,13 @@ public interface AIChatService {
     void chat(String owner, String sessionId, String title, List<Message> messages, Function<Message, Void> callback);
 
     /**
-     * 获取所有会话ID列表
+     * 获取用户所有会话列表（GROUP BY后的沟通记录）
      *
      * @param owner 所有者
-     * @return 会话ID列表
-     */
-    List<String> listSessionIds(String owner);
+     * @param limit 限制数量
+     * @return 会话列表
+     */ 
+    List<OwnerChatRecord> summaryChatRecord(String owner, int limit);
 
     /**
      * 根据会话ID获取沟通记录

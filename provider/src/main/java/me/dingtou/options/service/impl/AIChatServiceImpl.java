@@ -86,16 +86,9 @@ public class AIChatServiceImpl implements AIChatService {
     }
 
     @Override
-    public List<String> listSessionIds(String owner) {
-        // 首先查询所有满足条件的记录
-        QueryWrapper<OwnerChatRecord> query = new QueryWrapper<>();
-        query.select("session_id")
-                .eq("owner", owner)
-                .groupBy("session_id")
-                .orderByDesc("max(create_time)");
-        List<OwnerChatRecord> allRecords = ownerChatRecordDAO.selectList(query);
-
-        return allRecords.stream().map(OwnerChatRecord::getSessionId).collect(Collectors.toList());
+    public List<OwnerChatRecord> summaryChatRecord(String owner, int limit) {
+        // GROUP BY后的沟通记录
+        return ownerChatRecordDAO.summaryChatRecord(owner, limit);
     }
 
     @Override

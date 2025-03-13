@@ -160,11 +160,11 @@ public class WebAIController {
      * @return 会话ID列表
      */
     @GetMapping("/ai/record/sessions")
-    public WebResult<List<String>> listSessionIds() {
+    public WebResult<List<OwnerChatRecord>> listSessionIds() {
         try {
             String owner = SessionUtils.getCurrentOwner();
-            List<String> sessionIds = aiChatService.listSessionIds(owner);
-            return WebResult.success(sessionIds);
+            // 获取最近200条会话ID列表
+            return WebResult.success(aiChatService.summaryChatRecord(owner, 200));
         } catch (Exception e) {
             log.error("获取会话ID列表失败", e);
             return WebResult.failure("获取会话ID列表失败: " + e.getMessage());
