@@ -681,6 +681,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         $('#ai_api_model').val(data.ext.ai_api_model || 'deepseek-r1');
                         $('#ai_api_key').val(data.ext.ai_api_key || '');
                         $('#ai_api_temperature').val(data.ext.ai_api_temperature || '1.0');
+                        $('#ai_system_prompt').val(data.ext.ai_system_prompt || '你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。');
                     }
                     
                     // 渲染表单
@@ -701,6 +702,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         ext.ai_api_model = $('#ai_api_model').val();
                         ext.ai_api_key = $('#ai_api_key').val();
                         ext.ai_api_temperature = $('#ai_api_temperature').val();
+                        ext.ai_system_prompt = $('#ai_system_prompt').val();
                         
                         // 设置ext字段
                         data.field.ext = ext;
@@ -781,6 +783,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     ext.ai_api_model = $('#ai_api_model').val();
                     ext.ai_api_key = $('#ai_api_key').val();
                     ext.ai_api_temperature = $('#ai_api_temperature').val();
+                    ext.ai_system_prompt = $('#ai_system_prompt').val();
                     
                     // 设置ext字段
                     data.field.ext = ext;

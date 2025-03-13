@@ -40,16 +40,6 @@ public class ChatManager {
             .expireAfterWrite(1, TimeUnit.MINUTES)
             .build();
 
-    private static final String SYSTEM_MESSAGE = "";
-    // private static final String SYSTEM_MESSAGE = """
-    // 您现在是期权交易专家，您的职责是分析用户提交的数据，解读市场图表形态和技术指标信号，然后按照用户需求提供期权策交易略建议，要求：
-    // 1. 期权无关的问题，请不要回答。
-    // 2. 仅考虑卖期权策略，主要目的是赚取期权合约权利金。
-    // 3. 仅考虑单腿策略和车轮策略。
-    // 4. 需要充分利用用户提供的数据，不要遗漏，逐条且深度地分析用户提供的数据，并总结。
-    // 5. 基于分析总结结论，提供专业期权策交易策略。
-    // """;
-
     /**
      * 发送聊天消息并处理流式响应
      *
@@ -70,7 +60,7 @@ public class ChatManager {
                 .model(AccountExtUtils.getAiApiModel(account))
                 .temperature(Double.valueOf(aiApiTemperature))
                 .maxCompletionTokens(16384)
-                .addSystemMessage(SYSTEM_MESSAGE);
+                .addSystemMessage(AccountExtUtils.getAiSystemPrompt(account));
         for (Message message : messages) {
             ChatCompletionMessage chatMessage = ChatCompletionMessage.builder()
                     .role(JsonValue.from(message.getRole()))
