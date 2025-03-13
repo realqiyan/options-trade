@@ -214,7 +214,7 @@
                 <li class="layui-nav-item"><a href="order.html">策略订单</a></li>
                 <li class="layui-nav-item"><a href="sync.html">同步订单</a></li>
                 <li class="layui-nav-item"><a href="income.html">账户收益</a></li>
-                <li class="layui-nav-item"><a href="chat-history.html">分析管理</a></li>
+                <li class="layui-nav-item"><a href="assistant.html">AI 助手</a></li>
                 <li class="layui-nav-item"><a href="admin.html">后台管理</a></li>
             </ul>
         </div>
@@ -259,36 +259,11 @@
     </div>
 </div>
 
-<!-- 在body结束标签前添加聊天窗口结构 -->
-<div id="chat-box" class="layui-col-md4" style="width:60%;z-index:999;position:fixed;right:20px;bottom:20px;display:none;background:#fff;border:1px solid #ddd;border-radius:5px;max-height:100vh;">
-    <div class="layui-card">
-        <div class="layui-card-header">
-            AI 助手
-            <button class="layui-btn layui-btn-xs layui-btn-primary" style="float:right;" onclick="showChatHistory()">
-                <i class="layui-icon layui-icon-list"></i> 历史记录
-            </button>
-        </div>
-        <div class="layui-card-body" id="chat-history" style="height:600px;overflow-y:auto;">
-            <!-- 聊天历史消息 -->
-        </div>
-        <div class="layui-card-footer">
-            <div class="layui-form">
-                <textarea id="chat-input" class="layui-textarea" placeholder="输入消息..." rows="8"></textarea>
-                <div style="margin-top:5px;">
-                    <button class="layui-btn layui-btn-sm" onclick="sendMessage(layui.jquery('#strategyId').find('option:selected').text())">发送</button>
-                    <button class="layui-btn layui-btn-sm layui-btn-danger" onclick="clearChat()" style="margin-left:5px;">清理</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script src="layui/layui.js"></script>
 <script src="chart/chart.js"></script>
 <script src="marked/marked.js"></script>
 <script src="common.js"></script>
 <script src="index.js"></script>
-<script src="aichat.js"></script>
 <script type="text/html" id="id-table-put-info">
     {{# if(d.putObj) { }}
     <span class="layui-badge-rim layui-bg-green" title="delta">Δ:{{= d.putObj.realtimeData.delta }}</span>
@@ -315,7 +290,7 @@
 <script id="commonInfo" type="text/html">
     <span class="layui-badge layui-bg-orange">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChat()"><i class="layui-icon layui-icon-link"></i>AI助手</a>
+            <a href="javascript:;" onclick="assistant()"><i class="layui-icon layui-icon-link"></i>AI助手</a>
         </b>
     </span>
     -

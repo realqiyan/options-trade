@@ -1,7 +1,6 @@
 package me.dingtou.options.service.impl;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -32,29 +31,51 @@ public class AIChatServiceImpl implements AIChatService {
     private OwnerManager ownerManager;
 
     @Override
-    public void chat(String owner, String title, String message, Function<Message, Void> callback) {
+    public void chat(String owner, String sessionId, String title, List<Message> messages,
+            Function<Message, Void> callback) {
         OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
-        if (null == ownerAccount
-                || null == AccountExtUtils.getAiApiKey(ownerAccount)
-        ) {
+        if (null == messages || messages.isEmpty() || null == ownerAccount
+                || null == AccountExtUtils.getAiApiKey(ownerAccount)) {
             return;
         }
-        // 生成会话ID
-        String sessionId = UUID.randomUUID().toString();
 
-        // 保存用户消息
-        OwnerChatRecord userRecord = new OwnerChatRecord(owner, sessionId, null, title, "user", message, null);
+        // 检查消息列表中是否有已存在的消息ID
+        for (Message message : messages) {
+            if (message.getId() != null) {
+                // 查询这条消息的会话ID
+                LambdaQueryWrapper<OwnerChatRecord> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(OwnerChatRecord::getOwner, owner)
+                        .eq(OwnerChatRecord::getMessageId, message.getId());
+                OwnerChatRecord record = ownerChatRecordDAO.selectOne(queryWrapper);
+                if (record != null) {
+                    sessionId = record.getSessionId();
+                    break;
+                }
+            }
+        }
 
-        ownerChatRecordDAO.insert(userRecord);
+        // 保存用户新消息
+        final String finalSessionId = sessionId;
+        messages.stream().filter(message -> "user".equals(message.getRole()) && null == message.getId())
+                .forEach(message -> {
+                    OwnerChatRecord userRecord = new OwnerChatRecord(owner,
+                            finalSessionId,
+                            String.valueOf(System.currentTimeMillis()),
+                            title,
+                            "user",
+                            message.getContent(),
+                            null);
+                    ownerChatRecordDAO.insert(userRecord);
+                });
 
         // 使用ChatManager发送消息并获取响应
-        ChatManager.ChatResult result = chatManager.sendChatMessage(ownerAccount, message, callback);
+        ChatManager.ChatResult result = chatManager.sendChatMessage(ownerAccount, messages, callback);
 
         // 保存AI助手的完整回复
         if (!result.getContent().isEmpty()) {
             OwnerChatRecord assistantRecord = new OwnerChatRecord(
                     owner,
-                    sessionId,
+                    finalSessionId,
                     result.getMessageId(),
                     title,
                     "assistant",

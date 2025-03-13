@@ -1,6 +1,6 @@
 package me.dingtou.options.util;
 
-import me.dingtou.options.model.AccountExt;
+import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.model.OwnerAccount;
 
 /**
@@ -102,5 +102,19 @@ public class AccountExtUtils {
         }
         String temperature = account.getExtValue(AccountExt.AI_API_TEMPERATURE);
         return temperature != null ? temperature : "1.0";
+    }
+    
+    /**
+     * 获取AI系统提示词
+     *
+     * @param account 账户对象
+     * @return AI系统提示词
+     */
+    public static String getAiSystemPrompt(OwnerAccount account) {
+        if (account == null) {
+            return "你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。";
+        }
+        String systemPrompt = account.getExtValue(AccountExt.AI_SYSTEM_PROMPT);
+        return systemPrompt != null ? systemPrompt : "你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。";
     }
 } 

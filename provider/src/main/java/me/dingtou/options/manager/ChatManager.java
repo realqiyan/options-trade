@@ -8,19 +8,19 @@ import com.openai.core.JsonField;
 import com.openai.core.JsonValue;
 import com.openai.models.ChatCompletionChunk;
 import com.openai.models.ChatCompletionCreateParams;
+import com.openai.models.ChatCompletionMessage;
+
 import lombok.Getter;
-import me.dingtou.options.config.ConfigUtils;
 import me.dingtou.options.model.Message;
 
 import me.dingtou.options.model.OwnerAccount;
-import me.dingtou.options.model.VixIndicator;
 import me.dingtou.options.util.AccountExtUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -40,38 +40,36 @@ public class ChatManager {
             .expireAfterWrite(1, TimeUnit.MINUTES)
             .build();
 
-
-    private static final String SYSTEM_MESSAGE = """
-            您现在是期权交易专家，您的职责是分析用户提交的数据，解读市场图表形态和技术指标信号，然后按照用户需求提供期权策交易略建议，要求：
-            1. 期权无关的问题，请不要回答。
-            2. 仅考虑卖期权策略，主要目的是赚取期权合约权利金。
-            3. 仅考虑单腿策略和车轮策略。
-            4. 需要充分利用用户提供的数据，不要遗漏，逐条且深度地分析用户提供的数据，并总结。
-            5. 基于分析总结结论，提供专业期权策交易策略。
-            """;
-
     /**
      * 发送聊天消息并处理流式响应
      *
      * @param account  账号
-     * @param message  用户消息
+     * @param messages 用户消息列表
      * @param callback 回调函数，用于处理流式响应
      * @return 返回AI助手的完整响应和消息ID
      */
-    public ChatResult sendChatMessage(OwnerAccount account, String message, Function<Message, Void> callback) {
+    public ChatResult sendChatMessage(OwnerAccount account, List<Message> messages, Function<Message, Void> callback) {
         // 创建一个StringBuilder来收集AI助手的完整回复
         StringBuilder reasoningContent = new StringBuilder();
         StringBuilder finalContent = new StringBuilder();
         // 保存消息ID
-        final String[] messageId = {null};
+        final String[] messageId = { null };
 
         String aiApiTemperature = AccountExtUtils.getAiApiTemperature(account);
-        ChatCompletionCreateParams createParams = ChatCompletionCreateParams.builder()
+        ChatCompletionCreateParams.Builder builder = ChatCompletionCreateParams.builder()
                 .model(AccountExtUtils.getAiApiModel(account))
                 .temperature(Double.valueOf(aiApiTemperature))
                 .maxCompletionTokens(16384)
-                .addSystemMessage(SYSTEM_MESSAGE)
-                .addUserMessage(message).build();
+                .addSystemMessage(AccountExtUtils.getAiSystemPrompt(account));
+        for (Message message : messages) {
+            ChatCompletionMessage chatMessage = ChatCompletionMessage.builder()
+                    .role(JsonValue.from(message.getRole()))
+                    .content(message.getContent())
+                    .refusal("")
+                    .build();
+            builder.addMessage(chatMessage);
+        }
+        ChatCompletionCreateParams createParams = builder.build();
 
         getClient(account).chat().completions().createStreaming(createParams).subscribe(chatCompletionChunk -> {
             String id = chatCompletionChunk.id();
@@ -92,11 +90,12 @@ public class ChatManager {
                         if (StringUtils.isNotBlank(content)) {
                             // 收集AI助手的回复
                             if ("content".equals(key)) {
+                                callback.apply(new Message(id, "assistant", content, null));
                                 finalContent.append(content);
                             } else if ("reasoning_content".equals(key)) {
+                                callback.apply(new Message(id, "assistant", null, content));
                                 reasoningContent.append(content);
                             }
-                            callback.apply(new Message(id, key, content));
                         }
                     }
                 });

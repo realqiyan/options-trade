@@ -63,7 +63,9 @@ function loadInput() {
         inputField.value = savedValue;
     }
 }
-inputField.onchange = saveInput;
-$(document).ready(function() {
-    loadInput();
-});
+if (inputField){
+    inputField.onchange = saveInput;
+    $(document).ready(function() {
+        loadInput();
+    });
+}

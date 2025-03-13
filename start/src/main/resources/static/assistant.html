@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Options Trade Tools</title>
+    <link rel="icon" href="data:image/ico;base64,aWNv">
+    <link rel="stylesheet" href="layui/css/layui.css">
+    <style>
+        /* 整体布局样式 */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 200px);
+            transition: all 0.3s ease;
+        }
+        
+        /* 聊天历史列表样式 */
+        .chat-list {
+            width: 300px;
+            border-right: 1px solid #eee;
+            overflow-y: auto;
+            padding: 10px;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+        }
+        
+        /* 聊天内容区域样式 */
+        .chat-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        /* 聊天历史记录样式 */
+        #chat-history {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #e6e6e6;
+            border-top: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        /* 聊天输入区域样式 */
+        .chat-input-area {
+            padding: 15px;
+            background-color: #fff;
+            border-top: 1px solid #e6e6e6;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        /* 标题输入区域样式 */
+        .chat-title-area {
+            padding: 10px 15px 0;
+            margin-bottom: 0;
+            background-color: #fff;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #e6e6e6;
+            border-bottom: none;
+            box-shadow: 0 -1px 3px rgba(0,0,0,0.02);
+        }
+        
+        /* 标题输入组样式 */
+        .chat-title-area .layui-input-group {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
+        
+        .chat-title-area .layui-input {
+            flex: 1;
+            min-width: 0; /* 防止输入框溢出 */
+        }
+        
+        .chat-title-area .layui-input-prefix {
+            flex-shrink: 0;
+        }
+        
+        .chat-title-area .layui-input-suffix {
+            flex-shrink: 0;
+            white-space: nowrap;
+            padding-left: 5px;
+        }
+        
+        /* 聊天会话项样式 */
+        .chat-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .chat-item:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .chat-item.active {
+            background-color: #e6f7ff;
+            border-color: #1e9fff;
+            box-shadow: 0 2px 8px rgba(30,159,255,0.1);
+        }
+        
+        .chat-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .chat-item-preview {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .chat-item-time {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* 消息样式 */
+        .user-message, .assistant-message {
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            animation: fadeIn 0.3s ease;
+            max-width: 85%;
+            position: relative;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            background-color: #e6f7ff;
+            margin-left: auto;
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        
+        .assistant-message {
+            background-color: #fff;
+            border: 1px solid #eee;
+            margin-right: auto;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        
+        .reasoning-message {
+            background-color: #f6f6f6;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px dashed #ddd;
+            margin-right: auto;
+            max-width: 85%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        
+        .reasoning-header {
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .reasoning-header i {
+            margin-right: 5px;
+        }
+        
+        .reasoning-content {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+        
+        .message-header {
+            margin-bottom: 8px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .message-role {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .message-role i {
+            margin-right: 5px;
+        }
+        
+        .message-time {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* 空状态样式 */
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+            transition: all 0.3s ease;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 10px;
+            color: #d9d9d9;
+        }
+        
+        .empty-state p {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        /* 历史记录操作按钮 */
+        .history-actions {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .history-actions button {
+            transition: all 0.3s ease;
+        }
+        
+        /* 按钮样式增强 */
+        .action-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* 输入框样式增强 */
+        .layui-textarea:focus, .layui-input:focus {
+            border-color: #1e9fff;
+            box-shadow: 0 0 0 2px rgba(30,159,255,0.2);
+        }
+        
+        /* 发送按钮样式 */
+        #send-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #send-btn:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        
+        #send-btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 0.3;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+        
+        /* Markdown 内容样式 */
+        .message-content h1, 
+        .message-content h2, 
+        .message-content h3, 
+        .message-content h4, 
+        .message-content h5, 
+        .message-content h6 {
+            margin-top: 16px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            line-height: 1.25;
+            color: #333;
+        }
+        
+        .message-content h1 {
+            font-size: 1.8em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        
+        .message-content h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        
+        .message-content h3 {
+            font-size: 1.25em;
+        }
+        
+        .message-content h4 {
+            font-size: 1em;
+        }
+        
+        .message-content p {
+            margin-top: 0;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        .message-content blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin: 0 0 16px 0;
+        }
+        
+        .message-content ul, 
+        .message-content ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        
+        .message-content li {
+            margin-bottom: 4px;
+        }
+        
+        .message-content li + li {
+            margin-top: 0.25em;
+        }
+        
+        .message-content code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27,31,35,0.05);
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        
+        .message-content pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            border: 1px solid #eee;
+        }
+        
+        .message-content pre code {
+            padding: 0;
+            margin: 0;
+            font-size: 100%;
+            background-color: transparent;
+            border: 0;
+            display: inline;
+            overflow: visible;
+            line-height: inherit;
+            word-wrap: normal;
+        }
+        
+        .message-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .message-content table th,
+        .message-content table td {
+            padding: 8px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        
+        .message-content table th {
+            background-color: #f6f8fa;
+            font-weight: 600;
+        }
+        
+        .message-content table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+        
+        .message-content table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        
+        .message-content img {
+            max-width: 100%;
+            box-sizing: content-box;
+            background-color: #fff;
+            border-radius: 6px;
+        }
+        
+        .message-content hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+        
+        .message-content a {
+            color: #1e9fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .message-content a:hover {
+            text-decoration: underline;
+            color: #0c73c2;
+        }
+        
+        /* 代码高亮 */
+        .message-content .hljs {
+            display: block;
+            overflow-x: auto;
+            padding: 0.5em;
+            color: #333;
+            background: #f8f8f8;
+        }
+        
+        /* 响应式布局 */
+        @media screen and (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                height: calc(100vh - 150px);
+            }
+            
+            .chat-list {
+                width: 100%;
+                height: 200px;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .chat-item {
+                padding: 8px;
+                margin-bottom: 5px;
+            }
+            
+            .user-message, .assistant-message {
+                max-width: 95%;
+            }
+        }
+        
+        /* 打字动画效果 */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #1e9fff;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            opacity: 0.6;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation: typing 1s infinite 0s;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation: typing 1s infinite 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation: typing 1s infinite 0.4s;
+        }
+        
+        @keyframes typing {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo layui-hide-xs layui-bg-black">Options</div>
+        <!-- 头部区域（可配合layui 已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item layui-hide-xs"><a href="javascript:;">AI 助手</a></li>
+        </ul>
+    </div>
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree">
+                <li class="layui-nav-item"><a href="index.html">证券标的</a></li>
+                <li class="layui-nav-item"><a href="order.html">策略订单</a></li>
+                <li class="layui-nav-item"><a href="sync.html">同步订单</a></li>
+                <li class="layui-nav-item"><a href="income.html">账户收益</a></li>
+                <li class="layui-nav-item layui-this"><a href="assistant.html">AI 助手</a></li>
+                <li class="layui-nav-item"><a href="admin.html">后台管理</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px;">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    <div class="layui-row">
+                        <div class="layui-col-xs8">
+                            <i class="layui-icon layui-icon-dialogue"></i> AI 助手
+                        </div>
+                        <div class="layui-col-xs4" style="text-align: right;">
+                            <button class="layui-btn layui-btn-xs layui-btn-primary action-btn" id="toggle-history-btn">
+                                <i class="layui-icon layui-icon-shrink-right"></i> 隐藏历史
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-card-body">
+                    <div class="main-container">
+                        <!-- 聊天历史列表 -->
+                        <div class="chat-list" id="chat-list">
+                            <div class="history-actions">
+                                <button class="layui-btn layui-btn-primary layui-btn-sm action-btn" id="refresh-history-btn">
+                                    <i class="layui-icon layui-icon-refresh"></i> 刷新
+                                </button>
+                                <button class="layui-btn layui-btn-normal layui-btn-sm action-btn" id="new-chat-btn">
+                                    <i class="layui-icon layui-icon-add-1"></i> 新对话
+                                </button>
+                            </div>
+                            <div class="empty-state">
+                                <i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>
+                                <p>加载中...</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 聊天内容区域 -->
+                        <div class="chat-content">
+                            <!-- 标题输入框移到这里 -->
+                            <div class="chat-title-area">
+                                <div class="layui-form-item" style="margin-bottom: 10px;">
+                                    <div class="layui-input-group">
+                                        <div class="layui-input-split layui-input-prefix">标题</div>
+                                        <input type="text" id="chat-title" placeholder="请输入会话标题（可选）" class="layui-input">
+                                        <div class="layui-input-suffix" id="title-actions" style="display: none;">
+                                            <button type="button" class="layui-btn layui-btn-sm layui-btn-primary action-btn" id="save-title-btn" style="margin: 0; padding: 0 10px; height: 30px; line-height: 30px;">保存</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="chat-history">
+                                <!-- 聊天历史消息 -->
+                                <div class="empty-state">
+                                    <i class="layui-icon layui-icon-dialogue"></i>
+                                    <p>选择一个历史会话或开始新对话</p>
+                                </div>
+                            </div>
+                            <div class="chat-input-area">
+                                <div class="layui-form">
+                                    <!-- 删除原来的标题输入框 -->
+                                    <div class="layui-form-item">
+                                        <textarea id="chat-input" class="layui-textarea" placeholder="输入消息..." rows="3"></textarea>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <button class="layui-btn action-btn" id="send-btn">
+                                            <i class="layui-icon layui-icon-release"></i> 发送
+                                        </button>
+                                        <button class="layui-btn layui-btn-primary action-btn" id="clear-btn" style="margin-left:5px;">
+                                            <i class="layui-icon layui-icon-refresh"></i> 清理
+                                        </button>
+                                        <button class="layui-btn layui-btn-danger layui-btn-primary action-btn" id="delete-btn" style="margin-left:5px; display: none;">
+                                            <i class="layui-icon layui-icon-delete"></i> 删除会话
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="layui/layui.js"></script>
+<script src="marked/marked.js"></script>
+<script src="common.js"></script>
+<script src="assistant.js"></script>
+</body>
+</html> 

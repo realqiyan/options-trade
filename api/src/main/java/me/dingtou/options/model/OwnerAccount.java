@@ -3,6 +3,7 @@ package me.dingtou.options.model;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
+import me.dingtou.options.constant.AccountExt;
 
 import java.math.BigDecimal;
 import java.util.Date;

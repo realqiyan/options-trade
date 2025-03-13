@@ -14,40 +14,35 @@ public class Message {
      */
     private String id;
     /**
-     * 消息类型
+     * 角色
      */
-    private String type;
+    private String role;
     /**
      * 消息内容
      */
-    private String message;
+    private String content;
     /**
      * 思考内容
      */
-    private String reasoningMessage;
+    private String reasoningContent;
 
     public Message() {
     }
 
-    public Message(String id, String type, String message) {
+    public Message(String id, String role, String content, String reasoningContent) {
         this.id = id;
-        this.type = type;
-        this.message = message;
-    }
-    
-    public Message(String id, String type, String message, String reasoningMessage) {
-        this.id = id;
-        this.type = type;
-        this.message = message;
-        this.reasoningMessage = reasoningMessage;
+        this.role = role;
+        this.content = content;
+        this.reasoningContent = reasoningContent;
     }
 
     @Override
     public String toString() {
         return "Message{" +
-                "type='" + type + '\'' +
-                ", message='" + message + '\'' +
-                ", reasoningMessage='" + reasoningMessage + '\'' +
+                "id='" + id + '\'' +
+                ", role='" + role + '\'' +
+                ", content='" + content + '\'' +
+                ", reasoningContent='" + reasoningContent + '\'' +
                 '}';
     }
 }

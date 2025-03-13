@@ -1,6 +1,7 @@
 package me.dingtou.options.web;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.service.AIChatService;
 import me.dingtou.options.web.model.WebResult;
@@ -12,7 +13,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,7 +28,8 @@ import java.util.concurrent.Executors;
 @RestController
 public class WebAIController {
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(10, new ThreadFactoryBuilder().setNameFormat("ai-chat-%d").build());
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10,
+            new ThreadFactoryBuilder().setNameFormat("ai-chat-%d").build());
 
     @Autowired
     private AIChatService aiChatService;
@@ -51,18 +55,21 @@ public class WebAIController {
      * @return WebResult
      */
     @PostMapping("/ai/chat")
-    public WebResult<Boolean> chat(@RequestParam(value = "requestId", required = true) String requestId,
+    public WebResult<String> chat(@RequestParam(value = "requestId", required = true) String requestId,
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "message", required = true) String message) {
         String owner = SessionUtils.getCurrentOwner();
-
+        String sessionId = UUID.randomUUID().toString();
         // 使用线程池提交
         SseEmitter connect = SessionUtils.getConnect(owner, requestId);
+        Message chatMessage = new Message(null, "user", message, null);
         try {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    aiChatService.chat(owner, title, message, msg -> {
+                    List<Message> messages = new ArrayList<>();
+                    messages.add(chatMessage);
+                    aiChatService.chat(owner, sessionId, title, messages, msg -> {
                         try {
                             connect.send(msg);
                         } catch (IOException e) {
@@ -74,10 +81,77 @@ public class WebAIController {
                 }
             });
         } catch (Exception e) {
-            return WebResult.failure("chat error: " + e.getMessage());
+            log.error("chat error, requestId: {}, message: {}", requestId, message, e);
         }
-        
-        return WebResult.success(true);
+
+        return WebResult.success(sessionId);
+    }
+
+    /**
+     * 继续对话
+     *
+     * @param requestId 请求ID
+     * @param sessionId 会话ID
+     * @param message   新消息
+     * @return WebResult
+     */
+    @PostMapping("/ai/chat/continue")
+    public WebResult<String> continueChat(@RequestParam(value = "requestId", required = true) String requestId,
+            @RequestParam(value = "sessionId", required = true) String sessionId,
+            @RequestParam(value = "message", required = true) String message) {
+        String owner = SessionUtils.getCurrentOwner();
+
+        // 使用线程池提交
+        SseEmitter connect = SessionUtils.getConnect(owner, requestId);
+        try {
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    // 获取历史消息
+                    List<OwnerChatRecord> records = aiChatService.listRecordsBySessionId(owner, sessionId);
+                    if (records == null || records.isEmpty()) {
+                        try {
+                            connect.send(new Message(null, "assistant", "无法找到历史对话记录", null));
+                        } catch (IOException e) {
+                            log.error("send error message error", e);
+                        }
+                        return;
+                    }
+
+                    // 转换历史消息为Message对象
+                    List<Message> messages = new ArrayList<>();
+                    for (OwnerChatRecord record : records) {
+                        Message chatMessage = new Message(record.getMessageId(),
+                                record.getRole(),
+                                record.getContent(),
+                                record.getReasoningContent());
+                        messages.add(chatMessage);
+                    }
+
+                    // 添加新消息
+                    Message newMessage = new Message(null, "user", message, null);
+                    messages.add(newMessage);
+
+                    // 获取会话标题
+                    String title = records.get(0).getTitle();
+
+                    // 发送消息
+                    aiChatService.chat(owner, sessionId, title, messages, msg -> {
+                        try {
+                            connect.send(msg);
+                        } catch (IOException e) {
+                            log.error("send message error", e);
+                        }
+                        return null;
+                    });
+                }
+            });
+        } catch (Exception e) {
+            log.error("continue chat error, requestId: {}, sessionId: {}, message: {}", requestId, sessionId, message,
+                    e);
+        }
+
+        return WebResult.success(sessionId);
     }
 
     /**
@@ -152,4 +226,5 @@ public class WebAIController {
             return WebResult.failure("更新会话标题失败: " + e.getMessage());
         }
     }
+
 }

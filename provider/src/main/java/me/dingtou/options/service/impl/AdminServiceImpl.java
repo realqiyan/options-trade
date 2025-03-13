@@ -74,10 +74,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<OwnerStrategy> listStrategies(String owner) {
-        LambdaQueryWrapper<OwnerStrategy> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(StringUtils.isNotBlank(owner), OwnerStrategy::getOwner, owner);
-        queryWrapper.orderByDesc(OwnerStrategy::getStartTime);
-        return ownerStrategyDAO.selectList(queryWrapper);
+        return ownerStrategyDAO.queryOwnerStrategies(owner);
     }
 
     @Override
@@ -102,7 +99,8 @@ public class AdminServiceImpl implements AdminService {
             // 更新
             ownerStrategyDAO.updateById(strategy);
         }
-        return strategy;
+        // 返回更新后的策略，确保ext字段被正确处理
+        return ownerStrategyDAO.queryStrategyById(strategy.getId());
     }
 
     @Override

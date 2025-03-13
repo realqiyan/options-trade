@@ -42,7 +42,7 @@
                     <li class="layui-nav-item"><a href="order.html">策略订单</a></li>
                     <li class="layui-nav-item"><a href="sync.html">同步订单</a></li>
                     <li class="layui-nav-item"><a href="income.html">账户收益</a></li>
-                    <li class="layui-nav-item"><a href="chat-history.html">分析管理</a></li>
+                    <li class="layui-nav-item"><a href="assistant.html">AI 助手</a></li>
                     <li class="layui-nav-item layui-nav-itemed layui-this"><a href="admin.html">后台管理</a></li>
                 </ul>
             </div>
@@ -202,7 +202,7 @@
             <div class="layui-form-item">
                 <label class="layui-form-label">策略代码</label>
                 <div class="layui-input-block">
-                    <select name="strategyCode" lay-verify="required">
+                    <select name="strategyCode" lay-verify="required" lay-filter="strategyCode">
                         <option value="">请选择策略代码</option>
                         <option value="default">默认策略</option>
                         <option value="wheel_strategy">车轮策略</option>
@@ -231,6 +231,13 @@
                 <label class="layui-form-label">合约股数</label>
                 <div class="layui-input-block">
                     <input type="number" name="lotSize" required lay-verify="required" placeholder="请输入每份合约股票数" autocomplete="off" class="layui-input" value="100">
+                </div>
+            </div>
+            <div class="layui-form-item" id="wheelStrategyConfig" style="display: none;">
+                <label class="layui-form-label">Sell Put行权价</label>
+                <div class="layui-input-block">
+                    <input type="text" name="sellPutStrikePrice" placeholder="请输入Sell Put可接受的最低行权价" autocomplete="off" class="layui-input">
+                    <div class="layui-form-mid layui-word-aux">配置后，低于此行权价的Put期权将不会被推荐</div>
                 </div>
             </div>
             <div class="layui-form-item">
@@ -331,6 +338,13 @@
                 <label class="layui-form-label">Temperature</label>
                 <div class="layui-input-block">
                     <input type="text" id="ai_api_temperature" placeholder="请输入Temperature" autocomplete="off" class="layui-input" value="1.0">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">系统提示词</label>
+                <div class="layui-input-block">
+                    <textarea id="ai_system_prompt" placeholder="请输入系统提示词" class="layui-textarea" rows="4">你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。</textarea>
+                    <div class="layui-form-mid layui-word-aux">系统提示词用于指导AI助手的行为和回答方式</div>
                 </div>
             </div>
             
