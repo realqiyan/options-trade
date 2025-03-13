@@ -2,10 +2,8 @@ package me.dingtou.options.service.impl;
 
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import me.dingtou.options.dao.OwnerChatRecordDAO;
 import me.dingtou.options.manager.ChatManager;
