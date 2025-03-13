@@ -59,8 +59,13 @@ public class AIChatServiceImpl implements AIChatService {
         final String finalSessionId = sessionId;
         messages.stream().filter(message -> "user".equals(message.getRole()) && null == message.getId())
                 .forEach(message -> {
-                    OwnerChatRecord userRecord = new OwnerChatRecord(owner, finalSessionId, null, title, "user",
-                            message.getContent(), null);
+                    OwnerChatRecord userRecord = new OwnerChatRecord(owner,
+                            finalSessionId,
+                            String.valueOf(System.currentTimeMillis()),
+                            title,
+                            "user",
+                            message.getContent(),
+                            null);
                     ownerChatRecordDAO.insert(userRecord);
                 });
 

@@ -62,12 +62,12 @@ public class WebAIController {
         String sessionId = UUID.randomUUID().toString();
         // 使用线程池提交
         SseEmitter connect = SessionUtils.getConnect(owner, requestId);
+        Message chatMessage = new Message(null, "user", message, null);
         try {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     List<Message> messages = new ArrayList<>();
-                    Message chatMessage = new Message(null, "user", message, null);
                     messages.add(chatMessage);
                     aiChatService.chat(owner, sessionId, title, messages, msg -> {
                         try {
@@ -121,7 +121,9 @@ public class WebAIController {
                     // 转换历史消息为Message对象
                     List<Message> messages = new ArrayList<>();
                     for (OwnerChatRecord record : records) {
-                        Message chatMessage = new Message(record.getMessageId(), record.getRole(), record.getContent(),
+                        Message chatMessage = new Message(record.getMessageId(),
+                                record.getRole(),
+                                record.getContent(),
                                 record.getReasoningContent());
                         messages.add(chatMessage);
                     }

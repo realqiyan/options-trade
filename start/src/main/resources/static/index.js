@@ -4,6 +4,7 @@ var currentCode;
 var currentMarket;
 var currentOwnerData;
 
+var assistantWindow;
 var currentPrompt;
 var currentLabel;
 var currentChart;
@@ -27,6 +28,18 @@ function resetContent(title){
     chartCanvas.style.display = 'none';
     currentLabel = "";
     currentPrompt = "";
+}
+function assistant(){
+    if(!currentPrompt){
+        layer.msg('请选择策略和行权日期！');
+        return;
+    }
+    localStorage.setItem("prompt", currentPrompt);
+    if(!assistantWindow || assistantWindow.closed){
+        assistantWindow = window.open("assistant.html", "assistant");
+    }else{
+        assistantWindow.focus();
+    }
 }
 var chartCanvas = document.getElementById('chartZone');
 function showChart(label, data, type, options) {

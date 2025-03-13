@@ -43,6 +43,18 @@ layui.use(['layer', 'form', 'util'], function() {
             this.initEventSource();
             this.loadChatSessions();
             this.bindEvents();
+            this.loadPrompt();
+        }
+
+        /**
+         * 加载提示词
+         */
+        loadPrompt(){
+            const prompt = localStorage.getItem("prompt");
+            if(prompt){
+                this.elements.chatInput.value = prompt;
+                localStorage.removeItem("prompt");
+            }
         }
         
         /**
@@ -485,22 +497,27 @@ layui.use(['layer', 'form', 'util'], function() {
 
             
             // 如果是AI助手的消息且有思考内容，则先添加思考内容区域
-            if (message.role === 'assistant' && this.currentMessage[reasoningId] && !document.getElementById(reasoningId)) {
+            let reasoningContentDiv = document.getElementById(reasoningId);
+            if (!reasoningContentDiv && this.currentMessage[reasoningId]) {
                 const reasoningDiv = document.createElement('div');
-                reasoningDiv.id = reasoningId;
                 reasoningDiv.className = 'reasoning-message';
-                
-                // 使用marked解析Markdown内容
-                const reasoningContent = marked.parse(this.currentMessage[reasoningId]);
-                
-                reasoningDiv.innerHTML = `
-                    <div class="reasoning-header">
-                        <i class="layui-icon layui-icon-think"></i> AI思考过程
-                    </div>
-                    <div class="reasoning-content">${reasoningContent}</div>
+                const reasoningHeaderDiv = document.createElement('div');
+                reasoningHeaderDiv.className = 'reasoning-header';
+                reasoningHeaderDiv.innerHTML = `
+                    <i class="layui-icon layui-icon-think"></i> AI思考过程
                 `;
-                
+                reasoningContentDiv = document.createElement('div');
+                reasoningContentDiv.className = 'reasoning-content';
+                reasoningContentDiv.id = reasoningId;
+                reasoningDiv.appendChild(reasoningHeaderDiv);
+                reasoningDiv.appendChild(reasoningContentDiv);
+
                 historyDiv.appendChild(reasoningDiv);
+            }
+            // 使用marked解析Markdown内容
+            if(reasoningContentDiv && this.currentMessage[reasoningId]){
+                const reasoningContent = marked.parse(this.currentMessage[reasoningId]);
+                reasoningContentDiv.innerHTML = reasoningContent;
             }
             
             // 移除正在输入的指示器
@@ -511,10 +528,9 @@ layui.use(['layer', 'form', 'util'], function() {
             }
             
             // 添加或更新消息内容
-            let messageDiv = document.getElementById(contentId);
-            if (!messageDiv) {
-                messageDiv = document.createElement('div');
-                messageDiv.id = contentId;
+            let contentDiv = document.getElementById(contentId);
+            if (!contentDiv && this.currentMessage[contentId]) {
+                const messageDiv = document.createElement('div');
                 messageDiv.className = message.role === 'user' ? 'user-message' : 'assistant-message';
                 
                 // 创建消息头部
@@ -534,7 +550,8 @@ layui.use(['layer', 'form', 'util'], function() {
                 `;
                 
                 // 创建消息内容容器
-                const contentDiv = document.createElement('div');
+                contentDiv = document.createElement('div');
+                contentDiv.id = contentId;
                 contentDiv.className = 'message-content';
                 
                 messageDiv.appendChild(headerDiv);
@@ -543,8 +560,7 @@ layui.use(['layer', 'form', 'util'], function() {
             }
             
             // 更新消息内容
-            const contentDiv = messageDiv.querySelector('.message-content');
-            if (contentDiv) {
+            if (contentDiv && this.currentMessage[contentId]) {
                 // 使用marked解析Markdown内容
                 const content = marked.parse(this.currentMessage[contentId]);
                 contentDiv.innerHTML = content;
@@ -652,7 +668,7 @@ layui.use(['layer', 'form', 'util'], function() {
                 }
                 
                 // 发送成功后，刷新会话列表
-                setTimeout(() => this.loadChatSessions(), 1000);
+                // setTimeout(() => this.loadChatSessions(), 1000);
             })
             .catch(error => {
                 console.error('发送消息失败:', error);
