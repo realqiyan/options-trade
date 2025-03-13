@@ -118,7 +118,7 @@ java -jar start/target/start-0.0.1-SNAPSHOT.jar
 
 #### 6.3 验证服务
 1. 检查服务日志确保启动成功
-2. 访问健康检查接口：`http://localhost:8080/actuator/health`
+2. 访问首页：`http://localhost:8888/`
 3. 确认数据库连接正常
 4. 验证富途 OpenD 连接状态
 5. 验证长桥 API 连接状态

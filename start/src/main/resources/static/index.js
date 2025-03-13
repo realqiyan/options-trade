@@ -29,11 +29,12 @@ function resetContent(title){
     currentLabel = "";
     currentPrompt = "";
 }
-function assistant(){
+function assistant(title){
     if(!currentPrompt){
         layer.msg('请选择策略和行权日期！');
         return;
     }
+    localStorage.setItem("title", title);
     localStorage.setItem("prompt", currentPrompt);
     if(!assistantWindow || assistantWindow.closed){
         assistantWindow = window.open("assistant.html", "assistant");

@@ -50,7 +50,12 @@ layui.use(['layer', 'form', 'util'], function() {
          * 加载提示词
          */
         loadPrompt(){
+            const title = localStorage.getItem("title");
             const prompt = localStorage.getItem("prompt");
+            if(title){
+                this.elements.chatTitle.value = title;
+                localStorage.removeItem("title");
+            }
             if(prompt){
                 this.elements.chatInput.value = prompt;
                 localStorage.removeItem("prompt");
