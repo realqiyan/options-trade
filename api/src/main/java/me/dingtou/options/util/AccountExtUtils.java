@@ -1,6 +1,6 @@
 package me.dingtou.options.util;
 
-import me.dingtou.options.model.AccountExt;
+import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.model.OwnerAccount;
 
 /**

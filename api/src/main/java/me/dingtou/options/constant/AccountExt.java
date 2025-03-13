@@ -1,4 +1,4 @@
-package me.dingtou.options.model;
+package me.dingtou.options.constant;
 
 /**
  * 账户扩展字段枚举
