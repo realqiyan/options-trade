@@ -6,6 +6,12 @@ function renderOrderTable(orderList){
     }
 
     var convertedData = orderList.map(item => {
+        // 计算盈亏比例的颜色
+        let profitRatioClass = '';
+        if(item.ext && item.ext.profitRatio) {
+            profitRatioClass = parseFloat(item.ext.profitRatio) >= 0 ? 'positive-value' : 'negative-value';
+        }
+        
         return {
             "strikeTime": extractDate(item.strikeTime),
             "code": item.code,
@@ -17,6 +23,7 @@ function renderOrderTable(orderList){
             "tradeTime": item.tradeTime,
             "curPrice": item.ext ? item.ext.curPrice : null,
             "profitRatio": item.ext && item.ext.profitRatio ? item.ext.profitRatio + '%' : null,
+            "profitRatioClass": profitRatioClass
         };
     });
 
@@ -34,19 +41,18 @@ function renderOrderTable(orderList){
           {field: 'totalIncome', title: '收入', width: 100},
           {field: 'curPrice', title: '现价', width: 100},
           {field: 'orderFee', title: '订单费用', width: 100},
-          {field: 'profitRatio', title: '盈亏', width: 100},
+          {field: 'profitRatio', title: '盈亏', width: 100, templet: function(d){
+              return '<span class="' + d.profitRatioClass + '">' + d.profitRatio + '</span>';
+          }}
         ]],
         data: convertedData,
         toolbar: true,
-        // height: 'full-390',
         lineStyle: 'height: 100%;',
         defaultToolbar: [
           'filter', // 列筛选
           'exports', // 导出
           'print' // 打印
         ],
-        //skin: 'line',
-        //even: true,
         initSort: {
           field: 'strikeTime',
           type: 'asc'
@@ -58,11 +64,20 @@ function renderOrderTable(orderList){
     });
 
     render();
-
 }
 
 function showChart(label, data, type) {
     const ctx = document.getElementById('monthlyIncomeChart').getContext('2d');
+    
+    // 计算最大值和最小值，用于设置Y轴范围
+    const maxValue = Math.max(...data) * 1.1; // 增加10%的空间
+    const minValue = Math.min(0, Math.min(...data) * 1.1); // 如果有负值，则扩展负方向
+    
+    // 生成渐变背景
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(30, 159, 255, 0.5)');
+    gradient.addColorStop(1, 'rgba(30, 159, 255, 0)');
+    
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -70,24 +85,64 @@ function showChart(label, data, type) {
             datasets: [{
                 label: '月度收益',
                 data: data,
-                fill: true
+                fill: true,
+                backgroundColor: gradient,
+                borderColor: '#1E9FFF',
+                borderWidth: 2,
+                pointBackgroundColor: '#1E9FFF',
+                pointBorderColor: '#fff',
+                pointRadius: 5,
+                tension: 0.3 // 使线条更平滑
             }]
         },
         options: {
-            responsive: false,
+            responsive: true,
             maintainAspectRatio: false,
             scales: {
                 x: {
                     title: {
                         display: true,
-                        text: '月份'
+                        text: '月份',
+                        font: {
+                            weight: 'bold'
+                        }
+                    },
+                    grid: {
+                        display: false
                     }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: '收入'
+                        text: '收入 ($)',
+                        font: {
+                            weight: 'bold'
+                        }
+                    },
+                    min: minValue,
+                    max: maxValue,
+                    grid: {
+                        color: 'rgba(200, 200, 200, 0.2)'
                     }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    titleFont: {
+                        size: 14
+                    },
+                    bodyFont: {
+                        size: 14
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            return '收入: $' + context.raw;
+                        }
+                    }
+                },
+                legend: {
+                    display: false
                 }
             }
         }
@@ -95,12 +150,31 @@ function showChart(label, data, type) {
 }
 
 function reloadData(){
+    // 显示加载进度
+    layui.use(['element'], function(){
+        var element = layui.element;
+        element.progress('loading', '30%');
+    });
+    
     $.ajax({
       url: "/owner/summary",
       data: {
         time: new Date().getTime()
       },
-      success: function( response ) {
+      beforeSend: function() {
+        // 显示加载中状态
+        layui.use(['element'], function(){
+            var element = layui.element;
+            element.progress('loading', '60%');
+        });
+      },
+      success: function(response) {
+        // 更新进度
+        layui.use(['element'], function(){
+            var element = layui.element;
+            element.progress('loading', '90%');
+        });
+        
         var result = response.data;
 
         var getTpl = summary.innerHTML;
@@ -118,8 +192,41 @@ function reloadData(){
         // 调用 showChart 函数绘制折线图
         showChart(labels, data, 'line');
         render();
+        
+        // 完成加载
+        layui.use(['element', 'layer'], function(){
+            var element = layui.element;
+            var layer = layui.layer;
+            element.progress('loading', '100%');
+            layer.msg('数据加载完成', {icon: 1, time: 1000});
+        });
+      },
+      error: function(xhr, status, error) {
+        layui.use(['layer'], function(){
+            var layer = layui.layer;
+            layer.msg('加载数据失败: ' + error, {icon: 2});
+        });
       }
     });
 }
 
-reloadData();
+// 初始加载数据
+$(document).ready(function() {
+    reloadData();
+    
+    // 绑定刷新按钮事件
+    $('#refreshBtn').on('click', function() {
+        reloadData();
+    });
+});
+
+// 添加响应式调整
+$(window).resize(function() {
+    // 如果图表已经存在，重新加载数据以适应新的窗口大小
+    if(document.getElementById('monthlyIncomeChart')) {
+        // 获取父容器宽度
+        const width = $('#monthlyIncomeChart').parent().width();
+        // 设置图表宽度
+        $('#monthlyIncomeChart').attr('width', width);
+    }
+});

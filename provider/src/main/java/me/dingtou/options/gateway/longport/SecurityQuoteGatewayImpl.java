@@ -115,9 +115,13 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
                 SECURITY_QUOTE_CACHE.put(currSecurity, securityQuote);
                 callback.apply(securityQuote);
             });
-        } catch (Exception e) {
-            getQuoteContext(ownerAccount, true);
+        } catch (Throwable e) {
             log.error("subscribeQuote error. message:{}", e.getMessage(), e);
+            try {
+                getQuoteContext(ownerAccount, true);
+            } catch (Throwable exception) {
+                log.error("getQuoteContext error. message:{}", exception.getMessage());
+            }
         }
     }
 

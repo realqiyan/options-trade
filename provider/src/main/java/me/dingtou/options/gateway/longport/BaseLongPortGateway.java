@@ -26,7 +26,7 @@ public class BaseLongPortGateway {
             if (null == quoteContext) {
                 quoteContext = QuoteContext.create(config).get();
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("init longport_java error. message:{}", e.getMessage());
             throw new RuntimeException(e);
         }

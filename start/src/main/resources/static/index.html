@@ -311,17 +311,17 @@
     <span class="layui-badge-rim layui-bg-green" title="隐含波动率">IV:{{= d.callObj.realtimeData.impliedVolatility }}</span>
     {{# } }}
 </script>
+<!-- commonInfo 中的内容为laytpl模板 laytpl是Layui的一款轻量JavaScript模板引擎 -->
 <script id="commonInfo" type="text/html">
-    {{#
-    var lastDone = Number(d.stockIndicator.securityQuote.lastDone);
-    var weekMin = (lastDone-Number(d.stockIndicator.weekPriceRange)).toFixed(3);
-    var weekMax = (lastDone+Number(d.stockIndicator.weekPriceRange)).toFixed(3);
-    var monthMin = (lastDone-Number(d.stockIndicator.monthPriceRange)).toFixed(3);
-    var monthMax = (lastDone+Number(d.stockIndicator.monthPriceRange)).toFixed(3);
-    }}
     <span class="layui-badge layui-bg-orange">
         <b class="layui-font-16">
             <a href="javascript:;" onclick="showChat()"><i class="layui-icon layui-icon-link"></i>AI助手</a>
+        </b>
+    </span>
+    -
+    <span class="layui-badge layui-bg-orange">
+        <b>
+            交易状态: {{= d.tradeLevel == 1 ? '正常' : '不推荐' }}
         </b>
     </span>
     -
@@ -332,16 +332,10 @@
     -
     <span class="layui-badge layui-bg-blue">到期日:<b class="layui-font-16">{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})</b></span>
     -
-    <span class="layui-badge layui-bg-blue">周价格波动:<b class="layui-font-16">{{= d.stockIndicator.weekPriceRange}}</b></span>({{= weekMin}} - {{= weekMax}})
+    <span class="layui-badge layui-bg-blue">周价格波动:<b class="layui-font-16">{{= d.stockIndicator.weekPriceRange}}</b></span>
     -
-    <span class="layui-badge layui-bg-blue">月价格波动:<b class="layui-font-16">{{= d.stockIndicator.monthPriceRange}}</b></span>({{= monthMin}} - {{= monthMax}})
+    <span class="layui-badge layui-bg-blue">月价格波动:<b class="layui-font-16">{{= d.stockIndicator.monthPriceRange}}</b></span>
     <br/>
-    <span class="layui-badge layui-bg-orange">
-        <b class="layui-font-16">
-            交易级别: {{= d.tradeLevel }}
-        </b>
-        (1:正常 0:不推荐)
-    </span>
     <span class="layui-badge layui-bg-orange">
         <b class="layui-font-16">
             VIX: {{= d.vixIndicator&&d.vixIndicator.currentVix?d.vixIndicator.currentVix.value:0 }}
@@ -357,8 +351,29 @@
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('MACD(Week)',{{= JSON.stringify(d.stockIndicator.indicatorMap.macd) }},'bar')"
-               title="MACD">
+            <a href="javascript:;" onclick="showChart('MACD指标(Week)', {
+                'MACD(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.macd) }},
+                'DIF(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.macd_dif) }},
+                'DEA(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.macd_dea) }}
+            }, 'line', {
+                seriesConfig: {
+                    'MACD(Week)': {
+                        type: 'bar',
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)'
+                    },
+                    'DIF(Week)': {
+                        type: 'line',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)'
+                    },
+                    'DEA(Week)': {
+                        type: 'line',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)'
+                    }
+                }
+            })" title="MACD指标">
                 <i class="layui-icon layui-icon-link"></i>MACD: {{= d.stockIndicator.indicatorMap.macd?d.stockIndicator.indicatorMap.macd[0].value:0 }}
             </a>
         </b>
@@ -368,7 +383,18 @@
             <a href="javascript:;" onclick="showChart('EMA(Week)', {
                 'EMA5(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.ema5) }},
                 'EMA50(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.ema50) }}
-            }, 'line')" title="EMA(5 50)">
+            }, 'line', {
+                seriesConfig: {
+                    'EMA5(Week)': {
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)'
+                    },
+                    'EMA50(Week)': {
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)'
+                    }
+                }
+            })" title="EMA(5 50)">
                 <i class="layui-icon layui-icon-link"></i>EMA: {{= d.stockIndicator.indicatorMap.ema5?d.stockIndicator.indicatorMap.ema5[0].value:0 }}
                 {{= d.stockIndicator.indicatorMap.ema50?d.stockIndicator.indicatorMap.ema50[0].value:0 }}
             </a>
@@ -380,7 +406,22 @@
                 'BOLL下轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_lower) }},
                 'BOLL中轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_middle) }},
                 'BOLL上轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_upper) }}
-            }, 'line')" title="BOLL(下轨 中轨 上轨)">
+            }, 'line', {
+                seriesConfig: {
+                    'BOLL下轨(Week)': {
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)'
+                    },
+                    'BOLL中轨(Week)': {
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)'
+                    },
+                    'BOLL上轨(Week)': {
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)'
+                    }
+                }
+            })" title="BOLL(下轨 中轨 上轨)">
                 <i class="layui-icon layui-icon-link"></i>BOLL:
                 {{= d.stockIndicator.indicatorMap.boll_lower?d.stockIndicator.indicatorMap.boll_lower[0].value:0 }}
                 {{= d.stockIndicator.indicatorMap.boll_middle?d.stockIndicator.indicatorMap.boll_middle[0].value:0 }}

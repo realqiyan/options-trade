@@ -8,6 +8,54 @@
     <title>Options Trade Tools</title>
     <link rel="icon" href="data:image/ico;base64,aWNv">
     <link rel="stylesheet" href="layui/css/layui.css">
+    <style>
+        .income-card {
+            border-radius: 4px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .income-header {
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-bottom: 1px solid #eee;
+        }
+        .income-body {
+            padding: 15px;
+        }
+        .income-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1E9FFF;
+        }
+        .income-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .income-item {
+            margin-bottom: 10px;
+        }
+        .strategy-item {
+            border-left: 3px solid #1E9FFF;
+            padding-left: 10px;
+            margin-bottom: 10px;
+        }
+        .chart-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .layui-badge {
+            margin-left: 5px;
+        }
+        .positive-value {
+            color: #5FB878;
+        }
+        .negative-value {
+            color: #FF5722;
+        }
+    </style>
 </head>
 <body>
 <div class="layui-layout layui-layout-admin">
@@ -46,72 +94,120 @@
                     <div class="layui-input-inline">
                         <input type="text" id="totp" name="totp" placeholder="请输入OTP验证码" autocomplete="off" class="layui-input">
                     </div>
+                    <button type="button" class="layui-btn" id="refreshBtn">刷新数据</button>
                 </div>
             </div>
         </div>
 
-
-
         <div class="layui-card layui-panel">
             <div class="layui-card-body" id="result" lay-filter="result">
-                loading...
+                <div class="layui-progress layui-progress-big" lay-showpercent="true" lay-filter="loading">
+                    <div class="layui-progress-bar" lay-percent="0%"></div>
+                </div>
+                <div class="layui-text" style="text-align: center; padding: 20px;">
+                    正在加载收益数据，请稍候...
+                </div>
             </div>
         </div>
     </div>
 
 </div>
 <script id="summary" type="text/html">
-    <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
-        <h3 class="layui-bg-gray">策略总收益: ${{ d.allOptionsIncome }}</h3>
-        <ul>
-            <li>总已到账收入:<span class="layui-badge layui-bg-blue">${{ d.allOptionsIncome }}</span> （已扣除手续费<span class="layui-badge layui-bg-blue">${{ d.totalFee }}</span>）</li>
-            <li>总未到期收入:<span class="layui-badge layui-bg-blue">${{ d.unrealizedOptionsIncome }}</span></li>
-            <li>账户总规模:<span class="layui-badge layui-bg-green">${{ d.accountSize }}</span></li>
-            <li>当前投资预占用:<span class="layui-badge layui-bg-orange">${{ d.totalInvestment }}</span>
-                <ul style="margin-left: 20px;">
-                    <li>PUT订单保证金占用:<span class="layui-badge layui-bg-orange">${{ d.putMarginOccupied }}</span> (保证金比例:{{ d.marginRatio * 100 }}%)</li>
-                    <li>持有正股成本:<span class="layui-badge layui-bg-orange">${{ d.totalStockCost }}</span></li>
-                </ul>
-            </li>
-            <li>可用资金:<span class="layui-badge layui-bg-green">${{ d.availableFunds }}</span></li>
-        </ul>
-    </blockquote>
-
-    <div class="layui-collapse">
-    {{#  layui.each(d.strategySummaries, function(index, item){ }}
-        <div class="layui-colla-item">
-            <div class="layui-colla-title">
-                {{ item.strategy.strategyName }} 收益:<span class="layui-badge layui-bg-blue">${{ item.allOptionsIncome }}</span>（当前策略:{{ item.strategy.strategyCode }}）
-            </div>
-            <div class="layui-colla-content">
-                <ul>
-                    <li>策略ID:{{ item.strategy.strategyId }}</span></li>
-                    <li>期权已到账收入:${{ item.allOptionsIncome }} (已扣除手续费${{ item.totalFee }})</li>
-                    <li>期权未到期收入:${{ item.unrealizedOptionsIncome }}</li>
-                    <li>策略持有股票:{{ item.holdStockNum }}（当前股价:${{ item.currentStockPrice }})</li>
-                    <li>策略股票花费:${{ item.totalStockCost }}（平均成本:${{ item.averageStockCost }}）</li>
-                    <li>策略PUT保证金占用:${{ item.putMarginOccupied }}</li>
-                </ul>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="income-card">
+                <div class="income-header">
+                    <h3>总已到账收入</h3>
+                </div>
+                <div class="income-body">
+                    <div class="income-value">${{ d.allOptionsIncome }}</div>
+                    <div class="income-item">
+                        <span class="income-label">已扣除手续费:</span>
+                        <span class="layui-badge layui-bg-orange">${{ d.totalFee }}</span>
+                    </div>
+                </div>
             </div>
         </div>
-    {{#  }); }}
+        <div class="layui-col-md4">
+            <div class="income-card">
+                <div class="income-header">
+                    <h3>总未到期收入</h3>
+                </div>
+                <div class="income-body">
+                    <div class="income-value">${{ d.unrealizedOptionsIncome }}</div>
+                    <div class="income-item">
+                        <span class="income-label">未平仓订单:</span>
+                        <span class="layui-badge">{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="income-card">
+                <div class="income-header">
+                    <h3>策略总收益</h3>
+                </div>
+                <div class="income-body">
+                    <div class="income-value">${{ d.allOptionsIncome }}</div>
+                    <div class="income-item">
+                        <span class="income-label">策略数量:</span>
+                        <span class="layui-badge layui-bg-blue">{{= d.strategySummaries.length}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="layui-collapse">
-        <div class="layui-colla-item">
-            <div class="layui-colla-title">
-                月度收益汇总（<span class="layui-badge">统计近{{= Object.keys(d.monthlyIncome).length }}个月数据</span>）
-            </div>
-            <div class="layui-colla-content">
-                <canvas id="monthlyIncomeChart" height="300" width="1180"></canvas>
+
+    <div class="layui-card income-card" style="margin-top: 20px;">
+        <div class="layui-card-header">策略收益明细</div>
+        <div class="layui-card-body">
+            <div class="layui-collapse">
+            {{#  layui.each(d.strategySummaries, function(index, item){ }}
+                <div class="layui-colla-item">
+                    <div class="layui-colla-title">
+                        <span style="font-weight: bold;">{{ item.strategy.strategyName }}</span>
+                        <span class="layui-badge layui-bg-blue" style="margin-left: 10px;">${{ item.allOptionsIncome }}</span>
+                        <span style="margin-left: 10px; color: #666;">策略代码: {{ item.strategy.strategyCode }}</span>
+                    </div>
+                    <div class="layui-colla-content">
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md6">
+                                <div class="strategy-item">
+                                    <div><span style="font-weight: bold;">策略ID:</span> {{ item.strategy.strategyId }}</div>
+                                    <div><span style="font-weight: bold;">期权已到账收入:</span> ${{ item.allOptionsIncome }} <span style="color: #FF5722;">(已扣除手续费${{ item.totalFee }})</span></div>
+                                    <div><span style="font-weight: bold;">期权未到期收入:</span> ${{ item.unrealizedOptionsIncome }}</div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="strategy-item">
+                                    <div><span style="font-weight: bold;">策略持有股票:</span> {{ item.holdStockNum }} 股</div>
+                                    <div><span style="font-weight: bold;">当前股价:</span> ${{ item.currentStockPrice }}</div>
+                                    <div><span style="font-weight: bold;">策略股票花费:</span> ${{ item.totalStockCost }} <span style="color: #1E9FFF;">(平均成本: ${{ item.averageStockCost }})</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {{#  }); }}
             </div>
         </div>
-        <div class="layui-colla-item">
-            <div class="layui-colla-title">
-                策略未平仓期权订单 （<span class="layui-badge">未平仓订单:{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span>）
+    </div>
+
+    <div class="layui-row layui-col-space15" style="margin-top: 20px;">
+        <div class="layui-col-md12">
+            <div class="layui-card income-card">
+                <div class="layui-card-header">月度收益趋势 <span class="layui-badge">统计近{{= Object.keys(d.monthlyIncome).length }}个月数据</span></div>
+                <div class="layui-card-body">
+                    <canvas id="monthlyIncomeChart" height="300" width="100%"></canvas>
+                </div>
             </div>
-            <div class="layui-colla-content">
-                <div id="orderTable"></div>
-            </div>
+        </div>
+    </div>
+
+    <div class="layui-card income-card" style="margin-top: 20px;">
+        <div class="layui-card-header">未平仓期权订单 <span class="layui-badge">{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span></div>
+        <div class="layui-card-body">
+            <div id="orderTable"></div>
         </div>
     </div>
 </script>
