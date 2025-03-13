@@ -17,7 +17,10 @@ public enum AccountExt {
     AI_API_MODEL("ai_api_model", "AI模型名称"),
     AI_API_KEY("ai_api_key", "AI接口Key"),
     AI_API_TEMPERATURE("ai_api_temperature", "AI温度参数"),
-    AI_SYSTEM_PROMPT("ai_system_prompt", "AI系统提示词");
+    AI_SYSTEM_PROMPT("ai_system_prompt", "AI系统提示词"),
+    
+    ACCOUNT_SIZE("account_size", "账户资金规模"),
+    MARGIN_RATIO("margin_ratio", "保证金比例");
     
     private final String key;
     private final String desc;

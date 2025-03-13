@@ -1,6 +1,7 @@
 package me.dingtou.options.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
@@ -117,8 +118,8 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
         // 获取账户信息
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        ownerSummary.setAccountSize(account.getAccountSize());
-        ownerSummary.setMarginRatio(account.getMarginRatio());
+        ownerSummary.setAccountSize(new BigDecimal(account.getExtValue(AccountExt.ACCOUNT_SIZE)));
+        ownerSummary.setMarginRatio(new BigDecimal(account.getExtValue(AccountExt.MARGIN_RATIO)));
 
         // 计算PUT订单保证金占用和持有股票总成本
         BigDecimal putMarginOccupied = BigDecimal.ZERO;
@@ -131,7 +132,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         ownerSummary.setTotalStockCost(totalStockCost);
 
         // 计算可用资金
-        ownerSummary.setAvailableFunds(account.getAccountSize().subtract(putMarginOccupied).subtract(totalStockCost));
+        ownerSummary.setAvailableFunds(new BigDecimal(account.getExtValue(AccountExt.ACCOUNT_SIZE)).subtract(putMarginOccupied).subtract(totalStockCost));
         ownerSummary.setTotalInvestment(putMarginOccupied.add(totalStockCost));
         return ownerSummary;
     }
@@ -223,6 +224,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         // 计算PUT订单保证金占用
         BigDecimal putMarginOccupied = allOptionsOrders.stream()
                 .filter(order -> Boolean.FALSE.equals(Boolean.valueOf(order.getExt().get(OrderExt.IS_CLOSE.getCode()))))
+                .filter(order->TradeSide.of(order.getSide()).equals(TradeSide.SELL)||TradeSide.of(order.getSide()).equals(TradeSide.SELL_SHORT))
                 .map(order -> {
                     String underlyingCode = order.getUnderlyingCode();
                     String s = order.getCode().split(underlyingCode)[1];
@@ -232,10 +234,9 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
                         String[] split = s.split("P");
                         BigDecimal strikePrice = new BigDecimal(Long.parseLong(split[1]) / 1000);
                         result = strikePrice.multiply(lotSize).multiply(BigDecimal.valueOf(order.getQuantity()))
-                                .multiply(account.getMarginRatio());
+                                .multiply(new BigDecimal(account.getExtValue(AccountExt.MARGIN_RATIO)));
                     }
                     return result;
-
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         summary.setPutMarginOccupied(putMarginOccupied);

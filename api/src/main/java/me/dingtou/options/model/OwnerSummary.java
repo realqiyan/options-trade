@@ -69,7 +69,7 @@ public class OwnerSummary {
     private BigDecimal availableFunds;
 
     /**
-     * 当前投资宇瞻用
+     * 当前投资占用
      */
     private BigDecimal totalInvestment;
 }
