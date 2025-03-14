@@ -135,7 +135,7 @@ public class OptionsManager {
 
             SupportPriceIndicator supportPriceIndicator = new SupportPriceIndicator();
             supportPriceIndicator.setLowestSupportPrice(calculateLowSupport(barSeries));
-            supportPriceIndicator.setSmaSupportPrice(calculateSMaSupport(barSeries));
+            supportPriceIndicator.setSmaSupportPrice(calculateSmaSupport(barSeries));
             supportPriceIndicator.setBollingerLowerSupportPrice(calBollSupport(bollingerLower));
             stockIndicator.setSupportPriceIndicator(supportPriceIndicator);
         }
@@ -149,15 +149,15 @@ public class OptionsManager {
 
     private BigDecimal calBollSupport(BollingerBandsLowerIndicator bollingerLower) {
         Num bollingerSupport = bollingerLower.getValue(bollingerLower.getBarSeries().getEndIndex());
-        return bollingerSupport.bigDecimalValue().setScale(2, RoundingMode.HALF_UP);
+        return NumberUtils.scale(bollingerSupport.bigDecimalValue());
     }
 
 
-    private BigDecimal calculateSMaSupport(BarSeries barSeries) {
+    private BigDecimal calculateSmaSupport(BarSeries barSeries) {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
         SMAIndicator sma = new SMAIndicator(closePrice, 20);
         Num dynamicSupport = sma.getValue(barSeries.getEndIndex());
-        return dynamicSupport.bigDecimalValue().setScale(2, RoundingMode.HALF_UP);
+        return NumberUtils.scale(dynamicSupport.bigDecimalValue());
     }
 
     private BigDecimal calculateLowSupport(BarSeries barSeries) {
@@ -166,7 +166,7 @@ public class OptionsManager {
         LowestValueIndicator lowest = new LowestValueIndicator(lowPrice, barSeries.getBarCount());
         // 获取最新支撑位
         Num supportLevel = lowest.getValue(barSeries.getEndIndex());
-        return supportLevel.bigDecimalValue().setScale(2, RoundingMode.HALF_UP);
+        return NumberUtils.scale(supportLevel.bigDecimalValue());
     }
 
 
