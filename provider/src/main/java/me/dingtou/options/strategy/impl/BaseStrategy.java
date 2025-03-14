@@ -21,11 +21,11 @@ public abstract class BaseStrategy implements OptionsStrategy {
     /**
      * call delta
      */
-    private static final BigDecimal CALL_DELTA = BigDecimal.valueOf(0.3599);
+    private static final BigDecimal CALL_DELTA = BigDecimal.valueOf(0.4);
     /**
      * sell delta
      */
-    private static final BigDecimal SELL_DELTA = BigDecimal.valueOf(0.3599);
+    private static final BigDecimal SELL_DELTA = BigDecimal.valueOf(0.4);
 
 
     /**
