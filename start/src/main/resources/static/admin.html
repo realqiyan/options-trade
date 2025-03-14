@@ -288,6 +288,22 @@
                     <input type="text" name="otpAuth" placeholder="请输入OTP认证信息" autocomplete="off" class="layui-input">
                 </div>
             </div>
+            <!-- 长桥平台配置 -->
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>资金规模配置</legend>
+            </fieldset>
+            <div class="layui-form-item">
+                <label class="layui-form-label">资金规模</label>
+                <div class="layui-input-block">
+                    <input type="number" id="account_size" required lay-verify="required" placeholder="请输入资金规模（元）" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">保证金比例</label>
+                <div class="layui-input-block">
+                    <input type="number" id="margin_ratio" required lay-verify="required" placeholder="请输入保证金比例（1=100%）" autocomplete="off" class="layui-input" value="1">
+                </div>
+            </div>
             
             <!-- 长桥平台配置 -->
             <fieldset class="layui-elem-field layui-field-title">

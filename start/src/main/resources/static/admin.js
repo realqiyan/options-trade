@@ -671,6 +671,10 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     
                     // 处理ext字段
                     if (data.ext) {
+                        //设置资金规模
+                        $('#account_size').val(data.ext.account_size || '');
+                        $('#margin_ratio').val(data.ext.margin_ratio || '');
+
                         // 设置长桥配置
                         $('#longport_app_key').val(data.ext.longport_app_key || '');
                         $('#longport_app_secret').val(data.ext.longport_app_secret || '');
@@ -691,7 +695,11 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     form.on('submit(accountSubmit)', function (data) {
                         // 处理ext字段
                         const ext = {};
-                        
+
+                        // 处理资金规模
+                        ext.account_size = $('#account_size').val();
+                        ext.margin_ratio = $('#margin_ratio').val();
+
                         // 处理长桥配置
                         ext.longport_app_key = $('#longport_app_key').val();
                         ext.longport_app_secret = $('#longport_app_secret').val();

@@ -45,6 +45,10 @@ public class StockIndicator {
      */
     private List<Candlestick> weekCandlesticks;
 
+    /**
+     * 支撑位
+     */
+    private SupportPriceIndicator supportPriceIndicator;
 
     /**
      * 趋势指标
@@ -69,5 +73,6 @@ public class StockIndicator {
     public void removeIndicator(String key) {
         this.indicatorMap.remove(key);
     }
+
 
 }

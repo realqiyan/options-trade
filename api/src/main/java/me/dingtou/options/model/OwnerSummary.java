@@ -42,4 +42,34 @@ public class OwnerSummary {
      * 月度收益
      */
     private TreeMap<String, BigDecimal> monthlyIncome;
+
+    /**
+     * 账户总规模
+     */
+    private BigDecimal accountSize;
+
+    /**
+     * 保证金比例
+     */
+    private BigDecimal marginRatio;
+
+    /**
+     * PUT订单保证金占用
+     */
+    private BigDecimal putMarginOccupied;
+
+    /**
+     * 持有股票总成本
+     */
+    private BigDecimal totalStockCost;
+
+    /**
+     * 可用资金
+     */
+    private BigDecimal availableFunds;
+
+    /**
+     * 当前投资占用
+     */
+    private BigDecimal totalInvestment;
 }

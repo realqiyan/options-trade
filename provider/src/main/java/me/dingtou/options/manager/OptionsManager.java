@@ -22,11 +22,14 @@ import org.ta4j.core.indicators.bollinger.BollingerBandsLowerIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsMiddleIndicator;
 import org.ta4j.core.indicators.bollinger.BollingerBandsUpperIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
+import org.ta4j.core.indicators.helpers.LowPriceIndicator;
+import org.ta4j.core.indicators.helpers.LowestValueIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -129,13 +132,43 @@ public class OptionsManager {
             stockIndicator.addIndicator(IndicatorKey.BOLL_UPPER.getKey(), getValueList(bollingerUpper, 20));
             stockIndicator.addIndicator(IndicatorKey.BOLL_LOWER.getKey(), getValueList(bollingerLower, 20));
 
+
+            SupportPriceIndicator supportPriceIndicator = new SupportPriceIndicator();
+            supportPriceIndicator.setLowestSupportPrice(calculateLowSupport(barSeries));
+            supportPriceIndicator.setSmaSupportPrice(calculateSMaSupport(barSeries));
+            supportPriceIndicator.setBollingerLowerSupportPrice(calBollSupport(bollingerLower));
+            stockIndicator.setSupportPriceIndicator(supportPriceIndicator);
         }
         optionsChain.setStockIndicator(stockIndicator);
         VixIndicator vixIndicator = vixQueryGateway.queryCurrentVix();
         optionsChain.setVixIndicator(vixIndicator);
 
+
         return optionsChain;
     }
+
+    private BigDecimal calBollSupport(BollingerBandsLowerIndicator bollingerLower) {
+        Num bollingerSupport = bollingerLower.getValue(bollingerLower.getBarSeries().getEndIndex());
+        return bollingerSupport.bigDecimalValue().setScale(2, RoundingMode.HALF_UP);
+    }
+
+
+    private BigDecimal calculateSMaSupport(BarSeries barSeries) {
+        ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
+        SMAIndicator sma = new SMAIndicator(closePrice, 20);
+        Num dynamicSupport = sma.getValue(barSeries.getEndIndex());
+        return dynamicSupport.bigDecimalValue().setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal calculateLowSupport(BarSeries barSeries) {
+        // 创建低价指标
+        LowPriceIndicator lowPrice = new LowPriceIndicator(barSeries);
+        LowestValueIndicator lowest = new LowestValueIndicator(lowPrice, barSeries.getBarCount());
+        // 获取最新支撑位
+        Num supportLevel = lowest.getValue(barSeries.getEndIndex());
+        return supportLevel.bigDecimalValue().setScale(2, RoundingMode.HALF_UP);
+    }
+
 
     private List<StockIndicatorItem> getValueList(CachedIndicator<Num> indicator, int offset) {
         int endIndex = indicator.getBarSeries().getEndIndex();
@@ -157,13 +190,7 @@ public class OptionsManager {
         for (Candlestick candlestick : candlesticks.getCandlesticks()) {
             // candlestick.getTimestamp()转ZonedDateTime
             Instant instant = Instant.ofEpochSecond(candlestick.getTimestamp());
-            series.addBar(instant.atZone(ZoneId.systemDefault()),
-                    candlestick.getOpen(),
-                    candlestick.getHigh(),
-                    candlestick.getLow(),
-                    candlestick.getClose(),
-                    candlestick.getVolume(),
-                    candlestick.getTurnover());
+            series.addBar(instant.atZone(ZoneId.systemDefault()), candlestick.getOpen(), candlestick.getHigh(), candlestick.getLow(), candlestick.getClose(), candlestick.getVolume(), candlestick.getTurnover());
         }
         return series;
     }
@@ -222,5 +249,6 @@ public class OptionsManager {
         summary.setCandlesticks(summaryCandlesticks);
         return summary;
     }
+
 
 }

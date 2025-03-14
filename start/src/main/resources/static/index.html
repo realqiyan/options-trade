@@ -190,6 +190,7 @@
             background: #f8f8f8;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     </head>
 <body>
 <div class="layui-layout layui-layout-admin">
@@ -402,6 +403,27 @@
                 {{= d.stockIndicator.indicatorMap.boll_upper?d.stockIndicator.indicatorMap.boll_upper[0].value:0 }}
             </a>
         </b>
+    </span>
+    <br/>
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+             最低价支撑位: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.lowestSupportPrice?d.stockIndicator.supportPriceIndicator.lowestSupportPrice:0 }}
+        </b>
+    </span>
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+            SMA支撑位: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.smaSupportPrice?d.stockIndicator.supportPriceIndicator.smaSupportPrice:0 }}
+        </b>
+    </span>
+    <span class="layui-badge layui-bg-orange">
+        <b class="layui-font-16">
+            Bolling下轨支撑位: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.bollingerLowerSupportPrice?d.stockIndicator.supportPriceIndicator.bollingerLowerSupportPrice:0 }}
+        </b>
+    </span>
+    <span class="layui-badge layui-bg-blue">
+        <a href="javascript:void(0);" onclick="window.open('https://stockunlock.com/stockDetails/{{=d.stockIndicator.securityQuote.security.code}}/general')" style="color: #fff;">
+            <i class="layui-icon layui-icon-chart"></i> 查看Insights
+        </a>
     </span>
 </script>
 <script id="currentStrategy" type="text/html">
