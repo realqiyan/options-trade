@@ -1,6 +1,7 @@
 package me.dingtou.options.util;
 
 import me.dingtou.options.constant.AccountExt;
+import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.model.OwnerAccount;
 
 /**
@@ -116,5 +117,26 @@ public class AccountExtUtils {
         }
         String systemPrompt = account.getExtValue(AccountExt.AI_SYSTEM_PROMPT);
         return systemPrompt != null ? systemPrompt : "你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。";
+    }
+    
+    /**
+     * 获取K线周期
+     *
+     * @param account 账户对象
+     * @return K线周期，默认为周K线
+     */
+    public static CandlestickPeriod getKlinePeriod(OwnerAccount account) {
+        if (account == null) {
+            return CandlestickPeriod.WEEK;
+        }
+        String period = account.getExtValue(AccountExt.KLINE_PERIOD);
+        if (period == null || period.isEmpty()) {
+            return CandlestickPeriod.WEEK;
+        }
+        try {
+            return CandlestickPeriod.valueOf(period);
+        } catch (IllegalArgumentException e) {
+            return CandlestickPeriod.WEEK;
+        }
     }
 } 

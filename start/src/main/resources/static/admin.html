@@ -288,6 +288,21 @@
                     <input type="text" name="otpAuth" placeholder="请输入OTP认证信息" autocomplete="off" class="layui-input">
                 </div>
             </div>
+
+            <!-- 分析配置 -->
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>分析配置</legend>
+            </fieldset>
+            <div class="layui-form-item">
+                <label class="layui-form-label">K线周期</label>
+                <div class="layui-input-block">
+                    <select id="kline_period" name="kline_period" lay-filter="kline_period">
+                        <option value="WEEK">周K线</option>
+                        <option value="DAY">日K线</option>
+                    </select>
+                </div>
+            </div>
+            
             <!-- 资金规模配置 -->
             <fieldset class="layui-elem-field layui-field-title">
                 <legend>资金规模配置</legend>

@@ -279,7 +279,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         OptionsChain optionsChain = optionsManager.queryOptionsChain(ownerAccount, security, optionsStrikeDate);
 
         // 计算策略数据
-        calculateStrategyData(optionsStrikeDate, optionsChain, strategy);
+        calculateStrategyData(ownerAccount, optionsStrikeDate, optionsChain, strategy);
 
         return optionsChain;
     }
@@ -292,11 +292,14 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     /**
      * 计算策略数据
      *
+     * @param account           账户
      * @param optionsStrikeDate 期权到期日
      * @param optionsChain      期权链
      * @param strategy          策略(可选)
      */
-    private void calculateStrategyData(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
+    private void calculateStrategyData(OwnerAccount account,
+            OptionsStrikeDate optionsStrikeDate,
+            OptionsChain optionsChain,
             OwnerStrategy strategy) {
         if (null == allOptionsStrategy || allOptionsStrategy.isEmpty()) {
             return;
@@ -307,7 +310,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
                 if (null != strategy) {
                     strategySummary = queryStrategySummary(strategy.getOwner(), strategy.getStrategyId());
                 }
-                optionsStrategy.calculate(optionsStrikeDate, optionsChain, strategySummary);
+                optionsStrategy.calculate(account, optionsStrikeDate, optionsChain, strategySummary);
                 return;
             }
         }

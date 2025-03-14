@@ -686,6 +686,9 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         $('#ai_api_key').val(data.ext.ai_api_key || '');
                         $('#ai_api_temperature').val(data.ext.ai_api_temperature || '1.0');
                         $('#ai_system_prompt').val(data.ext.ai_system_prompt || '你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。');
+                        
+                        // 设置分析配置
+                        $('#kline_period').val(data.ext.kline_period || 'WEEK');
                     }
                     
                     // 渲染表单
@@ -695,7 +698,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     form.on('submit(accountSubmit)', function (data) {
                         // 处理ext字段
                         const ext = {};
-
+                        
                         // 处理资金规模
                         ext.account_size = $('#account_size').val();
                         ext.margin_ratio = $('#margin_ratio').val();
@@ -712,8 +715,14 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         ext.ai_api_temperature = $('#ai_api_temperature').val();
                         ext.ai_system_prompt = $('#ai_system_prompt').val();
                         
+                        // 处理分析配置
+                        ext.kline_period = $('#kline_period').val();
+                        
                         // 设置ext字段
                         data.field.ext = ext;
+                        
+                        // 删除表单中的kline_period字段，因为它已经被放入ext对象中
+                        delete data.field.kline_period;
                         
                         // 确保ext字段是对象而不是字符串
                         const formData = {...data.field};
@@ -793,8 +802,14 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     ext.ai_api_temperature = $('#ai_api_temperature').val();
                     ext.ai_system_prompt = $('#ai_system_prompt').val();
                     
+                    // 处理分析配置
+                    ext.kline_period = $('#kline_period').val();
+                    
                     // 设置ext字段
                     data.field.ext = ext;
+                    
+                    // 删除表单中的kline_period字段，因为它已经被放入ext对象中
+                    delete data.field.kline_period;
                     
                     // 确保ext字段是对象而不是字符串
                     const formData = {...data.field};

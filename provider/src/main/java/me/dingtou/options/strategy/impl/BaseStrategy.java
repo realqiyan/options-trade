@@ -35,11 +35,11 @@ public abstract class BaseStrategy implements OptionsStrategy {
      * @param optionsChain      期权链
      * @param strategySummary   策略信息（可选）
      */
-    abstract void process(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary);
+    abstract void process(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary);
 
 
     @Override
-    final public void calculate(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary) {
+    final public void calculate(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary) {
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
         SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
         BigDecimal securityPrice = securityQuote.getLastDone();
@@ -122,7 +122,7 @@ public abstract class BaseStrategy implements OptionsStrategy {
                 //}
             }
         });
-        process(optionsStrikeDate, optionsChain, strategySummary);
+        process(account, optionsStrikeDate, optionsChain, strategySummary);
     }
 
     /**

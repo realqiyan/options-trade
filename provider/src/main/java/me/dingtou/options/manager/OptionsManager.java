@@ -8,6 +8,7 @@ import me.dingtou.options.gateway.OptionsChainGateway;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.gateway.VixQueryGateway;
 import me.dingtou.options.model.*;
+import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.NumberUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,23 +68,25 @@ public class OptionsManager {
         // 期权标的价格
         SecurityQuote securityQuote = securityQuoteGateway.quote(ownerAccount, security);
 
-
         // 期权链
         OptionsChain optionsChain = optionsChainGateway.queryOptionsChain(security, optionsStrikeDate.getStrikeTime(), securityQuote.getLastDone());
-
 
         // 策略分析提供基础指标数据
         StockIndicator stockIndicator = new StockIndicator();
         stockIndicator.setSecurityQuote(securityQuote);
-        // 日K线
-        // SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(security, CandlestickPeriod.DAY, 60, CandlestickAdjustType.FORWARD_ADJUST);
-        // 周K线
-        SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(ownerAccount, security, CandlestickPeriod.WEEK, 70, CandlestickAdjustType.FORWARD_ADJUST);
+        
+        // 根据账户配置获取K线周期
+        CandlestickPeriod klinePeriod = AccountExtUtils.getKlinePeriod(ownerAccount);
+        
+        // 获取K线数据
+        SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(ownerAccount, security, klinePeriod, 70, CandlestickAdjustType.FORWARD_ADJUST);
         if (null != candlesticks && !CollectionUtils.isEmpty(candlesticks.getCandlesticks())) {
-            stockIndicator.setWeekCandlesticks(candlesticks.getCandlesticks());
-
-            SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(candlesticks, 2);
-            SecurityCandlestick monthCandlesticks = summarySecurityCandlestick(candlesticks, 5);
+            stockIndicator.setCandlesticks(candlesticks.getCandlesticks());
+            stockIndicator.setPeriod(klinePeriod);
+            int weekSize = CandlestickPeriod.WEEK.equals(klinePeriod) ? 2 : 5;
+            int monthSize = CandlestickPeriod.WEEK.equals(klinePeriod) ? 5 : 20;
+            SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(candlesticks, weekSize);
+            SecurityCandlestick monthCandlesticks = summarySecurityCandlestick(candlesticks, monthSize);
 
             if (null != weekCandlesticks && !CollectionUtils.isEmpty(weekCandlesticks.getCandlesticks())) {
                 Candlestick candlestick = weekCandlesticks.getCandlesticks().get(0);
