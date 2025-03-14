@@ -29,7 +29,6 @@ import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;

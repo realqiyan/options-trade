@@ -12,6 +12,8 @@ import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.*;
 import me.dingtou.options.service.OptionsQueryService;
 import me.dingtou.options.strategy.OptionsStrategy;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -115,23 +117,29 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
         // 获取账户信息
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        ownerSummary.setAccountSize(new BigDecimal(account.getExtValue(AccountExt.ACCOUNT_SIZE)));
-        ownerSummary.setMarginRatio(new BigDecimal(account.getExtValue(AccountExt.MARGIN_RATIO)));
+        String accountSizeConf = account.getExtValue(AccountExt.ACCOUNT_SIZE);
+        String marginRatioConf = account.getExtValue(AccountExt.MARGIN_RATIO);
 
-        // 计算PUT订单保证金占用和持有股票总成本
-        BigDecimal putMarginOccupied = BigDecimal.ZERO;
-        BigDecimal totalStockCost = BigDecimal.ZERO;
-        for (StrategySummary strategySummary : strategySummaries) {
-            putMarginOccupied = putMarginOccupied.add(strategySummary.getPutMarginOccupied());
-            totalStockCost = totalStockCost.add(strategySummary.getTotalStockCost());
+        if (StringUtils.isNotBlank(accountSizeConf) && StringUtils.isNotBlank(marginRatioConf)) {
+            BigDecimal accountSize = new BigDecimal(accountSizeConf);
+            BigDecimal marginRatio = new BigDecimal(marginRatioConf);
+            ownerSummary.setAccountSize(accountSize);
+            ownerSummary.setMarginRatio(marginRatio);
+
+            // 计算PUT订单保证金占用和持有股票总成本
+            BigDecimal putMarginOccupied = BigDecimal.ZERO;
+            BigDecimal totalStockCost = BigDecimal.ZERO;
+            for (StrategySummary strategySummary : strategySummaries) {
+                putMarginOccupied = putMarginOccupied.add(strategySummary.getPutMarginOccupied());
+                totalStockCost = totalStockCost.add(strategySummary.getTotalStockCost());
+            }
+            ownerSummary.setPutMarginOccupied(putMarginOccupied);
+            ownerSummary.setTotalStockCost(totalStockCost);
+
+            // 计算可用资金
+            ownerSummary.setAvailableFunds(accountSize.subtract(putMarginOccupied).subtract(totalStockCost));
+            ownerSummary.setTotalInvestment(putMarginOccupied.add(totalStockCost));
         }
-        ownerSummary.setPutMarginOccupied(putMarginOccupied);
-        ownerSummary.setTotalStockCost(totalStockCost);
-
-        // 计算可用资金
-        ownerSummary.setAvailableFunds(new BigDecimal(account.getExtValue(AccountExt.ACCOUNT_SIZE))
-                .subtract(putMarginOccupied).subtract(totalStockCost));
-        ownerSummary.setTotalInvestment(putMarginOccupied.add(totalStockCost));
         return ownerSummary;
     }
 
@@ -246,7 +254,8 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
                         if (isPut) {
                             String[] split = s.split("P");
                             BigDecimal strikePrice = new BigDecimal(Long.parseLong(split[1]) / 1000);
-                            result = strikePrice.multiply(lotSize).multiply(BigDecimal.valueOf(order.getQuantity()))
+                            result = strikePrice.multiply(lotSize)
+                                    .multiply(BigDecimal.valueOf(order.getQuantity()))
                                     .multiply(marginRatio);
                         }
                         return result;
