@@ -25,7 +25,7 @@ public class OwnerSecurity extends Security {
      * 创建时间
      */
     private Date createTime;
-    /**
+    /**·
      * 所有者的标识符，表示策略属于哪个用户或实体
      */
     private String owner;
@@ -33,4 +33,10 @@ public class OwnerSecurity extends Security {
      * 状态
      */
     private Integer status;
+
+    
+    /**
+     * 是否存在未到期的期权
+     */
+    private Boolean hasUnexpiredOptions;
 }

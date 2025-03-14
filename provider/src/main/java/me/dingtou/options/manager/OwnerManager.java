@@ -47,7 +47,44 @@ public class OwnerManager {
         Owner ownerObj = new Owner();
         ownerObj.setOwner(owner);
         ownerObj.setAccount(queryOwnerAccount(owner));
-        ownerObj.setSecurityList(queryOwnerSecurity(owner));
+        List<OwnerSecurity> queryOwnerSecurity = queryOwnerSecurity(owner);
+        ownerObj.setSecurityList(queryOwnerSecurity);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        LocalDate nyLocalDate = new Date().toInstant().atZone(ZoneId.of("America/New_York")).toLocalDate();
+        // 查询每个证券标的下的未行权期权
+        for (OwnerSecurity security : queryOwnerSecurity) {
+            // 查询该证券标的下的所有期权订单
+            List<OwnerOrder> orders = ownerOrderDAO.selectByOwner(owner).stream()
+                    .filter(order -> order.getUnderlyingCode().equals(security.getCode()) 
+                            && !order.getCode().equals(security.getCode())) // 排除股票订单
+                    .collect(Collectors.toList());
+           for (OwnerOrder order : orders) {
+                if (  null == order.getExt()) {
+                    order.setExt(new HashMap<>());
+                }
+                String strikeDateStr = simpleDateFormat.format(order.getStrikeTime());
+                LocalDate strikeDate = LocalDate.parse(strikeDateStr);
+                if (!OrderStatus.of(order.getStatus()).isValid()) {
+                    // 无效订单直接标记关闭
+                    order.getExt().put(OrderExt.IS_CLOSE.getCode(), Boolean.TRUE.toString());
+                } else {
+                    // 订单是不是已经过了行权日
+                    boolean isTimeout = strikeDate.isBefore(nyLocalDate) && !strikeDate.isEqual(nyLocalDate);
+                    // 订单是否已经平仓
+                    Boolean isClose = isTimeout;
+                    order.getExt().put(OrderExt.IS_CLOSE.getCode(), String.valueOf(isClose));
+                }
+           }
+            // 过滤出未行权的期权订单
+            List<OwnerOrder> unexercisedOrders = orders.stream()
+                .filter(order -> order.getExt() != null && 
+                                Boolean.FALSE.equals(Boolean.valueOf(order.getExt().get(OrderExt.IS_CLOSE.getCode()))) && OrderStatus.of(order.getStatus()).isValid() 
+                                && (order.getSide().equals(TradeSide.SELL.getCode()) || order.getSide().equals(TradeSide.SELL_SHORT.getCode())))
+
+                .collect(Collectors.toList());
+            // 将未行权期权信息设置到security对象中
+            security.setUnexercisedOrders(unexercisedOrders);
+        }
         ownerObj.setStrategyList(queryOwnerStrategy(owner));
         return ownerObj;
     }
@@ -171,8 +208,6 @@ public class OwnerManager {
             ownerOrder.getExt().put(OrderExt.CUR_DTE.getCode(), String.valueOf(daysToExpiration));
 
         }
-
-
     }
 
     private void calculateProfit(List<OwnerOrder> ownerOrders) {

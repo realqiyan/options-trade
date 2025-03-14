@@ -1,15 +1,20 @@
 package me.dingtou.options.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.dao.OwnerAccountDAO;
+import me.dingtou.options.dao.OwnerOrderDAO;
 import me.dingtou.options.dao.OwnerSecurityDAO;
 import me.dingtou.options.dao.OwnerStrategyDAO;
 import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.service.AdminService;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 /**
  * 管理服务实现类
@@ -39,12 +45,16 @@ public class AdminServiceImpl implements AdminService {
     @Autowired
     private OwnerAccountDAO ownerAccountDAO;
 
+    @Autowired
+    private OwnerOrderDAO ownerOrderDAO;
+
     @Override
     public List<OwnerSecurity> listSecurities(String owner) {
         LambdaQueryWrapper<OwnerSecurity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(StringUtils.isNotBlank(owner), OwnerSecurity::getOwner, owner);
         queryWrapper.orderByDesc(OwnerSecurity::getCreateTime);
-        return ownerSecurityDAO.selectList(queryWrapper);
+        List<OwnerSecurity> securities = ownerSecurityDAO.selectList(queryWrapper);
+        return securities;
     }
 
     @Override
