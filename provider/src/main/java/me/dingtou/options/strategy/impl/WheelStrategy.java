@@ -117,9 +117,9 @@ public class WheelStrategy extends BaseStrategy {
             prompt.append("，当前指派的股票价格：").append(finalUnderlyingOrder.getPrice());
         }
         if (isSellPutStage && finalSellPutAcceptableStrikePrice != null) {
-            prompt.append("，Sell Put可接受指派的最高行权价：").append(finalSellPutAcceptableStrikePrice)
-                    .append("，高于").append(finalSellPutAcceptableStrikePrice)
-                    .append("的Put如果风险可控，我也接受卖出，但是快被指派前需要Rolling");
+            prompt.append("，SellPut可接受最高指派价").append(finalSellPutAcceptableStrikePrice)
+                    .append("，行权价高于").append(finalSellPutAcceptableStrikePrice)
+                    .append("的Put如果风险可控也接受卖出，但是快被指派前需要Rolling");
         }
         prompt.append("，当前股票价格是").append(securityPrice)
                 .append(null != vixIndicator && null != vixIndicator.getCurrentVix()
