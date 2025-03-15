@@ -61,8 +61,3 @@ build/
 
 private.key
 trade.key
-
-# Privacy folder
-/start/src/main/resources/privacy/
-**/privacy/
-
