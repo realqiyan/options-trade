@@ -26,6 +26,10 @@ public enum IndicatorKey {
      */
     EMA5("ema5", "EMA5"),
     /**
+     * EMA20
+     */
+    EMA20("ema20", "EMA20"),
+    /**
      * EMA50
      */
     EMA50("ema50", "EMA50"),

@@ -120,6 +120,7 @@ public class IndicatorManager {
 
         // EMA
         stockIndicator.addIndicator(IndicatorKey.EMA5.getKey(), getValue(new EMAIndicator(closePrice, 5), 20));
+        stockIndicator.addIndicator(IndicatorKey.EMA20.getKey(), getValue(new EMAIndicator(closePrice, 20), 5));
         stockIndicator.addIndicator(IndicatorKey.EMA50.getKey(), getValue(new EMAIndicator(closePrice, 50), 0));
 
         // BOLL
