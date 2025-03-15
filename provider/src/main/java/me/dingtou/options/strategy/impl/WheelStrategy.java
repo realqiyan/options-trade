@@ -113,6 +113,7 @@ public class WheelStrategy extends BaseStrategy {
         prompt.append("我准备使用车轮策略（WheelStrategy）卖出").append(securityQuote.getSecurity().toString())
                 .append("距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天的")
                 .append(isSellPutStage ? "看跌期权（Cash-Secured Put）" : "看涨期权（Covered Call）");
+        prompt.append("，策略ID:").append(strategySummary.getStrategy().getStrategyId());
         if (isCoveredCallStage && null != finalUnderlyingOrder) {
             prompt.append("，当前指派的股票价格：").append(finalUnderlyingOrder.getPrice());
         }

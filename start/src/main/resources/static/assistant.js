@@ -185,6 +185,12 @@ layui.use(['layer', 'form', 'util'], function() {
             
             // 聚焦到输入框
             this.elements.chatInput.focus();
+            
+            // 确保任务管理器清除当前会话过滤
+            if (window.taskManager) {
+                window.taskManager.setCurrentSessionId(null);
+                window.taskManager.filterTasksBySession(null);
+            }
         }
         
         /**
@@ -346,6 +352,12 @@ layui.use(['layer', 'form', 'util'], function() {
                         
                         // 渲染聊天详情
                         this.renderChatDetail(result.data);
+                        
+                        // 通知任务管理器当前会话已变更，并过滤相关任务
+                        if (window.taskManager) {
+                            window.taskManager.setCurrentSessionId(sessionId);
+                            window.taskManager.filterTasksBySession(sessionId);
+                        }
                     } else {
                         this.currentSessionId = null;
                         layer.msg('加载聊天详情失败: ' + (result.message || '无法找到历史对话记录'));
@@ -356,6 +368,12 @@ layui.use(['layer', 'form', 'util'], function() {
                                 <p>无法找到历史对话记录</p>
                             </div>
                         `;
+                        
+                        // 通知任务管理器当前会话已清除
+                        if (window.taskManager) {
+                            window.taskManager.setCurrentSessionId(null);
+                            window.taskManager.filterTasksBySession(null);
+                        }
                     }
                 })
                 .catch(error => {
@@ -369,6 +387,12 @@ layui.use(['layer', 'form', 'util'], function() {
                             <p>加载失败，请重试</p>
                         </div>
                     `;
+                    
+                    // 通知任务管理器当前会话已清除
+                    if (window.taskManager) {
+                        window.taskManager.setCurrentSessionId(null);
+                        window.taskManager.filterTasksBySession(null);
+                    }
                 });
         }
         
@@ -419,6 +443,12 @@ layui.use(['layer', 'form', 'util'], function() {
             this.currentSessionId = null;
             this.elements.deleteBtn.style.display = 'none';
             this.elements.titleActions.style.display = 'none';
+            
+            // 通知任务管理器当前会话已清除
+            if (window.taskManager) {
+                window.taskManager.setCurrentSessionId(null);
+                window.taskManager.filterTasksBySession(null);
+            }
         }
         
         /**
@@ -557,6 +587,72 @@ layui.use(['layer', 'form', 'util'], function() {
         }
         
         /**
+         * 添加系统消息到聊天界面
+         */
+        addSystemMessage(content) {
+            if (!content || !this.currentSessionId) return;
+            
+            const message = {
+                id: new Date().getTime(),
+                role: 'system',
+                content: content,
+                time: new Date()
+            };
+            
+            const historyDiv = this.elements.chatHistory;
+            
+            // 创建系统消息元素
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'system-message';
+            messageDiv.style.padding = '8px 12px';
+            messageDiv.style.backgroundColor = '#f0f0f0';
+            messageDiv.style.borderRadius = '4px';
+            messageDiv.style.margin = '10px auto';
+            messageDiv.style.fontSize = '13px';
+            messageDiv.style.color = '#666';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.maxWidth = '80%';
+            
+            messageDiv.innerHTML = `
+                <i class="layui-icon layui-icon-notice"></i> ${content}
+            `;
+            
+            historyDiv.appendChild(messageDiv);
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+            
+            // 保存系统消息到服务器
+            this.saveSystemMessage(content);
+        }
+        
+        /**
+         * 保存系统消息到服务器
+         */
+        saveSystemMessage(content) {
+            if (!this.currentSessionId) return;
+            
+            const params = new URLSearchParams({
+                sessionId: this.currentSessionId,
+                content: content,
+                role: 'system'
+            });
+            
+            fetch('/ai/record/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: params
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('系统消息保存成功:', data);
+            })
+            .catch(error => {
+                console.error('保存系统消息失败:', error);
+            });
+        }
+        
+        /**
          * 发送消息
          */
         sendMessage() {
@@ -611,6 +707,11 @@ layui.use(['layer', 'form', 'util'], function() {
                 if (data.success && data.data && !this.currentSessionId) {
                     this.currentSessionId = data.data;
                     this.elements.deleteBtn.style.display = 'inline-block';
+                    
+                    // 通知任务管理器当前会话已变更
+                    if (window.taskManager) {
+                        window.taskManager.setCurrentSessionId(this.currentSessionId);
+                    }
                 }
                 
                 // 发送成功后，刷新会话列表
@@ -703,6 +804,12 @@ layui.use(['layer', 'form', 'util'], function() {
                         </div>
                     `;
                     
+                    // 确保任务管理器清除当前会话过滤
+                    if (window.taskManager) {
+                        window.taskManager.setCurrentSessionId(null);
+                        window.taskManager.filterTasksBySession(null);
+                    }
+                    
                     // 重新加载会话列表
                     this.loadChatSessions();
                 } else {
@@ -716,6 +823,6 @@ layui.use(['layer', 'form', 'util'], function() {
         }
     }
     
-    // 创建并启动AI聊天应用
-    const aiChatApp = new AIChatApp();
+    // 创建并导出AI聊天应用
+    window.aiChatApp = new AIChatApp();
 }); 

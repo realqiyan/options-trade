@@ -12,6 +12,7 @@ import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
 
+import me.dingtou.options.service.TradeTaskService;
 import me.dingtou.options.util.AccountExtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,8 @@ public class AIChatServiceImpl implements AIChatService {
     private ChatManager chatManager;
     @Autowired
     private OwnerManager ownerManager;
+    @Autowired
+    private TradeTaskService tradeTaskService;
 
     @Override
     public void chat(String owner, String sessionId, String title, List<Message> messages,
@@ -80,6 +83,9 @@ public class AIChatServiceImpl implements AIChatService {
                     result.getContent(),
                     result.getReasoningContent());
             ownerChatRecordDAO.insert(assistantRecord);
+            
+            // 从AI助手回复中创建交易任务
+            tradeTaskService.createTradeTaskFromAIMessage(owner, finalSessionId, result.getMessageId(), result.getContent());
         }
     }
 
@@ -113,11 +119,11 @@ public class AIChatServiceImpl implements AIChatService {
     @Override
     public boolean updateSessionTitle(String owner, String sessionId, String title) {
         // 更新会话标题
-        LambdaUpdateWrapper<OwnerChatRecord> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(OwnerChatRecord::getOwner, owner)
+        LambdaUpdateWrapper<OwnerChatRecord> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(OwnerChatRecord::getOwner, owner)
                 .eq(OwnerChatRecord::getSessionId, sessionId)
                 .set(OwnerChatRecord::getTitle, title);
 
-        return ownerChatRecordDAO.update(null, updateWrapper) > 0;
+        return ownerChatRecordDAO.update(null, wrapper) > 0;
     }
 }

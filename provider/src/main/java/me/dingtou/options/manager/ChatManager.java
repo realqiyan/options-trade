@@ -41,6 +41,41 @@ public class ChatManager {
             .build();
 
     /**
+     * 系统提示词，规范AI助手返回结构
+     */
+    private static final String SYSTEM_PROMPT_TEMPLATE = """
+            %s
+
+            在回复中，如果你建议用户执行具体的交易操作（如买入、卖出、平仓等），请在回复的最后添加一个JSON格式的actions字段，用于系统自动生成交易任务。
+            actions字段的格式如下：
+            ```json
+            {
+              "actions": [
+                {
+                  "type": "sell_option", // 操作类型，可选值：buy_option, sell_option, close_option, roll_option
+                  "underlyingCode": "US.BABA", // 标的代码，格式为"市场.代码"
+                  "code": "BABA250321C150000", // 期权代码
+                  "strikePrice": "130.00", // 行权价（如果是期权操作）
+                  "price": "1.50", // 建议交易价格
+                  "quantity": 1, // 建议交易数量
+                  "side": "sell", // 交易方向，可选值：buy, sell
+                  "strategyId": "81bab49eac5d427b967e93e5e93c9c68", // 策略ID
+                  "startTime": "2025-03-15", // 建议执行时间
+                  "endTime": "2025-03-17", // 建议结束时间
+                  "description": "BABA 3月21日到期的150美元看涨期权", // 操作描述
+                  "condition": "$currPrice > 135.00" // 执行条件$currPrice代表当前价格
+                }
+              ]
+            }
+            ```
+
+            请注意：
+            1. 只有当你明确建议用户执行具体交易操作时，才需要添加actions字段
+            2. 每个建议的交易操作都应该包含在actions数组中，可以有多个交易操作
+            3. JSON格式必须正确，否则系统无法解析
+            """;
+
+    /**
      * 发送聊天消息并处理流式响应
      *
      * @param account  账号
@@ -56,11 +91,21 @@ public class ChatManager {
         final String[] messageId = { null };
 
         String aiApiTemperature = AccountExtUtils.getAiApiTemperature(account);
+
+        // 如果系统提示词为空，使用默认提示词
+        String systemPrompt = AccountExtUtils.getAiSystemPrompt(account);
+        if (StringUtils.isEmpty(systemPrompt)) {
+            systemPrompt = String.format(SYSTEM_PROMPT_TEMPLATE, "");
+        } else {
+            // 将用户自定义的系统提示词与规范返回结构的提示词结合
+            systemPrompt = String.format(SYSTEM_PROMPT_TEMPLATE, systemPrompt);
+        }
+
         ChatCompletionCreateParams.Builder builder = ChatCompletionCreateParams.builder()
                 .model(AccountExtUtils.getAiApiModel(account))
                 .temperature(Double.valueOf(aiApiTemperature))
                 .maxCompletionTokens(16384)
-                .addSystemMessage(AccountExtUtils.getAiSystemPrompt(account));
+                .addSystemMessage(systemPrompt);
         for (Message message : messages) {
             ChatCompletionMessage chatMessage = ChatCompletionMessage.builder()
                     .role(JsonValue.from(message.getRole()))
