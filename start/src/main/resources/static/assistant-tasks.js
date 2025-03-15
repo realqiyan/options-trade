@@ -275,8 +275,22 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                 const statusText = this.getStatusText(task.status);
                 // 获取任务类型文本
                 const typeText = this.getTypeText(task.taskType);
-                // 获取任务描述
-                const description = task.ext && task.ext.task_description ? task.ext.task_description : '无描述';
+                
+                // 处理ext字段，将其解析为JSON树形结构
+                let extContent = '';
+                if (task.ext) {
+                    let extObj;
+                    try {
+                        // 尝试解析ext字段，如果它是字符串
+                        extObj = typeof task.ext === 'string' ? JSON.parse(task.ext) : task.ext;
+                        extContent = this.renderJsonTree(extObj);
+                    } catch (e) {
+                        // 如果解析失败，直接显示ext内容
+                        extContent = `<pre>${task.ext}</pre>`;
+                    }
+                } else {
+                    extContent = '<span>无任务扩展信息</span>';
+                }
                 
                 html += `
                     <div class="layui-card task-card">
@@ -316,7 +330,7 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                                 </div>
                                 <div class="task-info-item">
                                     <span class="task-info-label">任务描述：</span>
-                                    <span>${description}</span>
+                                    <div class="json-tree-container">${extContent}</div>
                                 </div>
                             </div>
                             <div class="task-actions">
@@ -374,6 +388,116 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
         }
         
         /**
+         * 将JSON对象渲染为树形结构HTML
+         */
+        renderJsonTree(obj) {
+            if (!obj) return '<span>无数据</span>';
+            
+            const renderNode = (key, value, isRoot = false) => {
+                if (value === null) return `<span class="json-null">null</span>`;
+                
+                if (typeof value === 'object') {
+                    const isArray = Array.isArray(value);
+                    let content = '';
+                    
+                    // 遍历对象属性或数组元素
+                    for (const k in value) {
+                        if (value.hasOwnProperty(k)) {
+                            const nodeKey = isArray ? `[${k}]` : k;
+                            content += `
+                                <div class="json-tree-node">
+                                    <span class="json-key">${nodeKey}:</span>
+                                    ${renderNode(k, value[k])}
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    // 根节点直接返回内容，无需折叠
+                    if (isRoot) {
+                        return `
+                            <div class="json-tree-node">
+                                ${content || '<span class="json-empty">{}</span>'}
+                            </div>
+                        `;
+                    }
+                    
+                    // 非根节点，添加折叠功能
+                    return `
+                        <div class="json-tree-value">
+                            <span class="json-braces">${isArray ? '[' : '{'}</span>
+                            <div class="json-tree-children">
+                                ${content || '<span class="json-empty">' + (isArray ? '[]' : '{}') + '</span>'}
+                            </div>
+                            <span class="json-braces">${isArray ? ']' : '}'}</span>
+                        </div>
+                    `;
+                }
+                
+                // 基本类型值
+                if (typeof value === 'string') {
+                    return `<span class="json-string">"${value.replace(/"/g, '\\"')}"</span>`;
+                } else if (typeof value === 'number') {
+                    return `<span class="json-number">${value}</span>`;
+                } else if (typeof value === 'boolean') {
+                    return `<span class="json-boolean">${value}</span>`;
+                }
+                
+                return `<span>${String(value)}</span>`;
+            };
+            
+            // 添加CSS样式
+            const style = `
+                <style>
+                    .json-tree-container {
+                        font-family: monospace;
+                        font-size: 14px;
+                        background-color: #f8f8f8;
+                        border-radius: 4px;
+                        padding: 10px;
+                        overflow: auto;
+                        max-height: 200px;
+                    }
+                    .json-tree-node {
+                        padding-left: 20px;
+                        position: relative;
+                    }
+                    .json-key {
+                        color: #881391;
+                        font-weight: bold;
+                        margin-right: 5px;
+                    }
+                    .json-string {
+                        color: #1a1aa6;
+                    }
+                    .json-number {
+                        color: #116644;
+                    }
+                    .json-boolean {
+                        color: #116644;
+                        font-weight: bold;
+                    }
+                    .json-null {
+                        color: #777;
+                        font-style: italic;
+                    }
+                    .json-braces {
+                        color: #333;
+                    }
+                    .json-tree-children {
+                        margin-left: 10px;
+                    }
+                    .json-empty {
+                        color: #777;
+                        font-style: italic;
+                    }
+                </style>
+            `;
+            
+            return style + renderNode(null, obj, true);
+        }
+        
+        /**
          * 获取任务状态文本
          */
         getStatusText(status) {
@@ -394,10 +518,7 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
             switch (parseInt(type)) {
                 case 1: return '买入期权';
                 case 2: return '卖出期权';
-                case 3: return '买入股票';
-                case 4: return '卖出股票';
                 case 5: return '平仓期权';
-                case 6: return '平仓股票';
                 case 7: return '滚动期权';
                 case 99: return '其他任务';
                 default: return '未知类型';
@@ -421,10 +542,7 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                                     <option value="">请选择任务类型</option>
                                     <option value="1">买入期权</option>
                                     <option value="2">卖出期权</option>
-                                    <option value="3">买入股票</option>
-                                    <option value="4">卖出股票</option>
                                     <option value="5">平仓期权</option>
-                                    <option value="6">平仓股票</option>
                                     <option value="7">滚动期权</option>
                                     <option value="99">其他任务</option>
                                 </select>
