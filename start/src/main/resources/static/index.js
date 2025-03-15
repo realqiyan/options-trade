@@ -350,13 +350,92 @@ function reloadData(){
         output.innerHTML = "";
         for(var i=0; i<currentOwnerData.securityList.length; i++) {
             var obj = currentOwnerData.securityList[i];
-            output.innerHTML += '<dd onclick="loadOptionsExpDate(\''+obj.code+'\',\''+obj.market+'\')"><a href="javascript:;">'+obj.name+obj.code+'</a></dd>'
+            var unexercisedCount = obj.unexercisedOrders ? obj.unexercisedOrders.length : 0;
+            var redDot = unexercisedCount > 0 ? 
+                '<span class="layui-badge-dot layui-bg-red unexercised-dot" style="margin-left: 5px;" data-orders=\'' + JSON.stringify(obj.unexercisedOrders) + '\'></span>' : '';
+            output.innerHTML += '<dd onclick="loadOptionsExpDate(\'' + obj.code + '\',\'' + obj.market + '\')"><a href="javascript:;">' + obj.name + obj.code + redDot + '</a></dd>';
         }
         render();
+        
+        // 添加鼠标悬停事件
+        $('.unexercised-dot').each(function() {
+            var $dot = $(this);
+            var orders = JSON.parse($dot.attr('data-orders'));
+            
+            // 处理订单数据，解析ext字段
+            orders = orders.map(order => {
+                try {
+                    if (order.ext) {
+                        let sourceOptions = null;
+                        if (typeof order.ext.sourceOptions === 'string') {
+                            try {
+                                sourceOptions = JSON.parse(order.ext.sourceOptions);
+                            } catch (e) {
+                                console.error('解析sourceOptions字符串失败:', e);
+                            }
+                        } else if (typeof order.ext.sourceOptions === 'object') {
+                            sourceOptions = order.ext.sourceOptions;
+                        }
+                        
+                        // 计算剩余天数
+                        const strikeDate = new Date(order.strikeTime);
+                        const today = new Date();
+                        const curDTE = Math.ceil((strikeDate - today) / (1000 * 60 * 60 * 24));
+                        
+                        return {
+                            ...order,
+                            ext: {
+                                ...order.ext,
+                                curDTE: curDTE
+                            }
+                        };
+                    }
+                    return order;
+                } catch (e) {
+                    console.error('处理订单数据失败:', e);
+                    return order;
+                }
+            });
+            
+            layui.use(['layer', 'laytpl'], function(){
+                var layer = layui.layer;
+                var laytpl = layui.laytpl;
+                
+                $dot.hover(function(e){
+                    // 使用模板渲染未行权期权信息
+                    laytpl(unexercisedOrders.innerHTML).render(orders, function(html){
+                        layer.open({
+                            type: 1,
+                            title: '未行权期权信息',
+                            shade: 0,
+                            offset: [e.pageY + 10, e.pageX + 10],
+                            area: ['400px'],
+                            skin: 'layui-layer-molv',
+                            content: html,
+                            success: function(layero, index){
+                                // 当鼠标离开弹出层和红点时关闭
+                                $(layero).add($dot).one('mouseleave', function(){
+                                    setTimeout(function(){
+                                        if(!$(layero).is(':hover') && !$dot.is(':hover')){
+                                            layer.close(index);
+                                        }
+                                    }, 100);
+                                });
+                            }
+                        });
+                    });
+                }, function(){
+                    // 鼠标离开红点时，不立即关闭，让用户有机会移动到弹出层上
+                    setTimeout(function(){
+                        if(!$('.layui-layer').is(':hover')){
+                            layer.closeAll();
+                        }
+                    }, 100);
+                });
+            });
+        });
       }
     });
-
-
 }
 
 reloadData();

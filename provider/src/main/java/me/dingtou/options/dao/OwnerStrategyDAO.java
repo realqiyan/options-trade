@@ -39,4 +39,18 @@ public interface OwnerStrategyDAO extends BaseMapper<OwnerStrategy> {
         @Result(property = "ext", column = "ext", jdbcType = JdbcType.VARCHAR, typeHandler = com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler.class)
     })
     OwnerStrategy queryStrategyById(Long id);
+
+
+    /**
+     * 根据ID查询策略
+     *
+     * @param id 策略ID
+     * @return 策略
+     */
+    @Select("SELECT * FROM owner_strategy WHERE strategy_id = #{strategyId}")
+    @Results({
+            @Result(property = "ext", column = "ext", jdbcType = JdbcType.VARCHAR, typeHandler = com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler.class)
+    })
+    OwnerStrategy queryStrategyByStrategyId(String strategyId);
+
 }

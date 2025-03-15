@@ -1,6 +1,5 @@
 package me.dingtou.options.web;
 
-
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderAction;
@@ -36,7 +35,6 @@ public class WebApiController {
     @Autowired
     private AuthService authService;
 
-
     @Autowired
     private OptionsQueryService optionsQueryService;
 
@@ -46,7 +44,6 @@ public class WebApiController {
     @Autowired
     private SummaryService summaryService;
 
-
     /**
      * 查询当前用户的证券和策略
      *
@@ -55,7 +52,7 @@ public class WebApiController {
     @RequestMapping(value = "/owner/get", method = RequestMethod.GET)
     public WebResult<Owner> queryOwner() throws Exception {
         String owner = SessionUtils.getCurrentOwner();
-        return WebResult.success(optionsQueryService.queryOwner(owner));
+        return WebResult.success(optionsQueryService.queryOwnerWithOrder(owner));
     }
 
     /**
@@ -99,8 +96,15 @@ public class WebApiController {
      * @return 期权链
      */
     @RequestMapping(value = "/options/chain/get", method = RequestMethod.GET)
-    public WebResult<OptionsChain> listOptionsChain(@RequestParam(value = "market", required = true) Integer market, @RequestParam(value = "code", required = true) String code, @RequestParam(value = "strikeTime", required = true) String strikeTime, @RequestParam(value = "strikeTimestamp", required = true) Long strikeTimestamp, @RequestParam(value = "optionExpiryDateDistance", required = true) Integer optionExpiryDateDistance, @RequestParam(value = "strategyId", required = false) String strategyId) throws Exception {
-        log.info("get options chain. market:{}, code:{}, strikeTime:{}, strikeTimestamp:{}, optionExpiryDateDistance:{}, strategyId:{}", market, code, strikeTime, strikeTimestamp, optionExpiryDateDistance, strategyId);
+    public WebResult<OptionsChain> listOptionsChain(@RequestParam(value = "market", required = true) Integer market,
+            @RequestParam(value = "code", required = true) String code,
+            @RequestParam(value = "strikeTime", required = true) String strikeTime,
+            @RequestParam(value = "strikeTimestamp", required = true) Long strikeTimestamp,
+            @RequestParam(value = "optionExpiryDateDistance", required = true) Integer optionExpiryDateDistance,
+            @RequestParam(value = "strategyId", required = false) String strategyId) throws Exception {
+        log.info(
+                "get options chain. market:{}, code:{}, strikeTime:{}, strikeTimestamp:{}, optionExpiryDateDistance:{}, strategyId:{}",
+                market, code, strikeTime, strikeTimestamp, optionExpiryDateDistance, strategyId);
         Security security = new Security();
         security.setMarket(market);
         security.setCode(code);
@@ -115,31 +119,34 @@ public class WebApiController {
         Owner owner = optionsQueryService.queryOwner(currentOwner);
         OwnerStrategy strategy = null;
         if (null != owner && null != strategyId) {
-            Optional<? extends OwnerStrategy> ownerStrategy = owner.getStrategyList().stream().filter(item -> item.getStrategyId().equals(strategyId)).findFirst();
+            Optional<? extends OwnerStrategy> ownerStrategy = owner.getStrategyList().stream()
+                    .filter(item -> item.getStrategyId().equals(strategyId)).findFirst();
             if (ownerStrategy.isPresent()) {
                 strategy = ownerStrategy.get();
             }
         }
 
         try {
-            OptionsChain optionsChain = optionsQueryService.queryOptionsChain(currentOwner, security, optionsStrikeDate, strategy);
+            OptionsChain optionsChain = optionsQueryService.queryOptionsChain(currentOwner, security, optionsStrikeDate,
+                    strategy);
             return WebResult.success(optionsChain);
         } catch (Exception e) {
-            log.error("get options chain error. market:{}, code:{}, strikeTime:{}, message:{}", market, code, strikeTime, e.getMessage(), e);
+            log.error("get options chain error. market:{}, code:{}, strikeTime:{}, message:{}", market, code,
+                    strikeTime, e.getMessage(), e);
             return WebResult.failure(e.getMessage());
         }
     }
 
-
     @RequestMapping(value = "/options/strategy/get", method = RequestMethod.GET)
-    public WebResult<StrategySummary> queryStrategySummary(@RequestParam(value = "strategyId", required = true) String strategyId) throws Exception {
+    public WebResult<StrategySummary> queryStrategySummary(
+            @RequestParam(value = "strategyId", required = true) String strategyId) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
         return WebResult.success(summaryService.queryStrategySummary(owner, strategyId));
     }
 
-
     @RequestMapping(value = "/options/orderbook/get", method = RequestMethod.GET)
-    public WebResult<SecurityOrderBook> listOrderBook(@RequestParam(value = "market", required = true) Integer market, @RequestParam(value = "code", required = true) String code) throws Exception {
+    public WebResult<SecurityOrderBook> listOrderBook(@RequestParam(value = "market", required = true) Integer market,
+            @RequestParam(value = "code", required = true) String code) throws Exception {
         log.info("get orderbook. market:{}, code:{}", market, code);
         Security security = new Security();
         security.setMarket(market);
@@ -147,23 +154,29 @@ public class WebApiController {
         return WebResult.success(optionsQueryService.queryOrderBook(security));
     }
 
-
     @RequestMapping(value = "/trade/submit", method = RequestMethod.POST)
-    public WebResult<OwnerOrder> submit(@RequestParam(value = "side", required = true) Integer side, @RequestParam(value = "strategyId", required = true) String strategyId, @RequestParam(value = "quantity", required = true) Integer quantity, @RequestParam(value = "price", required = true) String price, @RequestParam(value = "options", required = true) String options, @RequestParam(value = "password", required = true) String password) throws Exception {
+    public WebResult<OwnerOrder> submit(@RequestParam(value = "side", required = true) Integer side,
+            @RequestParam(value = "strategyId", required = true) String strategyId,
+            @RequestParam(value = "quantity", required = true) Integer quantity,
+            @RequestParam(value = "price", required = true) String price,
+            @RequestParam(value = "options", required = true) String options,
+            @RequestParam(value = "password", required = true) String password) throws Exception {
 
         String owner = SessionUtils.getCurrentOwner();
-        log.info("trade submit. owner:{}, side:{}, quantity:{}, price:{}, options:{}", owner, side, quantity, price, options);
+        log.info("trade submit. owner:{}, side:{}, quantity:{}, price:{}, options:{}", owner, side, quantity, price,
+                options);
         if (!authService.auth(owner, password)) {
             return WebResult.failure("验证码错误");
         }
         Options optionsObj = JSON.parseObject(options, Options.class);
         BigDecimal sellPrice = new BigDecimal(price);
-        return WebResult.success(optionsTradeService.submit(strategyId, TradeSide.of(side), quantity, sellPrice, optionsObj));
+        return WebResult
+                .success(optionsTradeService.submit(strategyId, TradeSide.of(side), quantity, sellPrice, optionsObj));
     }
 
-
     @RequestMapping(value = "/trade/order/draft", method = RequestMethod.GET)
-    public WebResult<List<OwnerOrder>> queryDraftOrder(@RequestParam(value = "password", required = true) String password) throws Exception {
+    public WebResult<List<OwnerOrder>> queryDraftOrder(
+            @RequestParam(value = "password", required = true) String password) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
         log.info("query order draft. owner:{}, password:{}", owner, password);
         if (!authService.auth(owner, password)) {
@@ -172,9 +185,10 @@ public class WebApiController {
         return WebResult.success(optionsQueryService.queryDraftOrder(owner));
     }
 
-
     @RequestMapping(value = "/trade/close", method = RequestMethod.POST)
-    public WebResult<OwnerOrder> close(@RequestParam(value = "price", required = true) String price, @RequestParam(value = "order", required = true) String order, @RequestParam(value = "password", required = true) String password) throws Exception {
+    public WebResult<OwnerOrder> close(@RequestParam(value = "price", required = true) String price,
+            @RequestParam(value = "order", required = true) String order,
+            @RequestParam(value = "password", required = true) String password) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
         log.info("trade close. owner:{}, price:{}, order:{}", owner, price, order);
         if (!authService.auth(owner, password)) {
@@ -188,9 +202,10 @@ public class WebApiController {
         return WebResult.success(optionsTradeService.close(orderObj, new BigDecimal(price)));
     }
 
-
     @RequestMapping(value = "/trade/modify", method = RequestMethod.POST)
-    public WebResult<OwnerOrder> modify(@RequestParam(value = "action", required = true) String action, @RequestParam(value = "order", required = true) String order, @RequestParam(value = "password", required = true) String password) throws Exception {
+    public WebResult<OwnerOrder> modify(@RequestParam(value = "action", required = true) String action,
+            @RequestParam(value = "order", required = true) String order,
+            @RequestParam(value = "password", required = true) String password) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
         log.info("trade modify. owner:{}, action:{}, order:{}", owner, action, order);
         if (!authService.auth(owner, password)) {
@@ -205,7 +220,8 @@ public class WebApiController {
     }
 
     @RequestMapping(value = "/trade/sync", method = RequestMethod.GET)
-    public WebResult<Boolean> sync(@RequestParam(value = "password", required = true) String password) throws Exception {
+    public WebResult<Boolean> sync(@RequestParam(value = "password", required = true) String password)
+            throws Exception {
         String owner = SessionUtils.getCurrentOwner();
         log.info("trade sync. owner:{}", owner);
         if (!authService.auth(owner, password)) {
@@ -215,7 +231,10 @@ public class WebApiController {
     }
 
     @RequestMapping(value = "/trade/update", method = RequestMethod.POST)
-    public WebResult<Integer> updateOrderStrategy(@RequestParam(value = "strategyId", required = true) String strategyId, @RequestParam(value = "orderIds", required = true) List<Long> orderIds, @RequestParam(value = "password", required = true) String password) throws Exception {
+    public WebResult<Integer> updateOrderStrategy(
+            @RequestParam(value = "strategyId", required = true) String strategyId,
+            @RequestParam(value = "orderIds", required = true) List<Long> orderIds,
+            @RequestParam(value = "password", required = true) String password) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
         log.info("trade update. owner:{}, strategyId:{}, orderIds:{}", owner, strategyId, orderIds);
         if (!authService.auth(owner, password)) {
