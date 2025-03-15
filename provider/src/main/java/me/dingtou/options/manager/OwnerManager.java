@@ -178,11 +178,8 @@ public class OwnerManager {
 
         for (OwnerOrder ownerOrder : ownerOrders) {
             if (!ownerOrder.getCode().equals(ownerOrder.getUnderlyingCode())) {
-                BigDecimal totalIncome = NumberUtils.scale(ownerOrder.getPrice()
-                        .multiply(new BigDecimal(ownerOrder.getQuantity()))
-                        .multiply(new BigDecimal(strategy.getLotSize()))
-                        .multiply(new BigDecimal(TradeSide.of(ownerOrder.getSide()).getSign())));
                 // 订单收益
+                BigDecimal totalIncome = NumberUtils.scale(OwnerOrder.income(ownerOrder));
                 ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getKey(), totalIncome.toPlainString());
             }
 
@@ -192,7 +189,7 @@ public class OwnerManager {
             ownerOrder.getExt().put(OrderExt.IS_CLOSE.getKey(), String.valueOf(isClose));
 
             // 计算期权到期日ownerOrder.getStrikeTime()和now的间隔天数
-            long daysToExpiration = OwnerOrder.daysToExpiration(ownerOrder);
+            long daysToExpiration = OwnerOrder.dte(ownerOrder);
             ownerOrder.getExt().put(OrderExt.CUR_DTE.getKey(), String.valueOf(daysToExpiration));
 
         }

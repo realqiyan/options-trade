@@ -326,12 +326,12 @@ public class OwnerOrder implements Cloneable {
     }
 
     /**
-     * 订单的到期日
+     * 订单的到期日daysToExpiration
      * 
      * @param order 订单
      * @return 到期日
      */
-    public static long daysToExpiration(OwnerOrder order) {
+    public static long dte(OwnerOrder order) {
         // 使用America/New_York时区
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         LocalDate localDate = new Date().toInstant().atZone(NEW_YORK_ZONE_ID).toLocalDate();
@@ -352,6 +352,19 @@ public class OwnerOrder implements Cloneable {
             return 100;
         }
         return (int) OrderExt.LOT_SIZE.fromString(lotSize);
+    }
+
+    /**
+     * 订单的收益
+     * 
+     * @param order 订单
+     * @return 收益
+     */
+    public static BigDecimal income(OwnerOrder order) {
+        return order.getPrice()
+                .multiply(new BigDecimal(order.getQuantity()))
+                .multiply(new BigDecimal(lotSize(order)))
+                .multiply(new BigDecimal(TradeSide.of(order.getSide()).getSign()));
     }
 
 }

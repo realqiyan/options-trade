@@ -205,23 +205,17 @@ public class SummaryServiceImpl implements SummaryService {
 
         BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
         // 所有期权利润
-        BigDecimal allOptionsIncome = allOptionsOrders.stream().map(order -> {
-            BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-            return order.getPrice().multiply(lotSize).multiply(BigDecimal.valueOf(order.getQuantity())).multiply(sign);
-        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal allOptionsIncome = allOptionsOrders.stream()
+                .map(OwnerOrder::income)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         // 期权利润
         summary.setAllOptionsIncome(allOptionsIncome.subtract(totalFee));
 
         // 所有未平仓的期权利润
         BigDecimal unrealizedOptionsIncome = allOptionsOrders.stream()
                 .filter(OwnerOrder::isOpen)
-                .map(order -> {
-                    BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-                    return order.getPrice()
-                            .multiply(lotSize)
-                            .multiply(BigDecimal.valueOf(order.getQuantity()))
-                            .multiply(sign);
-                }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(OwnerOrder::income)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         // 期权利润
         summary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
 
