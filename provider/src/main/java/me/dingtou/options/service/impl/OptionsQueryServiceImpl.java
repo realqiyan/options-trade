@@ -39,6 +39,11 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     }
 
     @Override
+    public Owner queryOwnerWithOrder(String owner) {
+        return ownerManager.queryOwnerWithOrder(owner);
+    }
+
+    @Override
     public List<OptionsStrikeDate> queryOptionsExpDate(Security security) {
         return optionsManager.queryOptionsExpDate(security.getCode(), security.getMarket());
     }

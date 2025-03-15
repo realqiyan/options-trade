@@ -39,7 +39,7 @@ public class OwnerManager {
 
     /**
      * 查询owner
-     * 
+     *
      * @param owner 账号
      * @return owner
      */
@@ -49,12 +49,52 @@ public class OwnerManager {
         ownerObj.setAccount(queryOwnerAccount(owner));
         ownerObj.setSecurityList(queryOwnerSecurity(owner));
         ownerObj.setStrategyList(queryOwnerStrategy(owner));
+
+        return ownerObj;
+    }
+
+    public Owner queryOwnerWithOrder(String owner) {
+        Owner ownerObj = queryOwner(owner);
+
+        List<OwnerStrategy> strategyList = (List<OwnerStrategy>) ownerObj.getStrategyList();
+        List<OwnerOrder> ownerOrderList = new ArrayList<>();
+        for (OwnerStrategy strategy : strategyList) {
+            List<OwnerOrder> orders = queryStrategyOrder(strategy);
+            ownerOrderList.addAll(orders);
+        }
+
+        // 过滤出到期未行权的订单
+        List<OwnerOrder> unexercisedOrders = ownerOrderList.stream()
+                .filter(order -> !order.getCode().equals(order.getUnderlyingCode())) // 是期权订单
+                .filter(order -> !OwnerOrder.isClose(order)) // 未平仓
+                .filter(order -> OwnerOrder.dte(order) > 0) // 已到期
+                .collect(Collectors.toList());
+
+        // 按标的股票代码分组
+        Map<String, List<OwnerOrder>> groupedOrders = unexercisedOrders.stream()
+                .collect(Collectors.groupingBy(OwnerOrder::getUnderlyingCode));
+
+        // 将分组后的订单设置到对应的OwnerSecurity中
+        List<OwnerSecurity> securityList = ownerObj.getSecurityList();
+        if (securityList != null) {
+            for (OwnerSecurity security : securityList) {
+                // 初始化空列表
+                security.setUnexercisedOrders(new ArrayList<>());
+
+                String code = security.getCode();
+                List<OwnerOrder> orders = groupedOrders.get(code);
+                if (orders != null) {
+                    security.setUnexercisedOrders(orders);
+                }
+            }
+        }
+
         return ownerObj;
     }
 
     /**
      * 查询owner账号
-     * 
+     *
      * @param owner 账号
      * @return owner账号
      */
@@ -64,7 +104,7 @@ public class OwnerManager {
 
     /**
      * 查询所有owner账号
-     * 
+     *
      * @return 所有owner账号
      */
     public List<OwnerAccount> queryAllOwnerAccount() {
@@ -75,20 +115,19 @@ public class OwnerManager {
 
     /**
      * 查询owner股票
-     * 
+     *
      * @param owner 账号
      * @return owner股票
      */
     public List<OwnerSecurity> queryOwnerSecurity(String owner) {
         QueryWrapper<OwnerSecurity> query = new QueryWrapper<>();
-        query.eq("owner", owner)
-                .eq("status", Status.VALID.getCode());
+        query.eq("owner", owner).eq("status", Status.VALID.getCode());
         return ownerSecurityDAO.selectList(query);
     }
 
     /**
      * 查询owner策略
-     * 
+     *
      * @param owner 账号
      * @return owner策略
      */
@@ -98,7 +137,7 @@ public class OwnerManager {
 
     /**
      * 查询owner订单
-     * 
+     *
      * @param owner           账号
      * @param platformOrderId 平台订单ID
      * @param platformFillId  平台成交ID
@@ -123,7 +162,7 @@ public class OwnerManager {
 
     /**
      * 查询owner策略订单
-     * 
+     *
      * @param strategy 策略
      * @return owner策略订单
      */
@@ -144,7 +183,7 @@ public class OwnerManager {
 
     /**
      * 计算基础数据
-     * 
+     *
      * @param strategy    策略
      * @param ownerOrders owner订单
      */
@@ -161,9 +200,7 @@ public class OwnerManager {
             String code = codeOrders.getKey();
             List<OwnerOrder> orders = codeOrders.getValue();
             // 已成交的订单买入卖出的数量是否为0
-            List<OwnerOrder> successOrders = orders.stream()
-                    .filter(OwnerOrder::isTraded)
-                    .toList();
+            List<OwnerOrder> successOrders = orders.stream().filter(OwnerOrder::isTraded).toList();
             if (successOrders.isEmpty()) {
                 continue;
             }
@@ -198,7 +235,7 @@ public class OwnerManager {
 
     /**
      * 计算利润
-     * 
+     *
      * @param ownerOrders owner订单
      */
     private void calculateProfit(List<OwnerOrder> ownerOrders) {
@@ -230,18 +267,15 @@ public class OwnerManager {
         for (OwnerOrder ownerOrder : ownerOrders) {
             Security security = Security.of(ownerOrder.getCode(), ownerOrder.getMarket());
             Optional<OptionsRealtimeData> any = optionsBasicInfo.stream()
-                    .filter(options -> options.getSecurity().equals(security))
-                    .findAny();
+                    .filter(options -> options.getSecurity().equals(security)).findAny();
             if (any.isEmpty()) {
                 continue;
             }
             BigDecimal curPrice = any.get().getCurPrice();
             ownerOrder.getExt().put(OrderExt.CUR_PRICE.getKey(), curPrice.toPlainString());
             if (OwnerOrder.isSell(ownerOrder)) {
-                BigDecimal profitRatio = ownerOrder.getPrice()
-                        .subtract(curPrice)
-                        .divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP)
-                        .multiply(new BigDecimal(100));
+                BigDecimal profitRatio = ownerOrder.getPrice().subtract(curPrice)
+                        .divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
                 profitRatio = NumberUtils.scale(profitRatio);
                 ownerOrder.getExt().put(OrderExt.PROFIT_RATIO.getKey(), profitRatio.toPlainString());
             }
