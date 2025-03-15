@@ -19,6 +19,10 @@ public enum AccountExt {
     AI_API_TEMPERATURE("ai_api_temperature", "AI温度参数"),
     AI_SYSTEM_PROMPT("ai_system_prompt", "AI系统提示词"),
     
+    // 分析配置
+    KLINE_PERIOD("kline_period", "K线周期，可选值：DAY(日K线)、WEEK(周K线)，默认为WEEK"),
+    
+    // 账户资金配置
     ACCOUNT_SIZE("account_size", "账户资金规模"),
     MARGIN_RATIO("margin_ratio", "保证金比例");
     

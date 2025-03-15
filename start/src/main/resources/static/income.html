@@ -160,14 +160,14 @@
         <div class="layui-col-md3">
             <div class="income-card">
                 <div class="income-header">
-                    <h3>资金规模剩余</h3>
+                    <h3>资金剩余额度</h3>
                 </div>
                 <div class="income-body">
-                    <div class="income-value">${{ d.availableFunds }}</div>
+                    <div class="income-value" title="({{= d.accountSize}}) - ({{= d.totalStockCost}}) - ({{= d.putMarginOccupied}})">${{ d.availableFunds }}</div>
                     <div class="income-item">
-                        <span class="income-label">总规模:</span>
+                        <span class="income-label">投入资金:</span>
                         <span class="layui-badge layui-bg-blue">${{= d.accountSize}}</span>
-                        <span class="income-label">put占用:</span>
+                        <span class="income-label">Put占用:</span>
                         <span class="layui-badge layui-bg-red">${{= d.putMarginOccupied}}</span>
                         <span class="income-label">持股占用:</span>
                         <span class="layui-badge layui-bg-orange ">${{= d.totalStockCost}}</span>

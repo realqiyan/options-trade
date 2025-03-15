@@ -1,6 +1,7 @@
 package me.dingtou.options.model;
 
 import lombok.Data;
+import me.dingtou.options.constant.CandlestickPeriod;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -41,9 +42,14 @@ public class StockIndicator {
     private Candlestick monthCandlestick;
 
     /**
-     * 近期周K线
+     * 近期K线类型
      */
-    private List<Candlestick> weekCandlesticks;
+    private CandlestickPeriod period;
+
+    /**
+     * 近期K线
+     */
+    private List<Candlestick> candlesticks;
 
     /**
      * 支撑位

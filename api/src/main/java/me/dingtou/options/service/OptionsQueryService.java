@@ -19,15 +19,6 @@ public interface OptionsQueryService {
      */
     Owner queryOwner(String owner);
 
-
-    /**
-     * 查询owner汇总
-     *
-     * @param owner 所有者
-     * @return 汇总信息
-     */
-    OwnerSummary queryOwnerSummary(String owner);
-
     /**
      * 查询期权到期日列表
      *
@@ -35,17 +26,6 @@ public interface OptionsQueryService {
      * @return 期权到期日列表
      */
     List<OptionsStrikeDate> queryOptionsExpDate(Security security);
-
-
-    /**
-     * 查询策略汇总
-     *
-     * @param owner      策略所有者
-     * @param strategyId 策略ID
-     * @return 订单列表
-     */
-    StrategySummary queryStrategySummary(String owner, String strategyId);
-
 
     /**
      * 查询市场实时盘口

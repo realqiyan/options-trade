@@ -36,7 +36,6 @@ public class TradeManager {
     @Autowired
     private SecurityOrderBookGateway securityOrderBookGateway;
 
-
     /**
      * 执行交易操作
      *
@@ -49,7 +48,8 @@ public class TradeManager {
      * @return 返回执行后的订单对象
      */
     @Transactional(rollbackFor = Exception.class)
-    public OwnerOrder trade(OwnerAccount account, OwnerStrategy strategy, TradeSide side, Integer quantity, BigDecimal price, Options options) {
+    public OwnerOrder trade(OwnerAccount account, OwnerStrategy strategy, TradeSide side, Integer quantity,
+            BigDecimal price, Options options) {
         // 获取基础配置中的证券信息
         Security security = options.getBasic().getSecurity();
 
@@ -75,9 +75,9 @@ public class TradeManager {
         ownerOrder.setSide(side.getCode());
         ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
         ownerOrder.setTradeFrom(TradeFrom.SYS_CREATE.getCode());
-        Map<String, String> ext = new HashMap<>();
-        ext.put(OrderExt.SOURCE_OPTIONS.getCode(), OrderExt.SOURCE_OPTIONS.toString(options));
-        ownerOrder.setExt(ext);
+
+        ownerOrder.setExtValue(OrderExt.SOURCE_OPTIONS, options);
+        ownerOrder.setExtValue(OrderExt.LOT_SIZE, strategy.getLotSize());
 
         // 将订单信息插入数据库
         ownerOrder.setCreateTime(now);
@@ -114,9 +114,8 @@ public class TradeManager {
         ownerOrder.setSide(TradeSide.of(hisOrder.getSide()).getReverseCode());
         ownerOrder.setStatus(OrderStatus.WAITING_SUBMIT.getCode());
         ownerOrder.setTradeFrom(TradeFrom.SYS_CLOSE.getCode());
-        Map<String, String> ext = new HashMap<>();
-        ext.put(OrderExt.SOURCE_ORDER.getCode(), OrderExt.SOURCE_ORDER.toString(hisOrder));
-        ownerOrder.setExt(ext);
+
+        ownerOrder.setExtValue(OrderExt.SOURCE_ORDER, hisOrder);
 
         // 将订单信息插入数据库
         ownerOrderDAO.insert(ownerOrder);
@@ -159,10 +158,8 @@ public class TradeManager {
     @Transactional(rollbackFor = Exception.class)
     public Boolean syncOrder(Owner owner) {
         Date now = new Date();
-        QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
-        queryOrder.eq("owner", owner.getOwner());
         // 本地所有订单
-        List<OwnerOrder> dbOrders = ownerOrderDAO.selectList(queryOrder);
+        List<OwnerOrder> dbOrders = ownerOrderDAO.queryOwnerOrder(owner.getOwner());
         // 拉取平台订单列表1:1
         List<OwnerOrder> platformOrders = optionsTradeGateway.pullOrder(owner);
         // 拉取平台成交单列表1:n
@@ -179,7 +176,8 @@ public class TradeManager {
         });
 
         // 平台订单成交单一个订单号对应多条成交单
-        Map<String, List<OwnerOrder>> platformOrderFillMap = platformOrderFills.stream().collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
+        Map<String, List<OwnerOrder>> platformOrderFillMap = platformOrderFills.stream()
+                .collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
 
         // 使用过的成交单
         Map<String, List<OwnerOrder>> usedPlatformOrderFillMap = new HashMap<>();
@@ -217,7 +215,9 @@ public class TradeManager {
                     // 多比成交单 如果订单的成交单id不为空就从平台订单中找到对应的订单走更新逻辑
                     if (null != dbOrder.getPlatformFillId()) {
                         // 找到对应的成交单
-                        Optional<OwnerOrder> orderOptional = orderFills.stream().filter(order -> order.getPlatformFillId().equals(dbOrder.getPlatformFillId())).findAny();
+                        Optional<OwnerOrder> orderOptional = orderFills.stream()
+                                .filter(order -> order.getPlatformFillId().equals(dbOrder.getPlatformFillId()))
+                                .findAny();
                         if (orderOptional.isPresent()) {
                             orderFill = orderOptional.get();
                         }
@@ -253,9 +253,19 @@ public class TradeManager {
                 dbOrder.setOrderFee(feeMap.getOrDefault(dbOrder.getPlatformOrderIdEx(), BigDecimal.ZERO));
             }
             dbOrder.setUpdateTime(now);
+            if (null != dbOrder.getStrategyId()) {
+                OwnerStrategy strategy = owner.getStrategyList()
+                        .stream()
+                        .filter(s -> s.getStrategyId().equals(dbOrder.getStrategyId()))
+                        .findFirst()
+                        .orElse(null);
+                if (null != strategy) {
+                    dbOrder.setExtValue(OrderExt.LOT_SIZE, strategy.getLotSize());
+                }
+            }
+
             ownerOrderDAO.updateById(dbOrder);
         }
-
 
         // 新订单
         platformNewOrders.addAll(plateformOrderMap.values().stream().toList());
@@ -270,7 +280,6 @@ public class TradeManager {
                 platformOrderFillMap.remove(platformOrderId);
             }
         }
-
 
         List<OwnerOrder> newOrders = new ArrayList<>();
         newOrders.addAll(platformNewOrders);
@@ -297,7 +306,6 @@ public class TradeManager {
 
     }
 
-
     public OwnerStrategy queryStrategy(String ownerStrategyId) {
         QueryWrapper<OwnerStrategy> querySecurity = new QueryWrapper<>();
         querySecurity.eq("strategy_id", ownerStrategyId);
@@ -322,7 +330,6 @@ public class TradeManager {
         return totalFeeMap.values().stream().reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
     }
 
-
     public SecurityOrderBook querySecurityOrderBook(String code, Integer market) {
         if (StringUtils.isBlank(code) || null == market) {
             return null;
@@ -332,22 +339,20 @@ public class TradeManager {
     }
 
     public List<OwnerOrder> queryDraftOrder(String owner) {
-        QueryWrapper<OwnerOrder> queryOrder = new QueryWrapper<>();
-        queryOrder.eq("owner", owner);
-        queryOrder.isNull("strategy_id");
         // 本地所有未挂靠订单
-        return ownerOrderDAO.selectList(queryOrder);
+        return ownerOrderDAO.queryOwnerDraftOrder(owner);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public Integer updateOrderStrategy(OwnerAccount account, List<Long> orderIds, OwnerStrategy strategy) {
         int num = 0;
         for (Long orderId : orderIds) {
-            OwnerOrder dbOrder = ownerOrderDAO.selectById(orderId);
+            OwnerOrder dbOrder = ownerOrderDAO.queryOwnerOrderById(account.getOwner(), orderId);
             if (null == dbOrder || !account.getOwner().equals(dbOrder.getOwner())) {
                 continue;
             }
             dbOrder.setStrategyId(strategy.getStrategyId());
+            dbOrder.setExtValue(OrderExt.LOT_SIZE, strategy.getLotSize());
             num += ownerOrderDAO.updateById(dbOrder);
         }
         return num;

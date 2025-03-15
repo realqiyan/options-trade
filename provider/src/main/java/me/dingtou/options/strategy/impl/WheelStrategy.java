@@ -1,8 +1,10 @@
 package me.dingtou.options.strategy.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.constant.IndicatorKey;
 import me.dingtou.options.model.*;
+import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.IndicatorDataFrameUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -21,13 +23,17 @@ public class WheelStrategy extends BaseStrategy {
     }
 
     @Override
-    public void process(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
+    public void process(OwnerAccount account,
+            OptionsStrikeDate optionsStrikeDate,
+            OptionsChain optionsChain,
             StrategySummary strategySummary) {
         // 当前策略信息
         if (null == strategySummary) {
             log.warn("策略信息为空，请检查！");
             return;
         }
+
+        CandlestickPeriod period = AccountExtUtils.getKlinePeriod(account);
 
         Integer holdStockNum = strategySummary.getHoldStockNum();
         // 空仓执行sell put 否则执行cc
@@ -44,11 +50,12 @@ public class WheelStrategy extends BaseStrategy {
             }
         }
         final OwnerOrder finalUnderlyingOrder = currentUnderlyingOrder;
-        
+
         // 获取sellput可接受的行权价配置
         BigDecimal sellPutAcceptableStrikePrice = null;
         if (isSellPutStage && strategySummary.getStrategy() != null) {
-            String sellPutStrikePriceStr = strategySummary.getStrategy().getExtValue(StrategyExt.WHEEL_SELLPUT_STRIKE_PRICE);
+            String sellPutStrikePriceStr = strategySummary.getStrategy()
+                    .getExtValue(StrategyExt.WHEEL_SELLPUT_STRIKE_PRICE);
             if (StringUtils.isNotBlank(sellPutStrikePriceStr)) {
                 try {
                     sellPutAcceptableStrikePrice = new BigDecimal(sellPutStrikePriceStr);
@@ -110,35 +117,30 @@ public class WheelStrategy extends BaseStrategy {
             prompt.append("，当前指派的股票价格：").append(finalUnderlyingOrder.getPrice());
         }
         if (isSellPutStage && finalSellPutAcceptableStrikePrice != null) {
-            prompt.append("，Sell Put可接受的最高行权价：").append(finalSellPutAcceptableStrikePrice).append("（可以接受Rolling）");
+            prompt.append("，SellPut可接受最高指派价").append(finalSellPutAcceptableStrikePrice)
+                    .append("，行权价高于").append(finalSellPutAcceptableStrikePrice)
+                    .append("的Put如果风险可控也接受卖出，但是快被指派前需要Rolling");
         }
         prompt.append("，当前股票价格是").append(securityPrice)
-                .append(null != vixIndicator && null != vixIndicator.getCurrentVix() ? "，当前VIX指数是"+ vixIndicator.getCurrentVix().getValue() : "")
+                .append(null != vixIndicator && null != vixIndicator.getCurrentVix()
+                        ? "，当前VIX指数是" + vixIndicator.getCurrentVix().getValue()
+                        : "")
                 .append("，当前日期是").append(sdf.format(new Date()))
                 .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我交易建议。\n\n");
 
-        // prompt.append("## 策略执行条件\n");
-        // prompt.append("* 1.检查VIX是否小于等于30\n");
-        // prompt.append("\t* VIX小于等于30本条通过；\n");
-        // prompt.append("* 2.RSI是否在30到70之间\n");
-        // prompt.append("\t* RSI在30到70本条通过\n");
-        // prompt.append("\t* 如果RSI小于30，检查MACD指标动量向上，MACD动量向上也通过；\n");
-        // prompt.append("* 3.根据技术指标和K线检查其他关键支持\n");
-        // prompt.append("\n");
-
-        // 最近几周的周K线
-        List<Candlestick> weekCandlesticks = stockIndicator.getWeekCandlesticks();
-        if(null != weekCandlesticks && !weekCandlesticks.isEmpty()) {
-            prompt.append("## 原始周K线\n");
-            int subListSize = Math.min(weekCandlesticks.size(), 30);
-            weekCandlesticks = weekCandlesticks.subList(weekCandlesticks.size() - subListSize, weekCandlesticks.size());
+        // 最近K线
+        List<Candlestick> candlesticks = stockIndicator.getCandlesticks();
+        if (null != candlesticks && !candlesticks.isEmpty()) {
+            prompt.append("## 原始").append(period.getName()).append("K线\n");
+            int subListSize = Math.min(candlesticks.size(), 30);
+            candlesticks = candlesticks.subList(candlesticks.size() - subListSize, candlesticks.size());
 
             prompt.append("| 日期 ").append("| 开盘价 ").append("| 收盘价 ").append("| 最高价 ").append("| 最低价 ").append("| 成交量 ")
                     .append("| 成交额 ").append("|\n");
             prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
                     .append("| --- ").append("|\n");
 
-            weekCandlesticks.forEach(candlestick -> {
+            candlesticks.forEach(candlestick -> {
                 Long timestamp = candlestick.getTimestamp();
                 prompt.append("| ").append(sdf.format(new Date(timestamp * 1000)))
                         .append(" | ").append(candlestick.getOpen())
@@ -152,40 +154,11 @@ public class WheelStrategy extends BaseStrategy {
             prompt.append("\n");
         }
 
-        // Map<String, List<StockIndicatorItem>> lineMap = stockIndicator.getIndicatorMap();
-        // prompt.append("## 技术指标汇总（周K线）\n");
-        // for (Map.Entry<String, List<StockIndicatorItem>> entry : lineMap.entrySet())
-        // {
-        // IndicatorKey indicatorKey = IndicatorKey.of(entry.getKey());
-        // List<StockIndicatorItem> value = entry.getValue();
-        // prompt.append("* 当前").append(indicatorKey.getDisplayName()).append(":").append(value.get(0).getValue()).append("\n");
-        // }
-        // prompt.append("\n");
+        int dataSize = 20;
+        prompt.append("### 近").append(dataSize).append(period.getName()).append("技术指标\n");
 
-        int weekSize = 20;
-        prompt.append("### 近").append(weekSize).append("周技术指标\n");
-        
         // 使用IndicatorDataFrameUtil生成技术指标表格
-        prompt.append(IndicatorDataFrameUtil.createMarkdownTable(stockIndicator, weekSize));
-        
-        // 原来的代码注释掉
-        /*
-        for (Map.Entry<String, List<StockIndicatorItem>> entry : lineMap.entrySet()) {
-            IndicatorKey indicatorKey = IndicatorKey.of(entry.getKey());
-            List<StockIndicatorItem> value = entry.getValue();
-            prompt.append("#### ").append(indicatorKey.getDisplayName()).append("\n");
-            int size = Math.min(value.size(), weekSize);
-            List<StockIndicatorItem> subList = value.subList(0, size);
-            prompt.append("| 日期 ").append("| 指标值 ").append("|\n");
-            prompt.append("| --- ").append("| --- ").append("|\n");
-            subList.forEach(item -> {
-                prompt.append("|").append(item.getDate())
-                        .append("|").append(item.getValue())
-                        .append("|\n");
-            });
-            prompt.append("\n");
-        }
-        */
+        prompt.append(IndicatorDataFrameUtil.createMarkdownTable(stockIndicator, dataSize));
 
         prompt.append("\n");
         prompt.append("## 交易标的\n");
@@ -206,10 +179,6 @@ public class WheelStrategy extends BaseStrategy {
             }
         });
         prompt.append("\n");
-        // prompt.append("## 要求\n");
-        // prompt.append("* 1.根据提供的原始周K线信息、以及技术指标分析总结当前股票走势方向和风险程度。\n");
-        // prompt.append("* 2.根据总结信息分析当前股票是否适合进行期权交易。\n");
-        // prompt.append("* 3.结合以上分析结论，列出综合最优和保守的交易策略建议。\n");
         optionsChain.setPrompt(prompt.toString());
     }
 
@@ -245,7 +214,10 @@ public class WheelStrategy extends BaseStrategy {
                     if (null != macdList && macdList.size() > 1) {
                         // 最近一周小于上一周 则不建议交易
                         if (macdList.get(0).getValue().compareTo(macdList.get(1).getValue()) < 0) {
-                            log.warn("当前RSI为{}，近两周MACD为{}，{}，不建议交易", rsiVal, macdList.get(0).getValue(),
+                            log.warn("当前RSI为{}，近两{}MACD为{}，{}，不建议交易",
+                                    rsiVal,
+                                    stockIndicator.getPeriod().getName(),
+                                    macdList.get(0).getValue(),
                                     macdList.get(1).getValue());
                             return 0;
                         }

@@ -21,11 +21,11 @@ public abstract class BaseStrategy implements OptionsStrategy {
     /**
      * call delta
      */
-    private static final BigDecimal CALL_DELTA = BigDecimal.valueOf(0.3);
+    private static final BigDecimal CALL_DELTA = BigDecimal.valueOf(0.4);
     /**
      * sell delta
      */
-    private static final BigDecimal SELL_DELTA = BigDecimal.valueOf(0.3);
+    private static final BigDecimal SELL_DELTA = BigDecimal.valueOf(0.4);
 
 
     /**
@@ -35,11 +35,11 @@ public abstract class BaseStrategy implements OptionsStrategy {
      * @param optionsChain      期权链
      * @param strategySummary   策略信息（可选）
      */
-    abstract void process(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary);
+    abstract void process(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary);
 
 
     @Override
-    final public void calculate(OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary) {
+    final public void calculate(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary) {
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
         SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
         BigDecimal securityPrice = securityQuote.getLastDone();
@@ -76,7 +76,9 @@ public abstract class BaseStrategy implements OptionsStrategy {
                 }
 
                 callStrategyData.setRecommendLevel(level);
-                callStrategyData.setRecommend(deltaRecommend && annualYieldRecommend);
+                // 成交量大于0
+                boolean volumeRecommend = call.getRealtimeData().getVolume() > 0;
+                callStrategyData.setRecommend(deltaRecommend && annualYieldRecommend && volumeRecommend);
 
                 // 涨跌幅
                 callStrategyData.setRange(calculateRange(strikePrice, securityPrice));
@@ -111,14 +113,16 @@ public abstract class BaseStrategy implements OptionsStrategy {
                 }
 
                 putStrategyData.setRecommendLevel(level);
-                putStrategyData.setRecommend(deltaRecommend && annualYieldRecommend);
+                // 成交量大于0
+                boolean volumeRecommend = put.getRealtimeData().getVolume() > 0;
+                putStrategyData.setRecommend(deltaRecommend && annualYieldRecommend && volumeRecommend);
 
                 // 涨跌幅
                 putStrategyData.setRange(calculateRange(strikePrice, securityPrice));
                 //}
             }
         });
-        process(optionsStrikeDate, optionsChain, strategySummary);
+        process(account, optionsStrikeDate, optionsChain, strategySummary);
     }
 
     /**

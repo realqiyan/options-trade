@@ -317,7 +317,7 @@
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('RSI(Week)',{{= JSON.stringify(d.stockIndicator.indicatorMap.rsi) }},'line')"
+            <a href="javascript:;" onclick="showChart('RSI',{{= JSON.stringify(d.stockIndicator.indicatorMap.rsi) }},'line')"
                title="RSI">
                 <i class="layui-icon layui-icon-link"></i>RSI: {{= d.stockIndicator.indicatorMap.rsi?d.stockIndicator.indicatorMap.rsi[0].value:0 }}
             </a>
@@ -325,23 +325,23 @@
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('MACD指标(Week)', {
-                'MACD(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.macd) }},
-                'DIF(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.macd_dif) }},
-                'DEA(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.macd_dea) }}
+            <a href="javascript:;" onclick="showChart('MACD指标', {
+                'MACD': {{= JSON.stringify(d.stockIndicator.indicatorMap.macd) }},
+                'DIF': {{= JSON.stringify(d.stockIndicator.indicatorMap.macd_dif) }},
+                'DEA': {{= JSON.stringify(d.stockIndicator.indicatorMap.macd_dea) }}
             }, 'line', {
                 seriesConfig: {
-                    'MACD(Week)': {
+                    'MACD': {
                         type: 'bar',
                         backgroundColor: 'rgba(75, 192, 192, 0.5)',
                         borderColor: 'rgba(75, 192, 192, 1)'
                     },
-                    'DIF(Week)': {
+                    'DIF': {
                         type: 'line',
                         borderColor: 'rgba(255, 99, 132, 1)',
                         backgroundColor: 'rgba(255, 99, 132, 0.2)'
                     },
-                    'DEA(Week)': {
+                    'DEA': {
                         type: 'line',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.2)'
@@ -354,43 +354,49 @@
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('EMA(Week)', {
-                'EMA5(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.ema5) }},
-                'EMA50(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.ema50) }}
+            <a href="javascript:;" onclick="showChart('EMA', {
+                'EMA5': {{= JSON.stringify(d.stockIndicator.indicatorMap.ema5) }},
+                'EMA20': {{= JSON.stringify(d.stockIndicator.indicatorMap.ema20) }},
+                'EMA50': {{= JSON.stringify(d.stockIndicator.indicatorMap.ema50) }}
             }, 'line', {
                 seriesConfig: {
-                    'EMA5(Week)': {
+                    'EMA5': {
                         borderColor: 'rgba(255, 99, 132, 1)',
                         backgroundColor: 'rgba(255, 99, 132, 0.2)'
                     },
-                    'EMA50(Week)': {
+                    'EMA20': {
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)'
+                    },
+                    'EMA50': {
                         borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.2)'
                     }
                 }
-            })" title="EMA(5 50)">
+            })" title="EMA(5 20 50)">
                 <i class="layui-icon layui-icon-link"></i>EMA: {{= d.stockIndicator.indicatorMap.ema5?d.stockIndicator.indicatorMap.ema5[0].value:0 }}
+                {{= d.stockIndicator.indicatorMap.ema20?d.stockIndicator.indicatorMap.ema20[0].value:0 }}
                 {{= d.stockIndicator.indicatorMap.ema50?d.stockIndicator.indicatorMap.ema50[0].value:0 }}
             </a>
         </b>
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('BOLL(Week)', {
-                'BOLL下轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_lower) }},
-                'BOLL中轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_middle) }},
-                'BOLL上轨(Week)': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_upper) }}
+            <a href="javascript:;" onclick="showChart('BOLL', {
+                'BOLL下轨': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_lower) }},
+                'BOLL中轨': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_middle) }},
+                'BOLL上轨': {{= JSON.stringify(d.stockIndicator.indicatorMap.boll_upper) }}
             }, 'line', {
                 seriesConfig: {
-                    'BOLL下轨(Week)': {
+                    'BOLL下轨': {
                         borderColor: 'rgba(75, 192, 192, 1)',
                         backgroundColor: 'rgba(75, 192, 192, 0.2)'
                     },
-                    'BOLL中轨(Week)': {
+                    'BOLL中轨': {
                         borderColor: 'rgba(255, 99, 132, 1)',
                         backgroundColor: 'rgba(255, 99, 132, 0.2)'
                     },
-                    'BOLL上轨(Week)': {
+                    'BOLL上轨': {
                         borderColor: 'rgba(54, 162, 235, 1)',
                         backgroundColor: 'rgba(54, 162, 235, 0.2)'
                     }

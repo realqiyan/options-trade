@@ -9,6 +9,7 @@ import me.dingtou.options.model.*;
 import me.dingtou.options.service.AuthService;
 import me.dingtou.options.service.OptionsQueryService;
 import me.dingtou.options.service.OptionsTradeService;
+import me.dingtou.options.service.SummaryService;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,9 @@ public class WebApiController {
     @Autowired
     private OptionsTradeService optionsTradeService;
 
+    @Autowired
+    private SummaryService summaryService;
+
 
     /**
      * 查询当前用户的证券和策略
@@ -62,7 +66,7 @@ public class WebApiController {
     @RequestMapping(value = "/owner/summary", method = RequestMethod.GET)
     public WebResult<OwnerSummary> queryOwnerSummary() throws Exception {
         String owner = SessionUtils.getCurrentOwner();
-        return WebResult.success(optionsQueryService.queryOwnerSummary(owner));
+        return WebResult.success(summaryService.queryOwnerSummary(owner));
     }
 
     /**
@@ -130,7 +134,7 @@ public class WebApiController {
     @RequestMapping(value = "/options/strategy/get", method = RequestMethod.GET)
     public WebResult<StrategySummary> queryStrategySummary(@RequestParam(value = "strategyId", required = true) String strategyId) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
-        return WebResult.success(optionsQueryService.queryStrategySummary(owner, strategyId));
+        return WebResult.success(summaryService.queryStrategySummary(owner, strategyId));
     }
 
 
