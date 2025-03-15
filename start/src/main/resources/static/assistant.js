@@ -44,6 +44,12 @@ layui.use(['layer', 'form', 'util'], function() {
             this.loadChatSessions();
             this.bindEvents();
             this.loadPrompt();
+            
+            // 监听窗口大小变化，确保滚动正常工作
+            window.addEventListener('resize', () => {
+                // 重新检查聊天历史滚动条
+                setTimeout(() => this.scrollToBottom(), 200);
+            });
         }
 
         /**
@@ -550,7 +556,23 @@ layui.use(['layer', 'form', 'util'], function() {
             }
             
             // 滚动到底部
-            historyDiv.scrollTop = historyDiv.scrollHeight;
+            this.scrollToBottom();
+        }
+        
+        /**
+         * 滚动到聊天历史底部
+         */
+        scrollToBottom() {
+            const historyDiv = this.elements.chatHistory;
+            if (historyDiv) {
+                // 确保样式设置允许滚动
+                historyDiv.style.overflowY = 'auto';
+                
+                // 滚动到底部
+                setTimeout(() => {
+                    historyDiv.scrollTop = historyDiv.scrollHeight;
+                }, 50);
+            }
         }
         
         /**
@@ -582,7 +604,7 @@ layui.use(['layer', 'form', 'util'], function() {
             `;
             
             historyDiv.appendChild(typingDiv);
-            historyDiv.scrollTop = historyDiv.scrollHeight;
+            this.scrollToBottom();
             this.isTyping = true;
         }
         
@@ -618,7 +640,7 @@ layui.use(['layer', 'form', 'util'], function() {
             `;
             
             historyDiv.appendChild(messageDiv);
-            historyDiv.scrollTop = historyDiv.scrollHeight;
+            this.scrollToBottom();
             
             // 保存系统消息到服务器
             this.saveSystemMessage(content);

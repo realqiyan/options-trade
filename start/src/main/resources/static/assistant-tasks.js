@@ -41,13 +41,53 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
             // 绑定事件
             this.bindEvents();
             
+            // 修复layui标签页可能导致的滚动问题
+            this.fixLayuiTabScroll();
+            
             // 选项卡切换时触发事件
             element.on('tab(chat-tabs)', (data) => {
                 if (data.index === 1) {
                     // 切换到任务选项卡时加载任务列表
                     this.loadTasks();
+                } else if (data.index === 0) {
+                    // 切换回聊天选项卡时修复滚动
+                    setTimeout(() => this.fixChatHistoryScroll(), 100);
                 }
             });
+        }
+        
+        /**
+         * 修复layui标签页切换可能导致的滚动问题
+         */
+        fixLayuiTabScroll() {
+            // 确保聊天历史记录区域的滚动始终可用
+            const fixScroll = () => {
+                const chatHistory = document.getElementById('chat-history');
+                if (chatHistory) {
+                    chatHistory.style.overflowY = 'auto';
+                    // 尝试滚动到底部
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                }
+            };
+            
+            // 绑定到窗口大小变化事件
+            window.addEventListener('resize', fixScroll);
+            
+            // 初始调用一次
+            fixScroll();
+        }
+        
+        /**
+         * 修复聊天历史滚动问题
+         */
+        fixChatHistoryScroll() {
+            const chatHistory = document.getElementById('chat-history');
+            if (chatHistory) {
+                // 确保样式正确
+                chatHistory.style.overflowY = 'auto';
+                // 滚动到最新消息
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
         }
         
         /**
