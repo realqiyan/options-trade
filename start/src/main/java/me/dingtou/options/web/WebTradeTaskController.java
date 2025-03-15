@@ -141,4 +141,25 @@ public class WebTradeTaskController {
             return WebResult.failure("删除交易任务失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 编辑交易任务
+     *
+     * @param taskId 任务ID
+     * @param tradeTask 任务信息
+     * @return 是否成功
+     */
+    @PostMapping("/task/update")
+    public WebResult<Boolean> updateTask(@RequestParam("taskId") Long taskId, @RequestBody OwnerTradeTask tradeTask) {
+        try {
+            String owner = SessionUtils.getCurrentOwner();
+            // 设置任务ID
+            tradeTask.setId(taskId);
+            boolean result = tradeTaskService.updateTradeTask(owner, tradeTask);
+            return WebResult.success(result);
+        } catch (Exception e) {
+            log.error("编辑交易任务失败", e);
+            return WebResult.failure("编辑交易任务失败: " + e.getMessage());
+        }
+    }
 } 

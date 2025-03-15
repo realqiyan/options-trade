@@ -14,16 +14,19 @@
             display: flex;
             height: calc(100vh - 200px);
             transition: all 0.3s ease;
+            min-height: 500px;
         }
         
         /* 聊天历史列表样式 */
         .chat-list {
             width: 300px;
+            min-width: 250px;
             border-right: 1px solid #eee;
             overflow-y: auto;
             padding: 10px;
             transition: all 0.3s ease;
             background-color: #fafafa;
+            flex-shrink: 0;
         }
         
         /* 聊天内容区域样式 */
@@ -32,6 +35,8 @@
             display: flex;
             flex-direction: column;
             transition: all 0.3s ease;
+            overflow: hidden;
+            min-width: 0;
         }
         
         /* 聊天历史记录样式 */
@@ -621,12 +626,22 @@
         
         .chat-tabs .layui-tab-content {
             padding: 10px 0;
+            height: auto;
+            overflow: visible;
+        }
+        
+        /* 任务列表区域 */
+        #task-list {
+            overflow-y: auto;
+            padding: 10px 0;
         }
         
         /* 任务面板样式 */
         .tasks-panel {
             display: none;
             margin-top: 15px;
+            height: calc(100vh - 350px);
+            overflow-y: auto;
         }
         
         .tasks-panel.active {
@@ -790,13 +805,6 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            
-                                            <!-- 创建任务按钮 -->
-                                            <div class="create-task-btn">
-                                                <button class="layui-btn layui-btn-normal" id="create-task-btn">
-                                                    <i class="layui-icon layui-icon-add-1"></i> 创建交易任务
-                                                </button>
                                             </div>
                                             
                                             <!-- 任务列表区域 -->

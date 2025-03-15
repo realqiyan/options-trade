@@ -18,7 +18,6 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                 codeFilter: document.getElementById('code-filter'),
                 searchBtn: document.getElementById('search-btn'),
                 resetBtn: document.getElementById('reset-btn'),
-                createTaskBtn: document.getElementById('create-task-btn'),
                 tasksPanel: document.querySelector('.tasks-panel')
             };
             
@@ -66,9 +65,6 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                 form.render('select');
                 this.loadTasks();
             });
-            
-            // 创建任务按钮点击事件
-            this.elements.createTaskBtn.addEventListener('click', () => this.showCreateTaskForm());
         }
         
         /**
@@ -329,7 +325,7 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                                     <span>${task.createTime ? util.toDateString(new Date(task.createTime), 'yyyy-MM-dd HH:mm:ss') : '未知'}</span>
                                 </div>
                                 <div class="task-info-item">
-                                    <span class="task-info-label">任务描述：</span>
+                                    <span class="task-info-label">扩展信息：</span>
                                     <div class="json-tree-container">${extContent}</div>
                                 </div>
                             </div>
@@ -342,6 +338,9 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                                         <i class="layui-icon layui-icon-close"></i> 取消
                                     </button>
                                 ` : ''}
+                                <button class="layui-btn layui-btn-sm layui-btn-normal edit-task-btn" data-id="${task.id}">
+                                    <i class="layui-icon layui-icon-edit"></i> 编辑
+                                </button>
                                 <button class="layui-btn layui-btn-sm delete-task-btn" data-id="${task.id}">
                                     <i class="layui-icon layui-icon-delete"></i> 删除
                                 </button>
@@ -372,6 +371,14 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                 btn.addEventListener('click', () => {
                     const taskId = btn.dataset.id;
                     this.deleteTask(taskId);
+                });
+            });
+
+            // 添加编辑按钮事件监听
+            document.querySelectorAll('.edit-task-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const taskId = btn.dataset.id;
+                    this.showEditTaskForm(taskId);
                 });
             });
 
@@ -526,150 +533,6 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
         }
         
         /**
-         * 显示创建任务表单
-         */
-        showCreateTaskForm() {
-            layer.open({
-                type: 1,
-                title: '创建交易任务',
-                area: ['500px', '550px'],
-                content: `
-                    <div class="layui-form" style="padding: 20px;">
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">任务类型</label>
-                            <div class="layui-input-block">
-                                <select name="taskType" lay-verify="required">
-                                    <option value="">请选择任务类型</option>
-                                    <option value="1">买入期权</option>
-                                    <option value="2">卖出期权</option>
-                                    <option value="5">平仓期权</option>
-                                    <option value="7">滚动期权</option>
-                                    <option value="99">其他任务</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">标的代码</label>
-                            <div class="layui-input-block">
-                                <input type="text" name="code" placeholder="请输入标的代码" class="layui-input">
-                            </div>
-                        </div>
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">策略ID</label>
-                            <div class="layui-input-block">
-                                <input type="text" name="strategyId" placeholder="请输入策略ID" class="layui-input">
-                            </div>
-                        </div>
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">开始时间</label>
-                            <div class="layui-input-block">
-                                <input type="text" name="startTime" id="startTime" placeholder="请选择开始时间" class="layui-input">
-                            </div>
-                        </div>
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">结束时间</label>
-                            <div class="layui-input-block">
-                                <input type="text" name="endTime" id="endTime" placeholder="请选择结束时间" class="layui-input">
-                            </div>
-                        </div>
-                        <div class="layui-form-item layui-form-text">
-                            <label class="layui-form-label">任务描述</label>
-                            <div class="layui-input-block">
-                                <textarea name="description" placeholder="请输入任务描述" class="layui-textarea"></textarea>
-                            </div>
-                        </div>
-                        <div class="layui-form-item">
-                            <div class="layui-input-block">
-                                <button class="layui-btn" lay-submit lay-filter="createTaskForm">提交</button>
-                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-                            </div>
-                        </div>
-                    </div>
-                `,
-                success: (layero, index) => {
-                    // 初始化日期选择器
-                    layui.laydate.render({
-                        elem: '#startTime',
-                        type: 'datetime'
-                    });
-                    
-                    layui.laydate.render({
-                        elem: '#endTime',
-                        type: 'datetime'
-                    });
-                    
-                    // 初始化表单
-                    form.render();
-                    
-                    // 监听表单提交
-                    form.on('submit(createTaskForm)', (data) => {
-                        // 添加当前会话ID
-                        if (this.currentSessionId) {
-                            data.field.sessionId = this.currentSessionId;
-                        }
-                        
-                        // 处理任务描述
-                        if (data.field.description) {
-                            data.field.ext = JSON.stringify({
-                                task_description: data.field.description
-                            });
-                            delete data.field.description;
-                        }
-                        
-                        // 发送创建任务请求
-                        this.createTask(data.field, index);
-                        return false;
-                    });
-                }
-            });
-        }
-        
-        /**
-         * 创建任务
-         */
-        createTask(formData, layerIndex) {
-            // 构建请求体
-            const formBody = new URLSearchParams();
-            for (const key in formData) {
-                if (formData[key]) {
-                    formBody.append(key, formData[key]);
-                }
-            }
-            
-            // 发送请求
-            fetch('/task/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: formBody
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    layer.msg('任务创建成功');
-                    layer.close(layerIndex);
-                    this.loadTasks();
-                    
-                    // 如果创建了与会话相关的任务，在聊天中添加消息提示
-                    if (this.currentSessionId && window.aiChatApp) {
-                        const taskTypeText = this.getTypeText(formData.taskType);
-                        const message = `已创建${taskTypeText}任务：${formData.code || '未知标的'}`;
-                        
-                        // 添加系统消息
-                        window.aiChatApp.addSystemMessage(message);
-                    }
-                } else {
-                    layer.msg('创建任务失败: ' + result.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                layer.msg('创建任务失败');
-            });
-        }
-        
-        /**
          * 执行任务
          */
         executeTask(taskId) {
@@ -743,7 +606,7 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
          * 删除任务
          */
         deleteTask(taskId) {
-            layer.confirm('确定要删除此任务吗？此操作不可恢复！', {
+            layer.confirm('确定要删除此任务吗？', {
                 btn: ['确定', '取消']
             }, () => {
                 fetch(`/task/delete?taskId=${taskId}`, {
@@ -752,13 +615,8 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                 .then(response => response.json())
                 .then(result => {
                     if (result.success) {
-                        layer.msg('任务已删除');
+                        layer.msg('任务删除成功');
                         this.loadTasks();
-                        
-                        // 在聊天中添加消息提示
-                        if (this.currentSessionId && window.aiChatApp) {
-                            window.aiChatApp.addSystemMessage(`任务#${taskId}已删除`);
-                        }
                     } else {
                         layer.msg('删除任务失败: ' + result.message);
                     }
@@ -768,6 +626,287 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                     layer.msg('删除任务失败');
                 });
             });
+        }
+        
+        /**
+         * 显示编辑任务表单
+         */
+        showEditTaskForm(taskId) {
+            // 先获取任务详情
+            fetch(`/task/list?taskId=${taskId}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (!result.success || !result.data || result.data.length === 0) {
+                        layer.msg('获取任务详情失败');
+                        return;
+                    }
+                    
+                    const task = result.data.find(t => t.id == taskId);
+                    if (!task) {
+                        layer.msg('未找到任务详情');
+                        return;
+                    }
+                    
+                    // 准备ext字段的JSON格式
+                    let extJson = '';
+                    if (task.ext) {
+                        try {
+                            const extObj = typeof task.ext === 'string' ? JSON.parse(task.ext) : task.ext;
+                            extJson = JSON.stringify(extObj, null, 2);
+                        } catch (e) {
+                            extJson = typeof task.ext === 'string' ? task.ext : JSON.stringify(task.ext);
+                            console.error('格式化ext字段失败:', e);
+                        }
+                    }
+                    
+                    // 打开编辑表单
+                    layer.open({
+                        type: 1,
+                        title: '编辑交易任务',
+                        area: ['500px', '550px'],
+                        content: `
+                            <div class="layui-form" style="padding: 20px;">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">任务类型</label>
+                                    <div class="layui-input-block">
+                                        <select name="taskType" lay-verify="required">
+                                            <option value="">请选择任务类型</option>
+                                            <option value="1" ${task.taskType == 1 ? 'selected' : ''}>买入期权</option>
+                                            <option value="2" ${task.taskType == 2 ? 'selected' : ''}>卖出期权</option>
+                                            <option value="5" ${task.taskType == 5 ? 'selected' : ''}>平仓期权</option>
+                                            <option value="7" ${task.taskType == 7 ? 'selected' : ''}>滚动期权</option>
+                                            <option value="99" ${task.taskType == 99 ? 'selected' : ''}>其他任务</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">标的代码</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="code" value="${task.code || ''}" placeholder="请输入标的代码" class="layui-input">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">策略ID</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="strategyId" value="${task.strategyId || ''}" placeholder="请输入策略ID" class="layui-input">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">开始时间</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="startTime" id="startTime" value="${task.startTime ? util.toDateString(new Date(task.startTime), 'yyyy-MM-dd HH:mm:ss') : ''}" placeholder="请选择开始时间" class="layui-input">
+                                        <div class="layui-form-mid layui-word-aux">格式: YYYY-MM-DD HH:MM:SS</div>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">结束时间</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="endTime" id="endTime" value="${task.endTime ? util.toDateString(new Date(task.endTime), 'yyyy-MM-dd HH:mm:ss') : ''}" placeholder="请选择结束时间" class="layui-input">
+                                        <div class="layui-form-mid layui-word-aux">格式: YYYY-MM-DD HH:MM:SS</div>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item layui-form-text">
+                                    <label class="layui-form-label">扩展字段</label>
+                                    <div class="layui-input-block">
+                                        <textarea name="extJson" placeholder="请输入JSON格式的扩展字段" class="layui-textarea" style="height: 150px; font-family: monospace;">${extJson}</textarea>
+                                        <div class="layui-form-mid layui-word-aux">
+                                            <p>请确保输入有效的JSON格式。此字段包含任务的所有扩展属性。</p>
+                                            <p>例如：{"task_description":"任务说明","strike_price":"100","option_type":"call"}</p>
+                                            <button type="button" class="layui-btn layui-btn-xs" id="validate-json-btn">
+                                                <i class="layui-icon layui-icon-ok"></i> 验证JSON
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block">
+                                        <button class="layui-btn" lay-submit lay-filter="editTaskForm">提交</button>
+                                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        success: (layero, index) => {
+                            // 初始化日期选择器
+                            layui.laydate.render({
+                                elem: '#startTime',
+                                type: 'datetime'
+                            });
+                            
+                            layui.laydate.render({
+                                elem: '#endTime',
+                                type: 'datetime'
+                            });
+                            
+                            // 初始化表单
+                            form.render();
+                            
+                            // 添加JSON验证功能
+                            document.getElementById('validate-json-btn').addEventListener('click', () => {
+                                const jsonText = document.querySelector('textarea[name="extJson"]').value;
+                                try {
+                                    if (!jsonText.trim()) {
+                                        layer.msg('JSON内容为空');
+                                        return;
+                                    }
+                                    
+                                    // 尝试解析JSON
+                                    const parsedJson = JSON.parse(jsonText);
+                                    
+                                    // 格式化JSON并更新文本区域
+                                    const formattedJson = JSON.stringify(parsedJson, null, 2);
+                                    document.querySelector('textarea[name="extJson"]').value = formattedJson;
+                                    
+                                    layer.msg('JSON格式有效，已自动格式化');
+                                } catch (e) {
+                                    layer.msg('JSON格式无效: ' + e.message);
+                                }
+                            });
+                            
+                            // 监听表单提交
+                            form.on('submit(editTaskForm)', (data) => {
+                                // 验证日期格式
+                                if (data.field.startTime && !this.formatDateToISO(data.field.startTime)) {
+                                    layer.msg('开始时间格式无效，请使用正确的日期格式');
+                                    return false;
+                                }
+                                if (data.field.endTime && !this.formatDateToISO(data.field.endTime)) {
+                                    layer.msg('结束时间格式无效，请使用正确的日期格式');
+                                    return false;
+                                }
+                                
+                                // 处理扩展字段JSON
+                                if (data.field.extJson) {
+                                    try {
+                                        // 验证JSON格式
+                                        const extObj = JSON.parse(data.field.extJson);
+                                        
+                                        // 如果有任务描述，更新到扩展字段中
+                                        if (data.field.description) {
+                                            extObj.task_description = data.field.description;
+                                        }
+                                        
+                                        // 设置ext字段 - 作为对象而不是字符串
+                                        data.field.ext = extObj;
+                                    } catch (e) {
+                                        layer.msg('扩展字段JSON格式无效，请检查');
+                                        console.error('解析扩展字段JSON失败:', e);
+                                        return false;
+                                    }
+                                } else if (data.field.description) {
+                                    // 如果没有提供扩展字段但有任务描述，创建新的扩展字段
+                                    data.field.ext = {
+                                        task_description: data.field.description
+                                    };
+                                }
+                                
+                                // 删除中间字段，不需要发送到服务器
+                                delete data.field.description;
+                                delete data.field.extJson;
+                                
+                                // 发送编辑任务请求
+                                this.editTask(taskId, data.field, index);
+                                return false;
+                            });
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    layer.msg('获取任务详情失败');
+                });
+        }
+        
+        /**
+         * 编辑任务
+         */
+        editTask(taskId, formData, layerIndex) {
+            // 构建请求数据
+            const taskData = { ...formData };
+            
+            // 处理日期格式
+            if (taskData.startTime) {
+                const isoStartTime = this.formatDateToISO(taskData.startTime);
+                if (isoStartTime) {
+                    taskData.startTime = isoStartTime;
+                }
+            }
+            
+            if (taskData.endTime) {
+                const isoEndTime = this.formatDateToISO(taskData.endTime);
+                if (isoEndTime) {
+                    taskData.endTime = isoEndTime;
+                }
+            }
+            
+            // 确保ext字段是对象而不是字符串
+            if (taskData.ext && typeof taskData.ext === 'string') {
+                try {
+                    taskData.ext = JSON.parse(taskData.ext);
+                } catch (e) {
+                    console.error('解析ext字段失败:', e);
+                    layer.msg('扩展字段格式错误，请重新检查');
+                    return;
+                }
+            }
+            
+            // 发送请求
+            fetch(`/task/update?taskId=${taskId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(taskData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    layer.msg('任务更新成功');
+                    layer.close(layerIndex);
+                    this.loadTasks();
+                    
+                    // 如果更新了与会话相关的任务，在聊天中添加消息提示
+                    if (this.currentSessionId && window.aiChatApp) {
+                        const taskTypeText = this.getTypeText(formData.taskType);
+                        const message = `已更新${taskTypeText}任务：${formData.code || '未知标的'}`;
+                        
+                        // 添加系统消息
+                        window.aiChatApp.addSystemMessage(message);
+                    }
+                } else {
+                    layer.msg('更新任务失败: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                layer.msg('更新任务失败');
+            });
+        }
+        
+        /**
+         * 将日期字符串转换为ISO 8601格式
+         * @param {string} dateStr 日期字符串
+         * @returns {string} ISO 8601格式的日期字符串
+         */
+        formatDateToISO(dateStr) {
+            if (!dateStr) return null;
+            
+            try {
+                // 尝试解析日期字符串
+                const date = new Date(dateStr);
+                
+                // 检查日期是否有效
+                if (isNaN(date.getTime())) {
+                    console.error('无效的日期:', dateStr);
+                    return null;
+                }
+                
+                // 返回ISO格式的日期字符串
+                return date.toISOString();
+            } catch (e) {
+                console.error('日期格式转换失败:', e);
+                return null;
+            }
         }
     }
     
