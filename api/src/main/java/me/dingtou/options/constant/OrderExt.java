@@ -29,7 +29,7 @@ public enum OrderExt {
     TOTAL_INCOME("totalIncome", String.class),
 
     /**
-     * 是否平仓
+     * 是否平仓（会计算多订单之间的买卖抵消）
      */
     IS_CLOSE("isClose", String.class),
 
