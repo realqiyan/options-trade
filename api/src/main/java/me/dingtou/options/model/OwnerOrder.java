@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -143,6 +144,32 @@ public class OwnerOrder implements Cloneable {
     @TableField(typeHandler = JacksonTypeHandler.class)
     private Map<String, String> ext;
 
+    /**
+     * 获取扩展字段值
+     *
+     * @param extKey 扩展字段枚举
+     * @return 扩展字段值
+     */
+    public String getExtValue(OrderExt extKey) {
+        if (ext == null) {
+            return null;
+        }
+        return ext.get(extKey.getKey());
+    }
+
+    /**
+     * 设置扩展字段值
+     *
+     * @param extKey 扩展字段枚举
+     * @param value  扩展字段值
+     */
+    public void setExtValue(OrderExt extKey, Object value) {
+        if (ext == null) {
+            ext = new HashMap<>();
+        }
+        ext.put(extKey.getKey(), extKey.toString(value));
+    }
+
     @Override
     public OwnerOrder clone() {
         try {
@@ -186,36 +213,6 @@ public class OwnerOrder implements Cloneable {
         } else {
             return "C".equals(matcher.group(3));
         }
-    }
-
-    /**
-     * 订单的行权价格
-     * 
-     * @param order 订单
-     * @return 行权价格
-     */
-    public static BigDecimal strikePrice(OwnerOrder order) {
-        Matcher matcher = OPTIONS_CODE_REGEX.matcher(order.getCode());
-        if (!matcher.find()) {
-            throw new IllegalArgumentException("invalid options code: " + order.getCode());
-        } else {
-            return new BigDecimal(matcher.group(4)).divide(BigDecimal.valueOf(1000));
-        }
-    }
-
-    /**
-     * 订单的到期日
-     * 
-     * @param order 订单
-     * @return 到期日
-     */
-    public static long daysToExpiration(OwnerOrder order) {
-        // 使用America/New_York时区
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        LocalDate localDate = new Date().toInstant().atZone(NEW_YORK_ZONE_ID).toLocalDate();
-        String strikeDateStr = simpleDateFormat.format(order.getStrikeTime());
-        LocalDate strikeDate = LocalDate.parse(strikeDateStr);
-        return ChronoUnit.DAYS.between(localDate, strikeDate);
     }
 
     /**
@@ -263,8 +260,8 @@ public class OwnerOrder implements Cloneable {
             }
             // 综合其他订单确认是否已经平仓
             if (order.getExt() != null
-                    && order.getExt().containsKey(OrderExt.IS_CLOSE.getCode())
-                    && Boolean.valueOf(order.getExt().get(OrderExt.IS_CLOSE.getCode()))) {
+                    && order.getExt().containsKey(OrderExt.IS_CLOSE.getKey())
+                    && Boolean.valueOf(order.getExt().get(OrderExt.IS_CLOSE.getKey()))) {
                 return true;
             }
             return false;
@@ -311,6 +308,50 @@ public class OwnerOrder implements Cloneable {
     public static boolean isBuy(OwnerOrder order) {
         return order.getSide().equals(TradeSide.BUY.getCode())
                 || order.getSide().equals(TradeSide.BUY_BACK.getCode());
+    }
+
+    /**
+     * 订单的行权价格
+     * 
+     * @param order 订单
+     * @return 行权价格
+     */
+    public static BigDecimal strikePrice(OwnerOrder order) {
+        Matcher matcher = OPTIONS_CODE_REGEX.matcher(order.getCode());
+        if (!matcher.find()) {
+            throw new IllegalArgumentException("invalid options code: " + order.getCode());
+        } else {
+            return new BigDecimal(matcher.group(4)).divide(BigDecimal.valueOf(1000));
+        }
+    }
+
+    /**
+     * 订单的到期日
+     * 
+     * @param order 订单
+     * @return 到期日
+     */
+    public static long daysToExpiration(OwnerOrder order) {
+        // 使用America/New_York时区
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        LocalDate localDate = new Date().toInstant().atZone(NEW_YORK_ZONE_ID).toLocalDate();
+        String strikeDateStr = simpleDateFormat.format(order.getStrikeTime());
+        LocalDate strikeDate = LocalDate.parse(strikeDateStr);
+        return ChronoUnit.DAYS.between(localDate, strikeDate);
+    }
+
+    /**
+     * 订单的合约数量
+     * 
+     * @param order 订单
+     * @return 合约数量
+     */
+    public static int lotSize(OwnerOrder order) {
+        String lotSize = order.getExtValue(OrderExt.LOT_SIZE);
+        if (null == lotSize) {
+            return 100;
+        }
+        return (int) OrderExt.LOT_SIZE.fromString(lotSize);
     }
 
 }

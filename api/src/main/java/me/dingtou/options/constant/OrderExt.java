@@ -13,6 +13,9 @@ import me.dingtou.options.model.OwnerOrder;
 @Getter
 public enum OrderExt {
 
+    ////////////////////////////////
+    //          实时属性           //
+    ////////////////////////////////
     /**
      * 当前价格
      */
@@ -24,6 +27,11 @@ public enum OrderExt {
     CUR_DTE("curDTE", Integer.class),
 
     /**
+     * 盈亏比例
+     */
+    PROFIT_RATIO("profitRatio", String.class),
+
+    /**
      * 总收益
      */
     TOTAL_INCOME("totalIncome", String.class),
@@ -33,10 +41,16 @@ public enum OrderExt {
      */
     IS_CLOSE("isClose", String.class),
 
+    
+
+    ////////////////////////////////
+    //          静态属性           //
+    ////////////////////////////////
+    
     /**
-     * 盈亏比例
+     * 一笔订单的合约数量
      */
-    PROFIT_RATIO("profitRatio", String.class),
+    LOT_SIZE("lotSize", Integer.class),
 
     /**
      * 来源订单
@@ -48,22 +62,22 @@ public enum OrderExt {
      */
     SOURCE_OPTIONS("sourceOptions", Options.class);
 
-    private final String code;
+    private final String key;
     private final Class<?> classType;
 
-    OrderExt(String code, Class<?> classType) {
-        this.code = code;
+    OrderExt(String key, Class<?> classType) {
+        this.key = key;
         this.classType = classType;
     }
 
-    public static OrderExt of(String code) {
+    public static OrderExt of(String key) {
         OrderExt[] values = OrderExt.values();
         for (OrderExt val : values) {
-            if (val.getCode().equals(code)) {
+            if (val.getKey().equals(key)) {
                 return val;
             }
         }
-        throw new IllegalArgumentException(code + " not found.");
+        throw new IllegalArgumentException(key + " not found.");
     }
 
     public String toString(Object obj) {

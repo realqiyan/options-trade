@@ -105,10 +105,7 @@ public class OwnerManager {
      * @return owner订单
      */
     public OwnerOrder queryOwnerOrder(String owner, String platformOrderId, String platformFillId) {
-        QueryWrapper<OwnerOrder> query = new QueryWrapper<>();
-        query.eq("owner", owner);
-        query.eq("platform_order_id", platformOrderId);
-        List<OwnerOrder> ownerOrderList = ownerOrderDAO.selectList(query);
+        List<OwnerOrder> ownerOrderList = ownerOrderDAO.queryOwnerPlatformOrder(owner, platformOrderId);
         if (null == ownerOrderList || ownerOrderList.isEmpty()) {
             throw new RuntimeException("query owner order error");
         }
@@ -131,10 +128,8 @@ public class OwnerManager {
      * @return owner策略订单
      */
     public List<OwnerOrder> queryStrategyOrder(OwnerStrategy strategy) {
-        QueryWrapper<OwnerOrder> query = new QueryWrapper<>();
-        query.eq("owner", strategy.getOwner());
-        query.eq("strategy_id", strategy.getStrategyId());
-        List<OwnerOrder> ownerOrders = ownerOrderDAO.selectList(query);
+        List<OwnerOrder> ownerOrders = ownerOrderDAO.queryOwnerStrategyOrder(strategy.getOwner(),
+                strategy.getStrategyId());
         // 初始化订单扩展字段
         for (OwnerOrder ownerOrder : ownerOrders) {
             if (null == ownerOrder.getExt()) {
@@ -188,17 +183,17 @@ public class OwnerManager {
                         .multiply(new BigDecimal(strategy.getLotSize()))
                         .multiply(new BigDecimal(TradeSide.of(ownerOrder.getSide()).getSign())));
                 // 订单收益
-                ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getCode(), totalIncome.toPlainString());
+                ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getKey(), totalIncome.toPlainString());
             }
 
             // 订单是否平仓
             boolean currentOrderClose = OwnerOrder.isClose(ownerOrder);
             Boolean isClose = currentOrderClose || orderClose.getOrDefault(ownerOrder.getCode(), false);
-            ownerOrder.getExt().put(OrderExt.IS_CLOSE.getCode(), String.valueOf(isClose));
+            ownerOrder.getExt().put(OrderExt.IS_CLOSE.getKey(), String.valueOf(isClose));
 
             // 计算期权到期日ownerOrder.getStrikeTime()和now的间隔天数
             long daysToExpiration = OwnerOrder.daysToExpiration(ownerOrder);
-            ownerOrder.getExt().put(OrderExt.CUR_DTE.getCode(), String.valueOf(daysToExpiration));
+            ownerOrder.getExt().put(OrderExt.CUR_DTE.getKey(), String.valueOf(daysToExpiration));
 
         }
 
@@ -244,14 +239,14 @@ public class OwnerManager {
                 continue;
             }
             BigDecimal curPrice = any.get().getCurPrice();
-            ownerOrder.getExt().put(OrderExt.CUR_PRICE.getCode(), curPrice.toPlainString());
+            ownerOrder.getExt().put(OrderExt.CUR_PRICE.getKey(), curPrice.toPlainString());
             if (OwnerOrder.isSell(ownerOrder)) {
                 BigDecimal profitRatio = ownerOrder.getPrice()
                         .subtract(curPrice)
                         .divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP)
                         .multiply(new BigDecimal(100));
                 profitRatio = NumberUtils.scale(profitRatio);
-                ownerOrder.getExt().put(OrderExt.PROFIT_RATIO.getCode(), profitRatio.toPlainString());
+                ownerOrder.getExt().put(OrderExt.PROFIT_RATIO.getKey(), profitRatio.toPlainString());
             }
         }
     }
