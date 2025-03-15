@@ -473,7 +473,7 @@
             <p><b>当前价格:</b> ${{= item.ext.curPrice }}</p>
             {{# } }}
             {{# if(item.ext && item.ext.profitRatio !== null) { }}
-            <p><b>盈亏比例:</b> <span class="{{= parseFloat(item.ext.profitRatio) >= 0 ? 'layui-font-green' : 'layui-font-red' }}">{{= item.ext.profitRatio }}%</span></p>
+            <p><b>盈亏比例:</b> <span class="{{= item.ext.profitRatio >= 0 ? 'layui-font-red' : 'layui-font-green' }}">{{= item.ext.profitRatio }}%</span></p>
             {{# } }}
             {{# if(item.ext && item.ext.curDTE !== null) { }}
             <p><b>剩余天数:</b> <span class="{{= item.ext.curDTE > 0 ? 'layui-font-green' : 'layui-font-red' }}">{{= item.ext.curDTE }}天</span></p>

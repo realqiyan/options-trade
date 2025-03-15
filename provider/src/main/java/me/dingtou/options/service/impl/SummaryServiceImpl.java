@@ -3,15 +3,11 @@ package me.dingtou.options.service.impl;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
+import me.dingtou.options.dao.OwnerStrategyDAO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +26,7 @@ import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
 import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.service.SummaryService;
+import org.springframework.util.CollectionUtils;
 
 @Service
 public class SummaryServiceImpl implements SummaryService {
@@ -43,6 +40,9 @@ public class SummaryServiceImpl implements SummaryService {
     @Autowired
     private SecurityQuoteGateway securityQuoteGateway;
 
+    @Autowired
+    private OwnerStrategyDAO ownerStrategyDAO;
+
     @Override
     public OwnerSummary queryOwnerSummary(String owner) {
         OwnerSummary ownerSummary = new OwnerSummary();
@@ -51,17 +51,20 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal totalFee = BigDecimal.ZERO;
         BigDecimal unrealizedOptionsIncome = BigDecimal.ZERO;
 
-        List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
+        List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategyForSummary(owner);
         List<StrategySummary> strategySummaries = new CopyOnWriteArrayList<>();
         // 批量拉取策略数据
         ownerStrategies.parallelStream().forEach(ownerStrategy -> {
-            StrategySummary strategySummary = queryStrategySummary(owner, ownerStrategy.getStrategyId());
+            StrategySummary strategySummary = queryStrategySummary(owner, ownerStrategy);
             strategySummaries.add(strategySummary);
         });
-
+        strategySummaries.stream().filter(summary-> CollectionUtils.isEmpty(summary.getStrategyOrders())).forEach(strategySummaries::remove);
         // 统计
         List<OwnerOrder> unrealizedOrders = new ArrayList<>();
         for (StrategySummary strategySummary : strategySummaries) {
+            if (null == strategySummary.getAllOptionsIncome()) {
+                continue;
+            }
             allOptionsIncome = allOptionsIncome.add(strategySummary.getAllOptionsIncome());
             totalFee = totalFee.add(strategySummary.getTotalFee());
             unrealizedOptionsIncome = unrealizedOptionsIncome.add(strategySummary.getUnrealizedOptionsIncome());
@@ -135,18 +138,9 @@ public class SummaryServiceImpl implements SummaryService {
         return ownerSummary;
     }
 
-    @Override
-    public StrategySummary queryStrategySummary(String owner, String strategyId) {
+    public StrategySummary queryStrategySummary(String owner, OwnerStrategy ownerStrategy) {
         StrategySummary summary = new StrategySummary();
-        List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
-        Optional<OwnerStrategy> strategyOptional = ownerStrategies.stream()
-                .filter(ownerStrategy -> ownerStrategy.getStrategyId().equals(strategyId))
-                .findAny();
-        if (strategyOptional.isEmpty()) {
-            return summary;
-        }
-        // 策略
-        OwnerStrategy ownerStrategy = strategyOptional.get();
+
         summary.setStrategy(ownerStrategy);
 
         // 订单列表
@@ -243,6 +237,15 @@ public class SummaryServiceImpl implements SummaryService {
         }
 
         return summary;
+    }
+
+    @Override
+    public StrategySummary queryStrategySummary(String owner, String strategyId) {
+        OwnerStrategy ownerStrategy = ownerStrategyDAO.queryStrategyByStrategyId(strategyId);
+        if(ownerStrategy.getStatus()==0){
+            return null;
+        }
+        return queryStrategySummary(owner, ownerStrategy);
     }
 
 }

@@ -377,21 +377,6 @@ function reloadData(){
                             sourceOptions = order.ext.sourceOptions;
                         }
                         
-                        // 计算盈亏比例
-                        const originalPrice = order.price;
-                        const currentPrice = sourceOptions && sourceOptions.realtimeData ? 
-                            sourceOptions.realtimeData.curPrice : null;
-                        
-                        let profitRatio = null;
-                        if (currentPrice !== null && originalPrice) {
-                            // 买入时，当前价格上涨为盈利；卖出时，当前价格下跌为盈利
-                            if (order.side === 1) { // 买入
-                                profitRatio = (((currentPrice - originalPrice) / originalPrice) * 100).toFixed(2);
-                            } else { // 卖出
-                                profitRatio = (((originalPrice - currentPrice) / originalPrice) * 100).toFixed(2);
-                            }
-                        }
-                        
                         // 计算剩余天数
                         const strikeDate = new Date(order.strikeTime);
                         const today = new Date();
@@ -401,8 +386,6 @@ function reloadData(){
                             ...order,
                             ext: {
                                 ...order.ext,
-                                curPrice: currentPrice,
-                                profitRatio: profitRatio,
                                 curDTE: curDTE
                             }
                         };

@@ -65,7 +65,7 @@ public class AdminServiceImpl implements AdminService {
             security.setCreateTime(new Date());
             if (security.getStatus() == null) {
                 security.setStatus(1);
-            }
+            } 
             ownerSecurityDAO.insert(security);
         } else {
             // 更新
@@ -84,7 +84,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<OwnerStrategy> listStrategies(String owner) {
-        return ownerStrategyDAO.queryOwnerStrategies(owner);
+
+        LambdaUpdateWrapper<OwnerStrategy> queryWrapper = new LambdaUpdateWrapper<>();
+        queryWrapper.eq(OwnerStrategy::getOwner, owner);
+        queryWrapper.orderByDesc(OwnerStrategy::getStatus, OwnerStrategy::getId);
+        List<OwnerStrategy> strategies = ownerStrategyDAO.selectList(queryWrapper);
+
+        return strategies;
     }
 
     @Override
