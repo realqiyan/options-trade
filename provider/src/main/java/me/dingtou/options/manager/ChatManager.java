@@ -11,6 +11,7 @@ import com.openai.models.ChatCompletionCreateParams;
 import com.openai.models.ChatCompletionMessage;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.Message;
 
 import me.dingtou.options.model.OwnerAccount;
@@ -30,6 +31,7 @@ import java.util.function.Function;
  *
  * @author qiyan
  */
+@Slf4j
 @Component
 public class ChatManager {
     /**
@@ -126,36 +128,41 @@ public class ChatManager {
         }
         ChatCompletionCreateParams createParams = builder.build();
 
-        getClient(account).chat().completions().createStreaming(createParams).subscribe(chatCompletionChunk -> {
-            String id = chatCompletionChunk.id();
-            // 保存第一个消息块的ID作为整个消息的ID
-            if (messageId[0] == null) {
-                messageId[0] = id;
-            }
-
-            chatCompletionChunk.choices().forEach(choice -> {
-                JsonField<ChatCompletionChunk.Choice.Delta> deltaJsonField = choice._delta();
-                Optional<Map<String, JsonValue>> object = deltaJsonField.asObject();
-                if (object.isEmpty()) {
-                    return;
+        try {
+            getClient(account).chat().completions().createStreaming(createParams).subscribe(chatCompletionChunk -> {
+                String id = chatCompletionChunk.id();
+                // 保存第一个消息块的ID作为整个消息的ID
+                if (messageId[0] == null) {
+                    messageId[0] = id;
                 }
-                object.get().forEach((key, value) -> {
-                    if (null != value && !value.isNull() && value.asString().isPresent()) {
-                        String content = value.asString().get().toString();
-                        if (StringUtils.isNotBlank(content)) {
-                            // 收集AI助手的回复
-                            if ("content".equals(key)) {
-                                callback.apply(new Message(id, "assistant", content, null));
-                                finalContent.append(content);
-                            } else if ("reasoning_content".equals(key)) {
-                                callback.apply(new Message(id, "assistant", null, content));
-                                reasoningContent.append(content);
+
+                chatCompletionChunk.choices().forEach(choice -> {
+                    JsonField<ChatCompletionChunk.Choice.Delta> deltaJsonField = choice._delta();
+                    Optional<Map<String, JsonValue>> object = deltaJsonField.asObject();
+                    if (object.isEmpty()) {
+                        return;
+                    }
+                    object.get().forEach((key, value) -> {
+                        if (null != value && !value.isNull() && value.asString().isPresent()) {
+                            String content = value.asString().get().toString();
+                            if (StringUtils.isNotBlank(content)) {
+                                // 收集AI助手的回复
+                                if ("content".equals(key)) {
+                                    callback.apply(new Message(id, "assistant", content, null));
+                                    finalContent.append(content);
+                                } else if ("reasoning_content".equals(key)) {
+                                    callback.apply(new Message(id, "assistant", null, content));
+                                    reasoningContent.append(content);
+                                }
                             }
                         }
-                    }
+                    });
                 });
-            });
-        }).onCompleteFuture().join();
+            }).onCompleteFuture().join();
+        } catch (Exception e) {
+            log.error("send chat message error:{}", e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
 
         return new ChatResult(messageId[0], finalContent.toString(), reasoningContent.toString());
     }
