@@ -8,6 +8,7 @@ function renderOrderTable(orderList){
     var convertedData = orderList.map(item => {
         // 计算盈亏比例的颜色
         let profitRatioClass = '';
+        let scaleRatioClass = '';
         if(item.ext && item.ext.profitRatio) {
             profitRatioClass = parseFloat(item.ext.profitRatio) >= 0 ? 'positive-value' : 'negative-value';
         }
@@ -23,7 +24,8 @@ function renderOrderTable(orderList){
             "tradeTime": item.tradeTime,
             "curPrice": item.ext ? item.ext.curPrice : null,
             "profitRatio": item.ext && item.ext.profitRatio ? item.ext.profitRatio + '%' : null,
-            "profitRatioClass": profitRatioClass
+            "profitRatioClass":profitRatioClass,
+            "scaleRatio": item.ext ? item.ext.scaleRatio : null
         };
     });
 
@@ -43,6 +45,13 @@ function renderOrderTable(orderList){
           {field: 'orderFee', title: '订单费用', width: 100},
           {field: 'profitRatio', title: '盈亏', width: 100, templet: function(d){
               return '<span class="' + d.profitRatioClass + '">' + d.profitRatio + '</span>';
+          }},
+          {field: 'scaleRatio', title: '规模占比', width: 100, templet: function(d){
+              if (!d.scaleRatio) return '-';
+              var ratio = parseFloat(d.scaleRatio);
+              var positionRatio = parseFloat(d.positionRatio || 0.1);
+              var color = ratio > positionRatio ? 'color: #ff5722;' : '';
+              return '<span style="' + color + '">' + (ratio * 100).toFixed(1) + '%</span>';
           }}
         ]],
         data: convertedData,
