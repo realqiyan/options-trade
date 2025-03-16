@@ -9,6 +9,7 @@ import me.dingtou.options.service.OptionsQueryService;
 import me.dingtou.options.service.SummaryService;
 import me.dingtou.options.strategy.OptionsStrategy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,12 +36,20 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
     @Override
     public Owner queryOwner(String owner) {
-        return ownerManager.queryOwner(owner);
+        Owner ownerObj = ownerManager.queryOwner(owner);
+        // 服务请求时屏蔽账户扩展信息和otp信息
+        ownerObj.getAccount().setOtpAuth(StringUtils.EMPTY);
+        ownerObj.getAccount().setExt(Collections.emptyMap());
+        return ownerObj;
     }
 
     @Override
     public Owner queryOwnerWithOrder(String owner) {
-        return ownerManager.queryOwnerWithOrder(owner);
+        Owner ownerObj = ownerManager.queryOwnerWithOrder(owner);
+        // 服务请求时屏蔽账户扩展信息和otp信息
+        ownerObj.getAccount().setOtpAuth(StringUtils.EMPTY);
+        ownerObj.getAccount().setExt(Collections.emptyMap());
+        return ownerObj;
     }
 
     @Override
@@ -66,7 +75,10 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         }
 
         // 计算策略数据
-        StrategySummary summary = summaryService.queryStrategySummary(strategy.getOwner(), strategy.getStrategyId());
+        StrategySummary summary = null;
+        if (null != strategy) {
+            summary = summaryService.queryStrategySummary(strategy.getOwner(), strategy.getStrategyId());
+        }
         for (OptionsStrategy optionsStrategy : allOptionsStrategy) {
             if (optionsStrategy.isSupport(strategy)) {
                 optionsStrategy.calculate(account, optionsStrikeDate, optionsChain, summary);

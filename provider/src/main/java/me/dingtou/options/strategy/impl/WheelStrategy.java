@@ -26,16 +26,16 @@ public class WheelStrategy extends BaseStrategy {
     public void process(OwnerAccount account,
             OptionsStrikeDate optionsStrikeDate,
             OptionsChain optionsChain,
-            StrategySummary strategySummary) {
+            StrategySummary summary) {
         // 当前策略信息
-        if (null == strategySummary) {
+        if (null == summary) {
             log.warn("策略信息为空，请检查！");
             return;
         }
 
         CandlestickPeriod period = AccountExtUtils.getKlinePeriod(account);
 
-        Integer holdStockNum = strategySummary.getHoldStockNum();
+        Integer holdStockNum = summary.getHoldStockNum();
         // 空仓执行sell put 否则执行cc
         boolean isSellPutStage = null == holdStockNum || holdStockNum == 0;
         boolean isCoveredCallStage = !isSellPutStage;
@@ -43,7 +43,7 @@ public class WheelStrategy extends BaseStrategy {
         // 如果是cc阶段，需要找到最近的指派订单
         OwnerOrder currentUnderlyingOrder = null;
         if (isCoveredCallStage) {
-            Optional<OwnerOrder> optionalOwnerOrder = strategySummary.getStrategyOrders().stream()
+            Optional<OwnerOrder> optionalOwnerOrder = summary.getStrategyOrders().stream()
                     .filter(order -> order.getCode().equals(order.getUnderlyingCode())).findFirst();
             if (optionalOwnerOrder.isPresent()) {
                 currentUnderlyingOrder = optionalOwnerOrder.get();
@@ -53,8 +53,8 @@ public class WheelStrategy extends BaseStrategy {
 
         // 获取sellput可接受的行权价配置
         BigDecimal sellPutAcceptableStrikePrice = null;
-        if (isSellPutStage && strategySummary.getStrategy() != null) {
-            String sellPutStrikePriceStr = strategySummary.getStrategy()
+        if (isSellPutStage && summary.getStrategy() != null) {
+            String sellPutStrikePriceStr = summary.getStrategy()
                     .getExtValue(StrategyExt.WHEEL_SELLPUT_STRIKE_PRICE);
             if (StringUtils.isNotBlank(sellPutStrikePriceStr)) {
                 try {
@@ -113,7 +113,7 @@ public class WheelStrategy extends BaseStrategy {
         prompt.append("我准备使用车轮策略（WheelStrategy）卖出").append(securityQuote.getSecurity().toString())
                 .append("距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天的")
                 .append(isSellPutStage ? "看跌期权（Cash-Secured Put）" : "看涨期权（Covered Call）");
-        prompt.append("，策略ID:").append(strategySummary.getStrategy().getStrategyId());
+        prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
         if (isCoveredCallStage && null != finalUnderlyingOrder) {
             prompt.append("，当前指派的股票价格：").append(finalUnderlyingOrder.getPrice());
         }

@@ -52,7 +52,9 @@ public interface OptionsQueryService {
      * @param strategy          策略
      * @return 期权链
      */
-    OptionsChain queryOptionsChain(String owner, Security security, OptionsStrikeDate optionsStrikeDate,
+    OptionsChain queryOptionsChain(String owner,
+            Security security,
+            OptionsStrikeDate optionsStrikeDate,
             OwnerStrategy strategy);
 
     /**
@@ -61,6 +63,6 @@ public interface OptionsQueryService {
      * @param owner 所有者
      * @return 草稿订单
      */
-    List<OwnerOrder> queryDraftOrder(String owner); 
+    List<OwnerOrder> queryDraftOrder(String owner);
 
 }

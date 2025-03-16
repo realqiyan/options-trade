@@ -15,12 +15,12 @@ public class DefaultSellStrategy extends BaseStrategy {
 
 
     @Override
-    void process(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary) {
-        String prompt = buildPrompt(account, optionsStrikeDate, optionsChain, strategySummary);
+    void process(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary summary) {
+        String prompt = buildPrompt(account, optionsStrikeDate, optionsChain, summary);
         optionsChain.setPrompt(prompt);
     }
 
-    private String buildPrompt(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary strategySummary) {
+    private String buildPrompt(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary summary) {
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
             if (null != call) {
@@ -46,7 +46,9 @@ public class DefaultSellStrategy extends BaseStrategy {
         StringBuilder prompt = new StringBuilder();
         prompt.append("我准备卖出").append(securityQuote.getSecurity().toString())
                 .append("距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天的期权，");
-        prompt.append("，策略ID:").append(strategySummary.getStrategy().getStrategyId());
+        if(null != summary){
+            prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
+        }
         prompt.append("当前股票价格是").append(securityPrice)
                 .append(null != vixIndicator && null != vixIndicator.getCurrentVix() ? "，当前VIX指数是"+ vixIndicator.getCurrentVix().getValue() : "")
                 .append("，当前日期是").append(sdf.format(new Date()))

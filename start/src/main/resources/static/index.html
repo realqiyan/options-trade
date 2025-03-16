@@ -449,12 +449,13 @@
 <script type="text/html" id="TPL-recommendInfo">
     <div class="layui-font-12">
     {{#
-        var level = d.data.strategyData.recommendLevel;
+        var strategyData = d.data && d.data.strategyData ? d.data.strategyData : {};
+        var level = strategyData.recommendLevel;
         var recommendLevelClass = level>0 ? "layui-bg-green" : "";
     }}
     <span class="layui-badge {{=recommendLevelClass}}" title="推荐级别">{{= level}}</span>
     <span class="layui-badge layui-bg-gray" title="期权组">{{= d.group }}</span>
-    <span class="layui-badge layui-bg-orange" title="价格涨跌幅">{{= d.data.strategyData.range}}%</span>
+    <span class="layui-badge layui-bg-orange" title="价格涨跌幅">{{= strategyData.range}}%</span>
     </div>
 </script>
 <script id="unexercisedOrders" type="text/html">

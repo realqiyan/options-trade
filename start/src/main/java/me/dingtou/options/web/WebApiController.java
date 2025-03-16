@@ -127,7 +127,9 @@ public class WebApiController {
         }
 
         try {
-            OptionsChain optionsChain = optionsQueryService.queryOptionsChain(currentOwner, security, optionsStrikeDate,
+            OptionsChain optionsChain = optionsQueryService.queryOptionsChain(currentOwner,
+                    security,
+                    optionsStrikeDate,
                     strategy);
             return WebResult.success(optionsChain);
         } catch (Exception e) {
