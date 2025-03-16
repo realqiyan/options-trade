@@ -61,3 +61,4 @@ build/
 
 private.key
 trade.key
+db.properties
