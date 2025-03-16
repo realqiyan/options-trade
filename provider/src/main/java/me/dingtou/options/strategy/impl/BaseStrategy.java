@@ -76,9 +76,9 @@ public abstract class BaseStrategy implements OptionsStrategy {
                 }
 
                 callStrategyData.setRecommendLevel(level);
-                // 成交量大于0
-                boolean volumeRecommend = call.getRealtimeData().getVolume() > 0;
-                callStrategyData.setRecommend(deltaRecommend && annualYieldRecommend && volumeRecommend);
+                // 成交量大于0 且 delta不为0
+                boolean noZero = call.getRealtimeData().getVolume() > 0 && !BigDecimal.ZERO.equals(call.getRealtimeData().getDelta());
+                callStrategyData.setRecommend(deltaRecommend && annualYieldRecommend && noZero);
 
                 // 涨跌幅
                 callStrategyData.setRange(calculateRange(strikePrice, securityPrice));
@@ -113,9 +113,9 @@ public abstract class BaseStrategy implements OptionsStrategy {
                 }
 
                 putStrategyData.setRecommendLevel(level);
-                // 成交量大于0
-                boolean volumeRecommend = put.getRealtimeData().getVolume() > 0;
-                putStrategyData.setRecommend(deltaRecommend && annualYieldRecommend && volumeRecommend);
+                // 成交量大于0 且 delta不为0
+                boolean noZero = put.getRealtimeData().getVolume() > 0 && !BigDecimal.ZERO.equals(put.getRealtimeData().getDelta()) ;
+                putStrategyData.setRecommend(deltaRecommend && annualYieldRecommend && noZero);
 
                 // 涨跌幅
                 putStrategyData.setRange(calculateRange(strikePrice, securityPrice));
