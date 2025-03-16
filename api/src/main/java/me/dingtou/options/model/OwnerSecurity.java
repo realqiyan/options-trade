@@ -4,6 +4,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.Date;
+import java.util.List;
+
+import com.baomidou.mybatisplus.annotation.TableField;
 
 /**
  * 用户期权标的
@@ -26,6 +29,7 @@ public class OwnerSecurity extends Security {
      */
     private Date createTime;
     /**
+     * 
      * 所有者的标识符，表示策略属于哪个用户或实体
      */
     private String owner;
@@ -33,4 +37,10 @@ public class OwnerSecurity extends Security {
      * 状态
      */
     private Integer status;
+
+    /**
+     * 到期未行权的订单列表
+     */
+    @TableField(exist = false)
+    private List<OwnerOrder> unexercisedOrders;
 }
