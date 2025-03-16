@@ -35,6 +35,14 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         '<span class="layui-badge layui-bg-gray">禁用</span>';
                 }
             },
+            {
+                field: 'totalRatio', 
+                title: '总规模占比', 
+                width: 100, 
+                templet: function(d){
+                    return (d.totalRatio * 100).toFixed(1) + '%';
+                }
+            },
             {title: '操作', toolbar: '#securityTableBar', width: 180}
         ]],
         response: {

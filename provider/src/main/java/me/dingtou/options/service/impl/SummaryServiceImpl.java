@@ -114,12 +114,15 @@ public class SummaryServiceImpl implements SummaryService {
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         String accountSizeConf = account.getExtValue(AccountExt.ACCOUNT_SIZE);
         String marginRatioConf = account.getExtValue(AccountExt.MARGIN_RATIO);
+        String positionRatioConf = account.getExtValue(AccountExt.POSITION_RATIO);
 
         if (StringUtils.isNotBlank(accountSizeConf) && StringUtils.isNotBlank(marginRatioConf)) {
             BigDecimal accountSize = new BigDecimal(accountSizeConf);
             BigDecimal marginRatio = new BigDecimal(marginRatioConf);
+            BigDecimal positionRatio = StringUtils.isNotBlank(positionRatioConf) ? new BigDecimal(positionRatioConf) : new BigDecimal("0.1");
             ownerSummary.setAccountSize(accountSize);
             ownerSummary.setMarginRatio(marginRatio);
+            ownerSummary.setPositionRatio(positionRatio);
 
             // 计算PUT订单保证金占用和持有股票总成本
             BigDecimal putMarginOccupied = BigDecimal.ZERO;
@@ -134,7 +137,19 @@ public class SummaryServiceImpl implements SummaryService {
             // 计算可用资金
             ownerSummary.setAvailableFunds(accountSize.subtract(putMarginOccupied).subtract(totalStockCost));
             ownerSummary.setTotalInvestment(putMarginOccupied.add(totalStockCost));
+
+            // 计算未平仓订单的头寸占比
+            for (OwnerOrder order : ownerSummary.getUnrealizedOrders()) {
+                // 计算订单金额
+                BigDecimal orderAmount = OwnerOrder.strikePrice(order).multiply(new BigDecimal(OwnerOrder.lotSize(order)));
+                // 计算该订单的头寸占比
+                BigDecimal scaleRatio = orderAmount.divide(accountSize, 4, RoundingMode.HALF_UP);
+                order.getExt().put("scaleRatio", scaleRatio.toString());
+                // 添加头寸比例阈值
+                order.getExt().put("positionRatio", positionRatio.toString());
+            }
         }
+
         return ownerSummary;
     }
 

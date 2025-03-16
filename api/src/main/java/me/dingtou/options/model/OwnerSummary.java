@@ -54,6 +54,11 @@ public class OwnerSummary {
     private BigDecimal marginRatio;
 
     /**
+     * 头寸比例
+     */
+    private BigDecimal positionRatio;
+
+    /**
      * PUT订单保证金占用
      */
     private BigDecimal putMarginOccupied;
