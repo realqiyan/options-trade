@@ -10,14 +10,14 @@ import lombok.Getter;
 @Getter
 public enum TradeTaskStatus {
     /**
-     * 待执行
+     * 待采纳
      */
-    PENDING(1, "待执行"),
+    PENDING(1, "待采纳"),
 
     /**
-     * 执行中
+     * 采纳中
      */
-    EXECUTING(2, "执行中"),
+    EXECUTING(2, "采纳中"),
 
     /**
      * 已完成

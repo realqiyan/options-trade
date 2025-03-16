@@ -1,6 +1,7 @@
 package me.dingtou.options.model;
 
 import lombok.Data;
+import me.dingtou.options.constant.IndicatorKey;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -40,11 +41,11 @@ public class IndicatorDataFrame {
      */
     public static IndicatorDataFrame fromStockIndicator(StockIndicator stockIndicator) {
         IndicatorDataFrame dataFrame = new IndicatorDataFrame();
-        
+
         // 获取所有日期
         Set<String> allDates = new HashSet<>();
         Map<String, List<StockIndicatorItem>> indicatorMap = stockIndicator.getIndicatorMap();
-        
+
         // 收集所有日期
         for (Map.Entry<String, List<StockIndicatorItem>> entry : indicatorMap.entrySet()) {
             List<StockIndicatorItem> items = entry.getValue();
@@ -52,32 +53,32 @@ public class IndicatorDataFrame {
                 allDates.add(item.getDate());
             }
         }
-        
+
         // 按日期排序（降序，最新日期在前）
         List<String> sortedDates = new ArrayList<>(allDates);
         Collections.sort(sortedDates, Collections.reverseOrder());
-        
+
         // 为每个日期创建一行数据
         for (String date : sortedDates) {
             Map<String, Object> row = new HashMap<>();
             row.put("date", date);
             dataFrame.getRows().add(row);
         }
-        
+
         // 添加每个指标的数据
         for (Map.Entry<String, List<StockIndicatorItem>> entry : indicatorMap.entrySet()) {
             String indicatorKey = entry.getKey();
             List<StockIndicatorItem> items = entry.getValue();
-            
+
             // 添加列名
             dataFrame.getColumns().add(indicatorKey);
-            
+
             // 创建日期到值的映射
             Map<String, BigDecimal> dateToValue = new HashMap<>();
             for (StockIndicatorItem item : items) {
                 dateToValue.put(item.getDate(), item.getValue());
             }
-            
+
             // 填充每一行的指标值
             for (Map<String, Object> row : dataFrame.getRows()) {
                 String rowDate = (String) row.get("date");
@@ -85,10 +86,10 @@ public class IndicatorDataFrame {
                 row.put(indicatorKey, value); // 如果没有值，会是null
             }
         }
-        
+
         return dataFrame;
     }
-    
+
     /**
      * 转换为字符串表格
      *
@@ -97,13 +98,13 @@ public class IndicatorDataFrame {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        
+
         // 表头
         for (String column : columns) {
             sb.append(column).append("\t");
         }
         sb.append("\n");
-        
+
         // 数据行
         for (Map<String, Object> row : rows) {
             for (String column : columns) {
@@ -112,10 +113,10 @@ public class IndicatorDataFrame {
             }
             sb.append("\n");
         }
-        
+
         return sb.toString();
     }
-    
+
     /**
      * 转换为Markdown表格
      *
@@ -123,21 +124,22 @@ public class IndicatorDataFrame {
      */
     public String toMarkdown() {
         StringBuilder sb = new StringBuilder();
-        
+
         // 表头
         sb.append("| ");
         for (String column : columns) {
-            sb.append(column).append(" | ");
+            String displayTitle = convertTitle(column);
+            sb.append(displayTitle).append(" | ");
         }
         sb.append("\n");
-        
+
         // 分隔行
         sb.append("| ");
         for (int i = 0; i < columns.size(); i++) {
             sb.append("--- | ");
         }
         sb.append("\n");
-        
+
         // 数据行
         for (Map<String, Object> row : rows) {
             sb.append("| ");
@@ -147,15 +149,30 @@ public class IndicatorDataFrame {
             }
             sb.append("\n");
         }
-        
+
         return sb.toString();
     }
-    
+
+    /**
+     * 转换列名
+     *
+     * @param title 列名
+     * @return 转换后的列名
+     */
+    private String convertTitle(String title) {
+        try {
+            IndicatorKey indicatorKey = IndicatorKey.of(title);
+            return indicatorKey.getDisplayName();
+        } catch (Exception e) {
+            return title;
+        }
+    }
+
     /**
      * 获取指定行和列的值
      *
      * @param rowIndex 行索引
-     * @param column 列名
+     * @param column   列名
      * @return 值
      */
     public Object getValue(int rowIndex, String column) {
@@ -164,7 +181,7 @@ public class IndicatorDataFrame {
         }
         return rows.get(rowIndex).get(column);
     }
-    
+
     /**
      * 获取行数
      *
@@ -173,7 +190,7 @@ public class IndicatorDataFrame {
     public int getRowCount() {
         return rows.size();
     }
-    
+
     /**
      * 获取列数
      *
@@ -182,4 +199,4 @@ public class IndicatorDataFrame {
     public int getColumnCount() {
         return columns.size();
     }
-} 
+}

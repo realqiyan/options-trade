@@ -176,16 +176,14 @@ public class TradeTaskServiceImpl implements TradeTaskService {
             return false;
         }
 
-        // 更新任务状态为执行中
+        // 更新任务状态为完成「后续可以更新为EXECUTING」
         LambdaUpdateWrapper<OwnerTradeTask> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(OwnerTradeTask::getId, taskId)
                 .eq(OwnerTradeTask::getOwner, owner)
-                .set(OwnerTradeTask::getStatus, TradeTaskStatus.EXECUTING.getCode())
+                .set(OwnerTradeTask::getStatus, TradeTaskStatus.COMPLETED.getCode())
                 .set(OwnerTradeTask::getUpdateTime, new Date());
 
-        // TODO 实现具体的任务执行逻辑
-        throw new UnsupportedOperationException("Not implemented");
-        // return tradeTaskDAO.update(null, updateWrapper) > 0;
+         return tradeTaskDAO.update(null, updateWrapper) > 0;
     }
 
     @Override

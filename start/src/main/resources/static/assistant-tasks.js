@@ -372,7 +372,7 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                             <div class="task-actions">
                                 ${task.status === 1 ? `
                                     <button class="layui-btn layui-btn-sm execute-task-btn" data-id="${task.id}">
-                                        <i class="layui-icon layui-icon-play"></i> 执行
+                                        <i class="layui-icon layui-icon-play"></i> 采纳
                                     </button>
                                     <button class="layui-btn layui-btn-sm cancel-task-btn" data-id="${task.id}">
                                         <i class="layui-icon layui-icon-close"></i> 取消
@@ -549,11 +549,11 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
          */
         getStatusText(status) {
             switch (parseInt(status)) {
-                case 1: return '待执行';
-                case 2: return '执行中';
+                case 1: return '待采纳';
+                case 2: return '采纳中';
                 case 3: return '已完成';
                 case 4: return '已取消';
-                case 5: return '执行失败';
+                case 5: return '采纳失败';
                 default: return '未知状态';
             }
         }
@@ -576,7 +576,7 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
          * 执行任务
          */
         executeTask(taskId) {
-            layer.confirm('确定要执行此任务吗？', {
+            layer.confirm('确定要采纳此任务吗？', {
                 btn: ['确定', '取消']
             }, () => {
                 fetch('/task/execute', {
@@ -589,20 +589,20 @@ layui.use(['layer', 'form', 'element', 'util'], function() {
                 .then(response => response.json())
                 .then(result => {
                     if (result.success) {
-                        layer.msg('任务执行请求已发送');
+                        layer.msg('任务采纳请求已发送');
                         this.loadTasks();
                         
                         // 在聊天中添加消息提示
                         if (this.currentSessionId && window.aiChatApp) {
-                            window.aiChatApp.addSystemMessage(`任务#${taskId}已开始执行`);
+                            window.aiChatApp.addSystemMessage(`任务#${taskId}已被采纳`);
                         }
                     } else {
-                        layer.msg('执行任务失败: ' + result.message);
+                        layer.msg('采纳任务失败: ' + result.message);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    layer.msg('执行任务失败');
+                    layer.msg('采纳任务失败');
                 });
             });
         }

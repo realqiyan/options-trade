@@ -89,7 +89,7 @@ public class WebTradeTaskController {
     }
 
     /**
-     * 执行交易任务
+     * 采纳交易任务
      *
      * @param taskId 任务ID
      * @return 是否成功
@@ -101,8 +101,8 @@ public class WebTradeTaskController {
             boolean result = tradeTaskService.executeTradeTask(owner, taskId);
             return WebResult.success(result);
         } catch (Exception e) {
-            log.error("执行交易任务失败", e);
-            return WebResult.failure("执行交易任务失败: " + e.getMessage());
+            log.error("采纳交易任务失败", e);
+            return WebResult.failure("采纳交易任务失败: " + e.getMessage());
         }
     }
 
