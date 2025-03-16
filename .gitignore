@@ -59,6 +59,12 @@ build/
 .mvn
 .DS_Store
 
+### private ###
 private.key
 trade.key
 db.properties
+
+### runtime ###
+options-trade.jar
+nohup.out
+options-trade.pid
