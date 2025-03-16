@@ -35,6 +35,14 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         '<span class="layui-badge layui-bg-gray">禁用</span>';
                 }
             },
+            {
+                field: 'totalRatio', 
+                title: '总规模占比', 
+                width: 100, 
+                templet: function(d){
+                    return (d.totalRatio * 100).toFixed(1) + '%';
+                }
+            },
             {title: '操作', toolbar: '#securityTableBar', width: 180}
         ]],
         response: {
@@ -674,6 +682,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         //设置资金规模
                         $('#account_size').val(data.ext.account_size || '');
                         $('#margin_ratio').val(data.ext.margin_ratio || '');
+                        $('#position_ratio').val(data.ext.position_ratio || '');
 
                         // 设置长桥配置
                         $('#longport_app_key').val(data.ext.longport_app_key || '');
@@ -702,7 +711,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         // 处理资金规模
                         ext.account_size = $('#account_size').val();
                         ext.margin_ratio = $('#margin_ratio').val();
-
+                        ext.position_ratio = $('#position_ratio').val();    
                         // 处理长桥配置
                         ext.longport_app_key = $('#longport_app_key').val();
                         ext.longport_app_secret = $('#longport_app_secret').val();

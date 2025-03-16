@@ -24,7 +24,8 @@ public enum AccountExt {
     
     // 账户资金配置
     ACCOUNT_SIZE("account_size", "账户资金规模"),
-    MARGIN_RATIO("margin_ratio", "保证金比例");
+    MARGIN_RATIO("margin_ratio", "保证金比例"),
+    POSITION_RATIO("position_ratio", "头寸比例");
     
     private final String key;
     private final String desc;
