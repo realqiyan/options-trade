@@ -68,6 +68,7 @@ spring:
     username: your_username
     password: your_password
 ```
+* 新版本需要修改`start/src/main/resources/privacy/db.properties`里的数据库配置
 
 ### 5. 数据库初始化
 #### 5.1 owner_account 表初始化
