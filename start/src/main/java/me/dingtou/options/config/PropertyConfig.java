@@ -1,4 +1,4 @@
-package me.dingtou.options;
+package me.dingtou.options.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

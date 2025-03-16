@@ -1,4 +1,4 @@
-package me.dingtou.options.web.config;
+package me.dingtou.options.config;
 
 import me.dingtou.options.service.AuthService;
 import me.dingtou.options.web.filter.LoginFilter;

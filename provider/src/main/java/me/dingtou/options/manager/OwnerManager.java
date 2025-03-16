@@ -56,12 +56,13 @@ public class OwnerManager {
     public Owner queryOwnerWithOrder(String owner) {
         Owner ownerObj = queryOwner(owner);
 
-        List<OwnerStrategy> strategyList = (List<OwnerStrategy>) ownerObj.getStrategyList();
+        List<OwnerStrategy> strategyList = ownerObj.getStrategyList();
         List<OwnerOrder> ownerOrderList = new ArrayList<>();
-        for (OwnerStrategy strategy : strategyList) {
+
+        strategyList.parallelStream().forEach(strategy -> {
             List<OwnerOrder> orders = queryStrategyOrder(strategy);
             ownerOrderList.addAll(orders);
-        }
+        });
 
         // 过滤出到期未行权的订单
         List<OwnerOrder> unexercisedOrders = ownerOrderList.stream()

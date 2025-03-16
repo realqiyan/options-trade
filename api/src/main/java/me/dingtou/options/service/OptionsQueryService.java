@@ -12,12 +12,20 @@ import java.util.List;
 public interface OptionsQueryService {
 
     /**
-     * 查询owner信息
+     * 查询owner信息（不包含订单）
      *
      * @param owner 所有者
      * @return owner信息
      */
     Owner queryOwner(String owner);
+
+    /**
+     * 查询owner的订单
+     *
+     * @param owner 所有者
+     * @return 订单
+     */
+    Owner queryOwnerWithOrder(String owner);
 
     /**
      * 查询期权到期日列表
@@ -53,14 +61,6 @@ public interface OptionsQueryService {
      * @param owner 所有者
      * @return 草稿订单
      */
-    List<OwnerOrder> queryDraftOrder(String owner);
-
-    /**
-     * 查询owner的订单
-     *
-     * @param owner 所有者
-     * @return 订单
-     */
-    Owner queryOwnerWithOrder(String owner);
+    List<OwnerOrder> queryDraftOrder(String owner); 
 
 }

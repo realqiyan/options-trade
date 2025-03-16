@@ -1,4 +1,4 @@
-package me.dingtou.options.web.config;
+package me.dingtou.options.config;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

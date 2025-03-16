@@ -35,6 +35,6 @@ public class Owner {
     /**
      * 策略列表
      */
-    private List<? extends OwnerStrategy> strategyList;
+    private List<OwnerStrategy> strategyList;
 
 }
