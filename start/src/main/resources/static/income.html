@@ -180,6 +180,24 @@
     </div>
 
     <div class="layui-card income-card" style="margin-top: 20px;">
+        <div class="layui-card-header">未平仓期权订单 <span class="layui-badge">{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span></div>
+        <div class="layui-card-body">
+            <div id="orderTable"></div>
+        </div>
+    </div> 
+
+    <div class="layui-row layui-col-space15" style="margin-top: 20px;">
+        <div class="layui-col-md12">
+            <div class="layui-card income-card">
+                <div class="layui-card-header">月度收益趋势 <span class="layui-badge">统计近{{= Object.keys(d.monthlyIncome).length }}个月数据</span></div>
+                <div class="layui-card-body">
+                    <canvas id="monthlyIncomeChart" height="300" width="100%"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-card income-card" style="margin-top: 20px;">
         <div class="layui-card-header">策略收益明细</div>
         <div class="layui-card-body">
             <div class="layui-collapse">
@@ -213,24 +231,6 @@
             </div>
         </div>
     </div>
-
-    <div class="layui-row layui-col-space15" style="margin-top: 20px;">
-        <div class="layui-col-md12">
-            <div class="layui-card income-card">
-                <div class="layui-card-header">月度收益趋势 <span class="layui-badge">统计近{{= Object.keys(d.monthlyIncome).length }}个月数据</span></div>
-                <div class="layui-card-body">
-                    <canvas id="monthlyIncomeChart" height="300" width="100%"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="layui-card income-card" style="margin-top: 20px;">
-        <div class="layui-card-header">未平仓期权订单 <span class="layui-badge">{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span></div>
-        <div class="layui-card-body">
-            <div id="orderTable"></div>
-        </div>
-    </div> 
     
 </script>
 <script src="layui/layui.js"></script>

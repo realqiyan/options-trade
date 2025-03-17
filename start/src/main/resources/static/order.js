@@ -170,6 +170,20 @@ function renderTable(orderList){
         limits: [100, 200, 500],
         limit: 100
       });
+
+      // 监听工具条事件
+      table.on('tool(result)', function(obj){
+        var data = obj.data;
+        var layEvent = obj.event;
+        
+        if(layEvent === 'cancel'){
+          cancel(data.order);
+        } else if(layEvent === 'closePosition'){
+          closePosition(data.order);
+        } else if(layEvent === 'delete'){
+          deleteOrder(data.order);
+        }
+      });
     });
 
     render();

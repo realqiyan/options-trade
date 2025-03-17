@@ -15,6 +15,8 @@ function renderOrderTable(orderList){
         
         return {
             "strikeTime": extractDate(item.strikeTime),
+            "market": item.market,
+            "underlyingCode": item.underlyingCode,
             "code": item.code,
             "side": sideMapping(item.side),
             "price": item.price,
@@ -34,9 +36,13 @@ function renderOrderTable(orderList){
       var inst = table.render({
         elem: '#orderTable',
         cols: [[
-          {field: 'strikeTime', title: '行权时间', width: 130, sort: true},
           {field: 'tradeTime', title: '交易时间', width: 180, sort: true},
-          {field: 'code', title: '证券代码', width: 180, sort: true},
+          {field: 'strikeTime', title: '行权时间', width: 130, sort: true},
+          {field: 'underlyingCode', title: '证券代码', width: 180, sort: true, templet: function(d){
+                return `<span>${d.underlyingCode}</span><b name="stock_${d.market}_${d.underlyingCode}" class="layui-badge"></b>`;
+            }
+          },
+          {field: 'code', title: '期权代码', width: 180, sort: true},
           {field: 'side', title: '类型', width: 80},
           {field: 'quantity', title: '数量', width: 80},
           {field: 'price', title: '价格', width: 100},
@@ -222,7 +228,7 @@ function reloadData(){
 // 初始加载数据
 $(document).ready(function() {
     reloadData();
-    
+
     // 绑定刷新按钮事件
     $('#refreshBtn').on('click', function() {
         reloadData();
@@ -239,3 +245,37 @@ $(window).resize(function() {
         $('#monthlyIncomeChart').attr('width', width);
     }
 });
+
+
+// 实时股票价格
+let clientId = "income_realtime_price_" + new Date().getTime();
+let source = null;
+if (window.EventSource) {
+    // 连接的建立
+    source = new EventSource("/connect?requestId=" + clientId);
+    source.addEventListener("message", function (e) {
+        content = JSON.parse(e.data);
+        if(content.data.stock_price){
+            var currentData = content.data.stock_price;
+            var priceEleArr = document.getElementsByName("stock_"+currentData.security.market+'_'+currentData.security.code);
+            if(priceEleArr){
+                for(var i=0;i<priceEleArr.length;i++){
+                    priceEleArr[i].innerHTML = currentData.lastDone;
+                }
+            }
+        }
+    });
+}
+// 关闭Sse连接
+function closeSse() {
+    source.close();
+    const httpRequest = new XMLHttpRequest();
+    httpRequest.open('GET', '/close?requestId=' + clientId, true);
+    httpRequest.send();
+    console.log("close");
+}
+// 监听窗口关闭事件，主动去关闭连接
+window.onbeforeunload = function () {
+    closeSse();
+};
+

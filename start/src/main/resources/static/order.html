@@ -70,14 +70,14 @@
     <div>
         {{# if("true" != d.isClose){ }}
             {{# if([-1,1,2,5].includes(d.status) ){ }}
-                <a class="layui-btn layui-btn-primary layui-btn-xs" onclick="cancel('{{= d.order}}')" lay-event="cancel">取消</a>
+                <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="cancel">取消</a>
             {{#  } }}
             {{# if([11].includes(d.status) ){ }}
-                <a class="layui-btn layui-btn-primary layui-btn-xs" onclick="closePosition('{{= d.order}}')" lay-event="closePosition">平仓</a>
+                <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="closePosition">平仓</a>
             {{#  } }}
         {{# } }}
         {{# if([15].includes(d.status) ){ }}
-            <a class="layui-btn layui-btn-primary layui-btn-xs" onclick="deleteOrder('{{= d.order}}')" lay-event="delete">删除</a>
+            <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="delete">删除</a>
         {{#  } }}
     </div>
 </script>
