@@ -2,6 +2,8 @@ package me.dingtou.options.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.PushDataType;
+import me.dingtou.options.event.AppEvent;
+import me.dingtou.options.event.EventPublisher;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.PushDataManager;
 import me.dingtou.options.model.Owner;
@@ -23,6 +25,9 @@ import java.util.function.Function;
 @Slf4j
 @Service
 public class DataPushServiceImpl implements DataPushService, InitializingBean {
+
+    @Autowired
+    private EventPublisher eventPublisher;
 
     /**
      * PushDataType, Map<String, Function<PushData, Void>>
@@ -71,7 +76,7 @@ public class DataPushServiceImpl implements DataPushService, InitializingBean {
             }
 
             pushDataManager.subscribeOrderPush(allOwner, (ownerOrder) -> {
-                log.info("OrderPush: {}", ownerOrder);
+                eventPublisher.publishEvent(new AppEvent(PushDataType.ORDER_PUSH, ownerOrder));
                 DATA_PUSH_MAP.computeIfAbsent(PushDataType.ORDER_PUSH, k -> new ConcurrentHashMap<>())
                         .forEach((key, callback) -> {
                             PushData pushData = new PushData();
@@ -98,6 +103,7 @@ public class DataPushServiceImpl implements DataPushService, InitializingBean {
             }
             ownerAccounts.forEach(account -> {
                 pushDataManager.subscribeSecurityPrice(account.getOwner(), (securityQuote) -> {
+                    eventPublisher.publishEvent(new AppEvent(PushDataType.STOCK_PRICE, securityQuote));
                     DATA_PUSH_MAP.computeIfAbsent(PushDataType.STOCK_PRICE, k -> new ConcurrentHashMap<>())
                             .forEach((key, callback) -> {
                                 PushData pushData = new PushData();

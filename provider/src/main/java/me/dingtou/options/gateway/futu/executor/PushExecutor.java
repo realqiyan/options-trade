@@ -82,7 +82,7 @@ public class PushExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI_Con
 
     @Override
     public void onReply_SubAccPush(FTAPI_Conn client, int nSerialNo, TrdSubAccPush.Response rsp) {
-        log.warn("onReply_SubAccPush: {}", rsp);
+        log.warn("onReply_SubAccPush: {}", rsp.getErrCode());
     }
 
     @Override

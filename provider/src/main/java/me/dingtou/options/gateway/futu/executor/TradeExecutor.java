@@ -11,6 +11,7 @@ import me.dingtou.options.gateway.futu.executor.func.TradeFunctionCall;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static me.dingtou.options.gateway.futu.executor.BaseConfig.*;
 
@@ -30,7 +31,6 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
         this.call = call;
     }
 
-
     /**
      * 初始化
      *
@@ -38,9 +38,9 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
      */
     public static <R> R submit(TradeFunctionCall<R> call) {
         try (TradeExecutor<R> client = new TradeExecutor<>(call)) {
-            client.setClientInfo("javaClient", 1);  //设置客户端信息
-            client.setConnSpi(client);  //设置连接回调
-            client.setTrdSpi(client);//设置交易回调
+            client.setClientInfo("javaClient", 1); // 设置客户端信息
+            client.setConnSpi(client); // 设置连接回调
+            client.setTrdSpi(client);// 设置交易回调
             boolean isEnableEncrypt = false;
             if (StringUtils.isNotBlank(FU_TU_API_PRIVATE_KEY)) {
                 isEnableEncrypt = true;
@@ -50,12 +50,11 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
             if (!connect) {
                 throw new RuntimeException("initConnect fail");
             }
-            return client.call.result(client.future.get());
+            return client.call.result(client.future.get(12, TimeUnit.SECONDS));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
 
     @SuppressWarnings("unchecked")
     @Override
@@ -105,7 +104,6 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
 
     }
 
-
     @Override
     public void onReply_PlaceOrder(FTAPI_Conn client, int nSerialNo, TrdPlaceOrder.Response rsp) {
         handleQotOnReply(rsp);
@@ -122,7 +120,8 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
     }
 
     @Override
-    public void onReply_GetHistoryOrderFillList(FTAPI_Conn client, int nSerialNo, TrdGetHistoryOrderFillList.Response rsp) {
+    public void onReply_GetHistoryOrderFillList(FTAPI_Conn client, int nSerialNo,
+            TrdGetHistoryOrderFillList.Response rsp) {
         handleQotOnReply(rsp);
     }
 
