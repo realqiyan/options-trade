@@ -85,7 +85,7 @@ public class AIChatServiceImpl implements AIChatService {
             ownerChatRecordDAO.insert(assistantRecord);
             
             // 从AI助手回复中创建交易任务
-            tradeTaskService.createTradeTaskFromAIMessage(owner, finalSessionId, result.getMessageId(), result.getContent());
+            tradeTaskService.createTradeTaskFromAIMessage(owner, finalSessionId, result.getContent());
         }
     }
 

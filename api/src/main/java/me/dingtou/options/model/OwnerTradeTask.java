@@ -34,11 +34,6 @@ public class OwnerTradeTask {
     private String sessionId;
 
     /**
-     * 消息ID，关联AI助手消息
-     */
-    private String messageId;
-
-    /**
      * 任务类型
      * @see TradeTaskType
      */

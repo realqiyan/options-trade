@@ -64,14 +64,6 @@ public interface TradeTaskService {
      */
     List<OwnerTradeTask> queryTradeTaskBySessionId(String owner, String sessionId);
 
-    /**
-     * 根据消息ID查询交易任务
-     *
-     * @param owner     所有者
-     * @param messageId 消息ID
-     * @return 交易任务列表
-     */
-    List<OwnerTradeTask> queryTradeTaskByMessageId(String owner, String messageId);
 
     /**
      * 根据任务ID查询交易任务
@@ -113,9 +105,8 @@ public interface TradeTaskService {
      *
      * @param owner     所有者
      * @param sessionId 会话ID
-     * @param messageId 消息ID
      * @param content   消息内容
      * @return 创建的交易任务列表
      */
-    List<OwnerTradeTask> createTradeTaskFromAIMessage(String owner, String sessionId, String messageId, String content);
+    List<OwnerTradeTask> createTradeTaskFromAIMessage(String owner, String sessionId, String content);
 } 

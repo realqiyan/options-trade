@@ -135,14 +135,6 @@ public class TradeTaskServiceImpl implements TradeTaskService {
     }
 
     @Override
-    public List<OwnerTradeTask> queryTradeTaskByMessageId(String owner, String messageId) {
-        if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(messageId)) {
-            return Collections.emptyList();
-        }
-        return tradeTaskDAO.queryTradeTaskByMessageId(owner, messageId);
-    }
-
-    @Override
     public OwnerTradeTask queryTradeTaskById(String owner, Long id) {
         if (StringUtils.isEmpty(owner) || id == null) {
             return null;
@@ -183,7 +175,7 @@ public class TradeTaskServiceImpl implements TradeTaskService {
                 .set(OwnerTradeTask::getStatus, TradeTaskStatus.COMPLETED.getCode())
                 .set(OwnerTradeTask::getUpdateTime, new Date());
 
-         return tradeTaskDAO.update(null, updateWrapper) > 0;
+        return tradeTaskDAO.update(null, updateWrapper) > 0;
     }
 
     @Override
@@ -217,10 +209,9 @@ public class TradeTaskServiceImpl implements TradeTaskService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public List<OwnerTradeTask> createTradeTaskFromAIMessage(String owner, String sessionId, String messageId,
-            String content) {
+    public List<OwnerTradeTask> createTradeTaskFromAIMessage(String owner, String sessionId, String content) {
         if (StringUtils.isEmpty(owner) || StringUtils.isEmpty(sessionId)
-                || StringUtils.isEmpty(messageId) || StringUtils.isEmpty(content)) {
+                || StringUtils.isEmpty(content)) {
             return Collections.emptyList();
         }
 
@@ -228,7 +219,7 @@ public class TradeTaskServiceImpl implements TradeTaskService {
 
         try {
             // 尝试解析JSON格式的交易行动
-            List<OwnerTradeTask> jsonTasks = parseJsonActions(owner, sessionId, messageId, content);
+            List<OwnerTradeTask> jsonTasks = parseJsonActions(owner, sessionId, content);
             if (!jsonTasks.isEmpty()) {
                 tradeTasks.addAll(jsonTasks);
             }
@@ -247,7 +238,7 @@ public class TradeTaskServiceImpl implements TradeTaskService {
     /**
      * 解析JSON格式的交易行动
      */
-    private List<OwnerTradeTask> parseJsonActions(String owner, String sessionId, String messageId, String content) {
+    private List<OwnerTradeTask> parseJsonActions(String owner, String sessionId, String content) {
         List<OwnerTradeTask> tradeTasks = new ArrayList<>();
 
         try {
@@ -267,7 +258,6 @@ public class TradeTaskServiceImpl implements TradeTaskService {
                         OwnerTradeTask task = new OwnerTradeTask();
                         task.setOwner(owner);
                         task.setSessionId(sessionId);
-                        task.setMessageId(messageId);
                         task.setStatus(TradeTaskStatus.PENDING.getCode());
 
                         // 设置任务类型

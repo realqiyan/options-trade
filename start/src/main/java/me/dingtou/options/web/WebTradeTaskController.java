@@ -56,23 +56,6 @@ public class WebTradeTaskController {
     }
 
     /**
-     * 根据消息ID查询交易任务
-     *
-     * @param messageId 消息ID
-     * @return 交易任务列表
-     */
-    @GetMapping("/task/list/message")
-    public WebResult<List<OwnerTradeTask>> listTasksByMessageId(@RequestParam("messageId") String messageId) {
-        try {
-            String owner = SessionUtils.getCurrentOwner();
-            return WebResult.success(tradeTaskService.queryTradeTaskByMessageId(owner, messageId));
-        } catch (Exception e) {
-            log.error("根据消息ID查询交易任务失败", e);
-            return WebResult.failure("根据消息ID查询交易任务失败: " + e.getMessage());
-        }
-    }
-
-    /**
      * 查询待执行的交易任务
      *
      * @return 交易任务列表
