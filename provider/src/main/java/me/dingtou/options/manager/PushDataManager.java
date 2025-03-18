@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.Status;
 import me.dingtou.options.dao.OwnerAccountDAO;
 import me.dingtou.options.dao.OwnerSecurityDAO;
+import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
+import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
@@ -16,7 +19,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-
 
 @Slf4j
 @Component
@@ -29,6 +31,9 @@ public class PushDataManager {
 
     @Autowired
     private SecurityQuoteGateway securityQuoteGateway;
+
+    @Autowired
+    private OptionsTradeGateway optionsTradeGateway;
 
     /**
      * 订阅股票价格
@@ -45,5 +50,15 @@ public class PushDataManager {
             securities.add(Security.of(security.getCode(), security.getMarket()));
         }
         securityQuoteGateway.subscribeQuote(ownerAccount, securities, callback);
+    }
+
+    /**
+     * 订阅订单推送
+     * 
+     * @param allOwner 用户
+     * @param callback 回调
+     */
+    public void subscribeOrderPush(List<Owner> allOwner, Function<OwnerOrder, Void> callback) {
+        optionsTradeGateway.subscribeOrderPush(allOwner, callback);
     }
 }

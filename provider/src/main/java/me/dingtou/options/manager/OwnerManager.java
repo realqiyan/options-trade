@@ -38,6 +38,21 @@ public class OwnerManager {
     private OwnerOrderDAO ownerOrderDAO;
 
     /**
+     * 查询所有owner
+     *
+     * @return owner列表
+     */
+    public List<Owner> queryAllOwner() {
+        List<OwnerAccount> accounts = queryAllOwnerAccount();
+        List<Owner> owners = new ArrayList<>();
+        for (OwnerAccount account : accounts) {
+            Owner owner = queryOwner(account.getOwner());
+            owners.add(owner);
+        }
+        return owners;
+    }
+
+    /**
      * 查询owner
      *
      * @param owner 账号

@@ -2,6 +2,7 @@ package me.dingtou.options.gateway.futu;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.OptionsTradeGateway;
+import me.dingtou.options.gateway.futu.executor.PushExecutor;
 import me.dingtou.options.gateway.futu.executor.TradeExecutor;
 import me.dingtou.options.gateway.futu.executor.func.trade.*;
 import me.dingtou.options.model.Owner;
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 @Component
 @Slf4j
@@ -50,5 +52,10 @@ public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
     @Override
     public List<OwnerOrder> pullOrderFill(Owner owner) {
         return TradeExecutor.submit(new FuncGetHistoryOrderFill(owner));
+    }
+
+    @Override
+    public void subscribeOrderPush(List<Owner> allOwner, Function<OwnerOrder, Void> callback) {
+        PushExecutor.submit(allOwner, callback);
     }
 }

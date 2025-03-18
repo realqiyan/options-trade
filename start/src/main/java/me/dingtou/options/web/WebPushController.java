@@ -1,6 +1,5 @@
 package me.dingtou.options.web;
 
-
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.PushDataType;
 import me.dingtou.options.service.DataPushService;
@@ -32,8 +31,11 @@ public class WebPushController {
     public SseEmitter connect(String requestId) {
         String owner = SessionUtils.getCurrentOwner();
         SseEmitter connect = SessionUtils.connect(owner, requestId);
-        //默认订阅
+        // 默认订阅
         for (PushDataType pushDataType : PushDataType.values()) {
+            if (pushDataType.isInnerData()) {
+                continue;
+            }
             subscribe(requestId, pushDataType.getCode());
         }
 
@@ -57,7 +59,6 @@ public class WebPushController {
         });
     }
 
-
     /**
      * 取消订阅
      *
@@ -71,6 +72,5 @@ public class WebPushController {
         }
         return Boolean.TRUE;
     }
-
 
 }

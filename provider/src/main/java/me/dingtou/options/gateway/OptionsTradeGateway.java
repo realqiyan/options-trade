@@ -3,9 +3,11 @@ package me.dingtou.options.gateway;
 import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * 期权交易
@@ -65,6 +67,16 @@ public interface OptionsTradeGateway {
      * @return 订单列表
      */
     List<OwnerOrder> pullOrderFill(Owner owner);
+
+    /**
+     * 订阅订单推送
+     *
+     * @param allOwner 用户列表
+     * @param callback 回调
+     */
+    void subscribeOrderPush(List<Owner> allOwner, Function<OwnerOrder, Void> callback);
+
+
 
 
 }
