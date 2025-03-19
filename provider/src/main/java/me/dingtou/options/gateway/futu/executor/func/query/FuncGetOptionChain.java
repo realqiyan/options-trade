@@ -40,7 +40,7 @@ public class FuncGetOptionChain implements QueryFunctionCall<OptionsChain> {
     }
 
     @Override
-    public void call(QueryExecutor<OptionsChain> client) {
+    public int call(QueryExecutor client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)
@@ -66,6 +66,7 @@ public class FuncGetOptionChain implements QueryFunctionCall<OptionsChain> {
         if (seqNo == 0) {
             throw new RuntimeException("QotGetOptionChain error");
         }
+        return seqNo;
     }
 
     @Override

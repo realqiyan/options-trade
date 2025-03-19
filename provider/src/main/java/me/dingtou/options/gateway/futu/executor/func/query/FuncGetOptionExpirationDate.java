@@ -36,7 +36,7 @@ public class FuncGetOptionExpirationDate implements QueryFunctionCall<List<Optio
     }
 
     @Override
-    public void call(QueryExecutor<List<OptionsStrikeDate>> client) {
+    public int call(QueryExecutor client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)
@@ -51,6 +51,7 @@ public class FuncGetOptionExpirationDate implements QueryFunctionCall<List<Optio
         if (seqNo == 0) {
             throw new RuntimeException("QotGetOptionExpirationDate error");
         }
+        return seqNo;
 
     }
 

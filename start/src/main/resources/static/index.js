@@ -202,6 +202,11 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
         time: new Date().getTime()
       },
       success: function( response ) {
+        if(!response.success){
+            layer.msg(response.message);
+            return;
+        }
+
         var result = response.data;
         currentPrompt = result.prompt;
         result.currentCode=currentCode;

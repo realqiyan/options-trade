@@ -39,7 +39,7 @@ public class FuncGetOrderBook implements QueryFunctionCall<SecurityOrderBook> {
     }
 
     @Override
-    public void call(QueryExecutor<SecurityOrderBook> client) {
+    public int call(QueryExecutor client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)
@@ -56,6 +56,7 @@ public class FuncGetOrderBook implements QueryFunctionCall<SecurityOrderBook> {
         if (seqNo == 0) {
             throw new RuntimeException("QotGetOrderBook error");
         }
+        return seqNo;
     }
 
     @Override
