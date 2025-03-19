@@ -25,9 +25,6 @@ public class CheckSubScheduling {
                 return;
             }
             log.warn("checkSubInfo -> size: {}", securities.size());
-            for (Security security : securities) {
-                log.warn("checkSubInfo -> security: {}", security);
-            }
 
             if (securities.size() > 450) {
                 Boolean result = QueryExecutor.query(new FuncUnsubAll());
