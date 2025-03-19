@@ -22,13 +22,13 @@ import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerOrder;
 
 @Slf4j
-public class PushExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI_Conn {
+public class OrderPushExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI_Conn {
 
     private final List<Owner> allOwner;
     private final Function<OwnerOrder, Void> callback;
     private final Map<String, Owner> accountOwnerMap;
 
-    public PushExecutor(List<Owner> allOwner, Function<OwnerOrder, Void> callback) {
+    public OrderPushExecutor(List<Owner> allOwner, Function<OwnerOrder, Void> callback) {
         if (allOwner == null || allOwner.isEmpty()) {
             throw new IllegalArgumentException("allOwner is null or empty");
         }
@@ -48,7 +48,7 @@ public class PushExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI_Con
      * @return futu api
      */
     public static void submit(List<Owner> allOwner, Function<OwnerOrder, Void> callback) {
-        try (PushExecutor client = new PushExecutor(allOwner, callback)) {
+        try (OrderPushExecutor client = new OrderPushExecutor(allOwner, callback)) {
             client.setClientInfo("javaClient", 1); // 设置客户端信息
             client.setConnSpi(client); // 设置连接回调
             client.setTrdSpi(client);// 设置交易回调
@@ -69,7 +69,7 @@ public class PushExecutor extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI_Con
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
         log.warn("Qot onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
-        PushExecutor conn = (PushExecutor) client;
+        OrderPushExecutor conn = (OrderPushExecutor) client;
         Builder builder = TrdSubAccPush.C2S.newBuilder();
         for (Owner owner : allOwner) {
             builder.addAccIDList(Long.parseLong(owner.getAccount().getAccountId()));

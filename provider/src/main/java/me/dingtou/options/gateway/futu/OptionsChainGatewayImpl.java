@@ -18,7 +18,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
     /**
      * 期权链的长度
      */
-    private static final int STRIKE_DATE_SIZE = 10;
+    private static final int STRIKE_DATE_SIZE = 8;
     /**
      * 期权链上下浮动的价格范围
      */

@@ -102,9 +102,11 @@ public class WebApiController {
             @RequestParam(value = "strikeTimestamp", required = true) Long strikeTimestamp,
             @RequestParam(value = "optionExpiryDateDistance", required = true) Integer optionExpiryDateDistance,
             @RequestParam(value = "strategyId", required = false) String strategyId) throws Exception {
-        log.info(
-                "get options chain. market:{}, code:{}, strikeTime:{}, strikeTimestamp:{}, optionExpiryDateDistance:{}, strategyId:{}",
-                market, code, strikeTime, strikeTimestamp, optionExpiryDateDistance, strategyId);
+        log.info("get options chain. market:{}, code:{}, strikeTime:{}, strategyId:{}",
+                market,
+                code,
+                strikeTime,
+                strategyId);
         Security security = new Security();
         security.setMarket(market);
         security.setCode(code);
@@ -119,8 +121,10 @@ public class WebApiController {
         Owner owner = optionsQueryService.queryOwner(currentOwner);
         OwnerStrategy strategy = null;
         if (null != owner && null != strategyId) {
-            Optional<? extends OwnerStrategy> ownerStrategy = owner.getStrategyList().stream()
-                    .filter(item -> item.getStrategyId().equals(strategyId)).findFirst();
+            Optional<? extends OwnerStrategy> ownerStrategy = owner.getStrategyList()
+                    .stream()
+                    .filter(item -> item.getStrategyId().equals(strategyId))
+                    .findFirst();
             if (ownerStrategy.isPresent()) {
                 strategy = ownerStrategy.get();
             }
