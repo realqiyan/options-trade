@@ -46,7 +46,7 @@ public class SellStrategy extends BaseStrategy {
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
         prompt.append("我准备卖出").append(securityQuote.getSecurity().toString())
-                .append("距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天的期权，");
+                .append("距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天的期权");
         if (null != summary) {
             prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
         }
