@@ -56,10 +56,10 @@ function renderOrderTable(orderList){
       var inst = table.render({
         elem: '#orderTable',
         cols: [[
-          {field: 'tradeTime', title: '交易时间', width: 165, sort: true},
-          {field: 'strikeTime', title: '行权时间', width: 120, sort: true},
-          {field: 'code', title: '期权代码', width: 180, sort: true},
-          {field: 'underlyingCode', title: '证券代码', width: 150, sort: true, templet: function(d){
+          {field: 'tradeTime', title: '交易时间', width: 165},
+          {field: 'strikeTime', title: '行权时间', width: 120},
+          {field: 'code', title: '期权代码', width: 180},
+          {field: 'underlyingCode', title: '证券代码', width: 150, templet: function(d){
                 return `<span>${d.underlyingCode}</span><b name="stock_${d.market}_${d.underlyingCode}" class="current-price layui-badge"></b>`;
             }
           },
@@ -92,7 +92,7 @@ function renderOrderTable(orderList){
           'print' // 打印
         ],
         initSort: {
-          field: 'strikeTime',
+          field: 'tradeTime',
           type: 'asc'
         },
         page: false,
