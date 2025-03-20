@@ -1,5 +1,6 @@
 // JS
-
+// 实时更新当前股票价格
+var currentPrice = {};
 function renderOrderTable(orderList){
     if(!orderList){
         return;
@@ -265,6 +266,7 @@ if (window.EventSource) {
         content = JSON.parse(e.data);
         if(content.data.stock_price){
             var currentData = content.data.stock_price;
+            currentPrice[currentData.security.code] = currentData.lastDone;
             var priceEleArr = document.getElementsByName("stock_"+currentData.security.market+'_'+currentData.security.code);
             if(priceEleArr){
                 for(var i=0;i<priceEleArr.length;i++){
