@@ -12,13 +12,14 @@ import me.dingtou.options.gateway.futu.executor.func.QueryFunctionCall;
 import me.dingtou.options.model.Security;
 
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import static me.dingtou.options.gateway.futu.executor.BaseConfig.*;
 
@@ -148,8 +149,8 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
         QueryContext ctx = new QueryContext(call);
 
         try {
-
-            List<Security> subSecurityList = getUnSubSecurityList(call.getSubSecurityList());
+            List<Integer> subTypeList = call.getSubTypeList();
+            List<Security> subSecurityList = getUnSubSecurityList(subTypeList, call.getSubSecurityList());
             if (subSecurityList.isEmpty()) {
                 // 无需订阅的接口直接请求
                 int seqNo = ctx.callback.call(client);
@@ -168,11 +169,11 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
                             .build();
                     builder.addSecurityList(sec);
                 }
-                QotSub.C2S c2s = builder
-                        .addSubTypeList(QotCommon.SubType.SubType_Basic_VALUE)
-                        .addSubTypeList(QotCommon.SubType.SubType_OrderBook_VALUE)
-                        .setIsSubOrUnSub(true)
-                        .build();
+
+                for (Integer subType : subTypeList) {
+                    builder.addSubTypeList(subType);
+                }
+                QotSub.C2S c2s = builder.setIsSubOrUnSub(true).build();
                 QotSub.Request req = QotSub.Request.newBuilder().setC2S(c2s).build();
                 int seqNo = client.sub(req);
                 // 记录上下文
@@ -189,16 +190,31 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
     /**
      * 获取未订阅的股票
      * 
+     * @param subTypeList
      * @param subSecurityList
      * @return
      */
-    private static List<Security> getUnSubSecurityList(List<Security> subSecurityList) {
+    private static List<Security> getUnSubSecurityList(List<Integer> subTypeList, List<Security> subSecurityList) {
         if (subSecurityList == null || subSecurityList.isEmpty()) {
             return Collections.emptyList();
         }
-        return subSecurityList.stream()
-                .filter(security -> !SUB_SECURITY.containsKey(security.getCode()))
-                .collect(Collectors.toList());
+
+        List<Security> unSubSecurityList = new ArrayList<>();
+        for (Security security : subSecurityList) {
+            List<String> subKeyList = new ArrayList<>();
+            for (Integer subType : subTypeList) {
+                String key = subType + "_" + security.toString();
+                subKeyList.add(key);
+            }
+            for (String subKey : subKeyList) {
+                if (!SUB_SECURITY.containsKey(subKey)) {
+                    unSubSecurityList.add(security);
+                    break;
+                }
+            }
+        }
+
+        return unSubSecurityList;
     }
 
     @Override
@@ -217,7 +233,7 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
 
     @Override
     public void onReply_Sub(FTAPI_Conn conn, int nSerialNo, QotSub.Response rsp) {
-        log.warn("Reply: QotSub: {} RetType: {}", nSerialNo, rsp.getRetType());
+        log.warn("onReply_Sub: QotSub={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
 
         QueryExecutor client = (QueryExecutor) conn;
         QueryContext ctx = CONTEXT.remove(nSerialNo);
@@ -225,8 +241,11 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
         if (rsp.getRetType() == 0) {
             List<Security> subSecurityList = ctx.callback.getSubSecurityList();
             if (null != subSecurityList && !subSecurityList.isEmpty()) {
+                List<Integer> subTypeList = ctx.callback.getSubTypeList();
                 for (Security security : subSecurityList) {
-                    SUB_SECURITY.put(security.getCode(), security);
+                    for (Integer subType : subTypeList) {
+                        SUB_SECURITY.put(subType + "_" + security.toString(), security);
+                    }
                 }
             }
 
@@ -251,34 +270,39 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
     void handleQotOnReply(int nSerialNo, GeneratedMessageV3 rsp) {
         QueryContext ctx = CONTEXT.remove(nSerialNo);
         if (ctx != null) {
-            log.warn("handleQotOnReply nSerialNo: {} ", nSerialNo);
+            log.warn("handleQotOnReply: nSerialNo={}", nSerialNo);
             ctx.future.complete(rsp);
         }
     }
 
     @Override
     public void onReply_GetSubInfo(FTAPI_Conn client, int nSerialNo, QotGetSubInfo.Response rsp) {
+        log.warn("onReply_GetSubInfo: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
         handleQotOnReply(nSerialNo, rsp);
     }
 
     @Override
     public void onReply_GetBasicQot(FTAPI_Conn client, int nSerialNo, QotGetBasicQot.Response rsp) {
+        log.warn("onReply_GetBasicQot: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
         handleQotOnReply(nSerialNo, rsp);
     }
 
     @Override
     public void onReply_GetOptionChain(FTAPI_Conn client, int nSerialNo, QotGetOptionChain.Response rsp) {
+        log.warn("onReply_GetOptionChain: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
         handleQotOnReply(nSerialNo, rsp);
     }
 
     @Override
     public void onReply_GetOptionExpirationDate(FTAPI_Conn client, int nSerialNo,
             QotGetOptionExpirationDate.Response rsp) {
+        log.warn("onReply_GetOptionExpirationDate: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
         handleQotOnReply(nSerialNo, rsp);
     }
 
     @Override
     public void onReply_GetOrderBook(FTAPI_Conn client, int nSerialNo, QotGetOrderBook.Response rsp) {
+        log.warn("onReply_GetOrderBook: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
         handleQotOnReply(nSerialNo, rsp);
     }
 

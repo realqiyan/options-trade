@@ -22,28 +22,33 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FuncGetOrderBook implements QueryFunctionCall<SecurityOrderBook> {
 
-    private final int market;
-    private final String code;
+    private final Security security;
 
-    public FuncGetOrderBook(int market, String code) {
-        this.market = market;
-        this.code = code;
+    public FuncGetOrderBook(Security security) {
+        this.security = security;
     }
-
 
     @Override
     public List<Security> getSubSecurityList() {
         List<Security> target = new ArrayList<>();
-        target.add(Security.of(code, market));
+        target.add(security);
         return target;
+    }
+
+    @Override
+    public List<Integer> getSubTypeList() {
+        List<Integer> subTypeList = new ArrayList<>();
+        subTypeList.add(QotCommon.SubType.SubType_Basic_VALUE);
+        subTypeList.add(QotCommon.SubType.SubType_OrderBook_VALUE);
+        return subTypeList;
     }
 
     @Override
     public int call(QueryExecutor client) {
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
-                .setMarket(market)
-                .setCode(code)
+                .setMarket(security.getMarket())
+                .setCode(security.getCode())
                 .build();
 
         QotGetOrderBook.C2S c2s = QotGetOrderBook.C2S.newBuilder()
@@ -73,8 +78,10 @@ public class FuncGetOrderBook implements QueryFunctionCall<SecurityOrderBook> {
         orderBook.setMarket(s2C.getSecurity().getMarket());
         List<QotCommon.OrderBook> orderBookAskListList = s2C.getOrderBookAskListList();
         List<QotCommon.OrderBook> orderBookBidListList = s2C.getOrderBookBidListList();
-        List<BigDecimal> askList = orderBookAskListList.stream().map(item -> BigDecimal.valueOf(item.getPrice())).collect(Collectors.toList());
-        List<BigDecimal> bidList = orderBookBidListList.stream().map(item -> BigDecimal.valueOf(item.getPrice())).collect(Collectors.toList());
+        List<BigDecimal> askList = orderBookAskListList.stream().map(item -> BigDecimal.valueOf(item.getPrice()))
+                .collect(Collectors.toList());
+        List<BigDecimal> bidList = orderBookBidListList.stream().map(item -> BigDecimal.valueOf(item.getPrice()))
+                .collect(Collectors.toList());
         orderBook.setAskList(askList);
         orderBook.setBidList(bidList);
         return orderBook;

@@ -11,6 +11,6 @@ import org.springframework.stereotype.Component;
 public class SecurityOrderBookGatewayImpl implements SecurityOrderBookGateway {
     @Override
     public SecurityOrderBook getOrderBook(Security security) {
-        return QueryExecutor.query(new FuncGetOrderBook(security.getMarket(), security.getCode()));
+        return QueryExecutor.query(new FuncGetOrderBook(security));
     }
 }

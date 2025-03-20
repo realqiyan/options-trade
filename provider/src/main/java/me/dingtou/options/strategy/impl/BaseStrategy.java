@@ -27,19 +27,19 @@ public abstract class BaseStrategy implements OptionsStrategy {
      */
     private static final BigDecimal SELL_DELTA = BigDecimal.valueOf(0.4);
 
-
     /**
      * 继续加工
      *
      * @param optionsStrikeDate 期权到期日
      * @param optionsChain      期权链
-     * @param summary   策略信息（可选）
+     * @param summary           策略信息（可选）
      */
-    abstract void process(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary summary);
-
+    abstract void process(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
+            StrategySummary summary);
 
     @Override
-    final public void calculate(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain, StrategySummary summary) {
+    final public void calculate(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
+            StrategySummary summary) {
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
         SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
         BigDecimal securityPrice = securityQuote.getLastDone();
@@ -51,7 +51,6 @@ public abstract class BaseStrategy implements OptionsStrategy {
                 OptionsStrategyData callStrategyData = new OptionsStrategyData();
                 call.setStrategyData(callStrategyData);
                 BigDecimal strikePrice = call.getOptionExData().getStrikePrice();
-                //if (strikePrice.compareTo(securityPrice) > 0 && !BigDecimal.ZERO.equals(securityPrice)) {
 
                 // 计算卖出收益
                 BigDecimal sellCallAnnualYield = calculateAnnualYield(call, securityPrice, dte);
@@ -59,30 +58,34 @@ public abstract class BaseStrategy implements OptionsStrategy {
 
                 // 是否推荐卖出
                 int level = 0;
-                BigDecimal delta = NumberUtils.scale(call.getRealtimeData().getDelta().abs());
-                // delta小于0.30
-                boolean deltaRecommend = delta.compareTo(CALL_DELTA) <= 0;
-                // 卖出收益大于SELL_ANNUAL_YIELD
-                boolean annualYieldRecommend = sellCallAnnualYield.compareTo(SELL_ANNUAL_YIELD) > 0;
-                if (deltaRecommend && annualYieldRecommend) {
-                    level++;
-                    // 当前价+价格波幅 行权价大于这个值 level++
-                    // 周价格波幅
-                    BigDecimal maxWeekPriceRange = securityPrice.add(stockIndicator.getWeekPriceRange());
-                    if (maxWeekPriceRange.compareTo(call.getOptionExData().getStrikePrice()) < 0) level++;
-                    // 月价格波幅
-                    BigDecimal maxMonthPriceRange = securityPrice.add(stockIndicator.getMonthPriceRange());
-                    if (maxMonthPriceRange.compareTo(call.getOptionExData().getStrikePrice()) < 0) level++;
-                }
+                OptionsRealtimeData realtimeData = call.getRealtimeData();
+                if (null != realtimeData) {
+                    BigDecimal delta = realtimeData.getDelta().abs();
+                    // delta小于0.30
+                    boolean deltaRecommend = delta.compareTo(CALL_DELTA) <= 0;
+                    // 卖出收益大于SELL_ANNUAL_YIELD
+                    boolean annualYieldRecommend = sellCallAnnualYield.compareTo(SELL_ANNUAL_YIELD) > 0;
+                    if (deltaRecommend && annualYieldRecommend) {
+                        level++;
+                        // 当前价+价格波幅 行权价大于这个值 level++
+                        // 周价格波幅
+                        BigDecimal maxWeekPriceRange = securityPrice.add(stockIndicator.getWeekPriceRange());
+                        if (maxWeekPriceRange.compareTo(call.getOptionExData().getStrikePrice()) < 0)
+                            level++;
+                        // 月价格波幅
+                        BigDecimal maxMonthPriceRange = securityPrice.add(stockIndicator.getMonthPriceRange());
+                        if (maxMonthPriceRange.compareTo(call.getOptionExData().getStrikePrice()) < 0)
+                            level++;
+                    }
 
-                callStrategyData.setRecommendLevel(level);
-                // 成交量大于0 且 delta不为0
-                boolean noZero = call.getRealtimeData().getVolume() > 0 && !BigDecimal.ZERO.equals(call.getRealtimeData().getDelta());
-                callStrategyData.setRecommend(deltaRecommend && annualYieldRecommend && noZero);
+                    callStrategyData.setRecommendLevel(level);
+                    // 成交量大于0 且 delta不为0
+                    boolean noZero = realtimeData.getVolume() > 0 && !BigDecimal.ZERO.equals(realtimeData.getDelta());
+                    callStrategyData.setRecommend(deltaRecommend && annualYieldRecommend && noZero);
+                }
 
                 // 涨跌幅
                 callStrategyData.setRange(calculateRange(strikePrice, securityPrice));
-                //}
             }
 
             Options put = optionsTuple.getPut();
@@ -90,36 +93,40 @@ public abstract class BaseStrategy implements OptionsStrategy {
                 OptionsStrategyData putStrategyData = new OptionsStrategyData();
                 put.setStrategyData(putStrategyData);
                 BigDecimal strikePrice = put.getOptionExData().getStrikePrice();
-                //if (strikePrice.compareTo(securityPrice) < 0) {
                 // 计算卖出收益
                 int level = 0;
                 BigDecimal sellPutAnnualYield = calculateAnnualYield(put, securityPrice, dte);
                 putStrategyData.setSellAnnualYield(sellPutAnnualYield);
-                // 是否推荐卖出
-                BigDecimal delta = NumberUtils.scale(put.getRealtimeData().getDelta().abs());
-                // delta小于0.30
-                boolean deltaRecommend = delta.compareTo(SELL_DELTA) <= 0;
-                // 卖出收益大于SELL_ANNUAL_YIELD
-                boolean annualYieldRecommend = sellPutAnnualYield.compareTo(SELL_ANNUAL_YIELD) > 0;
-                if (deltaRecommend && annualYieldRecommend) {
-                    level++;
-                    // 当前价-价格波幅 行权价小于这个值 level++
-                    // 周价格波幅
-                    BigDecimal minWeekPriceRange = securityPrice.subtract(stockIndicator.getWeekPriceRange());
-                    if (minWeekPriceRange.compareTo(put.getOptionExData().getStrikePrice()) > 0) level++;
-                    // 月价格波幅
-                    BigDecimal minMonthPriceRange = securityPrice.subtract(stockIndicator.getMonthPriceRange());
-                    if (minMonthPriceRange.compareTo(put.getOptionExData().getStrikePrice()) > 0) level++;
-                }
 
-                putStrategyData.setRecommendLevel(level);
-                // 成交量大于0 且 delta不为0
-                boolean noZero = put.getRealtimeData().getVolume() > 0 && !BigDecimal.ZERO.equals(put.getRealtimeData().getDelta()) ;
-                putStrategyData.setRecommend(deltaRecommend && annualYieldRecommend && noZero);
+                OptionsRealtimeData realtimeData = put.getRealtimeData();
+                if (null != realtimeData) {
+                    // 是否推荐卖出
+                    BigDecimal delta = realtimeData.getDelta().abs();
+                    // delta小于0.30
+                    boolean deltaRecommend = delta.compareTo(SELL_DELTA) <= 0;
+                    // 卖出收益大于SELL_ANNUAL_YIELD
+                    boolean annualYieldRecommend = sellPutAnnualYield.compareTo(SELL_ANNUAL_YIELD) > 0;
+                    if (deltaRecommend && annualYieldRecommend) {
+                        level++;
+                        // 当前价-价格波幅 行权价小于这个值 level++
+                        // 周价格波幅
+                        BigDecimal minWeekPriceRange = securityPrice.subtract(stockIndicator.getWeekPriceRange());
+                        if (minWeekPriceRange.compareTo(put.getOptionExData().getStrikePrice()) > 0)
+                            level++;
+                        // 月价格波幅
+                        BigDecimal minMonthPriceRange = securityPrice.subtract(stockIndicator.getMonthPriceRange());
+                        if (minMonthPriceRange.compareTo(put.getOptionExData().getStrikePrice()) > 0)
+                            level++;
+                    }
+
+                    putStrategyData.setRecommendLevel(level);
+                    // 成交量大于0 且 delta不为0
+                    boolean noZero = realtimeData.getVolume() > 0 && !BigDecimal.ZERO.equals(realtimeData.getDelta());
+                    putStrategyData.setRecommend(deltaRecommend && annualYieldRecommend && noZero);
+                }
 
                 // 涨跌幅
                 putStrategyData.setRange(calculateRange(strikePrice, securityPrice));
-                //}
             }
         });
         process(account, optionsStrikeDate, optionsChain, summary);

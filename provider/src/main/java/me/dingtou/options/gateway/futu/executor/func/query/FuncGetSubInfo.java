@@ -1,22 +1,21 @@
 package me.dingtou.options.gateway.futu.executor.func.query;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-
+import java.util.Map;
 import com.futu.openapi.pb.QotGetSubInfo;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotCommon.ConnSubInfo;
 import com.google.protobuf.GeneratedMessageV3;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.QueryFunctionCall;
 import me.dingtou.options.model.Security;
 
 @Slf4j
-public class FuncGetSubInfo implements QueryFunctionCall<List<Security>> {
+public class FuncGetSubInfo implements QueryFunctionCall<FuncGetSubInfo.SubInfo> {
 
     @Override
     public int call(QueryExecutor client) {
@@ -28,8 +27,8 @@ public class FuncGetSubInfo implements QueryFunctionCall<List<Security>> {
     }
 
     @Override
-    public List<Security> result(GeneratedMessageV3 response) {
-        Set<Security> target = new HashSet<>();
+    public FuncGetSubInfo.SubInfo result(GeneratedMessageV3 response) {
+        Map<String, Security> target = new HashMap<>();
 
         QotGetSubInfo.Response resp = (QotGetSubInfo.Response) response;
 
@@ -43,10 +42,26 @@ public class FuncGetSubInfo implements QueryFunctionCall<List<Security>> {
                 List<QotCommon.Security> securityList = subInfo.getSecurityListList();
                 for (QotCommon.Security security : securityList) {
                     Security securityObj = Security.of(security.getCode(), security.getMarket());
-                    target.add(securityObj);
+                    target.put(subInfo.getSubType() + "_" + securityObj.toString(), securityObj);
                 }
             }
         }
-        return new ArrayList<>(target);
+        return new SubInfo(s2c.getRemainQuota(), s2c.getTotalUsedQuota(), target);
+    }
+
+    @Getter
+    public static class SubInfo {
+        // 剩余配额 
+        private final int remainQuota;
+        // 已使用配额
+        private final int totalUsedQuota;
+        // 订阅信息
+        private final Map<String, Security> subSecurityMap;
+
+        public SubInfo(int remainQuota, int totalUsedQuota, Map<String, Security> subSecurityMap) {
+            this.remainQuota = remainQuota;
+            this.totalUsedQuota = totalUsedQuota;
+            this.subSecurityMap = subSecurityMap;
+        }
     }
 }

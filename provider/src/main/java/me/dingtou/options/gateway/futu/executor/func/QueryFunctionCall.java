@@ -1,9 +1,11 @@
 package me.dingtou.options.gateway.futu.executor.func;
 
+import com.futu.openapi.pb.QotCommon;
 import com.google.protobuf.GeneratedMessageV3;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.model.Security;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,6 +18,17 @@ public interface QueryFunctionCall<R> {
      */
     default List<Security> getSubSecurityList() {
         return Collections.emptyList();
+    }
+
+    /**
+     * 需要订阅的类型
+     *
+     * @return 订阅类型
+     */
+    default List<Integer> getSubTypeList() {
+        List<Integer> subTypeList = new ArrayList<>();
+        subTypeList.add(QotCommon.SubType.SubType_Basic_VALUE);
+        return subTypeList;
     }
 
     /**

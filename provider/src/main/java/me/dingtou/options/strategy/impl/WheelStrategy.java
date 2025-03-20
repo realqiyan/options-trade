@@ -70,8 +70,13 @@ public class WheelStrategy extends BaseStrategy {
         optionsChain.getOptionList().forEach(optionsTuple -> {
             Options call = optionsTuple.getCall();
             if (null != call) {
-                call.getRealtimeData().setDelta(call.getRealtimeData().getDelta().multiply(BigDecimal.valueOf(-1)));
-                call.getRealtimeData().setTheta(call.getRealtimeData().getTheta().multiply(BigDecimal.valueOf(-1)));
+                OptionsRealtimeData realtimeData = call.getRealtimeData();
+                if (null != realtimeData) {
+                    realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
+                    realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
+                } else {
+                    call.setRealtimeData(new OptionsRealtimeData());
+                }
                 if (isSellPutStage) {
                     call.getStrategyData().setRecommend(false);
                     call.getStrategyData().setRecommendLevel(0);
@@ -88,8 +93,13 @@ public class WheelStrategy extends BaseStrategy {
 
             Options put = optionsTuple.getPut();
             if (null != put) {
-                put.getRealtimeData().setDelta(put.getRealtimeData().getDelta().multiply(BigDecimal.valueOf(-1)));
-                put.getRealtimeData().setTheta(put.getRealtimeData().getTheta().multiply(BigDecimal.valueOf(-1)));
+                OptionsRealtimeData realtimeData = put.getRealtimeData();   
+                if (null != realtimeData) {
+                    realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
+                    realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
+                } else {
+                    put.setRealtimeData(new OptionsRealtimeData());
+                }
                 if (isCoveredCallStage) {
                     put.getStrategyData().setRecommend(false);
                     put.getStrategyData().setRecommendLevel(0);

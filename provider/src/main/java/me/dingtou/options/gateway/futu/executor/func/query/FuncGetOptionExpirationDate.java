@@ -8,8 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.QueryFunctionCall;
 import me.dingtou.options.model.OptionsStrikeDate;
-import me.dingtou.options.model.Security;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -27,12 +25,6 @@ public class FuncGetOptionExpirationDate implements QueryFunctionCall<List<Optio
     public FuncGetOptionExpirationDate(int market, String code) {
         this.market = market;
         this.code = code;
-    }
-
-
-    @Override
-    public List<Security> getSubSecurityList() {
-        return Collections.emptyList();
     }
 
     @Override

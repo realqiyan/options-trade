@@ -10,10 +10,6 @@ import me.dingtou.options.gateway.futu.executor.func.QueryFunctionCall;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsTuple;
-import me.dingtou.options.model.Security;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * 获取期权链
@@ -31,12 +27,6 @@ public class FuncGetOptionChain implements QueryFunctionCall<OptionsChain> {
         this.market = market;
         this.code = code;
         this.strikeTime = strikeTime;
-    }
-
-
-    @Override
-    public List<Security> getSubSecurityList() {
-        return Collections.emptyList();
     }
 
     @Override
