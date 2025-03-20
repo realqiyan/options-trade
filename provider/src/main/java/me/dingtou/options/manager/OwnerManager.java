@@ -240,21 +240,30 @@ public class OwnerManager {
         }
 
         for (OwnerOrder ownerOrder : ownerOrders) {
-            if (!ownerOrder.getCode().equals(ownerOrder.getUnderlyingCode())) {
+            if (OwnerOrder.isOptionsOrder(ownerOrder)) {
                 // 订单收益
-                BigDecimal totalIncome = NumberUtils.scale(OwnerOrder.income(ownerOrder));
-                ownerOrder.getExt().put(OrderExt.TOTAL_INCOME.getKey(), totalIncome.toPlainString());
+                BigDecimal totalIncome = OwnerOrder.income(ownerOrder);
+                ownerOrder.setExtValue(OrderExt.TOTAL_INCOME, totalIncome);
             }
 
             // 订单是否平仓
             boolean currentOrderClose = OwnerOrder.isClose(ownerOrder);
             Boolean isClose = currentOrderClose || orderClose.getOrDefault(ownerOrder.getCode(), false);
-            ownerOrder.getExt().put(OrderExt.IS_CLOSE.getKey(), String.valueOf(isClose));
+            ownerOrder.setExtValue(OrderExt.IS_CLOSE, isClose);
 
-            // 计算期权到期日ownerOrder.getStrikeTime()和now的间隔天数
-            long daysToExpiration = OwnerOrder.dte(ownerOrder);
-            ownerOrder.getExt().put(OrderExt.CUR_DTE.getKey(), String.valueOf(daysToExpiration));
+            if (OwnerOrder.isOptionsOrder(ownerOrder)) {
+                // 计算期权到期日ownerOrder.getStrikeTime()和now的间隔天数
+                long daysToExpiration = OwnerOrder.dte(ownerOrder);
+                ownerOrder.setExtValue(OrderExt.CUR_DTE, daysToExpiration);
 
+                // 计算期权行权价
+                BigDecimal strikePrice = OwnerOrder.strikePrice(ownerOrder);
+                ownerOrder.setExtValue(OrderExt.STRIKE_PRICE, strikePrice);
+
+                // 计算期权合约数量
+                int lotSize = OwnerOrder.lotSize(ownerOrder);
+                ownerOrder.setExtValue(OrderExt.LOT_SIZE, lotSize);
+            }
         }
 
     }

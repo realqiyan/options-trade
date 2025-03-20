@@ -1,5 +1,7 @@
 package me.dingtou.options.constant;
 
+import java.math.BigDecimal;
+
 import com.alibaba.fastjson.JSON;
 import lombok.Getter;
 import me.dingtou.options.model.Options;
@@ -14,7 +16,7 @@ import me.dingtou.options.model.OwnerOrder;
 public enum OrderExt {
 
     ////////////////////////////////
-    //          实时属性           //
+    // 实时属性 //
     ////////////////////////////////
     /**
      * 当前价格
@@ -24,7 +26,7 @@ public enum OrderExt {
     /**
      * 当前到期天数 Days to Expiration
      */
-    CUR_DTE("curDTE", Integer.class),
+    CUR_DTE("curDTE", Long.class),
 
     /**
      * 盈亏比例
@@ -34,23 +36,26 @@ public enum OrderExt {
     /**
      * 总收益
      */
-    TOTAL_INCOME("totalIncome", String.class),
+    TOTAL_INCOME("totalIncome", BigDecimal.class),
 
     /**
      * 是否平仓（会计算多订单之间的买卖抵消）
      */
-    IS_CLOSE("isClose", String.class),
-
-    
+    IS_CLOSE("isClose", Boolean.class),
 
     ////////////////////////////////
-    //          静态属性           //
+    // 静态属性 //
     ////////////////////////////////
-    
+
     /**
      * 一笔订单的合约数量
      */
     LOT_SIZE("lotSize", Integer.class),
+
+    /**
+     * 当前行权价
+     */
+    STRIKE_PRICE("strikePrice", BigDecimal.class),
 
     /**
      * 来源订单

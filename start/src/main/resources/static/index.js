@@ -230,6 +230,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                 "LAY_CHECKED": options.strategyData?options.strategyData.recommend:false,
                 "data": options,
                 "options": JSON.stringify(options),
+                "code": options.basic.security.code,
                 "type": options.optionExData?(options.optionExData.type == 1 ? 'Call' : 'Put'):'-',//1: call, 2: put
                 "group": options.basic.name.match(/^([^ ]+)/)[1],
                 "strikePrice": options.optionExData?options.optionExData.strikePrice:'-',
@@ -246,7 +247,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
           var inst = table.render({
             elem: '#result',
             cols: [[
-              {field: 'type', title: '类型', width: 85, sort: true, templet: function(d) {
+              {field: 'type', title: '类型', width: 60, templet: function(d) {
                   if(d.type === 'Call') {
                       return '<span class="option-call-badge">Call</span>';
                   } else if(d.type === 'Put') {
@@ -255,7 +256,8 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                       return d.type;
                   }
               }},
-              {field: 'strikePrice', title: '行权价', width: 100, sort: true, templet: function(d) {
+              {field: 'code', title: '期权代码', width: 165},
+              {field: 'strikePrice', title: '行权价', width: 80, templet: function(d) {
                   var currentPrice = parseFloat(d.data.realtimeData.underlyingPrice);
                   var strikePrice = parseFloat(d.strikePrice);
                   if (!isNaN(currentPrice) && !isNaN(strikePrice)) {
@@ -268,12 +270,12 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                   }
                   return d.strikePrice;
               }},
-              {field: 'range', title: '涨跌幅度', width: 100},
-              {field: 'curPrice', title: '价格', width: 85},
-              {field: 'sellAnnualYield', title: '年化', width: 85},
-              {title: '交易参考信息', width: 500, templet: '#TPL-table-tradeInfo'},
-              {field: 'group', title: '分组', width: 85},
-              {field: 'data', title: '卖出', width: 100, templet: function(d) {
+              {field: 'range', title: '涨跌幅', width: 80},
+              {field: 'curPrice', title: '价格', width: 80},
+              {field: 'sellAnnualYield', title: '年化', width: 80},
+              {title: '交易参考信息', width: 480, templet: '#TPL-table-tradeInfo'},
+              {field: 'group', title: '分组', width: 80},
+              {field: 'options', title: '卖出', width: 80, templet: function(d) {
                   if (d.options) {
                       var btnClass = 'layui-btn-primary';
                       if (d.type === 'Call') {
@@ -281,7 +283,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                       } else if (d.type === 'Put') {
                           btnClass = 'layui-bg-red';
                       }
-                      return '<div><a title="' + d.data.basic.name + '" class="layui-btn ' + btnClass + ' layui-btn-xs" onclick="sell(' + d.options + ')" lay-event="sell">卖出' + d.type + '</a></div>';
+                      return `<div><a title="${d.data.basic.name}" class="layui-btn ${btnClass} layui-btn-xs" onclick='sell(${d.options})' lay-event="sell">卖出${d.type}</a></div>`;
                   }
                   return '';
               }},
@@ -320,27 +322,6 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                     }
                 });
                 
-                // 高亮显示在价内期权
-                var currentPrice = 0;
-                if (res.data && res.data.length > 0 && res.data[0].data && res.data[0].data.realtimeData) {
-                    currentPrice = parseFloat(res.data[0].data.realtimeData.underlyingPrice);
-                }
-                
-                if (currentPrice > 0) {
-                    $('.layui-table-fixed .layui-table-body .layui-table tr').each(function() {
-                        var type = $(this).find('td[data-field="type"]').text();
-                        var strikeCell = $(this).find('td[data-field="strikePrice"]');
-                        var strikePrice = parseFloat(strikeCell.text());
-                        
-                        if (!isNaN(strikePrice)) {
-                            // 标记价内和价外期权
-                            if ((type.indexOf('Call') > -1 && strikePrice <= currentPrice) || 
-                                (type.indexOf('Put') > -1 && strikePrice >= currentPrice)) {
-                                $(this).find('td').css('font-weight', 'bold');
-                            }
-                        }
-                    });
-                }
             },
             //skin: 'line',
             //even: true,

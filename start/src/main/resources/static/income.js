@@ -22,6 +22,8 @@ function renderOrderTable(orderList){
             "price": item.price,
             "quantity": item.quantity,
             "statusStr": statusMapping(item.status+''),
+            "curDTE": item.ext ? item.ext.curDTE : null,
+            "strikePrice": item.ext ? item.ext.strikePrice : null,
             "totalIncome": item.ext ? item.ext.totalIncome : null,
             "orderFee": item.orderFee,
             "tradeTime": item.tradeTime,
@@ -37,21 +39,23 @@ function renderOrderTable(orderList){
       var inst = table.render({
         elem: '#orderTable',
         cols: [[
-          {field: 'tradeTime', title: '交易时间', width: 180, sort: true},
-          {field: 'strikeTime', title: '行权时间', width: 130, sort: true},
-          {field: 'underlyingCode', title: '证券代码', width: 180, sort: true, templet: function(d){
+          {field: 'tradeTime', title: '交易时间', width: 165, sort: true},
+          {field: 'strikeTime', title: '行权时间', width: 120, sort: true},
+          {field: 'code', title: '期权代码', width: 180, sort: true},
+          {field: 'underlyingCode', title: '证券代码', width: 150, sort: true, templet: function(d){
                 return `<span>${d.underlyingCode}</span><b name="stock_${d.market}_${d.underlyingCode}" class="layui-badge"></b>`;
             }
           },
-          {field: 'code', title: '期权代码', width: 180, sort: true},
+          {field: 'strikePrice', title: '行权价', width: 80},
+          {field: 'curDTE', title: '到期天数', width: 100},
           {field: 'side', title: '类型', width: 80},
           {field: 'quantity', title: '数量', width: 80},
           {field: 'statusStr', title: '状态', width: 100},
-          {field: 'price', title: '价格', width: 100},
-          {field: 'totalIncome', title: '收入', width: 100},
-          {field: 'curPrice', title: '现价', width: 100},
+          {field: 'price', title: '价格', width: 80},
+          {field: 'totalIncome', title: '收入', width: 80},
+          {field: 'curPrice', title: '现价', width: 80},
           {field: 'orderFee', title: '订单费用', width: 100},
-          {field: 'profitRatio', title: '盈亏', width: 100, templet: function(d){
+          {field: 'profitRatio', title: '盈亏', width: 80, templet: function(d){
               return '<span class="' + d.profitRatioClass + '">' + d.profitRatio + '</span>';
           }},
           {field: 'scaleRatio', title: '规模占比', width: 100, templet: function(d){
