@@ -157,32 +157,41 @@ function loadOptionsExpDate(code, market){
       success: function( response ) {
         resetContent("请选择期权到期日");
         var result = response.data;
-        var output = document.getElementById("strike-list");
-        output.innerHTML = "";
-        var moreHtml = ""
-        for(var i=0; i<result.length; i++) {
-            var obj = result[i];
-            if (i < 8){
-                output.innerHTML += '<li class="layui-nav-item layui-hide-xs" onclick="loadOptionsChain(\''+obj.strikeTime+'\',\''+obj.strikeTimestamp+'\',\''+obj.optionExpiryDateDistance+'\')"><a href="javascript:;">'+obj.strikeTime+'('+obj.optionExpiryDateDistance+')</a></li>'
-            }else{
-                moreHtml += '<dd onclick="loadOptionsChain(\''+obj.strikeTime+'\',\''+obj.strikeTimestamp+'\',\''+obj.optionExpiryDateDistance+'\')"><a href="javascript:;">'+obj.strikeTime+'('+obj.optionExpiryDateDistance+')</a></dd>'
-            }
-        }
-        if(moreHtml){   
-            output.innerHTML += '<li class="layui-nav-item"><a href="javascript:;">More</a><dl class="layui-nav-child">' + moreHtml + '</dl></li>';
-        }
-        render();
 
-        // 渲染当前证券策略列表
-        var currentStrategyList = filterStrategyByCode(currentOwnerData.strategyList,currentCode);
-        laytpl(currentStrategy.innerHTML).render({list:currentStrategyList,strategyId:currentStrategyId}, function(html){
-          document.getElementById('strategyIdZone').innerHTML = html;
-          var form = layui.form;
-          form.on('select(strategyId)', function(elem){
-            strategySelect(code,elem.value);
-          });
-          form.render();
-        });
+        layui.use(function(){
+            var tabs = layui.tabs;
+            var titleList = [];
+            var contentList = [];
+            for(var i=0; i<result.length; i++) {
+                var obj = result[i];
+                titleList.push({ title: `${obj.strikeTime}(${obj.optionExpiryDateDistance})` });
+                contentList.push({ content: ''});
+            }
+
+            tabs.on(`afterChange(strike-list)`, function(data) {
+                var obj = result[data.index];
+                console.log('change to index:'+data.index+' obj:',obj);
+                loadOptionsChain(obj.strikeTime, obj.strikeTimestamp, obj.optionExpiryDateDistance);
+            });
+            // 方法渲染
+            tabs.render({
+                elem: '#strike-list',
+                header: titleList,
+                body: contentList,
+                closable: false
+            });
+
+            // 渲染当前证券策略列表
+            var currentStrategyList = filterStrategyByCode(currentOwnerData.strategyList,currentCode);
+            laytpl(currentStrategy.innerHTML).render({list:currentStrategyList,strategyId:currentStrategyId}, function(html){
+                document.getElementById('strategyIdZone').innerHTML = html;
+                var form = layui.form;
+                form.on('select(strategyId)', function(elem){
+                    strategySelect(code,elem.value);
+                });
+                form.render();
+            });
+      });
       }
     });
 }

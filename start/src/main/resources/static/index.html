@@ -189,6 +189,10 @@
             color: #333;
             background: #f8f8f8;
         }
+
+        #strike-list .layui-tabs-body {
+            display: none;
+        }
     </style>
     </head>
 <body>
@@ -196,9 +200,6 @@
     <div class="layui-header">
         <div class="layui-logo layui-hide-xs layui-bg-black">Options</div>
         <!-- 头部区域（可配合layui 已有的水平导航） -->
-        <ul class="layui-nav layui-layout-left" id="strike-list" lay-filter="strike-list">
-            <li class="layui-nav-item layui-hide-xs"><a href="javascript:;"></a></li>
-        </ul>
     </div>
     <div class="layui-side layui-bg-black">
         <div class="layui-side-scroll">
@@ -239,21 +240,24 @@
                         </div>
                     </div>
                     <div class="layui-inline layui-font-16" id="nyc_time">
-
+                    </div>
+                </div>
+                <div class="layui-form-item" id="strike-list" lay-filter="strike-list">
+                </div>
+                <div class="layui-form-item">
+                    <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
+                        期权链
+                    </blockquote>
+                </div>
+                <div class="layui-form-item">
+                    <canvas id="chartZone" style="display:none;" height="200"></canvas>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-card-body" id="result" lay-filter="result">
+                        依次操作：1.选择股票 2.选择期权策略 3.点击期权到期日
                     </div>
                 </div>
             </div>
-            <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
-                期权链
-            </blockquote>
-            <canvas id="chartZone" style="display:none;" height="200"></canvas>
-
-            <div class="layui-card layui-panel">
-                <div class="layui-card-body" id="result" lay-filter="result">
-                    依次点击：1.股票 2.期权策略 3.期权到期日
-                </div>
-            </div>
-            <br><br>
         </div>
     </div>
 </div>
