@@ -263,6 +263,14 @@ public class OwnerManager {
                 // 计算期权合约数量
                 int lotSize = OwnerOrder.lotSize(ownerOrder);
                 ownerOrder.setExtValue(OrderExt.LOT_SIZE, lotSize);
+                
+                // 计算期权类型
+                if (OwnerOrder.isPut(ownerOrder)) {
+                    ownerOrder.setExtValue(OrderExt.IS_PUT, true);
+                }
+                if (OwnerOrder.isCall(ownerOrder)) {
+                    ownerOrder.setExtValue(OrderExt.IS_CALL, true);
+                }
             }
         }
 

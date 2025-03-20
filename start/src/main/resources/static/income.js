@@ -24,6 +24,8 @@ function renderOrderTable(orderList){
             "statusStr": statusMapping(item.status+''),
             "curDTE": item.ext ? item.ext.curDTE : null,
             "strikePrice": item.ext ? item.ext.strikePrice : null,
+            "isPut": item.ext ? item.ext.isPut : false,
+            "isCall": item.ext ? item.ext.isCall : false,
             "totalIncome": item.ext ? item.ext.totalIncome : null,
             "orderFee": item.orderFee,
             "tradeTime": item.tradeTime,
@@ -43,7 +45,7 @@ function renderOrderTable(orderList){
           {field: 'strikeTime', title: '行权时间', width: 120, sort: true},
           {field: 'code', title: '期权代码', width: 180, sort: true},
           {field: 'underlyingCode', title: '证券代码', width: 150, sort: true, templet: function(d){
-                return `<span>${d.underlyingCode}</span><b name="stock_${d.market}_${d.underlyingCode}" class="layui-badge"></b>`;
+                return `<span>${d.underlyingCode}</span><b name="stock_${d.market}_${d.underlyingCode}" class="current-price layui-badge"></b>`;
             }
           },
           {field: 'strikePrice', title: '行权价', width: 80},

@@ -58,6 +58,16 @@ public enum OrderExt {
     STRIKE_PRICE("strikePrice", BigDecimal.class),
 
     /**
+     * 是否是认沽订单
+     */
+    IS_PUT("isPut", Boolean.class),
+
+    /**
+     * 是否是认购订单
+     */
+    IS_CALL("isCall", Boolean.class),
+
+    /**
      * 来源订单
      */
     SOURCE_ORDER("sourceOrder", OwnerOrder.class),
