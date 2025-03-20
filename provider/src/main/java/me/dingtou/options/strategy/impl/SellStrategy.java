@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 @Component
-public class DefaultSellStrategy extends BaseStrategy {
+public class SellStrategy extends BaseStrategy {
 
     @Override
     void process(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
@@ -22,28 +22,18 @@ public class DefaultSellStrategy extends BaseStrategy {
 
     private String buildPrompt(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
             StrategySummary summary) {
-        optionsChain.getOptionList().forEach(optionsTuple -> {
-            Options call = optionsTuple.getCall();
-            if (null != call) {
-                OptionsRealtimeData realtimeData = call.getRealtimeData();
-                if (null != realtimeData) {
-                    realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
-                    realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
-                } else {
-                    call.setRealtimeData(new OptionsRealtimeData());
-                }
-            }
-            Options put = optionsTuple.getPut();
-            if (null != put) {
-                OptionsRealtimeData realtimeData = put.getRealtimeData();   
-                if (null != realtimeData) {
-                    realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
-                    realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
-                } else {
-                    put.setRealtimeData(new OptionsRealtimeData());
-                }
+
+        // 反转delta和theta
+        optionsChain.getOptionsList().forEach(options -> {
+            OptionsRealtimeData realtimeData = options.getRealtimeData();
+            if (null != realtimeData) {
+                realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
+                realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
+            } else {
+                options.setRealtimeData(new OptionsRealtimeData());
             }
         });
+        
         // AI分析提示词
         VixIndicator vixIndicator = optionsChain.getVixIndicator();
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
@@ -108,15 +98,8 @@ public class DefaultSellStrategy extends BaseStrategy {
         prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
                 .append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
                 .append("| --- ").append("|\n");
-        optionsChain.getOptionList().forEach(optionsTuple -> {
-            Options call = optionsTuple.getCall();
-            if (null != call) {
-                buildOptionsPrompt(prompt, call);
-            }
-            Options put = optionsTuple.getPut();
-            if (null != put) {
-                buildOptionsPrompt(prompt, put);
-            }
+        optionsChain.getOptionsList().forEach(options -> {
+            buildOptionsPrompt(prompt, options);
         });
 
         return prompt.toString();

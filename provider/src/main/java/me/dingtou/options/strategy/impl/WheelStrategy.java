@@ -66,45 +66,26 @@ public class WheelStrategy extends BaseStrategy {
             }
         }
         final BigDecimal finalSellPutAcceptableStrikePrice = sellPutAcceptableStrikePrice;
-
-        optionsChain.getOptionList().forEach(optionsTuple -> {
-            Options call = optionsTuple.getCall();
-            if (null != call) {
-                OptionsRealtimeData realtimeData = call.getRealtimeData();
+        optionsChain.getOptionsList().forEach(options -> {
+                OptionsRealtimeData realtimeData = options.getRealtimeData();
                 if (null != realtimeData) {
                     realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
                     realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
                 } else {
-                    call.setRealtimeData(new OptionsRealtimeData());
+                    options.setRealtimeData(new OptionsRealtimeData());
                 }
-                if (isSellPutStage) {
-                    call.getStrategyData().setRecommend(false);
-                    call.getStrategyData().setRecommendLevel(0);
+                
+                // 根据策略阶段过滤不需要的期权类型:
+                // 1. 如果是卖出看跌期权(Sell Put)阶段,过滤掉看涨期权(Call,type=1)
+                // 2. 如果是备兑看涨期权(Covered Call)阶段,过滤掉看跌期权(Put,type=2)
+                // 通过将推荐标志设为false和推荐等级设为0来实现过滤
+                if (isSellPutStage && options.getOptionExData().getType() == 1) {
+                    options.getStrategyData().setRecommend(false);
+                    options.getStrategyData().setRecommendLevel(0);
+                } else if (isCoveredCallStage && options.getOptionExData().getType() == 2) {
+                    options.getStrategyData().setRecommend(false);
+                    options.getStrategyData().setRecommendLevel(0);
                 }
-                if (isCoveredCallStage) {
-                    // call的价格要高于指派的股票价格
-                    if (null != finalUnderlyingOrder
-                            && call.getOptionExData().getStrikePrice().compareTo(finalUnderlyingOrder.getPrice()) < 0) {
-                        call.getStrategyData().setRecommend(false);
-                        call.getStrategyData().setRecommendLevel(0);
-                    }
-                }
-            }
-
-            Options put = optionsTuple.getPut();
-            if (null != put) {
-                OptionsRealtimeData realtimeData = put.getRealtimeData();   
-                if (null != realtimeData) {
-                    realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
-                    realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
-                } else {
-                    put.setRealtimeData(new OptionsRealtimeData());
-                }
-                if (isCoveredCallStage) {
-                    put.getStrategyData().setRecommend(false);
-                    put.getStrategyData().setRecommendLevel(0);
-                }
-            }
         });
 
         VixIndicator vixIndicator = optionsChain.getVixIndicator();
@@ -179,15 +160,8 @@ public class WheelStrategy extends BaseStrategy {
         prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
                 .append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
                 .append("| --- ").append("|\n");
-        optionsChain.getOptionList().forEach(optionsTuple -> {
-            Options call = optionsTuple.getCall();
-            if (null != call) {
-                buildOptionsPrompt(prompt, call);
-            }
-            Options put = optionsTuple.getPut();
-            if (null != put) {
-                buildOptionsPrompt(prompt, put);
-            }
+        optionsChain.getOptionsList().forEach(options -> {
+            buildOptionsPrompt(prompt, options);
         });
         prompt.append("\n");
         optionsChain.setPrompt(prompt.toString());

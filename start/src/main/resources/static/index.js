@@ -225,22 +225,19 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
           view.innerHTML = html;
         });
 
-        var convertedData = result.optionList.map(item => {
+        var convertedData = result.optionsList.map(options => {
             return {
-                "LAY_CHECKED": item.call&&item.call.strategyData?item.call.strategyData.recommend:(item.put&&item.put.strategyData?item.put.strategyData.recommend:false),
-                "data": item.call?item.call:item.put,
-                "callObj": item.call,
-                "putObj": item.put,
-                "group": item.call?item.call.basic.name.match(/^([^ ]+)/)[1]:item.put.basic.name.match(/^([^ ]+)/)[1],
-                "strikePrice": item.call?item.call.optionExData.strikePrice:item.put.optionExData.strikePrice,
-                "call": item.call?JSON.stringify(item.call):null,
-                "put": item.put?JSON.stringify(item.put):null,
-                "putCurPrice": item.put && item.put.realtimeData?item.put.realtimeData.curPrice:'-',
-                "callCurPrice": item.call && item.call.realtimeData?item.call.realtimeData.curPrice:'-',
-                "putSellAnnualYield": item.put && item.put.strategyData?item.put.strategyData.sellAnnualYield + '%' : '-',
-                "callSellAnnualYield": item.call && item.call.strategyData?item.call.strategyData.sellAnnualYield + '%' : '-',
-                "putSellRecommend": item.put && item.put.strategyData?item.put.strategyData.recommend : false,
-                "callSellRecommend": item.call && item.call.strategyData?item.call.strategyData.recommend : false,
+                "LAY_CHECKED": options.strategyData?options.strategyData.recommend:false,
+                "data": options,
+                "options": JSON.stringify(options),
+                "type": options.optionExData?(options.optionExData.type == 1 ? 'Call' : 'Put'):'-',//1: call, 2: put
+                "group": options.basic.name.match(/^([^ ]+)/)[1],
+                "strikePrice": options.optionExData?options.optionExData.strikePrice:'-',
+                "range": options.strategyData&&options.strategyData.range?options.strategyData.range + '%' : '-',
+                "curPrice": options.realtimeData?options.realtimeData.curPrice:'-',
+                "recommendLevel": options.strategyData?options.strategyData.recommendLevel:'-',
+                "sellAnnualYield": options.strategyData?options.strategyData.sellAnnualYield + '%' : '-',
+                "sellRecommend": options.strategyData?options.strategyData.recommend : false,
             };
         });
 
@@ -249,16 +246,14 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
           var inst = table.render({
             elem: '#result',
             cols: [[
-              {field: 'data', title: '推荐-涨跌', width: 100, align: 'left', templet: '#TPL-recommendInfo'},
-              {title: '交易参考信息', width: 260, rowspan: 3, templet: '#id-table-call-info'},
-              {field: 'callCurPrice', title: '价格', width: 85},
-              {field: 'call', title: '卖', width: 20, templet: '{{#  if(d.call){ }}<div><a title="{{= d.callObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.call }})" lay-event="sell">卖</a></div>{{#  } }}'},
-              {field: 'callSellAnnualYield', title: '年化', width: 85},
-              {field: 'strikePrice', title: '行权价', width: 90, sort: true},
-              {field: 'putSellAnnualYield', title: '年化', width: 85},
-              {field: 'put', title: '卖', width: 20, templet: '{{#  if(d.put){ }}<div><a title="{{= d.putObj.basic.name }}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.put }})" lay-event="sell">卖</a></div>{{#  } }}'},
-              {field: 'putCurPrice', title: '价格', width: 85},
-              {title: '交易参考信息', width: 260, templet: '#id-table-put-info'},
+              {field: 'type', title: '类型', width: 85, sort: true},
+              {field: 'strikePrice', title: '行权价', width: 100, sort: true},
+              {field: 'range', title: '涨跌幅度', width: 100},
+              {field: 'curPrice', title: '价格', width: 85},
+              {field: 'sellAnnualYield', title: '年化', width: 85},
+              {title: '交易参考信息', width: 500, templet: '#TPL-table-tradeInfo'},
+              {field: 'group', title: '分组', width: 85},
+              {field: 'data', title: '卖出', width: 100, templet: '{{# if(d.options){ }}<div><a title="{{= d.data.basic.name}}" class="layui-btn layui-btn-primary layui-btn-xs" onclick="sell({{= d.options}})" lay-event="sell">卖出{{= d.type}}</a></div>{{#  } }}'},
             ]],
             data: convertedData,
             toolbar: true,

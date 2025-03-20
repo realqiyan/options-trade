@@ -24,10 +24,10 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
      */
     private static final BigDecimal PRICE_RANGE = BigDecimal.valueOf(0.20);
 
-
     @Override
     public List<OptionsStrikeDate> getOptionsExpDate(Security security) {
-        List<OptionsStrikeDate> strikeDateList = QueryExecutor.query(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
+        List<OptionsStrikeDate> strikeDateList = QueryExecutor
+                .query(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
         if (null == strikeDateList || strikeDateList.isEmpty()) {
             return Collections.emptyList();
         }
@@ -43,48 +43,36 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             minStrikePrice = lastDone.multiply(BigDecimal.ONE.subtract(PRICE_RANGE));
             maxStrikePrice = lastDone.multiply(BigDecimal.ONE.add(PRICE_RANGE));
         }
-        OptionsChain optionsChain = QueryExecutor.query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
-        if (null == optionsChain) {
+
+        List<Options> optionsList = QueryExecutor
+                .query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
+        if (null == optionsList || optionsList.isEmpty()) {
             throw new RuntimeException("FuncGetOptionChain result null");
         }
 
+        OptionsChain optionsChain = new OptionsChain();
+        optionsChain.setStrikeTime(strikeTime);
+
+        List<Options> chainOptionsList = new ArrayList<>();
         Set<Security> allSecurity = new HashSet<>();
-        ListIterator<OptionsTuple> optionsTupleListIterator = optionsChain.getOptionList().listIterator();
-        while (optionsTupleListIterator.hasNext()) {
-
-            // 处理call
-            OptionsTuple optionsTuple = optionsTupleListIterator.next();
-            Options call = optionsTuple.getCall();
-            if (null != call) {
-                Security callSecurity = call.getBasic().getSecurity();
-                BigDecimal callStrikePrice = call.getOptionExData().getStrikePrice();
-                if (callStrikePrice.compareTo(minStrikePrice) >= 0 && callStrikePrice.compareTo(maxStrikePrice) <= 0) {
-                    if (null != callSecurity) {
-                        allSecurity.add(callSecurity);
-                    }
-                } else {
-                    optionsTuple.setCall(null);
-                }
+        for (Options options : optionsList) {
+            if (null == options) {
+                continue;
             }
 
-            // 处理put
-            Options put = optionsTuple.getPut();
-            if (null != put) {
-                Security putSecurity = put.getBasic().getSecurity();
-                BigDecimal putStrikePrice = put.getOptionExData().getStrikePrice();
-                if (putStrikePrice.compareTo(minStrikePrice) >= 0 && putStrikePrice.compareTo(maxStrikePrice) <= 0) {
-                    if (null != putSecurity) {
-                        allSecurity.add(putSecurity);
-                    }
-                } else {
-                    optionsTuple.setPut(null);
-                }
+            Security optionsSecurity = options.getBasic().getSecurity();
+            if (null == optionsSecurity) {
+                continue;
             }
 
-            if (null == optionsTuple.getCall() && null == optionsTuple.getPut()) {
-                optionsTupleListIterator.remove();
+            BigDecimal strikePrice = options.getOptionExData().getStrikePrice();
+            if (strikePrice.compareTo(minStrikePrice) >= 0 && strikePrice.compareTo(maxStrikePrice) <= 0) {
+                allSecurity.add(optionsSecurity);
+                chainOptionsList.add(options);
             }
         }
+        optionsChain.setOptionsList(chainOptionsList);
+
         List<Security> securityList = new ArrayList<>(allSecurity);
         List<OptionsRealtimeData> optionsBasicInfo = QueryExecutor.query(new FuncGetOptionsRealtimeData(securityList));
         if (optionsBasicInfo.isEmpty()) {
@@ -96,27 +84,18 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
     }
 
     private void mergeRealtimeData(OptionsChain optionsChain, List<OptionsRealtimeData> optionsBasicInfoList) {
-
         Map<Security, OptionsRealtimeData> realtimeDataMap = new HashMap<>();
         for (OptionsRealtimeData optionsBasicInfo : optionsBasicInfoList) {
             realtimeDataMap.put(optionsBasicInfo.getSecurity(), optionsBasicInfo);
         }
-        for (OptionsTuple optionsTuple : optionsChain.getOptionList()) {
-            Options call = optionsTuple.getCall();
-            if (null != call) {
-                Security security = call.getBasic().getSecurity();
-                OptionsRealtimeData optionsRealtimeData = realtimeDataMap.get(security);
-                call.setRealtimeData(optionsRealtimeData);
+        for (Options options : optionsChain.getOptionsList()) {
+            if (null == options || null == options.getBasic() || null == options.getBasic().getSecurity()) {
+                continue;
             }
-
-            Options put = optionsTuple.getPut();
-            if (null != put) {
-                Security security = put.getBasic().getSecurity();
-                OptionsRealtimeData optionsRealtimeData = realtimeDataMap.get(security);
-                put.setRealtimeData(optionsRealtimeData);
-            }
+            Security security = options.getBasic().getSecurity();
+            OptionsRealtimeData optionsRealtimeData = realtimeDataMap.get(security);
+            options.setRealtimeData(optionsRealtimeData);
         }
     }
-
 
 }

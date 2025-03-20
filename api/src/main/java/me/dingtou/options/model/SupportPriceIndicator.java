@@ -9,8 +9,4 @@ public class SupportPriceIndicator {
 
     private BigDecimal lowestSupportPrice;
 
-    private BigDecimal smaSupportPrice;
-
-    private BigDecimal bollingerLowerSupportPrice;
-
 }

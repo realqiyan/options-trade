@@ -137,35 +137,9 @@ public class IndicatorManager {
 
         SupportPriceIndicator supportPriceIndicator = new SupportPriceIndicator();
         supportPriceIndicator.setLowestSupportPrice(calculateLowSupport(barSeries));
-        supportPriceIndicator.setSmaSupportPrice(calculateSmaSupport(barSeries));
-        supportPriceIndicator.setBollingerLowerSupportPrice(calBollSupport(bollLower));
         stockIndicator.setSupportPriceIndicator(supportPriceIndicator);
 
         return stockIndicator;
-    }
-
-    /**
-     * 计算BOLL下轨支撑位
-     * 
-     * @param bollingerLower BOLL下轨
-     * @return 支撑位
-     */
-    private BigDecimal calBollSupport(BollingerBandsLowerIndicator bollingerLower) {
-        Num bollingerSupport = bollingerLower.getValue(bollingerLower.getBarSeries().getEndIndex());
-        return NumberUtils.scale(bollingerSupport.bigDecimalValue());
-    }
-
-    /**
-     * 计算SMA支撑位
-     * 
-     * @param barSeries K线数据
-     * @return SMA支撑位
-     */
-    private BigDecimal calculateSmaSupport(BarSeries barSeries) {
-        ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
-        SMAIndicator sma = new SMAIndicator(closePrice, 20);
-        Num dynamicSupport = sma.getValue(barSeries.getEndIndex());
-        return NumberUtils.scale(dynamicSupport.bigDecimalValue());
     }
 
     /**

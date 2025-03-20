@@ -18,9 +18,9 @@ public class OptionsChain {
     private String strikeTime;
 
     /**
-     * 期权到期时间戳
+     * 期权列表
      */
-    private Long strikeTimestamp;
+    private List<Options> optionsList;
 
     /**
      * VIX指标
@@ -31,11 +31,6 @@ public class OptionsChain {
      * 股票指标
      */
     private StockIndicator stockIndicator;
-
-    /**
-     * 期权列表
-     */
-    private List<OptionsTuple> optionList;
 
     /**
      * 交易级别

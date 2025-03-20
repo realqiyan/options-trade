@@ -1,5 +1,9 @@
 package me.dingtou.options.gateway.futu.executor.func.query;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.alibaba.fastjson.JSON;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionChain;
@@ -8,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.QueryFunctionCall;
 import me.dingtou.options.model.Options;
-import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsTuple;
 
 /**
@@ -17,7 +20,7 @@ import me.dingtou.options.model.OptionsTuple;
  * @author qiyan
  */
 @Slf4j
-public class FuncGetOptionChain implements QueryFunctionCall<OptionsChain> {
+public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
 
     private final int market;
     private final String code;
@@ -60,7 +63,7 @@ public class FuncGetOptionChain implements QueryFunctionCall<OptionsChain> {
     }
 
     @Override
-    public OptionsChain result(GeneratedMessageV3 response) {
+    public List<Options> result(GeneratedMessageV3 response) {
 
         QotGetOptionChain.Response resp = (QotGetOptionChain.Response) response;
         if (null == resp || 0 != resp.getRetType()) {
@@ -71,24 +74,25 @@ public class FuncGetOptionChain implements QueryFunctionCall<OptionsChain> {
         return convert(optionChain);
     }
 
-    private OptionsChain convert(QotGetOptionChain.OptionChain resp) {
+    private List<Options> convert(QotGetOptionChain.OptionChain resp) {
         if (resp == null) {
-            return null;
+            return Collections.emptyList();
         }
-        String jsonString = JSON.toJSONString(resp);
-        OptionsChain optionsChain = JSON.parseObject(jsonString, OptionsChain.class);
-        for (OptionsTuple optionsTuple : optionsChain.getOptionList()) {
+        List<Options> optionsList = new ArrayList<>();
+        String jsonString = JSON.toJSONString(resp.getOptionList());
+        List<OptionsTuple> optionsTuples = JSON.parseArray(jsonString, OptionsTuple.class);
+        for (OptionsTuple optionsTuple : optionsTuples) {
             Options call = optionsTuple.getCall();
-            if (null == call || null == call.getBasic() || "0".equals(call.getBasic().getId())) {
-                optionsTuple.setCall(null);
+            if (null != call && null != call.getBasic() && !"0".equals(call.getBasic().getId())) {
+                optionsList.add(call);
             }
 
             Options put = optionsTuple.getPut();
-            if (null == put || null == put.getBasic() || "0".equals(put.getBasic().getId())) {
-                optionsTuple.setPut(null);
+            if (null != put && null != put.getBasic() && !"0".equals(put.getBasic().getId())) {
+                optionsList.add(put);
             }
         }
-        return optionsChain;
+        return optionsList;
     }
 
 }

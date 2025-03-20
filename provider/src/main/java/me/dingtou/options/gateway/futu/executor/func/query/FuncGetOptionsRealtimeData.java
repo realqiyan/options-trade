@@ -30,6 +30,14 @@ public class FuncGetOptionsRealtimeData implements QueryFunctionCall<List<Option
     }
 
     @Override
+    public List<Integer> getSubTypeList() {
+        List<Integer> subTypeList = new ArrayList<>();
+        subTypeList.add(QotCommon.SubType.SubType_Basic_VALUE);
+        // subTypeList.add(QotCommon.SubType.SubType_OrderBook_VALUE);
+        return subTypeList;
+    }
+
+    @Override
     public int call(QueryExecutor client) {
         QotGetBasicQot.C2S.Builder builder = QotGetBasicQot.C2S.newBuilder();
         for (Security security : allSecurity) {

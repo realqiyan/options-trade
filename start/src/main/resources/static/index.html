@@ -267,28 +267,7 @@
 <script src="marked/marked.js"></script>
 <script src="common.js"></script>
 <script src="index.js"></script>
-<script type="text/html" id="id-table-put-info">
-    {{# if(d.putObj) { }}
-    <span class="layui-badge-rim layui-bg-green" title="delta">Δ:{{= d.putObj.realtimeData.delta }}</span>
-    <span class="layui-badge-rim layui-bg-green" title="theta">Θ:{{= d.putObj.realtimeData.theta }}</span>
-    <span class="layui-badge-rim layui-bg-green" title="gamma">Γ:{{= d.putObj.realtimeData.gamma }}</span>
-    <br/>
-    <span class="layui-badge-rim layui-bg-green" title="交易合约量">交易:{{= d.putObj.realtimeData.volume }}</span>
-    <span class="layui-badge-rim layui-bg-green" title="未平仓合约量">开仓:{{= d.putObj.realtimeData.openInterest }}</span>
-    <span class="layui-badge-rim layui-bg-green" title="隐含波动率">IV:{{= d.putObj.realtimeData.impliedVolatility }}</span>
-    {{# } }}
-</script>
-<script type="text/html" id="id-table-call-info">
-    {{# if(d.callObj) { }}
-    <span class="layui-badge-rim layui-bg-green" title="delta">Δ:{{= d.callObj.realtimeData.delta }}</span>
-    <span class="layui-badge-rim layui-bg-green" title="theta">Θ:{{= d.callObj.realtimeData.theta }}</span>
-    <span class="layui-badge-rim layui-bg-green" title="gamma">Γ:{{= d.callObj.realtimeData.gamma }}</span>
-    <br/>
-    <span class="layui-badge-rim layui-bg-green" title="交易合约量">交易:{{= d.callObj.realtimeData.volume }}</span>
-    <span class="layui-badge-rim layui-bg-green" title="未平仓合约量">开仓:{{= d.callObj.realtimeData.openInterest }}</span>
-    <span class="layui-badge-rim layui-bg-green" title="隐含波动率">IV:{{= d.callObj.realtimeData.impliedVolatility }}</span>
-    {{# } }}
-</script>
+
 <!-- commonInfo 中的内容为laytpl模板 laytpl是Layui的一款轻量JavaScript模板引擎 -->
 <script id="commonInfo" type="text/html">
     <span class="layui-badge layui-bg-orange">
@@ -296,22 +275,27 @@
             <a href="javascript:;" onclick="assistant(layui.jquery('#strategyId').find('option:selected').text())"><i class="layui-icon layui-icon-link"></i>AI助手</a>
         </b>
     </span>
-    -
+    <span class="layui-badge layui-bg-blue">
+        <a href="javascript:void(0);" onclick="window.open('https://stockunlock.com/stockDetails/{{=d.stockIndicator.securityQuote.security.code}}/general')" style="color: #fff;">
+            <i class="layui-icon layui-icon-chart"></i> 查看Insights
+        </a>
+    </span>
     <span class="layui-badge layui-bg-orange">
         <b>
             交易状态: {{= d.tradeLevel == 1 ? '正常' : '不推荐' }}
         </b>
     </span>
-    -
+    <span class="layui-badge layui-bg-orange">
+        <b>
+             最低价: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.lowestSupportPrice?d.stockIndicator.supportPriceIndicator.lowestSupportPrice:0 }}
+        </b>
+    </span>
     <span class="layui-badge layui-bg-blue">
         {{= d.currentCode}}:{{= d.stockIndicator.securityQuote.lastDone }}
         (<b id="stock_{{=d.stockIndicator.securityQuote.security.market}}_{{=d.stockIndicator.securityQuote.security.code}}" class="layui-font-16">{{= d.stockIndicator.securityQuote.lastDone }}</b>)
     </span>
-    -
     <span class="layui-badge layui-bg-blue">到期日:<b class="layui-font-16">{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})</b></span>
-    -
     <span class="layui-badge layui-bg-blue">周价格波动:<b class="layui-font-16">{{= d.stockIndicator.weekPriceRange}}</b></span>
-    -
     <span class="layui-badge layui-bg-blue">月价格波动:<b class="layui-font-16">{{= d.stockIndicator.monthPriceRange}}</b></span>
     <br/>
     <span class="layui-badge layui-bg-orange">
@@ -413,27 +397,6 @@
             </a>
         </b>
     </span>
-    <br/>
-    <span class="layui-badge layui-bg-orange">
-        <b class="layui-font-16">
-             最低价支撑位: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.lowestSupportPrice?d.stockIndicator.supportPriceIndicator.lowestSupportPrice:0 }}
-        </b>
-    </span>
-    <span class="layui-badge layui-bg-orange">
-        <b class="layui-font-16">
-            SMA支撑位: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.smaSupportPrice?d.stockIndicator.supportPriceIndicator.smaSupportPrice:0 }}
-        </b>
-    </span>
-    <span class="layui-badge layui-bg-orange">
-        <b class="layui-font-16">
-            Bolling下轨支撑位: {{= d.stockIndicator&&d.stockIndicator.supportPriceIndicator.bollingerLowerSupportPrice?d.stockIndicator.supportPriceIndicator.bollingerLowerSupportPrice:0 }}
-        </b>
-    </span>
-    <span class="layui-badge layui-bg-blue">
-        <a href="javascript:void(0);" onclick="window.open('https://stockunlock.com/stockDetails/{{=d.stockIndicator.securityQuote.security.code}}/general')" style="color: #fff;">
-            <i class="layui-icon layui-icon-chart"></i> 查看Insights
-        </a>
-    </span>
 </script>
 <script id="currentStrategy" type="text/html">
     <select id="strategyId" name="strategyId" lay-filter="strategyId">
@@ -450,18 +413,16 @@
     {{#  }); }}
     </select>
 </script>
-<script type="text/html" id="TPL-recommendInfo">
-    <div class="layui-font-12">
-    {{#
-        var strategyData = d.data && d.data.strategyData ? d.data.strategyData : {};
-        var level = strategyData.recommendLevel;
-        var recommendLevelClass = level>0 ? "layui-bg-green" : "";
-    }}
-    <span class="layui-badge {{=recommendLevelClass}}" title="推荐级别">{{= level}}</span>
-    <span class="layui-badge layui-bg-gray" title="期权组">{{= d.group }}</span>
-    <span class="layui-badge layui-bg-orange" title="价格涨跌幅">{{= strategyData.range}}%</span>
-    </div>
+<script type="text/html" id="TPL-table-tradeInfo">
+    <span class="layui-badge {{# if(d.recommendLevel > 0) { }}layui-bg-green{{# } }}" title="推荐级别">{{= d.recommendLevel}}</span>
+    <span class="layui-badge-rim layui-bg-green" title="delta">Δ:{{= d.data.realtimeData.delta }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="theta">Θ:{{= d.data.realtimeData.theta }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="gamma">Γ:{{= d.data.realtimeData.gamma }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="隐含波动率">IV:{{= d.data.realtimeData.impliedVolatility }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="交易合约量">交易:{{= d.data.realtimeData.volume }}</span>
+    <span class="layui-badge-rim layui-bg-green" title="未平仓合约量">开仓:{{= d.data.realtimeData.openInterest }}</span>
 </script>
+
 <script id="unexercisedOrders" type="text/html">
   <div class="layui-card">
     <div class="layui-card-header">未行权期权列表</div>
