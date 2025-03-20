@@ -14,6 +14,19 @@ function renderOrderTable(orderList){
             profitRatioClass = parseFloat(item.ext.profitRatio) >= 0 ? 'positive-value' : 'negative-value';
         }
         
+        // 检查现价是否达到行权价
+        let rowClass = '';
+        if(item.ext && item.ext.strikePrice && currentPrice[item.underlyingCode]) {
+            const curPrice = parseFloat(currentPrice[item.underlyingCode]);
+            const strikePrice = parseFloat(item.ext.strikePrice);
+            // PUT期权：如果现价<=行权价，标红
+            // CALL期权：如果现价>=行权价，标红
+            if((item.ext.isPut && curPrice <= strikePrice) || 
+               (item.ext.isCall && curPrice >= strikePrice)) {
+                rowClass = 'strike-alert';
+            }
+        }
+        
         return {
             "strikeTime": extractDate(item.strikeTime),
             "market": item.market,
@@ -33,7 +46,8 @@ function renderOrderTable(orderList){
             "curPrice": item.ext ? item.ext.curPrice : null,
             "profitRatio": item.ext && item.ext.profitRatio ? item.ext.profitRatio + '%' : null,
             "profitRatioClass":profitRatioClass,
-            "scaleRatio": item.ext ? item.ext.scaleRatio : null
+            "scaleRatio": item.ext ? item.ext.scaleRatio : null,
+            "rowClass": rowClass
         };
     });
 
@@ -83,7 +97,18 @@ function renderOrderTable(orderList){
         },
         page: false,
         limits: [100, 200, 500],
-        limit: 100
+        limit: 100,
+        // 添加行样式
+        done: function(res, curr, count){
+            // 为触发行权价的行添加样式
+            const table = this.elem.next();
+            res.data.forEach(function(item, index){
+                if(item.rowClass === 'strike-alert'){
+                    const tr = table.find('.layui-table-box tbody tr[data-index="'+ index +'"]');
+                    tr.addClass('strike-alert');
+                }
+            });
+        }
       });
     });
 
@@ -273,9 +298,62 @@ if (window.EventSource) {
                     priceEleArr[i].innerHTML = currentData.lastDone;
                 }
             }
+            
+            // 检查表格中是否存在该股票的期权订单，如果存在则重新检查行权条件
+            updateStrikeAlerts(currentData.security.code, currentData.lastDone);
         }
     });
 }
+
+// 价格更新后重新检查行权触发条件
+function updateStrikeAlerts(stockCode, price) {
+    layui.use('table', function(){
+        var table = layui.table;
+        var tableElem = document.getElementById('orderTable');
+        if (!tableElem) return;
+        
+        // 获取表格实例
+        var tableInstance = table.cache.orderTable;
+        if (!tableInstance) return;
+        
+        var needRefresh = false;
+        
+        // 遍历表格数据，检查是否有需要更新的行
+        for (var i = 0; i < tableInstance.length; i++) {
+            var item = tableInstance[i];
+            if (item.underlyingCode === stockCode && item.strikePrice) {
+                var oldClass = item.rowClass || '';
+                var strikePrice = parseFloat(item.strikePrice);
+                var curPrice = parseFloat(price);
+                
+                // 检查是否触发行权条件
+                if ((item.isPut && curPrice <= strikePrice) || 
+                    (item.isCall && curPrice >= strikePrice)) {
+                    if (oldClass !== 'strike-alert') {
+                        item.rowClass = 'strike-alert';
+                        needRefresh = true;
+                    }
+                } else {
+                    if (oldClass === 'strike-alert') {
+                        item.rowClass = '';
+                        needRefresh = true;
+                    }
+                }
+            }
+        }
+        
+        // 如果有行需要更新样式，重新渲染表格
+        if (needRefresh) {
+            var tableDiv = document.querySelector('.layui-table-box');
+            if (tableDiv) {
+                table.reload('orderTable', {
+                    data: tableInstance
+                });
+            }
+        }
+    });
+}
+
 // 关闭Sse连接
 function closeSse() {
     source.close();
