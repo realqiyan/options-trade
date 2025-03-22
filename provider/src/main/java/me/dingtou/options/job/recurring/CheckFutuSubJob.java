@@ -1,5 +1,8 @@
 package me.dingtou.options.job.recurring;
 
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +10,8 @@ import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncGetSubInfo;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncUnsubAll;
 import me.dingtou.options.job.Job;
+import me.dingtou.options.job.JobArgs;
+import me.dingtou.options.job.JobContext;
 
 /**
  * 检查订阅信息
@@ -22,12 +27,12 @@ public class CheckFutuSubJob implements Job {
     }
 
     @Override
-    public String id() {
-        return this.getClass().getName();
+    public UUID id() {
+        return UUID.nameUUIDFromBytes(this.getClass().getName().getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
-    public void run() {
+    public <P extends JobArgs> void execute(JobContext<P> ctx) {
         try {
 
             FuncGetSubInfo.SubInfo subInfo = QueryExecutor.query(new FuncGetSubInfo());
@@ -50,6 +55,27 @@ public class CheckFutuSubJob implements Job {
         } catch (Exception e) {
             log.error("checkSubInfo -> error", e);
         }
+    }
+
+    /**
+     * 检查订阅信息任务参数
+     */
+    public static class CheckFutuSubJobArgs implements JobArgs {
+
+        private long startTime;
+
+        public CheckFutuSubJobArgs() {
+        }
+
+        public CheckFutuSubJobArgs(long startTime) {
+            this();
+            this.startTime = startTime;
+        }
+
+        public long getStartTime() {
+            return startTime;
+        }
+
     }
 
 }
