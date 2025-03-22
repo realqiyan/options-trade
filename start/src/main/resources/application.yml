@@ -39,3 +39,10 @@ spring:
 
 options-trade:
   default-owner: qiyan
+
+org:
+  jobrunr:
+    background-job-server:
+      enabled: true
+    dashboard:
+      enabled: true

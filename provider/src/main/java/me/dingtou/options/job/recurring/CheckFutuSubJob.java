@@ -1,22 +1,35 @@
-package me.dingtou.options.gateway.futu.util;
+package me.dingtou.options.job.recurring;
 
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncGetSubInfo;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncUnsubAll;
+import me.dingtou.options.job.Job;
 
+/**
+ * 检查订阅信息
+ */
 @Slf4j
 @Component
-public class CheckSubScheduling {
+public class CheckFutuSubJob implements Job {
 
-    @Scheduled(fixedDelay = 60, timeUnit = TimeUnit.SECONDS)
-    public void checkSubInfo() {
+    private long startTime;
+
+    public CheckFutuSubJob() {
+        this.startTime = System.currentTimeMillis();
+    }
+
+    @Override
+    public String id() {
+        return this.getClass().getName();
+    }
+
+    @Override
+    public void run() {
         try {
+
             FuncGetSubInfo.SubInfo subInfo = QueryExecutor.query(new FuncGetSubInfo());
             if (null == subInfo) {
                 log.warn("FuncGetSubInfo 返回结果为空");
@@ -32,8 +45,11 @@ public class CheckSubScheduling {
                     QueryExecutor.getSubSecurity().clear();
                 }
             }
+            long endTime = System.currentTimeMillis();
+            log.info("CheckFutuSubJob持续时间: {}ms", endTime - startTime);
         } catch (Exception e) {
             log.error("checkSubInfo -> error", e);
         }
     }
+
 }

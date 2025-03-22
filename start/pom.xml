@@ -66,6 +66,11 @@
             <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
         </dependency>
 
+        <dependency> 
+            <groupId>org.jobrunr</groupId> 
+            <artifactId>jobrunr-spring-boot-3-starter</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
