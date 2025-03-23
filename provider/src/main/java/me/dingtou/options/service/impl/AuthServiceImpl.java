@@ -37,14 +37,13 @@ public class AuthServiceImpl implements AuthService {
         try {
             URI uri = new URI(otpAuth);
             TOTPGenerator totpGenerator = TOTPGenerator.fromURI(uri);
-            return totpGenerator.verify(otpPassword, 2);
+            return totpGenerator.verify(otpPassword, 1);
         } catch (URISyntaxException e) {
             log.error("otpAuth 初始化失败 otpAuth:{}", otpAuth, e);
             return false;
         }
 
     }
-
 
     @Override
     public String secretKeySha256(String owner) {
@@ -58,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
             return null;
         }
 
-        //sha256
+        // sha256
         try {
             // 获取MessageDigest实例，指定算法为SHA-256
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -68,7 +67,8 @@ public class AuthServiceImpl implements AuthService {
             StringBuilder hexString = new StringBuilder();
             for (byte b : hashBytes) {
                 String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
+                if (hex.length() == 1)
+                    hexString.append('0');
                 hexString.append(hex);
             }
             return hexString.toString();

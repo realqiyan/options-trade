@@ -9,6 +9,7 @@ import me.dingtou.options.service.AuthService;
 import me.dingtou.options.service.OptionsQueryService;
 import me.dingtou.options.service.OptionsTradeService;
 import me.dingtou.options.service.SummaryService;
+import me.dingtou.options.web.model.CloseOrderJobReq;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -166,18 +167,32 @@ public class WebApiController {
             @RequestParam(value = "quantity", required = true) Integer quantity,
             @RequestParam(value = "price", required = true) String price,
             @RequestParam(value = "options", required = true) String options,
+            @RequestParam(value = "closeOrderJob", required = false) String closeOrderJob,
             @RequestParam(value = "password", required = true) String password) throws Exception {
 
         String owner = SessionUtils.getCurrentOwner();
-        log.info("trade submit. owner:{}, side:{}, quantity:{}, price:{}, options:{}", owner, side, quantity, price,
-                options);
+        log.info("trade submit. owner:{}, side:{}, quantity:{}, price:{}, options:{}, closeOrderJob:{}",
+                owner, side, quantity, price, options, closeOrderJob);
         if (!authService.auth(owner, password)) {
             return WebResult.failure("验证码错误");
         }
         Options optionsObj = JSON.parseObject(options, Options.class);
         BigDecimal sellPrice = new BigDecimal(price);
-        return WebResult
-                .success(optionsTradeService.submit(strategyId, TradeSide.of(side), quantity, sellPrice, optionsObj));
+
+        OwnerOrder order = optionsTradeService.submit(strategyId, TradeSide.of(side), quantity, sellPrice, optionsObj);
+        if (null == order || null == order.getId()) {
+            return WebResult.failure("下单失败");
+        }
+
+        // 解析平仓单请求
+        CloseOrderJobReq closeOrderJobReq = null;
+        if (StringUtils.isNotEmpty(closeOrderJob)) {
+            closeOrderJobReq = JSON.parseObject(closeOrderJob, CloseOrderJobReq.class);
+            closeOrderJobReq.setOrderId(order.getId());
+        }
+        log.info("close order job req:{}", closeOrderJobReq);
+
+        return WebResult.success(order);
     }
 
     @RequestMapping(value = "/trade/order/draft", method = RequestMethod.GET)
