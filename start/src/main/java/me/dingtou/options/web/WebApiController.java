@@ -237,7 +237,7 @@ public class WebApiController {
         if (!authService.auth(owner, password)) {
             return WebResult.failure("验证码错误");
         }
-        return WebResult.success(optionsTradeService.close(owner, orderId, new BigDecimal(price)));
+        return WebResult.success(optionsTradeService.close(owner, orderId, new BigDecimal(price), cannelTime));
     }
 
     @RequestMapping(value = "/trade/modify", method = RequestMethod.POST)
