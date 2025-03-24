@@ -208,36 +208,27 @@ public class WebApiController {
 
     @RequestMapping(value = "/trade/close", method = RequestMethod.POST)
     public WebResult<OwnerOrder> close(@RequestParam(value = "price", required = true) String price,
-            @RequestParam(value = "order", required = true) String order,
+            @RequestParam(value = "orderId", required = true) Long orderId,
             @RequestParam(value = "password", required = true) String password) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
-        log.info("trade close. owner:{}, price:{}, order:{}", owner, price, order);
+        log.info("trade close. owner:{}, price:{}, orderId:{}", owner, price, orderId);
         if (!authService.auth(owner, password)) {
             return WebResult.failure("验证码错误");
         }
-        OwnerOrder orderObj = JSON.parseObject(order, OwnerOrder.class);
-        String loginOwner = SessionUtils.getCurrentOwner();
-        if (!loginOwner.equals(orderObj.getOwner())) {
-            return WebResult.failure("账号信息错误");
-        }
-        return WebResult.success(optionsTradeService.close(orderObj, new BigDecimal(price)));
+        return WebResult.success(optionsTradeService.close(owner, orderId, new BigDecimal(price)));
     }
 
     @RequestMapping(value = "/trade/modify", method = RequestMethod.POST)
     public WebResult<OwnerOrder> modify(@RequestParam(value = "action", required = true) String action,
-            @RequestParam(value = "order", required = true) String order,
+            @RequestParam(value = "orderId", required = true) Long orderId,
             @RequestParam(value = "password", required = true) String password) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
-        log.info("trade modify. owner:{}, action:{}, order:{}", owner, action, order);
+        log.info("trade modify. owner:{}, action:{}, orderId:{}", owner, action, orderId);
         if (!authService.auth(owner, password)) {
             return WebResult.failure("验证码错误");
         }
         OrderAction orderAction = OrderAction.of(action);
-        OwnerOrder orderObj = JSON.parseObject(order, OwnerOrder.class);
-        if (!owner.equals(orderObj.getOwner())) {
-            return WebResult.failure("订单Owner不匹配");
-        }
-        return WebResult.success(optionsTradeService.modify(orderObj, orderAction));
+        return WebResult.success(optionsTradeService.modify(owner, orderId, orderAction));
     }
 
     @RequestMapping(value = "/trade/sync", method = RequestMethod.GET)

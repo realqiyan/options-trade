@@ -164,6 +164,17 @@ public class OwnerManager {
     /**
      * 查询owner订单
      *
+     * @param owner   账号
+     * @param orderId 订单ID
+     * @return owner订单
+     */
+    public OwnerOrder queryOwnerOrder(String owner, Long orderId) {
+        return ownerOrderDAO.queryOwnerOrderById(owner, orderId);
+    }
+
+    /**
+     * 查询owner订单
+     *
      * @param owner           账号
      * @param platformOrderId 平台订单ID
      * @param platformFillId  平台成交ID
@@ -263,7 +274,7 @@ public class OwnerManager {
                 // 计算期权合约数量
                 int lotSize = OwnerOrder.lotSize(ownerOrder);
                 ownerOrder.setExtValue(OrderExt.LOT_SIZE, lotSize);
-                
+
                 // 计算期权类型
                 if (OwnerOrder.isPut(ownerOrder)) {
                     ownerOrder.setExtValue(OrderExt.IS_PUT, true);

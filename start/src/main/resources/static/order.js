@@ -2,7 +2,7 @@
 var currentStrategyId;;
 
 //owner: $("#owner").val(),
-function tradeModify(action, order){
+function tradeModify(action, orderId){
     layer.prompt({title: '确认操作', value: action}, function(value, index, elem){
         if(value === ''){
             return elem.focus();
@@ -13,7 +13,7 @@ function tradeModify(action, order){
               data: {
                 password: $("#totp").val(),
                 action: action,
-                order: order,
+                orderId: orderId,
               },
               success: function( response ) {
                 layer.msg(response.success ? '操作成功' : response.message);
@@ -40,16 +40,8 @@ function sync(){
         });
 }
 
-function cancel(order){
-    tradeModify('cancel', order);
-}
-
-function deleteOrder(order){
-    tradeModify('delete', order);
-}
-
-function tradeClose(order, orderBook){
-    var closePrice = Math.min((order.price * 0.2).toFixed(2),orderBook.askList);
+function tradeClose(orderId, orderPrice, orderBook){
+    var closePrice = Math.min((orderPrice * 0.2).toFixed(2),orderBook.askList);
     layer.prompt({title: '请输入买入价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）',value:closePrice}, function(value, index, elem){
         if(value === ''){
             return elem.focus();
@@ -62,7 +54,7 @@ function tradeClose(order, orderBook){
           data: {
             password: $("#totp").val(),
             price: price,
-            order: JSON.stringify(order),
+            orderId: orderId,
           },
           success: function( response ) {
             layer.msg(response.success ? '操作成功' : response.message);
@@ -86,7 +78,7 @@ function closePosition(order){
          },
          success: function( response ) {
             var result = response.data;
-            tradeClose(orderObj, result);
+            tradeClose(orderObj.id, orderObj.price, result);
          }
        });
 }
@@ -175,14 +167,13 @@ function renderTable(orderList){
       table.on('tool(result)', function(obj){
         var data = obj.data;
         var layEvent = obj.event;
-        
         if(layEvent === 'cancel'){
-          cancel(data.order);
+          tradeModify('cancel', data.id);
+        } else if(layEvent === 'delete'){
+          tradeModify('delete', data.id);
         } else if(layEvent === 'closePosition'){
           closePosition(data.order);
-        } else if(layEvent === 'delete'){
-          deleteOrder(data.order);
-        }
+        } 
       });
     });
 

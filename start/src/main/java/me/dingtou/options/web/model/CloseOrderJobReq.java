@@ -31,12 +31,18 @@ public class CloseOrderJobReq {
      */
     private BigDecimal profitRatio;
 
+    /**
+     * 平仓金额（优先级高于profitRatio）
+     */
+    private BigDecimal closeAmount;
+
     @Override
     public String toString() {
         return "CloseOrderJobReq [orderId=" + orderId +
                 ", enabled=" + enabled +
                 ", cannelTime=" + cannelTime +
-                ", profitRatio=" + profitRatio + "]";
+                ", profitRatio=" + profitRatio +
+                ", closeAmount=" + closeAmount + "]";
     }
 
 }

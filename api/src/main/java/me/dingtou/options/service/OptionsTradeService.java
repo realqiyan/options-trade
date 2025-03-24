@@ -30,20 +30,22 @@ public interface OptionsTradeService {
     /**
      * 关闭头寸
      *
-     * @param order 订单
-     * @param price 交易价格
+     * @param owner   账号
+     * @param orderId 订单ID
+     * @param price   交易价格
      * @return 订单
      */
-    OwnerOrder close(OwnerOrder order, BigDecimal price);
+    OwnerOrder close(String owner, Long orderId, BigDecimal price);
 
     /**
      * 修改订单
      *
-     * @param order  订单
-     * @param action 操作
+     * @param owner   账号
+     * @param orderId 订单ID
+     * @param action  操作
      * @return 订单
      */
-    OwnerOrder modify(OwnerOrder order, OrderAction action);
+    OwnerOrder modify(String owner, Long orderId, OrderAction action);
 
 
     /**

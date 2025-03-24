@@ -34,32 +34,29 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
     }
 
     @Override
-    public OwnerOrder close(OwnerOrder order, BigDecimal price) {
-        OwnerOrder ownerOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatformOrderId(), order.getPlatformFillId());
+    public OwnerOrder close(String owner, Long orderId, BigDecimal price) {
+        OwnerOrder ownerOrder = ownerManager.queryOwnerOrder(owner, orderId);
         if (null == ownerOrder) {
-            throw new IllegalArgumentException("订单不存在 platformOrderId:" + order.getPlatformOrderId());
+            throw new IllegalArgumentException("订单不存在 orderId:" + orderId);
         }
-        OwnerAccount account = ownerManager.queryOwnerAccount(order.getOwner());
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         return tradeManager.close(account, ownerOrder, price);
     }
 
     @Override
-    public OwnerOrder modify(OwnerOrder order, OrderAction action) {
+    public OwnerOrder modify(String owner, Long orderId, OrderAction action) {
+        OwnerOrder order = ownerManager.queryOwnerOrder(owner, orderId);
         if (null == order) {
             return null;
         }
-        OwnerOrder oldOrder = ownerManager.queryOwnerOrder(order.getOwner(), order.getPlatformOrderId(), order.getPlatformFillId());
-        if (null == oldOrder) {
-            return null;
-        }
-        OwnerAccount account = ownerManager.queryOwnerAccount(oldOrder.getOwner());
+        OwnerAccount account = ownerManager.queryOwnerAccount(order.getOwner());
         switch (action) {
             case CANCEL:
-                return tradeManager.cancel(account, oldOrder);
+                return tradeManager.cancel(account, order);
             case DELETE:
-                Boolean delete = tradeManager.delete(account, oldOrder);
-                log.warn("delete orderId:{} result:{}", oldOrder.getPlatformOrderId(), delete);
-                return oldOrder;
+                Boolean delete = tradeManager.delete(account, order);
+                log.warn("delete orderId:{} result:{}", orderId, delete);
+                return order;
             default:
                 throw new IllegalArgumentException("不支持的操作");
         }
