@@ -12,37 +12,32 @@ import lombok.Data;
 public class CloseOrderJobReq {
 
     /**
+     * 是否启用
+     */
+    private Boolean enabled;
+
+    /**
      * 订单ID
      */
     private Long orderId;
 
     /**
-     * 是否启用
+     * 平仓金额（优先级高于profitRatio）
      */
-    private Boolean enabled;
+    private BigDecimal price;
 
     /**
      * 平仓单取消时间
      */
     private Date cannelTime;
 
-    /**
-     * 平仓盈利比例
-     */
-    private BigDecimal profitRatio;
-
-    /**
-     * 平仓金额（优先级高于profitRatio）
-     */
-    private BigDecimal closeAmount;
-
     @Override
     public String toString() {
-        return "CloseOrderJobReq [orderId=" + orderId +
-                ", enabled=" + enabled +
+        return "CloseOrderJobReq [enabled=" + enabled +
+                ", orderId=" + orderId +
+                ", price=" + price +
                 ", cannelTime=" + cannelTime +
-                ", profitRatio=" + profitRatio +
-                ", closeAmount=" + closeAmount + "]";
+                "]";
     }
 
 }

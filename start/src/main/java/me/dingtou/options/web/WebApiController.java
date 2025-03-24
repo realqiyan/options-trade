@@ -4,6 +4,10 @@ import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderAction;
 import me.dingtou.options.constant.TradeSide;
+import me.dingtou.options.job.JobClient;
+import me.dingtou.options.job.JobContext;
+import me.dingtou.options.job.background.CloseOrderJob;
+import me.dingtou.options.job.background.CloseOrderJob.CloseOrderJobArgs;
 import me.dingtou.options.model.*;
 import me.dingtou.options.service.AuthService;
 import me.dingtou.options.service.OptionsQueryService;
@@ -20,9 +24,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * API 控制器
@@ -189,8 +198,20 @@ public class WebApiController {
         if (StringUtils.isNotEmpty(closeOrderJob)) {
             closeOrderJobReq = JSON.parseObject(closeOrderJob, CloseOrderJobReq.class);
             closeOrderJobReq.setOrderId(order.getId());
+            log.info("close order job req:{}", closeOrderJobReq);
+            if (closeOrderJobReq.getEnabled()) {
+                CloseOrderJobArgs args = new CloseOrderJobArgs();
+                String jobId = String.format("close-%s", order.getId());
+                args.setJobId(UUID.nameUUIDFromBytes(jobId.getBytes(StandardCharsets.UTF_8)));
+                args.setOwner(owner);
+                args.setOrderId(order.getId());
+                args.setPrice(closeOrderJobReq.getPrice());
+                args.setCannelTime(closeOrderJobReq.getCannelTime());
+                // 默认600秒后执行
+                Instant executeTime = Instant.now().plus(Duration.ofSeconds(600));
+                JobClient.submit(args.getJobId(), new CloseOrderJob(), JobContext.of(args), executeTime);
+            }
         }
-        log.info("close order job req:{}", closeOrderJobReq);
 
         return WebResult.success(order);
     }
@@ -209,7 +230,8 @@ public class WebApiController {
     @RequestMapping(value = "/trade/close", method = RequestMethod.POST)
     public WebResult<OwnerOrder> close(@RequestParam(value = "price", required = true) String price,
             @RequestParam(value = "orderId", required = true) Long orderId,
-            @RequestParam(value = "password", required = true) String password) throws Exception {
+            @RequestParam(value = "password", required = true) String password,
+            @RequestParam(value = "cannelTime", required = false) Date cannelTime) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
         log.info("trade close. owner:{}, price:{}, orderId:{}", owner, price, orderId);
         if (!authService.auth(owner, password)) {

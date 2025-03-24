@@ -6,6 +6,7 @@ import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OwnerOrder;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -30,12 +31,13 @@ public interface OptionsTradeService {
     /**
      * 关闭头寸
      *
-     * @param owner   账号
-     * @param orderId 订单ID
-     * @param price   交易价格
+     * @param owner      账号
+     * @param orderId    订单ID
+     * @param price      交易价格
+     * @param cannelTime 平仓截止时间
      * @return 订单
      */
-    OwnerOrder close(String owner, Long orderId, BigDecimal price);
+    OwnerOrder close(String owner, Long orderId, BigDecimal price, Date cannelTime);
 
     /**
      * 修改订单

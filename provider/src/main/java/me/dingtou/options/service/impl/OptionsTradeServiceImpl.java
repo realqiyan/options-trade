@@ -3,6 +3,10 @@ package me.dingtou.options.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderAction;
 import me.dingtou.options.constant.TradeSide;
+import me.dingtou.options.job.JobClient;
+import me.dingtou.options.job.JobContext;
+import me.dingtou.options.job.background.CannelOrderJob;
+import me.dingtou.options.job.background.CannelOrderJob.CannelOrderJobArgs;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.*;
@@ -11,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -34,13 +40,21 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
     }
 
     @Override
-    public OwnerOrder close(String owner, Long orderId, BigDecimal price) {
+    public OwnerOrder close(String owner, Long orderId, BigDecimal price, Date cannelTime) {
         OwnerOrder ownerOrder = ownerManager.queryOwnerOrder(owner, orderId);
         if (null == ownerOrder) {
             throw new IllegalArgumentException("订单不存在 orderId:" + orderId);
         }
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        return tradeManager.close(account, ownerOrder, price);
+        OwnerOrder closeOrder = tradeManager.close(account, ownerOrder, price);
+        if (null != closeOrder && null != cannelTime) {
+            CannelOrderJobArgs args = new CannelOrderJobArgs();
+            args.setOwner(owner);
+            args.setOrderId(closeOrder.getId());
+            args.setCannelTime(cannelTime);
+            JobClient.submit(new CannelOrderJob(), JobContext.of(args), cannelTime.toInstant());
+        }
+        return closeOrder;
     }
 
     @Override

@@ -41,28 +41,112 @@ function sync(){
 }
 
 function tradeClose(orderId, orderPrice, orderBook){
-    var closePrice = Math.min((orderPrice * 0.2).toFixed(2),orderBook.askList);
-    layer.prompt({title: '请输入买入价格（ask:'+orderBook.askList+' bid:'+orderBook.bidList+'）',value:closePrice}, function(value, index, elem){
-        if(value === ''){
-            return elem.focus();
+    // 创建更丰富的表单界面
+    var formContent = `
+        <div class="layui-form" style="padding: 20px;">
+            <div class="layui-form-item">
+                <label class="layui-form-label">市场价格</label>
+                <div class="layui-input-block">
+                    <span class="layui-badge-rim">Ask: ${orderBook.askList}</span>
+                    <span class="layui-badge-rim" style="margin-left: 10px;">Bid: ${orderBook.bidList}</span>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">原始价格</label>
+                <div class="layui-input-block">
+                    <input type="text" class="layui-input layui-bg-gray" value="${orderPrice}" readonly>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">平仓价格</label>
+                <div class="layui-input-block">
+                    <input type="number" id="closePrice" name="closePrice" class="layui-input" value="${Math.min((orderPrice * 0.2).toFixed(2), orderBook.askList)}" step="0.01">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">盈利比例</label>
+                <div class="layui-input-inline" style="width: 120px;">
+                    <input type="number" id="profitRatio" name="profitRatio" class="layui-input" value="80" min="0" max="100">
+                </div>
+                <div class="layui-form-mid layui-word-aux">%（设置后自动计算价格）</div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">截止时间</label>
+                <div class="layui-input-block">
+                    <input type="text" id="cannelOrderTime" name="cannelOrderTime" class="layui-input" placeholder="选择平仓单截止时间">
+                </div>
+            </div>
+        </div>
+    `;
+
+    layer.open({
+        type: 1,
+        title: '确认平仓',
+        area: ['500px', '450px'],
+        content: formContent,
+        btn: ['确认平仓', '取消'],
+        success: function(layero, index) {
+            // 监听盈利比例变化
+            var $profitRatio = layero.find('#profitRatio');
+            var $closePrice = layero.find('#closePrice');
+            
+            $profitRatio.on('input', function() {
+                var ratio = parseFloat($(this).val()) / 100;
+                if (!isNaN(ratio)) {
+                    // 按照盈利比例计算价格: 原价 * (1-盈利比例)
+                    var calculatedPrice = (orderPrice * (1-ratio)).toFixed(2);
+                    $closePrice.val(calculatedPrice);
+                }
+            });
+            
+            // 计算初始平仓价格
+            $profitRatio.trigger('input');
+            
+            // 初始化日期时间选择器
+            layui.laydate.render({
+                elem: '#cannelOrderTime',
+                type: 'datetime',
+                min: 0,
+                format: 'yyyy-MM-dd HH:mm:ss'
+            });
+            
+            // 重新渲染表单元素
+            layui.form.render();
+        },
+        yes: function(index, layero) {
+            // 获取表单数据
+            var price = layero.find('#closePrice').val();
+            var cannelOrderTime = layero.find('#cannelOrderTime').val();
+            
+            if (!price) {
+                layer.msg('请输入平仓价格');
+                return;
+            }
+            
+            // 准备请求数据
+            var requestData = {
+                password: $("#totp").val(),
+                price: price,
+                orderId: orderId
+            };
+            
+            // 如果设置了截止时间，添加到请求中
+            if (cannelOrderTime) {
+                requestData.cannelTime = cannelOrderTime;
+            }
+            
+            // 下单
+            $.ajax({
+                url: "/trade/close",
+                method: 'POST',
+                data: requestData,
+                success: function(response) {
+                    layer.msg(response.success ? '操作成功' : response.message);
+                    loadStrategyOrder(currentStrategyId);
+                    layer.close(index);
+                }
+            });
         }
-        // 下单
-        var price = util.escape(value);
-        $.ajax({
-          url: "/trade/close",
-          method: 'POST',
-          data: {
-            password: $("#totp").val(),
-            price: price,
-            orderId: orderId,
-          },
-          success: function( response ) {
-            layer.msg(response.success ? '操作成功' : response.message);
-            var result = response.data;
-            loadStrategyOrder(currentStrategyId);
-          }
-        });
-        layer.close(index);
     });
 }
 

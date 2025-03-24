@@ -425,6 +425,12 @@ function trade(side, options, orderBook){
                     <div class="layui-form-mid layui-word-aux">%</div>
                 </div>
             </div>
+            <div class="layui-form-item" id="closeOrderPriceItem" style="display:none;">
+                <label class="layui-form-label">平仓价格</label>
+                <div class="layui-input-block">
+                    <input type="number" name="closeOrderPrice" id="closeOrderPrice" class="layui-input" value="" step="0.01">
+                </div>
+            </div>
         </div>
     `;
 
@@ -447,14 +453,35 @@ function trade(side, options, orderBook){
             layui.form.on('switch(toggleCloseOrder)', function(data){
                 var closeOrderTimeItem = layero.find('#closeOrderTimeItem');
                 var closeOrderProfitRatioItem = layero.find('#closeOrderProfitRatioItem');
+                var closeOrderPriceItem = layero.find('#closeOrderPriceItem');
                 if(data.elem.checked) {
                     closeOrderTimeItem.show();
                     closeOrderProfitRatioItem.show();
+                    closeOrderPriceItem.show();
+                    
+                    // 初始化价格
+                    updateCloseOrderPrice();
                 } else {
                     closeOrderTimeItem.hide();
                     closeOrderProfitRatioItem.hide();
+                    closeOrderPriceItem.hide();
                 }
             });
+            
+            // 监听盈利比例变化
+            var $profitRatio = layero.find('#closeOrderProfitRatio');
+            var $closePrice = layero.find('#closeOrderPrice');
+            
+            function updateCloseOrderPrice() {
+                var ratio = parseFloat($profitRatio.val()) / 100;
+                if (!isNaN(ratio)) {
+                    // 按照盈利比例计算价格: 原价 * (1-盈利比例)
+                    var calculatedPrice = (options.realtimeData.curPrice * (1-ratio)).toFixed(2);
+                    $closePrice.val(calculatedPrice);
+                }
+            }
+            
+            $profitRatio.on('input', updateCloseOrderPrice);
             
             // 重新渲染表单元素以激活开关等控件
             layui.form.render();
@@ -465,7 +492,7 @@ function trade(side, options, orderBook){
             var price = layero.find('input[name="price"]').val();
             var closeOrderEnabled = layero.find('input[name="closeOrderEnabled"]').prop('checked');
             var closeOrderTime = layero.find('input[name="closeOrderTime"]').val();
-            var closeOrderProfitRatio = layero.find('input[name="closeOrderProfitRatio"]').val();
+            var closeOrderPrice = layero.find('input[name="closeOrderPrice"]').val();
             
             if (!quantity || !price) {
                 layer.msg('请输入份数和价格');
@@ -478,8 +505,8 @@ function trade(side, options, orderBook){
                     return;
                 }
                 
-                if (closeOrderProfitRatio === '' || closeOrderProfitRatio < 0 || closeOrderProfitRatio > 100) {
-                    layer.msg('盈利比例必须在0-100%之间');
+                if (!closeOrderPrice || closeOrderPrice <= 0) {
+                    layer.msg('请输入有效的平仓价格');
                     return;
                 }
             }
@@ -490,7 +517,7 @@ function trade(side, options, orderBook){
                 closeOrderJob = {
                     enabled: true,
                     cannelTime: closeOrderTime,
-                    profitRatio: closeOrderProfitRatio
+                    price: closeOrderPrice
                 };
             }
 
