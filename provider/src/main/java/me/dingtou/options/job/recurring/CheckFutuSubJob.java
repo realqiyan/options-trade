@@ -43,7 +43,7 @@ public class CheckFutuSubJob implements Job {
             log.warn("FuncGetSubInfo remainQuota: {} totalUsedQuota: {}", subInfo.getRemainQuota(),
                     subInfo.getTotalUsedQuota());
 
-            if (subInfo.getRemainQuota() < 50) {
+            if (subInfo.getRemainQuota() < 200) {
                 Boolean result = QueryExecutor.query(new FuncUnsubAll());
                 log.warn("checkSubInfo -> unsuball: {}", result);
                 if (Boolean.TRUE.equals(result)) {

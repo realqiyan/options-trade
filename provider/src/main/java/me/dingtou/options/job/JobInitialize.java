@@ -30,8 +30,8 @@ public class JobInitialize implements ApplicationListener<ContextRefreshedEvent>
     private void initRecurringJobs() {
         // 检查富途OpenAPI订阅信息
         JobContext<CheckFutuSubJobArgs> ctx = JobContext.of(new CheckFutuSubJobArgs(System.currentTimeMillis()));
-        ctx.addArg("interval", "300");
-        JobClient.submit(new CheckFutuSubJob(), ctx, Duration.ofSeconds(300));
+        ctx.addArg("interval", "15");
+        JobClient.submit(new CheckFutuSubJob(), ctx, Duration.ofMinutes(15));
 
     }
 
