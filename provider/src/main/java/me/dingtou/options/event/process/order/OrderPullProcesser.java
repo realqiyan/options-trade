@@ -1,24 +1,23 @@
 package me.dingtou.options.event.process.order;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.PushDataType;
 import me.dingtou.options.event.AppEvent;
 import me.dingtou.options.event.EventProcesser;
-import me.dingtou.options.manager.TradeManager;
-import me.dingtou.options.manager.OwnerManager;
+import me.dingtou.options.job.JobClient;
+import me.dingtou.options.job.JobContext;
+import me.dingtou.options.job.background.SyncOrderJob;
+import me.dingtou.options.job.background.SyncOrderJob.SyncOrderJobArgs;
 import me.dingtou.options.model.OwnerOrder;
 
 @Slf4j
 @Component
 public class OrderPullProcesser implements EventProcesser {
-    @Autowired
-    private TradeManager tradeManager;
-
-    @Autowired
-    private OwnerManager ownerManager;
 
     @Override
     public PushDataType supportType() {
@@ -31,6 +30,11 @@ public class OrderPullProcesser implements EventProcesser {
         log.info("OrderPullProcesser process: {}", ownerOrder);
 
         // 执行订单同步
-        tradeManager.syncOrder(ownerManager.queryOwner(ownerOrder.getOwner()));
+        SyncOrderJobArgs args = new SyncOrderJobArgs();
+        args.setOwner(ownerOrder.getOwner());
+        JobClient.submit(new SyncOrderJob(),
+                JobContext.of(args),
+                Instant.now().plus(30, ChronoUnit.SECONDS));
+
     }
 }
