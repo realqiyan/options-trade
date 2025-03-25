@@ -34,7 +34,7 @@ public class JobClient {
      * @param instant    任务执行时间
      */
     public static <P extends JobArgs> UUID submit(Job job, JobContext<P> ctx, Instant instant) {
-        JobId jobId = BackgroundJob.schedule(instant, () -> job.execute(ctx));
+        JobId jobId = BackgroundJob.schedule(job.id(), instant, () -> job.execute(ctx));
         return jobId.asUUID();
     }
 

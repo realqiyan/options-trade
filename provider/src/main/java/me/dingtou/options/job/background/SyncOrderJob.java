@@ -29,7 +29,7 @@ public class SyncOrderJob implements Job {
 
     @Override
     public <P extends JobArgs> void execute(JobContext<P> ctx) throws Exception {
-        SyncOrderJobArgs args = (SyncOrderJobArgs) ctx.getArgs();
+        SyncOrderJobArgs args = (SyncOrderJobArgs) ctx.getJobArgs();
         Owner owner = ownerManager.queryOwner(args.getOwner());
         if (owner == null) {
             throw new Exception("Owner not found");
@@ -39,6 +39,9 @@ public class SyncOrderJob implements Job {
 
     @Data
     public static class SyncOrderJobArgs implements JobArgs {
+        /**
+         * 用户名
+         */
         private String owner;
     }
 

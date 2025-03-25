@@ -32,7 +32,8 @@ public class OrderPullProcesser implements EventProcesser {
         // 执行订单同步
         SyncOrderJobArgs args = new SyncOrderJobArgs();
         args.setOwner(ownerOrder.getOwner());
-        JobClient.submit(new SyncOrderJob(),
+        SyncOrderJob syncOrderJob = new SyncOrderJob();
+        JobClient.submit(syncOrderJob,
                 JobContext.of(args),
                 Instant.now().plus(30, ChronoUnit.SECONDS));
 
