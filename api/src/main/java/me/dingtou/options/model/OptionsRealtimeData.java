@@ -53,5 +53,9 @@ public class OptionsRealtimeData {
     private Integer openInterest;
     //成交量
     private Long volume;
+    //时间价值
+    private BigDecimal timeValue;
+    //内在价值
+    private BigDecimal intrinsicValue;
 
 }

@@ -271,7 +271,7 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
                   return d.strikePrice;
               }},
               {field: 'range', title: '涨跌幅', width: 80},
-              {field: 'curPrice', title: '价格', width: 80},
+              {field: 'curPrice', title: '当前价格', width: 110},
               {field: 'sellAnnualYield', title: '年化', width: 80},
               {title: '交易参考信息', width: 480, templet: '#TPL-table-tradeInfo'},
               {field: 'group', title: '分组', width: 80},

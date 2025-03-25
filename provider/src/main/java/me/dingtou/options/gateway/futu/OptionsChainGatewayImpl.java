@@ -79,15 +79,17 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             log.warn("query options basic info failed, retry");
             optionsBasicInfo = QueryExecutor.query(new FuncGetOptionsRealtimeData(securityList));
         }
-        mergeRealtimeData(optionsChain, optionsBasicInfo);
+        mergeRealtimeData(optionsChain, optionsBasicInfo, lastDone);
         return optionsChain;
     }
 
-    private void mergeRealtimeData(OptionsChain optionsChain, List<OptionsRealtimeData> optionsBasicInfoList) {
+    private void mergeRealtimeData(OptionsChain optionsChain, List<OptionsRealtimeData> optionsBasicInfoList,
+            BigDecimal lastDone) {
         Map<Security, OptionsRealtimeData> realtimeDataMap = new HashMap<>();
         for (OptionsRealtimeData optionsBasicInfo : optionsBasicInfoList) {
             realtimeDataMap.put(optionsBasicInfo.getSecurity(), optionsBasicInfo);
         }
+
         for (Options options : optionsChain.getOptionsList()) {
             if (null == options || null == options.getBasic() || null == options.getBasic().getSecurity()) {
                 continue;
@@ -95,7 +97,45 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             Security security = options.getBasic().getSecurity();
             OptionsRealtimeData optionsRealtimeData = realtimeDataMap.get(security);
             options.setRealtimeData(optionsRealtimeData);
+            // 计算期权的时间价值和内在价值
+            calculateOptionsValues(options, lastDone);
         }
     }
 
+    /**
+     * 计算期权链中所有期权的时间价值和内在价值
+     * 
+     * @param optionsChain 期权链
+     */
+    private void calculateOptionsValues(Options options, BigDecimal stockPrice) {
+        if (options == null ||
+                options.getRealtimeData() == null ||
+                options.getOptionExData() == null) {
+            return;
+        }
+
+        BigDecimal optionPrice = options.getRealtimeData().getCurPrice();
+        BigDecimal strikePrice = options.getOptionExData().getStrikePrice();
+        BigDecimal intrinsicValue = BigDecimal.ZERO;
+        int optionType = options.getOptionExData().getType(); // 1为看涨，2为看跌
+
+        if (optionType == 1) { // 看涨期权
+            // 内在价值 = Max(0, 标的价格 - 行权价格)
+            if (stockPrice.compareTo(strikePrice) > 0) {
+                intrinsicValue = stockPrice.subtract(strikePrice);
+            }
+        } else if (optionType == 2) { // 看跌期权
+            // 内在价值 = Max(0, 行权价格 - 标的价格)
+            if (strikePrice.compareTo(stockPrice) > 0) {
+                intrinsicValue = strikePrice.subtract(stockPrice);
+            }
+        }
+
+        // 时间价值 = 期权价格 - 内在价值
+        BigDecimal timeValue = optionPrice.subtract(intrinsicValue);
+
+        // 设置计算结果到realtimeData中
+        options.getRealtimeData().setIntrinsicValue(intrinsicValue);
+        options.getRealtimeData().setTimeValue(timeValue);
+    }
 }
