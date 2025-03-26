@@ -81,4 +81,12 @@ public class JobClient {
         return UUID.nameUUIDFromBytes(jobId.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * 删除任务
+     * 
+     * @param id 任务ID
+     */
+    public static void delete(UUID id) {
+        BackgroundJob.delete(id);
+    }
 }
