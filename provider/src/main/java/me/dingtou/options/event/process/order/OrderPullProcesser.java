@@ -1,7 +1,10 @@
 package me.dingtou.options.event.process.order;
 
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
@@ -33,8 +36,13 @@ public class OrderPullProcesser implements EventProcesser {
         SyncOrderJobArgs args = new SyncOrderJobArgs();
         args.setOwner(ownerOrder.getOwner());
         SyncOrderJob syncOrderJob = new SyncOrderJob();
-        JobClient.delete(syncOrderJob.id());
-        JobClient.submit(syncOrderJob.id(),
+
+        // 一分钟内只创建一个同步任务
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
+        String now = sdf.format(new Date());
+        UUID uuid = UUID.nameUUIDFromBytes(now.getBytes());
+
+        JobClient.submit(uuid,
                 syncOrderJob,
                 JobContext.of(args),
                 Instant.now().plus(30, ChronoUnit.SECONDS));

@@ -345,7 +345,9 @@ function trade(side, options, orderBook){
         layer.msg('请先选择策略！');
         return;
     }
-    var selectStrategyArr = filterStrategyById(currentOwnerData.strategyList, currentStrategyId);
+    // 渲染当前证券策略列表
+    var currentStrategyList = filterStrategyByCode(currentOwnerData.strategyList,currentCode);
+    var selectStrategyArr = filterStrategyById(currentStrategyList, currentStrategyId);
     if(!selectStrategyArr || selectStrategyArr.length != 1){
         layer.msg('无法匹配策略！');
         return;
@@ -357,7 +359,9 @@ function trade(side, options, orderBook){
             <div class="layui-form-item">
                 <label class="layui-form-label">交易策略</label>
                 <div class="layui-input-block">
-                    <input type="text" class="layui-input layui-bg-gray" value="${selectStrategyArr[0].strategyName}" readonly>
+                    <select name="strategyId" lay-filter="formStrategySelect" lay-verify="required">
+                        ${currentStrategyList.map(strategy => `<option value="${strategy.strategyId}" ${strategy.strategyId === currentStrategyId ? 'selected' : ''}>${strategy.strategyName}</option>`).join('')}
+                    </select>
                 </div>
             </div>
             <div class="layui-form-item">
@@ -471,28 +475,38 @@ function trade(side, options, orderBook){
             // 监听盈利比例变化
             var $profitRatio = layero.find('#closeOrderProfitRatio');
             var $closePrice = layero.find('#closeOrderPrice');
+            var $sellPrice = layero.find('input[name="price"]');
             
             function updateCloseOrderPrice() {
                 var ratio = parseFloat($profitRatio.val()) / 100;
-                if (!isNaN(ratio)) {
-                    // 按照盈利比例计算价格: 原价 * (1-盈利比例)
-                    var calculatedPrice = (options.realtimeData.curPrice * (1-ratio)).toFixed(2);
+                var sellPrice = parseFloat($sellPrice.val());
+                if (!isNaN(ratio) && !isNaN(sellPrice)) {
+                    // 按照盈利比例计算价格: 卖出价格 * (1-盈利比例)
+                    var calculatedPrice = (sellPrice * (1-ratio)).toFixed(2);
                     $closePrice.val(calculatedPrice);
                 }
             }
             
             $profitRatio.on('input', updateCloseOrderPrice);
+            // 当卖出价格变化时也更新平仓价格
+            $sellPrice.on('input', updateCloseOrderPrice);
             
             // 重新渲染表单元素以激活开关等控件
             layui.form.render();
         },
         yes: function(index, layero) {
             // 获取表单数据
+            var selectedStrategyId = layero.find('select[name="strategyId"]').val();
             var quantity = layero.find('input[name="quantity"]').val();
             var price = layero.find('input[name="price"]').val();
             var closeOrderEnabled = layero.find('input[name="closeOrderEnabled"]').prop('checked');
             var closeOrderTime = layero.find('input[name="closeOrderTime"]').val();
             var closeOrderPrice = layero.find('input[name="closeOrderPrice"]').val();
+            
+            if (!selectedStrategyId) {
+                layer.msg('请选择交易策略');
+                return;
+            }
             
             if (!quantity || !price) {
                 layer.msg('请输入份数和价格');
@@ -511,33 +525,41 @@ function trade(side, options, orderBook){
                 }
             }
 
-            // 准备平仓单数据
-            var closeOrderJob = null;
-            if (closeOrderEnabled) {
-                closeOrderJob = {
-                    enabled: true,
-                    cannelTime: closeOrderTime,
-                    price: closeOrderPrice
-                };
-            }
-
-            // 下单
-            $.ajax({
-                url: "/trade/submit",
-                method: 'POST',
-                data: {
-                    password: $("#totp").val(),
-                    side: side,
-                    strategyId: currentStrategyId,
-                    quantity: quantity,
-                    price: price,
-                    options: JSON.stringify(options),
-                    closeOrderJob: closeOrderJob ? JSON.stringify(closeOrderJob) : null
-                },
-                success: function(response) {
-                    layer.msg(response.success ? '操作成功' : response.message);
-                    layer.close(index);
+            // 二次确认对话框
+            layer.confirm(`确定要使用 <strong>${filterStrategyById(currentOwnerData.strategyList, selectedStrategyId)[0].strategyName}</strong> 策略卖出 <strong>${options.basic.security.code}</strong> 期权吗？`, {
+                icon: 3,
+                title: '策略确认',
+                btn: ['确定卖出','再检查一下']
+            }, function(confirmIndex){
+                // 准备平仓单数据
+                var closeOrderJob = null;
+                if (closeOrderEnabled) {
+                    closeOrderJob = {
+                        enabled: true,
+                        cannelTime: closeOrderTime,
+                        price: closeOrderPrice
+                    };
                 }
+
+                // 下单
+                $.ajax({
+                    url: "/trade/submit",
+                    method: 'POST',
+                    data: {
+                        password: $("#totp").val(),
+                        side: side,
+                        strategyId: selectedStrategyId,
+                        quantity: quantity,
+                        price: price,
+                        options: JSON.stringify(options),
+                        closeOrderJob: closeOrderJob ? JSON.stringify(closeOrderJob) : null
+                    },
+                    success: function(response) {
+                        layer.msg(response.success ? '操作成功' : response.message);
+                        layer.close(index);
+                        layer.close(confirmIndex);
+                    }
+                });
             });
         }
     });

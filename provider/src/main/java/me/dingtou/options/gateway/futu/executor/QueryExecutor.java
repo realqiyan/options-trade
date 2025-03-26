@@ -112,7 +112,7 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
      * 
      * @return
      */
-    private static QueryExecutor getInstance() {
+    public static QueryExecutor getInstance() {
         return INSTANCE;
     }
 
@@ -136,7 +136,7 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
         if (!client.isConnected()) {
             try {
                 // 等待创建连接
-                Thread.sleep(100);
+                Thread.sleep(300);
             } catch (InterruptedException e) {
                 log.error("QueryExecutor not connected", e);
             }
