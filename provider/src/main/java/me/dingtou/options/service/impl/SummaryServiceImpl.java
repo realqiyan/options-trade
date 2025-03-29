@@ -16,16 +16,22 @@ import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
+import me.dingtou.options.manager.IndicatorManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
+import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.model.OwnerSummary;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
+import me.dingtou.options.model.StockIndicator;
 import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.service.SummaryService;
+import me.dingtou.options.strategy.OrderTradeStrategy;
+import me.dingtou.options.strategy.order.DefaultOrderTradeStrategy;
+
 import org.springframework.util.CollectionUtils;
 
 @Service
@@ -36,6 +42,9 @@ public class SummaryServiceImpl implements SummaryService {
 
     @Autowired
     private TradeManager tradeManager;
+
+    @Autowired
+    private IndicatorManager indicatorManager;
 
     @Autowired
     private SecurityQuoteGateway securityQuoteGateway;
@@ -59,7 +68,7 @@ public class SummaryServiceImpl implements SummaryService {
             strategySummaries.add(strategySummary);
         });
         strategySummaries.stream().filter(summary-> CollectionUtils.isEmpty(summary.getStrategyOrders())).forEach(strategySummaries::remove);
-        // 统计
+        // 统计未平仓订单
         List<OwnerOrder> unrealizedOrders = new ArrayList<>();
         for (StrategySummary strategySummary : strategySummaries) {
             if (null == strategySummary.getAllOptionsIncome()) {
@@ -73,6 +82,21 @@ public class SummaryServiceImpl implements SummaryService {
                     .filter(OwnerOrder::isOpen)
                     .forEach(unrealizedOrders::add);
         }
+
+
+        // 未平仓订单计算处理建议
+        Owner ownerObj = ownerManager.queryOwner(owner);
+
+        // 未平仓订单处理策略
+        OrderTradeStrategy defaultOrderTradeStrategy = new DefaultOrderTradeStrategy();
+        for(OwnerOrder order:unrealizedOrders){
+            Security security = Security.of(order.getUnderlyingCode(), order.getMarket());
+            StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(ownerObj.getAccount(), security);
+            defaultOrderTradeStrategy.calculate(ownerObj.getAccount(), order, stockIndicator);
+        }
+
+        
+
         ownerSummary.setAllOptionsIncome(allOptionsIncome);
         ownerSummary.setTotalFee(totalFee);
         ownerSummary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);

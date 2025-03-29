@@ -11,7 +11,7 @@ import me.dingtou.options.model.StrategySummary;
  *
  * @author qiyan
  */
-public interface OptionsStrategy {
+public interface OptionsTradeStrategy {
 
     /**
      * 是否支持该策略

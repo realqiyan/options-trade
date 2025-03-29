@@ -1,4 +1,4 @@
-package me.dingtou.options.strategy.impl;
+package me.dingtou.options.strategy.trade;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.CandlestickPeriod;
@@ -15,7 +15,7 @@ import java.util.*;
 
 @Slf4j
 @Component
-public class WheelStrategy extends BaseStrategy {
+public class WheelStrategy extends BaseTradeStrategy {
 
     @Override
     public boolean isSupport(OwnerStrategy strategy) {

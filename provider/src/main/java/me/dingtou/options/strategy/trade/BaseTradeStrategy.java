@@ -1,7 +1,7 @@
-package me.dingtou.options.strategy.impl;
+package me.dingtou.options.strategy.trade;
 
 import me.dingtou.options.model.*;
-import me.dingtou.options.strategy.OptionsStrategy;
+import me.dingtou.options.strategy.OptionsTradeStrategy;
 import me.dingtou.options.util.NumberUtils;
 
 import java.math.BigDecimal;
@@ -12,7 +12,7 @@ import java.math.RoundingMode;
  *
  * @author qiyan
  */
-public abstract class BaseStrategy implements OptionsStrategy {
+public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
 
     /**
      * Sell年化收益率

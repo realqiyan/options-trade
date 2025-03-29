@@ -43,6 +43,11 @@ public enum OrderExt {
      */
     IS_CLOSE("isClose", Boolean.class),
 
+    /**
+     * AI分析提示词
+     */
+    PROMPT("prompt", String.class),
+
     ////////////////////////////////
     // 静态属性 //
     ////////////////////////////////

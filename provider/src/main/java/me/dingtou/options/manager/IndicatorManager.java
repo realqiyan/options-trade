@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,10 @@ import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.num.DecimalNum;
 import org.ta4j.core.num.Num;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
+import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.CandlestickAdjustType;
 import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.constant.IndicatorKey;
@@ -47,8 +52,17 @@ import me.dingtou.options.model.SupportPriceIndicator;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.NumberUtils;
 
+@Slf4j
 @Component
 public class IndicatorManager {
+
+    /**
+     * 股票指标缓存
+     */
+    private static final Cache<String, StockIndicator> INDICATOR_CACHE = CacheBuilder.newBuilder()
+            .maximumSize(500)
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .build();
 
     @Autowired
     private SecurityQuoteGateway securityQuoteGateway;
@@ -64,82 +78,91 @@ public class IndicatorManager {
      * @return 股票指标
      */
     public StockIndicator calculateStockIndicator(OwnerAccount ownerAccount, Security security) {
-        // 根据账户配置获取K线周期
-        CandlestickPeriod klinePeriod = AccountExtUtils.getKlinePeriod(ownerAccount);
-        StockIndicator stockIndicator = new StockIndicator();
-        // 期权标的价格
-        SecurityQuote securityQuote = securityQuoteGateway.quote(ownerAccount, security);
-        stockIndicator.setSecurityQuote(securityQuote);
-        // 获取K线数据
-        SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(ownerAccount,
-                security,
-                klinePeriod,
-                70,
-                CandlestickAdjustType.FORWARD_ADJUST);
-        if (null == candlesticks || CollectionUtils.isEmpty(candlesticks.getCandlesticks())) {
-            return stockIndicator;
+        try {
+            return INDICATOR_CACHE.get(security.toString(), () -> {
+                // 根据账户配置获取K线周期
+                // 根据账户配置获取K线周期
+                CandlestickPeriod klinePeriod = AccountExtUtils.getKlinePeriod(ownerAccount);
+                StockIndicator stockIndicator = new StockIndicator();
+                // 期权标的价格
+                SecurityQuote securityQuote = securityQuoteGateway.quote(ownerAccount, security);
+                stockIndicator.setSecurityQuote(securityQuote);
+                // 获取K线数据
+                SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(ownerAccount,
+                        security,
+                        klinePeriod,
+                        70,
+                        CandlestickAdjustType.FORWARD_ADJUST);
+                if (null == candlesticks || CollectionUtils.isEmpty(candlesticks.getCandlesticks())) {
+                    return stockIndicator;
+                }
+                stockIndicator.setCandlesticks(candlesticks.getCandlesticks());
+                stockIndicator.setPeriod(klinePeriod);
+                int weekSize = CandlestickPeriod.WEEK.equals(klinePeriod) ? 2 : 5;
+                int monthSize = CandlestickPeriod.WEEK.equals(klinePeriod) ? 5 : 20;
+                SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(candlesticks, weekSize);
+                SecurityCandlestick monthCandlesticks = summarySecurityCandlestick(candlesticks, monthSize);
+
+                if (null != weekCandlesticks && !CollectionUtils.isEmpty(weekCandlesticks.getCandlesticks())) {
+                    Candlestick candlestick = weekCandlesticks.getCandlesticks().get(0);
+                    // 获取K线波动幅度
+                    BigDecimal priceRange = candlestick.getHigh().subtract(candlestick.getLow());
+                    stockIndicator.setWeekPriceRange(priceRange);
+                    stockIndicator.setWeekCandlestick(candlestick);
+                }
+                if (null != monthCandlesticks && !CollectionUtils.isEmpty(monthCandlesticks.getCandlesticks())) {
+                    Candlestick candlestick = monthCandlesticks.getCandlesticks().get(0);
+                    // 获取K线波动幅度
+                    BigDecimal priceRange = candlestick.getHigh().subtract(candlestick.getLow());
+                    stockIndicator.setMonthPriceRange(priceRange);
+                    stockIndicator.setMonthCandlestick(candlestick);
+                }
+
+                // 技术指标
+                BarSeries barSeries = convertToBarSeries(candlesticks);
+                ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
+
+                // RSI
+                stockIndicator.addIndicator(IndicatorKey.RSI.getKey(), getValue(new RSIIndicator(closePrice, 14), 14));
+
+                // MACD相关指标
+                MACDIndicator macdIndicator = new MACDIndicator(closePrice, 12, 26);
+                // MACD柱状图
+                stockIndicator.addIndicator(IndicatorKey.MACD.getKey(), getValue(macdIndicator, 26));
+                // DIF快线 - 短期EMA与长期EMA的差值
+                stockIndicator.addIndicator(IndicatorKey.MACD_DIF.getKey(), getValue(macdIndicator, 26));
+                // DEA慢线 - DIF的9日EMA
+                EMAIndicator signalLine = macdIndicator.getSignalLine(9);
+                stockIndicator.addIndicator(IndicatorKey.MACD_DEA.getKey(), getValue(signalLine, 26));
+
+                // EMA
+                stockIndicator.addIndicator(IndicatorKey.EMA5.getKey(), getValue(new EMAIndicator(closePrice, 5), 20));
+                stockIndicator.addIndicator(IndicatorKey.EMA20.getKey(), getValue(new EMAIndicator(closePrice, 20), 5));
+                stockIndicator.addIndicator(IndicatorKey.EMA50.getKey(), getValue(new EMAIndicator(closePrice, 50), 0));
+
+                // BOLL
+                BollingerBandsMiddleIndicator bollMiddle = new BollingerBandsMiddleIndicator(
+                        new SMAIndicator(closePrice, 20));
+                Indicator<Num> deviation = new StandardDeviationIndicator(closePrice, 20);
+                Num k = DecimalNum.valueOf(2);
+                // 上轨通常是中轨加上2倍标准差
+                BollingerBandsUpperIndicator bollUpper = new BollingerBandsUpperIndicator(bollMiddle, deviation, k);
+                // 下轨通常是中轨减去2倍标准差
+                BollingerBandsLowerIndicator bollLower = new BollingerBandsLowerIndicator(bollMiddle, deviation, k);
+                stockIndicator.addIndicator(IndicatorKey.BOLL_MIDDLE.getKey(), getValue(bollMiddle, 20));
+                stockIndicator.addIndicator(IndicatorKey.BOLL_UPPER.getKey(), getValue(bollUpper, 20));
+                stockIndicator.addIndicator(IndicatorKey.BOLL_LOWER.getKey(), getValue(bollLower, 20));
+
+                SupportPriceIndicator supportPriceIndicator = new SupportPriceIndicator();
+                supportPriceIndicator.setLowestSupportPrice(calculateLowSupport(barSeries));
+                stockIndicator.setSupportPriceIndicator(supportPriceIndicator);
+
+                return stockIndicator;
+            });
+        } catch (Exception e) {
+            log.error("计算股票指标失败", e);
+            return null;
         }
-        stockIndicator.setCandlesticks(candlesticks.getCandlesticks());
-        stockIndicator.setPeriod(klinePeriod);
-        int weekSize = CandlestickPeriod.WEEK.equals(klinePeriod) ? 2 : 5;
-        int monthSize = CandlestickPeriod.WEEK.equals(klinePeriod) ? 5 : 20;
-        SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(candlesticks, weekSize);
-        SecurityCandlestick monthCandlesticks = summarySecurityCandlestick(candlesticks, monthSize);
-
-        if (null != weekCandlesticks && !CollectionUtils.isEmpty(weekCandlesticks.getCandlesticks())) {
-            Candlestick candlestick = weekCandlesticks.getCandlesticks().get(0);
-            // 获取K线波动幅度
-            BigDecimal priceRange = candlestick.getHigh().subtract(candlestick.getLow());
-            stockIndicator.setWeekPriceRange(priceRange);
-            stockIndicator.setWeekCandlestick(candlestick);
-        }
-        if (null != monthCandlesticks && !CollectionUtils.isEmpty(monthCandlesticks.getCandlesticks())) {
-            Candlestick candlestick = monthCandlesticks.getCandlesticks().get(0);
-            // 获取K线波动幅度
-            BigDecimal priceRange = candlestick.getHigh().subtract(candlestick.getLow());
-            stockIndicator.setMonthPriceRange(priceRange);
-            stockIndicator.setMonthCandlestick(candlestick);
-        }
-
-        // 技术指标
-        BarSeries barSeries = convertToBarSeries(candlesticks);
-        ClosePriceIndicator closePrice = new ClosePriceIndicator(barSeries);
-
-        // RSI
-        stockIndicator.addIndicator(IndicatorKey.RSI.getKey(), getValue(new RSIIndicator(closePrice, 14), 14));
-
-        // MACD相关指标
-        MACDIndicator macdIndicator = new MACDIndicator(closePrice, 12, 26);
-        // MACD柱状图
-        stockIndicator.addIndicator(IndicatorKey.MACD.getKey(), getValue(macdIndicator, 26));
-        // DIF快线 - 短期EMA与长期EMA的差值
-        stockIndicator.addIndicator(IndicatorKey.MACD_DIF.getKey(), getValue(macdIndicator, 26));
-        // DEA慢线 - DIF的9日EMA
-        EMAIndicator signalLine = macdIndicator.getSignalLine(9);
-        stockIndicator.addIndicator(IndicatorKey.MACD_DEA.getKey(), getValue(signalLine, 26));
-
-        // EMA
-        stockIndicator.addIndicator(IndicatorKey.EMA5.getKey(), getValue(new EMAIndicator(closePrice, 5), 20));
-        stockIndicator.addIndicator(IndicatorKey.EMA20.getKey(), getValue(new EMAIndicator(closePrice, 20), 5));
-        stockIndicator.addIndicator(IndicatorKey.EMA50.getKey(), getValue(new EMAIndicator(closePrice, 50), 0));
-
-        // BOLL
-        BollingerBandsMiddleIndicator bollMiddle = new BollingerBandsMiddleIndicator(new SMAIndicator(closePrice, 20));
-        Indicator<Num> deviation = new StandardDeviationIndicator(closePrice, 20);
-        Num k = DecimalNum.valueOf(2);
-        // 上轨通常是中轨加上2倍标准差
-        BollingerBandsUpperIndicator bollUpper = new BollingerBandsUpperIndicator(bollMiddle, deviation, k);
-        // 下轨通常是中轨减去2倍标准差
-        BollingerBandsLowerIndicator bollLower = new BollingerBandsLowerIndicator(bollMiddle, deviation, k);
-        stockIndicator.addIndicator(IndicatorKey.BOLL_MIDDLE.getKey(), getValue(bollMiddle, 20));
-        stockIndicator.addIndicator(IndicatorKey.BOLL_UPPER.getKey(), getValue(bollUpper, 20));
-        stockIndicator.addIndicator(IndicatorKey.BOLL_LOWER.getKey(), getValue(bollLower, 20));
-
-        SupportPriceIndicator supportPriceIndicator = new SupportPriceIndicator();
-        supportPriceIndicator.setLowestSupportPrice(calculateLowSupport(barSeries));
-        stockIndicator.setSupportPriceIndicator(supportPriceIndicator);
-
-        return stockIndicator;
     }
 
     /**

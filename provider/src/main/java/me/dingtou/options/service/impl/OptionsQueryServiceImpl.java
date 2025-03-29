@@ -7,7 +7,7 @@ import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.*;
 import me.dingtou.options.service.OptionsQueryService;
 import me.dingtou.options.service.SummaryService;
-import me.dingtou.options.strategy.OptionsStrategy;
+import me.dingtou.options.strategy.OptionsTradeStrategy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     private SummaryService summaryService;
 
     @Autowired
-    private List<OptionsStrategy> allOptionsStrategy;
+    private List<OptionsTradeStrategy> allOptionsStrategy;
 
     @Autowired
     private OptionsManager optionsManager;
@@ -79,7 +79,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         if (null != strategy) {
             summary = summaryService.queryStrategySummary(strategy.getOwner(), strategy.getStrategyId());
         }
-        for (OptionsStrategy optionsStrategy : allOptionsStrategy) {
+        for (OptionsTradeStrategy optionsStrategy : allOptionsStrategy) {
             if (optionsStrategy.isSupport(strategy)) {
                 optionsStrategy.calculate(account, optionsStrikeDate, optionsChain, summary);
             }

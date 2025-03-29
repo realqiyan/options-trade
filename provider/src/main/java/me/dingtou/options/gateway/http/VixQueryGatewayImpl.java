@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class VixQueryGatewayImpl implements VixQueryGateway {
 
     /**
-     * 价格实时缓存
+     * VIX缓存
      */
     private static final Cache<String, VixIndicator> VIX_CACHE = CacheBuilder.newBuilder()
             .maximumSize(1)

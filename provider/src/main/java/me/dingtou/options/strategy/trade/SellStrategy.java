@@ -1,4 +1,4 @@
-package me.dingtou.options.strategy.impl;
+package me.dingtou.options.strategy.trade;
 
 import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.model.*;
@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 @Component
-public class SellStrategy extends BaseStrategy {
+public class SellStrategy extends BaseTradeStrategy {
 
     @Override
     void process(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
