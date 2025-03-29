@@ -31,7 +31,7 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
      */
     private static final Cache<Security, SecurityQuote> SECURITY_QUOTE_CACHE = CacheBuilder.newBuilder()
             .maximumSize(1000)
-            .expireAfterWrite(30, TimeUnit.SECONDS)
+            .expireAfterWrite(300, TimeUnit.SECONDS)
             .build();
 
     @Override
@@ -79,8 +79,9 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
                 if (null == securityQuote) {
                     continue;
                 }
-                quoteList.add(convertSecurityQuote(securityQuote));
-
+                SecurityQuote quote = convertSecurityQuote(securityQuote);
+                quoteList.add(quote);
+                SECURITY_QUOTE_CACHE.put(quote.getSecurity(), quote);
             }
         } catch (Exception e) {
             log.error("quote error. message:{}", e.getMessage(), e);
