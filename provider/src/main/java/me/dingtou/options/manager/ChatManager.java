@@ -93,10 +93,20 @@ public class ChatManager {
             systemPrompt = SYSTEM_PROMPT_TEMPLATE;
         }
 
+        String baseUrl = AccountExtUtils.getAiBaseUrl(account);
+        String apiKey = AccountExtUtils.getAiApiKey(account);
+        String model = AccountExtUtils.getAiApiModel(account);
+        double temperature = Double.parseDouble(AccountExtUtils.getAiApiTemperature(account));
+
         ChatResponse chatResponse;
         try {
             // chatResponse = ChatClient.sendChatRequest(account, systemPrompt, messages);
-            chatResponse = ChatClient.sendStreamChatRequest(account, systemPrompt, messages,
+            chatResponse = ChatClient.sendStreamChatRequest(baseUrl,
+                    apiKey,
+                    model,
+                    temperature,
+                    systemPrompt,
+                    messages,
                     new Consumer<ChatClient.ChatResponse>() {
                         @Override
                         public void accept(ChatClient.ChatResponse chatResp) {

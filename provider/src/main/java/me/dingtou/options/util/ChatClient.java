@@ -8,7 +8,6 @@ import com.google.common.cache.CacheBuilder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.Message;
-import me.dingtou.options.model.OwnerAccount;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -48,52 +47,6 @@ public class ChatClient {
     private static final String CHAT_COMPLETIONS_PATH = "/chat/completions";
 
     /**
-     * 发送非流式聊天请求（带系统提示词）
-     *
-     * @param account      账号
-     * @param systemPrompt 系统提示词
-     * @param messages     消息列表
-     * @return 聊天响应结果
-     */
-    public static ChatResponse sendChatRequest(OwnerAccount account, String systemPrompt, List<Message> messages) {
-        try {
-            OkHttpClient client = getClient(account);
-            String baseUrl = AccountExtUtils.getAiBaseUrl(account);
-            String apiKey = AccountExtUtils.getAiApiKey(account);
-            String model = AccountExtUtils.getAiApiModel(account);
-            double temperature = Double.parseDouble(AccountExtUtils.getAiApiTemperature(account));
-
-            // 构建请求体
-            JSONObject requestBody = buildRequestBody(messages, model, temperature, false, systemPrompt);
-
-            // 构建请求
-            Request request = new Request.Builder()
-                    .url(baseUrl + CHAT_COMPLETIONS_PATH)
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .post(RequestBody.create(requestBody.toJSONString(), MediaType.parse("application/json")))
-                    .build();
-
-            // 发送请求
-            try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    log.error("API请求失败: {}", response);
-                    throw new RuntimeException("API请求失败: " + response.code());
-                }
-
-                String responseBody = response.body().string();
-                JSONObject jsonResponse = JSON.parseObject(responseBody);
-
-                // 解析响应
-                return parseChatResponse(jsonResponse);
-            }
-        } catch (Exception e) {
-            log.error("发送聊天请求失败: {}", e.getMessage(), e);
-            throw new RuntimeException("发送聊天请求失败", e);
-        }
-    }
-
-    /**
      * 发送流式聊天请求（带系统提示词）
      *
      * @param account       账号
@@ -102,7 +55,10 @@ public class ChatClient {
      * @param chunkConsumer 数据块消费函数
      * @return 聊天响应结果
      */
-    public static CompletableFuture<ChatResponse> sendStreamChatRequest(OwnerAccount account,
+    public static CompletableFuture<ChatResponse> sendStreamChatRequest(String baseUrl,
+            String apiKey,
+            String model,
+            Double temperature,
             String systemPrompt,
             List<Message> messages,
             Consumer<ChatResponse> chunkConsumer) {
@@ -113,11 +69,7 @@ public class ChatClient {
         String[] messageId = { null };
 
         try {
-            OkHttpClient client = getClient(account);
-            String baseUrl = AccountExtUtils.getAiBaseUrl(account);
-            String apiKey = AccountExtUtils.getAiApiKey(account);
-            String model = AccountExtUtils.getAiApiModel(account);
-            double temperature = Double.parseDouble(AccountExtUtils.getAiApiTemperature(account));
+            OkHttpClient client = getClient(baseUrl);
 
             // 构建请求体
             JSONObject requestBody = buildRequestBody(messages, model, temperature, true, systemPrompt);
@@ -257,34 +209,6 @@ public class ChatClient {
     }
 
     /**
-     * 解析聊天响应
-     *
-     * @param jsonResponse JSON响应对象
-     * @return 聊天响应结果
-     */
-    private static ChatResponse parseChatResponse(JSONObject jsonResponse) {
-        ChatResponse response = new ChatResponse();
-        response.setId(jsonResponse.getString("id"));
-
-        JSONArray choices = jsonResponse.getJSONArray("choices");
-        if (choices != null && !choices.isEmpty()) {
-            JSONObject choice = choices.getJSONObject(0);
-            JSONObject message = choice.getJSONObject("message");
-            if (message != null) {
-                response.setContent(message.getString("content"));
-
-                // 尝试获取推理内容（如果有）
-                JSONObject delta = choice.getJSONObject("delta");
-                if (delta != null) {
-                    response.setReasoningContent(delta.getString("reasoning_content"));
-                }
-            }
-        }
-
-        return response;
-    }
-
-    /**
      * 解析聊天数据块
      *
      * @param jsonChunk JSON数据块
@@ -310,12 +234,12 @@ public class ChatClient {
     /**
      * 获取OkHttpClient客户端
      *
-     * @param account 账号
+     * @param baseUrl API基础URL
      * @return OkHttpClient实例
      */
-    private static OkHttpClient getClient(OwnerAccount account) {
+    private static OkHttpClient getClient(String baseUrl) {
         try {
-            return CLIENT_CACHE.get(account.getOwner(), () -> {
+            return CLIENT_CACHE.get(baseUrl, () -> {
                 return new OkHttpClient.Builder()
                         .connectTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
                         .readTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
