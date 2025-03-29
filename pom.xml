@@ -108,9 +108,9 @@
             </dependency>
 
             <dependency>
-                <groupId>com.openai</groupId>
-                <artifactId>openai-java</artifactId>
-                <version>0.31.0</version>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>4.12.0</version>
             </dependency>
 
             <dependency> 

@@ -1,29 +1,20 @@
 package me.dingtou.options.manager;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.openai.client.OpenAIClientAsync;
-import com.openai.client.okhttp.OpenAIOkHttpClientAsync;
-import com.openai.core.JsonField;
-import com.openai.core.JsonValue;
-import com.openai.models.ChatCompletionChunk;
-import com.openai.models.ChatCompletionCreateParams;
-import com.openai.models.ChatCompletionMessage;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.Message;
 
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.util.AccountExtUtils;
+import me.dingtou.options.util.ChatClient;
+import me.dingtou.options.util.ChatClient.ChatResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -34,13 +25,6 @@ import java.util.function.Function;
 @Slf4j
 @Component
 public class ChatManager {
-    /**
-     * 价格实时缓存
-     */
-    private static final Cache<String, OpenAIClientAsync> CLIENT = CacheBuilder.newBuilder()
-            .maximumSize(100)
-            .expireAfterWrite(1, TimeUnit.MINUTES)
-            .build();
 
     /**
      * 系统提示词，规范AI助手返回结构
@@ -102,10 +86,6 @@ public class ChatManager {
         // 创建一个StringBuilder来收集AI助手的完整回复
         StringBuilder reasoningContent = new StringBuilder();
         StringBuilder finalContent = new StringBuilder();
-        // 保存消息ID
-        final String[] messageId = { null };
-
-        String aiApiTemperature = AccountExtUtils.getAiApiTemperature(account);
 
         // 如果系统提示词为空，使用默认提示词
         String systemPrompt = AccountExtUtils.getAiSystemPrompt(account);
@@ -113,70 +93,36 @@ public class ChatManager {
             systemPrompt = SYSTEM_PROMPT_TEMPLATE;
         }
 
-        ChatCompletionCreateParams.Builder builder = ChatCompletionCreateParams.builder()
-                .model(AccountExtUtils.getAiApiModel(account))
-                .temperature(Double.valueOf(aiApiTemperature))
-                .maxCompletionTokens(16384)
-                .addSystemMessage(systemPrompt);
-        for (Message message : messages) {
-            ChatCompletionMessage chatMessage = ChatCompletionMessage.builder()
-                    .role(JsonValue.from(message.getRole()))
-                    .content(message.getContent())
-                    .refusal("")
-                    .build();
-            builder.addMessage(chatMessage);
-        }
-        ChatCompletionCreateParams createParams = builder.build();
-
+        ChatResponse chatResponse;
         try {
-            getClient(account).chat().completions().createStreaming(createParams).subscribe(chatCompletionChunk -> {
-                String id = chatCompletionChunk.id();
-                // 保存第一个消息块的ID作为整个消息的ID
-                if (messageId[0] == null) {
-                    messageId[0] = id;
-                }
-
-                chatCompletionChunk.choices().forEach(choice -> {
-                    JsonField<ChatCompletionChunk.Choice.Delta> deltaJsonField = choice._delta();
-                    Optional<Map<String, JsonValue>> object = deltaJsonField.asObject();
-                    if (object.isEmpty()) {
-                        return;
-                    }
-                    object.get().forEach((key, value) -> {
-                        if (null != value && !value.isNull() && value.asString().isPresent()) {
-                            String content = value.asString().get().toString();
-                            if (StringUtils.isNotBlank(content)) {
-                                // 收集AI助手的回复
-                                if ("content".equals(key)) {
-                                    callback.apply(new Message(id, "assistant", content, null));
-                                    finalContent.append(content);
-                                } else if ("reasoning_content".equals(key)) {
-                                    callback.apply(new Message(id, "assistant", null, content));
-                                    reasoningContent.append(content);
-                                }
+            // chatResponse = ChatClient.sendChatRequest(account, systemPrompt, messages);
+            chatResponse = ChatClient.sendStreamChatRequest(account, systemPrompt, messages,
+                    new Consumer<ChatClient.ChatResponse>() {
+                        @Override
+                        public void accept(ChatClient.ChatResponse chatResp) {
+                            // 收集AI助手的回复
+                            if (chatResp.isChunk() && chatResp.getContent() != null) {
+                                callback.apply(new Message(chatResp.getId(),
+                                        "assistant",
+                                        chatResp.getContent(),
+                                        null));
+                                finalContent.append(chatResp.getContent());
+                            } else if (chatResp.isChunk() && chatResp.getReasoningContent() != null) {
+                                Message reasoning = new Message(chatResp.getId(),
+                                        "assistant",
+                                        null,
+                                        chatResp.getReasoningContent());
+                                callback.apply(reasoning);
+                                reasoningContent.append(chatResp.getReasoningContent());
                             }
                         }
-                    });
-                });
-            }).onCompleteFuture().join();
+                    }).get(300, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.error("send chat message error:{}", e.getMessage(), e);
-            throw new RuntimeException(e);
+            log.error("发送聊天消息失败: {}", e.getMessage(), e);
+            return new ChatResult(null, e.getMessage(), null);
         }
 
-        return new ChatResult(messageId[0], finalContent.toString(), reasoningContent.toString());
-    }
-
-    private OpenAIClientAsync getClient(OwnerAccount account) {
-        try {
-            return CLIENT.get(account.getOwner(), () -> {
-                String baseUrl = AccountExtUtils.getAiBaseUrl(account);
-                String apiKey = AccountExtUtils.getAiApiKey(account);
-                return OpenAIOkHttpClientAsync.builder().apiKey(apiKey).baseUrl(baseUrl).build();
-            });
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        return new ChatResult(chatResponse.getId(), chatResponse.getContent(), chatResponse.getReasoningContent());
     }
 
     /**

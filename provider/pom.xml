@@ -66,8 +66,8 @@
             <artifactId>ta4j-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.openai</groupId>
-            <artifactId>openai-java</artifactId>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
         </dependency>
         <dependency> 
             <groupId>org.jobrunr</groupId> 
