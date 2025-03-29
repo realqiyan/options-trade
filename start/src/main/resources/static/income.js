@@ -1,6 +1,18 @@
 // JS
 // 实时更新当前股票价格
 var currentPrice = {};
+var assistantWindow;
+
+function assistant(prompt, title) {
+    localStorage.setItem("title", title || "期权订单分析");
+    localStorage.setItem("prompt", prompt);
+    if(!assistantWindow || assistantWindow.closed){
+        assistantWindow = window.open("assistant.html", "assistant");
+    }else{
+        assistantWindow.focus();
+    }
+}
+
 function renderOrderTable(orderList){
     if(!orderList){
         return;
@@ -47,7 +59,9 @@ function renderOrderTable(orderList){
             "profitRatio": item.ext && item.ext.profitRatio ? item.ext.profitRatio + '%' : null,
             "profitRatioClass":profitRatioClass,
             "scaleRatio": item.ext ? item.ext.scaleRatio : null,
-            "rowClass": rowClass
+            "rowClass": rowClass,
+            "ext": item.ext,
+            "prompt": item.ext ? item.ext.prompt : null
         };
     });
 
@@ -56,6 +70,12 @@ function renderOrderTable(orderList){
       var inst = table.render({
         elem: '#orderTable',
         cols: [[
+          {title: '操作', width: 60, templet: function(d) {
+              if(d.prompt) {
+                  return '<a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="assistant"><i class="layui-icon layui-icon-chat"></i>AI</a>';
+              }
+              return '';
+          }},
           {field: 'tradeTime', title: '交易时间', width: 165},
           {field: 'strikeTime', title: '行权时间', width: 120},
           {field: 'code', title: '期权代码', width: 180},
@@ -82,6 +102,7 @@ function renderOrderTable(orderList){
               var color = ratio > positionRatio ? 'color: #ff5722;' : '';
               return '<span style="' + color + '">' + (ratio * 100).toFixed(1) + '%</span>';
           }}
+          
         ]],
         data: convertedData,
         toolbar: true,
@@ -108,6 +129,18 @@ function renderOrderTable(orderList){
                     tr.addClass('strike-alert');
                 }
             });
+        }
+      });
+      
+      // 监听工具条事件
+      table.on('tool(orderTable)', function(obj) {
+        var data = obj.data;
+        if (obj.event === 'assistant') {
+            if(data.ext && data.ext.prompt) {
+                assistant(data.ext.prompt, data.code + " 期权订单分析");
+            } else {
+                layer.msg('没有可分析的数据');
+            }
         }
       });
     });

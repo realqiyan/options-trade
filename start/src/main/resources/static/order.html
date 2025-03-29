@@ -26,9 +26,9 @@
                         <dd><a href="javascript:;">loading...</a></dd>
                     </dl>
                 </li>
-                <li class="layui-nav-item"><a href="sync.html">同步订单</a></li>
                 <li class="layui-nav-item"><a href="income.html">账户收益</a></li>
                 <li class="layui-nav-item"><a href="assistant.html">AI 助手</a></li>
+                <li class="layui-nav-item"><a href="sync.html">同步订单</a></li>
                 <li class="layui-nav-item"><a href="admin.html">后台管理</a></li>
             </ul>
         </div>
@@ -68,6 +68,9 @@
 </script>
 <script id="TPL-orderOp" type="text/html">
     <div>
+        {{# if(d.ext && d.ext.prompt){ }}
+            <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="assistant"><i class="layui-icon layui-icon-chat"></i>AI</a>
+        {{# } }}
         {{# if("true" != d.isClose){ }}
             {{# if([-1,1,2,5].includes(d.status) ){ }}
                 <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="cancel">取消</a>

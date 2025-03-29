@@ -167,7 +167,11 @@ public class OwnerOrder implements Cloneable {
         if (ext == null) {
             ext = new HashMap<>();
         }
-        ext.put(extKey.getKey(), extKey.toString(value));
+        if (value instanceof String) {
+            ext.put(extKey.getKey(), (String) value);
+        } else {
+            ext.put(extKey.getKey(), extKey.toString(value));
+        }
     }
 
     @Override

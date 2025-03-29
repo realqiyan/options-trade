@@ -34,7 +34,6 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
             .expireAfterWrite(30, TimeUnit.SECONDS)
             .build();
 
-
     @Override
     public SecurityQuote quote(OwnerAccount ownerAccount, Security security) {
         List<Security> securityList = new ArrayList<>(1);
@@ -69,7 +68,11 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
                     symbols.add(security.toString());
                 }
             }
-            CompletableFuture<com.longport.quote.SecurityQuote[]> ctxQuote = ctx.getQuote(symbols.toArray(new String[0]));
+            if (symbols.isEmpty()) {
+                return quoteList;
+            }
+            CompletableFuture<com.longport.quote.SecurityQuote[]> ctxQuote = ctx
+                    .getQuote(symbols.toArray(new String[0]));
             com.longport.quote.SecurityQuote[] securityQuotes = ctxQuote.get(10, TimeUnit.SECONDS);
 
             for (com.longport.quote.SecurityQuote securityQuote : securityQuotes) {
@@ -92,7 +95,8 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
     }
 
     @Override
-    public void subscribeQuote(OwnerAccount ownerAccount, List<Security> security, Function<SecurityQuote, Void> callback) {
+    public void subscribeQuote(OwnerAccount ownerAccount, List<Security> security,
+            Function<SecurityQuote, Void> callback) {
         try {
             if (null == security || null == callback) {
                 return;

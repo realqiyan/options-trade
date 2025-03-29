@@ -1,5 +1,6 @@
 // JS
-var currentStrategyId;;
+var currentStrategyId;
+var assistantWindow;
 
 //owner: $("#owner").val(),
 function tradeModify(action, orderId){
@@ -167,6 +168,16 @@ function closePosition(order){
        });
 }
 
+function assistant(prompt, title) {
+    localStorage.setItem("title", title || "期权订单分析");
+    localStorage.setItem("prompt", prompt);
+    if(!assistantWindow || assistantWindow.closed){
+        assistantWindow = window.open("assistant.html", "assistant");
+    }else{
+        assistantWindow.focus();
+    }
+}
+
 function renderTable(orderList){
     if(!orderList){
         return;
@@ -198,6 +209,7 @@ function renderTable(orderList){
             "totalIncome": item.ext ? item.ext.totalIncome : null,
             "curPrice": item.ext ? item.ext.curPrice : null,
             "profitRatio": item.ext && item.ext.profitRatio ? item.ext.profitRatio + '%' : null,
+            "ext": item.ext,
         };
     });
 
@@ -248,16 +260,24 @@ function renderTable(orderList){
       });
 
       // 监听工具条事件
-      table.on('tool(result)', function(obj){
+      table.on('tool(result)', function(obj) {
         var data = obj.data;
-        var layEvent = obj.event;
-        if(layEvent === 'cancel'){
-          tradeModify('cancel', data.id);
-        } else if(layEvent === 'delete'){
-          tradeModify('delete', data.id);
-        } else if(layEvent === 'closePosition'){
-          closePosition(data.order);
-        } 
+        var event = obj.event;
+        var tr = obj.tr;
+        
+        if (event === 'delete') {
+            tradeModify('delete', data.id);
+        } else if (event === 'cancel') {
+            tradeModify('cancel', data.id);
+        } else if (event === 'closePosition') {
+            closePosition(data.order);
+        } else if (event === 'assistant') {
+            if(data.ext && data.ext.prompt) {
+                assistant(data.ext.prompt, data.code + " 期权订单分析");
+            } else {
+                layer.msg('没有可分析的数据');
+            }
+        }
       });
     });
 

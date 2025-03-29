@@ -42,7 +42,7 @@ public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
                 .append("，行权日期为").append(dateFormat.format(order.getStrikeTime()))
                 .append("，当前股票价格为").append(stockIndicator.getSecurityQuote().getLastDone())
                 .append("，当前日期是").append(dateFormat.format(new Date()))
-                .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我当前这笔订单的交易建议。");
+                .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我当前这笔订单的交易建议。\n\n");
 
         CandlestickPeriod period = AccountExtUtils.getKlinePeriod(account);
 
