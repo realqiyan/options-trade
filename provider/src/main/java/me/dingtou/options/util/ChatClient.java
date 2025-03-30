@@ -136,10 +136,10 @@ public class ChatClient {
                                     }
 
                                     // 收集内容
-                                    if (StringUtils.isNotBlank(chunk.getContent())) {
+                                    if (null != chunk.getContent()) {
                                         contentBuilder.append(chunk.getContent());
                                     }
-                                    if (StringUtils.isNotBlank(chunk.getReasoningContent())) {
+                                    if (null != chunk.getReasoningContent()) {
                                         reasoningContentBuilder.append(chunk.getReasoningContent());
                                     }
 
