@@ -12,22 +12,22 @@ public enum TradeSide {
     /**
      * 买
      */
-    BUY(1, -1, 2),
+    BUY(1, -1, 2, "买入"),
 
     /**
      * 卖
      */
-    SELL(2, 1, 1),
+    SELL(2, 1, 1, "卖出"),
 
     /**
      * 卖空
      */
-    SELL_SHORT(3, 1, 1),
+    SELL_SHORT(3, 1, 1, "卖空"),
 
     /**
      * 买回
      */
-    BUY_BACK(4, -1, 2),
+    BUY_BACK(4, -1, 2, "买回"),
     ;
 
     /**
@@ -35,7 +35,7 @@ public enum TradeSide {
      */
     private final int code;
     /**
-     * 开销符号 -1花钱  1赚钱
+     * 开销符号 -1花钱 1赚钱
      */
     private final int sign;
     /**
@@ -43,12 +43,17 @@ public enum TradeSide {
      */
     private final int reverseCode;
 
-    TradeSide(int code, int sign, int reverseCode) {
+    /**
+     * 交易类型名称
+     */
+    private final String name;
+
+    TradeSide(int code, int sign, int reverseCode, String name) {
         this.code = code;
         this.sign = sign;
         this.reverseCode = reverseCode;
+        this.name = name;
     }
-
 
     public static TradeSide of(int code) {
         TradeSide[] values = TradeSide.values();
@@ -59,6 +64,5 @@ public enum TradeSide {
         }
         throw new IllegalArgumentException(code + " not found.");
     }
-
 
 }

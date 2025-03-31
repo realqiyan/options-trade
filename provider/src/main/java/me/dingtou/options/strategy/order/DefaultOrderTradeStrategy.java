@@ -6,6 +6,7 @@ import java.util.List;
 
 import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.constant.OrderExt;
+import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.model.Candlestick;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
@@ -36,10 +37,13 @@ public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
         SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         StringBuilder prompt = new StringBuilder();
-        prompt.append("我在").append(dateTimeFormat.format(order.getTradeTime()))
-                .append("买入").append(order.getCode())
-                .append("，行权价为").append(OwnerOrder.strikePrice(order))
+        String sideName = TradeSide.of(order.getSide()).getName();
+        prompt.append("我在").append(dateTimeFormat.format(order.getTradeTime())).append(sideName).append(order.getCode())
                 .append("，行权日期为").append(dateFormat.format(order.getStrikeTime()))
+                .append("，行权价为").append(OwnerOrder.strikePrice(order))
+                .append("，").append(sideName).append("价格为").append(order.getPrice())
+                .append("，").append(sideName).append("数量为").append(order.getQuantity())
+                .append("，当前价格为").append(order.getExtValue(OrderExt.CUR_PRICE))
                 .append("，当前股票价格为").append(stockIndicator.getSecurityQuote().getLastDone())
                 .append("，当前日期是").append(dateFormat.format(new Date()))
                 .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我当前这笔订单的交易建议。\n\n");
