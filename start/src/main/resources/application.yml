@@ -44,5 +44,9 @@ org:
   jobrunr:
     background-job-server:
       enabled: true
+      worker-count: 1
+      poll-interval-in-seconds: 30
+      delete-succeeded-jobs-after: 8760h
+      permanently-delete-deleted-jobs-after: 8760h
     dashboard:
       enabled: true
