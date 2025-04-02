@@ -89,4 +89,13 @@ public class JobClient {
     public static void delete(UUID id) {
         BackgroundJob.delete(id);
     }
+
+    /**
+     * 删除周期任务
+     * 
+     * @param id 任务ID
+     */
+    public static void deleteRecurringJob(UUID id) {
+        BackgroundJob.deleteRecurringJob(id.toString());
+    }
 }
