@@ -63,7 +63,7 @@ public class CheckFutuSubJob implements Job {
                 }
             }
             long endTime = System.currentTimeMillis();
-            log.info("CheckFutuSubJob持续时间: {}ms", endTime - startTime);
+            log.info("CheckFutuSubJob持续时间: {}s", (endTime - startTime)/1000);
         } catch (Exception e) {
             log.error("checkSubInfo -> error", e);
         }
