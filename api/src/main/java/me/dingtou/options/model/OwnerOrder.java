@@ -3,6 +3,7 @@ package me.dingtou.options.model;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
+import me.dingtou.options.constant.Market;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
@@ -25,11 +26,6 @@ import java.util.regex.Pattern;
  */
 @Data
 public class OwnerOrder implements Cloneable {
-
-    /**
-     * 纽约时区
-     */
-    private static final ZoneId NEW_YORK_ZONE_ID = ZoneId.of("America/New_York");
 
     /**
      * 期权代码正则表达式 ^([A-Z0-9]*)([0-9]{6})([CP])([0-9]*)$
@@ -246,8 +242,8 @@ public class OwnerOrder implements Cloneable {
      * @return 是否平仓
      */
     public static boolean isClose(OwnerOrder order) {
-        // 使用America/New_York时区
-        LocalDate nyLocalDate = new Date().toInstant().atZone(NEW_YORK_ZONE_ID).toLocalDate();
+        ZoneId zoneId = Market.of(order.getMarket()).getZoneId();
+        LocalDate nyLocalDate = new Date().toInstant().atZone(zoneId).toLocalDate();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         String strikeDateStr = dateFormat.format(order.getStrikeTime());
@@ -336,9 +332,9 @@ public class OwnerOrder implements Cloneable {
      * @return 到期日
      */
     public static long dte(OwnerOrder order) {
-        // 使用America/New_York时区
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        LocalDate localDate = new Date().toInstant().atZone(NEW_YORK_ZONE_ID).toLocalDate();
+        ZoneId zoneId = Market.of(order.getMarket()).getZoneId();
+        LocalDate localDate = new Date().toInstant().atZone(zoneId).toLocalDate();
         String strikeDateStr = simpleDateFormat.format(order.getStrikeTime());
         LocalDate strikeDate = LocalDate.parse(strikeDateStr);
         return ChronoUnit.DAYS.between(localDate, strikeDate);

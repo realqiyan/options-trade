@@ -1,6 +1,7 @@
 package me.dingtou.options.model;
 
 import lombok.Data;
+import me.dingtou.options.constant.Market;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -15,15 +16,16 @@ import java.util.List;
  */
 @Data
 public class OptionsChain {
+
     /**
-     * 纽约时区
+     * 底层资产
      */
-    private static final ZoneId NEW_YORK_ZONE_ID = ZoneId.of("America/New_York");
+    private final Security security;
 
     /**
      * 期权到期日
      */
-    private String strikeTime;
+    private final String strikeTime;
 
     /**
      * 期权列表
@@ -52,6 +54,11 @@ public class OptionsChain {
      */
     private String prompt;
 
+    public OptionsChain(Security security, String strikeTime) {
+        this.security = security;
+        this.strikeTime = strikeTime;
+    }
+
     /**
      * 计算DTE
      * 
@@ -61,8 +68,8 @@ public class OptionsChain {
         if (null == strikeTime) {
             throw new IllegalArgumentException("strikeTime is null");
         }
-        // 使用America/New_York时区
-        LocalDate localDate = new Date().toInstant().atZone(NEW_YORK_ZONE_ID).toLocalDate();
+        ZoneId zoneId = Market.of(security.getMarket()).getZoneId();
+        LocalDate localDate = new Date().toInstant().atZone(zoneId).toLocalDate();
         LocalDate strikeDate = LocalDate.parse(strikeTime);
         return (int) ChronoUnit.DAYS.between(localDate, strikeDate);
     }

@@ -9,12 +9,28 @@ import me.dingtou.options.gateway.futu.executor.func.query.FuncGetOptionExpirati
 import me.dingtou.options.model.*;
 import org.springframework.stereotype.Component;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
 public class OptionsChainGatewayImpl implements OptionsChainGateway {
+
+    /**
+     * 期权到期日缓存
+     */
+    private static final Cache<String, List<OptionsStrikeDate>> OPTIONS_STRIKE_DATE_CACHE = CacheBuilder.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(1, TimeUnit.HOURS)
+            .build();
+
     /**
      * 期权链的长度
      */
@@ -26,13 +42,27 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
 
     @Override
     public List<OptionsStrikeDate> getOptionsExpDate(Security security) {
-        List<OptionsStrikeDate> strikeDateList = QueryExecutor
-                .query(new FuncGetOptionExpirationDate(security.getMarket(), security.getCode()));
-        if (null == strikeDateList || strikeDateList.isEmpty()) {
-            return Collections.emptyList();
+        try {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHH");
+            String key = simpleDateFormat.format(new Date()) + "_" + security.toString();
+            return OPTIONS_STRIKE_DATE_CACHE.get(key, new Callable<List<OptionsStrikeDate>>() {
+                @Override
+                public List<OptionsStrikeDate> call() throws Exception {
+                    FuncGetOptionExpirationDate func = new FuncGetOptionExpirationDate(security.getMarket(),
+                            security.getCode());
+                    List<OptionsStrikeDate> strikeDateList = QueryExecutor.query(func);
+                    if (null == strikeDateList || strikeDateList.isEmpty()) {
+                        return Collections.emptyList();
+                    }
+                    int min = Math.min(STRIKE_DATE_SIZE, strikeDateList.size());
+                    return strikeDateList.subList(0, min);
+                }
+            });
+        } catch (ExecutionException e) {
+            log.error("get options strike date failed, security: {}", security, e);
+            throw new RuntimeException("get options strike date failed", e);
         }
-        int min = Math.min(STRIKE_DATE_SIZE, strikeDateList.size());
-        return strikeDateList.subList(0, min);
+
     }
 
     @Override
@@ -50,8 +80,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             throw new RuntimeException("FuncGetOptionChain result null");
         }
 
-        OptionsChain optionsChain = new OptionsChain();
-        optionsChain.setStrikeTime(strikeTime);
+        OptionsChain optionsChain = new OptionsChain(security, strikeTime);
 
         List<Options> chainOptionsList = new ArrayList<>();
         Set<Security> allSecurity = new HashSet<>();
@@ -73,14 +102,20 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
         }
         optionsChain.setOptionsList(chainOptionsList);
 
-        List<Security> securityList = new ArrayList<>(allSecurity);
-        List<OptionsRealtimeData> optionsBasicInfo = QueryExecutor.query(new FuncGetOptionsRealtimeData(securityList));
-        if (optionsBasicInfo.isEmpty()) {
-            log.warn("query options basic info failed, retry");
-            optionsBasicInfo = QueryExecutor.query(new FuncGetOptionsRealtimeData(securityList));
-        }
-        mergeRealtimeData(optionsChain, optionsBasicInfo, lastDone);
+        List<OptionsRealtimeData> realtimeData = queryOptionsRealtimeData(new ArrayList<>(allSecurity));
+        mergeRealtimeData(optionsChain, realtimeData, lastDone);
         return optionsChain;
+    }
+
+    @Override
+    public List<OptionsRealtimeData> queryOptionsRealtimeData(List<Security> optionsSecurityList) {
+        List<OptionsRealtimeData> optionsRealtimeData = QueryExecutor
+                .query(new FuncGetOptionsRealtimeData(optionsSecurityList));
+        if (null == optionsRealtimeData || optionsRealtimeData.isEmpty()) {
+            log.warn("query options basic info failed, retry");
+            optionsRealtimeData = QueryExecutor.query(new FuncGetOptionsRealtimeData(optionsSecurityList));
+        }
+        return optionsRealtimeData;
     }
 
     private void mergeRealtimeData(OptionsChain optionsChain, List<OptionsRealtimeData> optionsBasicInfoList,

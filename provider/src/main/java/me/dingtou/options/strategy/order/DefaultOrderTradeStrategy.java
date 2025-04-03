@@ -4,10 +4,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import com.alibaba.fastjson2.JSON;
+
 import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.model.Candlestick;
+import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerStrategy;
@@ -81,6 +84,17 @@ public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
 
         // 使用IndicatorDataFrameUtil生成技术指标表格
         prompt.append(IndicatorDataFrameUtil.createMarkdownTable(stockIndicator, dataSize));
+
+
+
+        // String extValue = order.getExtValue(OrderExt.ROLL_OPTIONS);
+        // if (null != extValue) {
+        //     List<OptionsRealtimeData> optionsRealtimeDataList = JSON.parseArray(extValue, OptionsRealtimeData.class);
+
+
+        //     //prompt.append("## 可Roll期权\n");
+        //     //prompt.append(extValue);
+        // }
 
         order.setExtValue(OrderExt.PROMPT, prompt.toString());
     }

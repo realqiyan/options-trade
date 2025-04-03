@@ -65,4 +65,17 @@ public class OptionsManager {
         return optionsChain;
     }
 
+    /**
+     * 查询期权实时数据
+     *
+     * @param optionsSecurityList 期权证券列表
+     * @return 期权实时数据列表
+     */
+    public List<OptionsRealtimeData> queryOptionsRealtimeData(List<Security> optionsSecurityList) {
+        if (null == optionsSecurityList || optionsSecurityList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return optionsChainGateway.queryOptionsRealtimeData(optionsSecurityList);
+    }
+
 }

@@ -1,5 +1,7 @@
 package me.dingtou.options.constant;
 
+import java.time.ZoneId;
+
 /**
  * 市场
  *
@@ -10,20 +12,20 @@ public enum Market {
     /**
      * 美国
      */
-    US(11),
+    US(11, ZoneId.of("America/New_York")),
     /**
      * 香港
      */
-    HK(1),
-    /**
-     * 未知
-     */
-    UNKNOWN(-1);
+    HK(1, ZoneId.of("Asia/Hong_Kong")),
+    ;
 
     private final int code;
 
-    Market(int code) {
+    private final ZoneId zoneId;
+
+    Market(int code, ZoneId zoneId) {
         this.code = code;
+        this.zoneId = zoneId;
     }
 
     public static Market of(int code) {
@@ -33,11 +35,15 @@ public enum Market {
                 return val;
             }
         }
-        return UNKNOWN;
+        throw new IllegalArgumentException("Invalid market code: " + code);
     }
 
     public int getCode() {
         return code;
+    }
+
+    public ZoneId getZoneId() {
+        return zoneId;
     }
 
 }

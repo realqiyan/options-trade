@@ -1,6 +1,7 @@
 package me.dingtou.options.constant;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.alibaba.fastjson.JSON;
 import lombok.Getter;
@@ -47,6 +48,11 @@ public enum OrderExt {
      * AI分析提示词
      */
     PROMPT("prompt", String.class),
+
+    /**
+     * 可以Roll的期权实时数据
+     */
+    ROLL_OPTIONS("rollOptions", List.class),
 
     ////////////////////////////////
     // 静态属性 //
@@ -101,10 +107,13 @@ public enum OrderExt {
     }
 
     public String toString(Object obj) {
-        if (obj.getClass().isAssignableFrom(this.getClassType())) {
+        if (obj == null) {
+            return null;
+        }
+        if (this.getClassType().isAssignableFrom(obj.getClass())) {
             return JSON.toJSONString(obj);
         }
-        throw new IllegalArgumentException("type not match");
+        throw new IllegalArgumentException("type not match: expected " + this.getClassType().getName() + ", but got " + obj.getClass().getName());
     }
 
     public Object fromString(String str) {

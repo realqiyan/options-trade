@@ -3,6 +3,9 @@ package me.dingtou.options.service.impl;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -13,12 +16,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import me.dingtou.options.constant.AccountExt;
+import me.dingtou.options.constant.Market;
+import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.manager.IndicatorManager;
+import me.dingtou.options.manager.OptionsManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
+import me.dingtou.options.model.OptionsRealtimeData;
+import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerStrategy;
@@ -33,6 +41,9 @@ import me.dingtou.options.strategy.order.DefaultOrderTradeStrategy;
 
 import org.springframework.util.CollectionUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class SummaryServiceImpl implements SummaryService {
 
@@ -41,6 +52,9 @@ public class SummaryServiceImpl implements SummaryService {
 
     @Autowired
     private TradeManager tradeManager;
+
+    @Autowired
+    private OptionsManager optionsManager;
 
     @Autowired
     private IndicatorManager indicatorManager;
@@ -81,6 +95,21 @@ public class SummaryServiceImpl implements SummaryService {
             strategySummary.getStrategyOrders().stream()
                     .filter(OwnerOrder::isOpen)
                     .forEach(unrealizedOrders::add);
+        }
+
+        // 查询未平仓订单可以Roll的期权实时数据 [当前行权价格, 当前行权价格-5]
+        for (OwnerOrder order : unrealizedOrders) {
+            // 查询股票期权到期日
+            List<OptionsStrikeDate> optionsStrikeDates = optionsManager.queryOptionsExpDate(order.getUnderlyingCode(),
+                    order.getMarket());
+            LocalDate nextStrikeDate = getNextOptionsStrikeDate(optionsStrikeDates, order);
+            if (null == nextStrikeDate) {
+                continue;
+            }
+            List<Security> optionsSecurityList = getRollOptionsSecurity(order, nextStrikeDate);
+            List<OptionsRealtimeData> optionsRealtimeDataList = optionsManager
+                    .queryOptionsRealtimeData(optionsSecurityList);
+            order.setExtValue(OrderExt.ROLL_OPTIONS, optionsRealtimeDataList);
         }
 
         ownerSummary.setAllOptionsIncome(allOptionsIncome);
@@ -165,7 +194,76 @@ public class SummaryServiceImpl implements SummaryService {
         return ownerSummary;
     }
 
-    public StrategySummary queryStrategySummary(String owner, OwnerStrategy ownerStrategy) {
+    @Override
+    public StrategySummary queryStrategySummary(String owner, String strategyId) {
+        OwnerStrategy ownerStrategy = ownerStrategyDAO.queryStrategyByStrategyId(strategyId);
+        if (ownerStrategy.getStatus() == 0) {
+            return null;
+        }
+        return queryStrategySummary(owner, ownerStrategy);
+    }
+
+    /**
+     * 获取下一个期权到期日
+     * 
+     * @param optionsStrikeDates 期权到期日列表
+     * @param order              订单
+     * @return 下一个期权到期日
+     */
+    private LocalDate getNextOptionsStrikeDate(List<OptionsStrikeDate> optionsStrikeDates, OwnerOrder order) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String strikeDateStr = dateFormat.format(order.getStrikeTime());
+        final LocalDate strikeDate = LocalDate.parse(strikeDateStr);
+        return optionsStrikeDates.stream()
+                .map(dateObj -> {
+                    String strikeTime = dateObj.getStrikeTime();
+                    LocalDate orderStrikeDate = LocalDate.parse(strikeTime);
+                    return orderStrikeDate;
+                })
+                .filter(date -> date.isAfter(strikeDate))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * 获取可以Roll的期权
+     * 
+     * @param order          订单
+     * @param nextStrikeDate 下一个期权到期日
+     * @return 可以Roll的期权
+     */
+    private List<Security> getRollOptionsSecurity(OwnerOrder order, LocalDate nextStrikeDate) {
+        List<Security> optionsSecurityList = new ArrayList<>();
+        optionsSecurityList.add(Security.of(order.getCode(), order.getMarket()));
+
+        BigDecimal strikePrice = OwnerOrder.strikePrice(order);
+        // 查询下一个期权到期日
+        for (int i = 0; i <= 5; i++) {
+            BigDecimal nextStrikePrice = strikePrice
+                    .subtract(BigDecimal.valueOf(i))
+                    .multiply(BigDecimal.valueOf(1000))
+                    .setScale(0);
+            // BABA250404P133000
+            String date = nextStrikeDate.format(DateTimeFormatter.ofPattern("yyMMdd"));
+            String code = order.getUnderlyingCode()
+                    + date
+                    + (OwnerOrder.isPut(order) ? "P" : "C")
+                    + nextStrikePrice.toPlainString();
+            optionsSecurityList.add(Security.of(code, order.getMarket()));
+        }
+
+        // OptionsManager
+        return optionsSecurityList;
+    }
+
+    /**
+     * 查询策略汇总
+     * 
+     * @param owner         所有者
+     * @param ownerStrategy 策略
+     * @return 策略汇总
+     */
+    private StrategySummary queryStrategySummary(String owner, OwnerStrategy ownerStrategy) {
         StrategySummary summary = new StrategySummary();
 
         summary.setStrategy(ownerStrategy);
@@ -276,15 +374,6 @@ public class SummaryServiceImpl implements SummaryService {
         }
 
         return summary;
-    }
-
-    @Override
-    public StrategySummary queryStrategySummary(String owner, String strategyId) {
-        OwnerStrategy ownerStrategy = ownerStrategyDAO.queryStrategyByStrategyId(strategyId);
-        if (ownerStrategy.getStatus() == 0) {
-            return null;
-        }
-        return queryStrategySummary(owner, ownerStrategy);
     }
 
 }
