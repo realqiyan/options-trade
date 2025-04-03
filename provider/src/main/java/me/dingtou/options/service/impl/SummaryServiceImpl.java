@@ -97,21 +97,6 @@ public class SummaryServiceImpl implements SummaryService {
                     .forEach(unrealizedOrders::add);
         }
 
-        // 查询未平仓订单可以Roll的期权实时数据 [当前行权价格, 当前行权价格-5]
-        for (OwnerOrder order : unrealizedOrders) {
-            // 查询股票期权到期日
-            List<OptionsStrikeDate> optionsStrikeDates = optionsManager.queryOptionsExpDate(order.getUnderlyingCode(),
-                    order.getMarket());
-            LocalDate nextStrikeDate = getNextOptionsStrikeDate(optionsStrikeDates, order);
-            if (null == nextStrikeDate) {
-                continue;
-            }
-            List<Security> optionsSecurityList = getRollOptionsSecurity(order, nextStrikeDate);
-            List<OptionsRealtimeData> optionsRealtimeDataList = optionsManager
-                    .queryOptionsRealtimeData(optionsSecurityList);
-            order.setExtValue(OrderExt.ROLL_OPTIONS, optionsRealtimeDataList);
-        }
-
         ownerSummary.setAllOptionsIncome(allOptionsIncome);
         ownerSummary.setTotalFee(totalFee);
         ownerSummary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
@@ -369,6 +354,19 @@ public class SummaryServiceImpl implements SummaryService {
         // 未平仓订单处理策略
         OrderTradeStrategy defaultOrderTradeStrategy = new DefaultOrderTradeStrategy();
         for (OwnerOrder order : openOrders) {
+
+            // 查询未平仓订单可以Roll的期权实时数据 [当前行权价格, 当前行权价格-5]
+            // 查询股票期权到期日
+            List<OptionsStrikeDate> optionsStrikeDates = optionsManager.queryOptionsExpDate(order.getUnderlyingCode(),
+                    order.getMarket());
+            LocalDate nextStrikeDate = getNextOptionsStrikeDate(optionsStrikeDates, order);
+            if (null != nextStrikeDate) {
+                List<Security> optionsSecurityList = getRollOptionsSecurity(order, nextStrikeDate);
+                List<OptionsRealtimeData> optionsRealtimeDataList = optionsManager
+                        .queryOptionsRealtimeData(optionsSecurityList);
+                order.setExtValue(OrderExt.ROLL_OPTIONS, optionsRealtimeDataList);
+            }
+
             StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security);
             defaultOrderTradeStrategy.calculate(account, order, stockIndicator);
         }
