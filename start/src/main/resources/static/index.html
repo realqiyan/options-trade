@@ -306,25 +306,30 @@
 
 <script id="unexercisedOrders" type="text/html">
   <div class="layui-card">
-    <div class="layui-card-header">未行权期权列表</div>
     <div class="layui-card-body">
       {{# layui.each(d, function(index, item){ }}
         <div class="layui-row" style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0;">
           <div class="layui-col-xs12">
-            <p><b>期权代码:</b> {{= item.code }}</p>
-            <p><b>交易方向:</b> {{= item.side == 1 ? '买入' : '卖出' }}</p>
-            <p><b>交易数量:</b> {{= item.quantity }}</p>
-            <p><b>交易价格:</b> ${{= item.price }}</p>
-            <p><b>到期日:</b> {{= layui.util.toDateString(new Date(item.strikeTime), 'yyyy-MM-dd') }}</p>
-            {{# if(item.ext && item.ext.curPrice !== null) { }}
-            <p><b>当前价格:</b> ${{= item.ext.curPrice }}</p>
-            {{# } }}
-            {{# if(item.ext && item.ext.profitRatio !== null) { }}
-            <p><b>盈亏比例:</b> <span class="{{= item.ext.profitRatio >= 0 ? 'layui-font-red' : 'layui-font-green' }}">{{= item.ext.profitRatio }}%</span></p>
-            {{# } }}
-            {{# if(item.ext && item.ext.curDTE !== null) { }}
-            <p><b>剩余天数:</b> <span class="{{= item.ext.curDTE > 0 ? 'layui-font-green' : 'layui-font-red' }}">{{= item.ext.curDTE }}天</span></p>
-            {{# } }}
+            <p>
+                <b>期权代码:</b> <i>{{= item.code }}</i>
+            </p>
+            <p>
+                <b>交易:</b> <i>${{= item.price }}</i> {{= item.side == 1 ? '买入' : '卖出' }} <i>{{= item.quantity }}</i> 份合约
+            </p>
+            <p>
+                <b>到期日:</b> <i>{{= layui.util.toDateString(new Date(item.strikeTime), 'yyyy-MM-dd') }}</i>
+                {{# if(item.ext && item.ext.curDTE !== null) { }}
+                剩余<span class="{{= item.ext.curDTE > 0 ? 'layui-font-green' : 'layui-font-red' }}"><i>{{= item.ext.curDTE }}天</i></span>
+                {{# } }}
+            </p>
+            <p>
+                {{# if(item.ext && item.ext.curPrice !== null) { }}
+                <b>当前价格:</b> <i>${{= item.ext.curPrice }}</i>
+                {{# } }}
+                {{# if(item.ext && item.ext.profitRatio !== null) { }}
+                <b>盈亏比例:</b> <span class="{{= item.ext.profitRatio >= 0 ? 'layui-font-red' : 'layui-font-green' }}"><i>{{= item.ext.profitRatio }}%</i></span>
+                {{# } }}
+            </p>
           </div>
         </div>
       {{# }); }}

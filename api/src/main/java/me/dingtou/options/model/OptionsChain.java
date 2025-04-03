@@ -2,6 +2,10 @@ package me.dingtou.options.model;
 
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -11,6 +15,10 @@ import java.util.List;
  */
 @Data
 public class OptionsChain {
+    /**
+     * 纽约时区
+     */
+    private static final ZoneId NEW_YORK_ZONE_ID = ZoneId.of("America/New_York");
 
     /**
      * 期权到期日
@@ -43,4 +51,20 @@ public class OptionsChain {
      * AI提示词
      */
     private String prompt;
+
+    /**
+     * 计算DTE
+     * 
+     * @return 距离行权日起间隔天数
+     */
+    public int dte() {
+        if (null == strikeTime) {
+            throw new IllegalArgumentException("strikeTime is null");
+        }
+        // 使用America/New_York时区
+        LocalDate localDate = new Date().toInstant().atZone(NEW_YORK_ZONE_ID).toLocalDate();
+        LocalDate strikeDate = LocalDate.parse(strikeTime);
+        return (int) ChronoUnit.DAYS.between(localDate, strikeDate);
+    }
+
 }

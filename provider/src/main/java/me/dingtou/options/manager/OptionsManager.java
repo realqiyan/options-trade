@@ -38,14 +38,15 @@ public class OptionsManager {
     /**
      * 查询期权链
      * 
-     * @param ownerAccount      账户
-     * @param security          股票
-     * @param optionsStrikeDate 期权到期日
+     * @param ownerAccount 账户
+     * @param security     股票
+     * @param strikeDate   期权到期日
      * @return 期权链
      */
-    public OptionsChain queryOptionsChain(OwnerAccount ownerAccount, Security security,
-            OptionsStrikeDate optionsStrikeDate) {
-        if (null == security || null == optionsStrikeDate || null == optionsStrikeDate.getStrikeTime()) {
+    public OptionsChain queryOptionsChain(OwnerAccount ownerAccount,
+            Security security,
+            String strikeDate) {
+        if (null == security || null == strikeDate) {
             return null;
         }
 
@@ -54,7 +55,7 @@ public class OptionsManager {
 
         // 期权链
         OptionsChain optionsChain = optionsChainGateway.queryOptionsChain(security,
-                optionsStrikeDate.getStrikeTime(),
+                strikeDate,
                 stockIndicator.getSecurityQuote().getLastDone());
         optionsChain.setStockIndicator(stockIndicator);
 

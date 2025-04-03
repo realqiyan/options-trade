@@ -171,7 +171,7 @@ function loadOptionsExpDate(code, market){
             tabs.on(`afterChange(strike-list)`, function(data) {
                 var obj = result[data.index];
                 console.log('change to index:'+data.index+' obj:',obj);
-                loadOptionsChain(obj.strikeTime, obj.strikeTimestamp, obj.optionExpiryDateDistance);
+                loadOptionsChain(obj.strikeTime);
             });
             // 方法渲染
             tabs.render({
@@ -195,9 +195,9 @@ function loadOptionsExpDate(code, market){
       }
     });
 }
-// /options/chain/get?code=BABA&market=11&time=1733652854662&strikeTime=2024-12-13&strikeTimestamp=1734066000&optionExpiryDateDistance=5
-function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance){
-    console.log('loadOptionsChain strikeTime:'+ strikeTime+' optionExpiryDateDistance:'+ optionExpiryDateDistance+' currentStrategyId:'+currentStrategyId);
+// /options/chain/get?code=BABA&market=11&time=1733652854662&strikeTime=2024-12-13
+function loadOptionsChain(strikeTime){
+    console.log('loadOptionsChain strikeTime:'+ strikeTime+' currentStrategyId:'+currentStrategyId);
     resetContent("loading...");
     $.ajax({
       url: "/options/chain/get",
@@ -205,8 +205,6 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
         code: currentCode,
         market: currentMarket,
         strikeTime: strikeTime,
-        strikeTimestamp: strikeTimestamp,
-        optionExpiryDateDistance: optionExpiryDateDistance,
         strategyId: currentStrategyId,
         time: new Date().getTime()
       },
@@ -219,7 +217,6 @@ function loadOptionsChain(strikeTime, strikeTimestamp, optionExpiryDateDistance)
         var result = response.data;
         currentPrompt = result.prompt;
         result.currentCode=currentCode;
-        result.optionExpiryDateDistance=optionExpiryDateDistance
         var view = document.getElementById('title');
         laytpl(commonInfo.innerHTML).render(result, function(html){
           view.innerHTML = html;

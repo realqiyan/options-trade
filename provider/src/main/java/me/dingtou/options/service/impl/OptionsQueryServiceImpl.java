@@ -65,10 +65,10 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     @Override
     public OptionsChain queryOptionsChain(String owner,
             Security security,
-            OptionsStrikeDate optionsStrikeDate,
+            String strikeDate,
             OwnerStrategy strategy) {
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        OptionsChain optionsChain = optionsManager.queryOptionsChain(account, security, optionsStrikeDate);
+        OptionsChain optionsChain = optionsManager.queryOptionsChain(account, security, strikeDate);
 
         if (null == allOptionsStrategy || allOptionsStrategy.isEmpty()) {
             return optionsChain;
@@ -81,7 +81,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
         }
         for (OptionsTradeStrategy optionsStrategy : allOptionsStrategy) {
             if (optionsStrategy.isSupport(strategy)) {
-                optionsStrategy.calculate(account, optionsStrikeDate, optionsChain, summary);
+                optionsStrategy.calculate(account, optionsChain, summary);
             }
         }
 

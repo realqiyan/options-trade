@@ -24,7 +24,6 @@ public class WheelStrategy extends BaseTradeStrategy {
 
     @Override
     public void process(OwnerAccount account,
-            OptionsStrikeDate optionsStrikeDate,
             OptionsChain optionsChain,
             StrategySummary summary) {
         // 当前策略信息
@@ -102,7 +101,7 @@ public class WheelStrategy extends BaseTradeStrategy {
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
         prompt.append("我准备使用车轮策略（WheelStrategy）卖出").append(securityQuote.getSecurity().toString())
-                .append("距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天的")
+                .append("距离到期日").append(optionsChain.dte()).append("天的")
                 .append(isSellPutStage ? "看跌期权（Cash-Secured Put）" : "看涨期权（Covered Call）");
         prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
         if (isCoveredCallStage && null != finalUnderlyingOrder) {

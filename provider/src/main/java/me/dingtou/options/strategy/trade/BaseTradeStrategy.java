@@ -26,20 +26,21 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
     /**
      * 继续加工
      *
-     * @param optionsStrikeDate 期权到期日
-     * @param optionsChain      期权链
-     * @param summary           策略信息（可选）
+     * @param account        账户
+     * @param optionsChain   期权链
+     * @param summary        策略信息（可选）
      */
-    abstract void process(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
+    abstract void process(OwnerAccount account,
+            OptionsChain optionsChain,
             StrategySummary summary);
 
     @Override
-    final public void calculate(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
+    final public void calculate(OwnerAccount account, OptionsChain optionsChain,
             StrategySummary summary) {
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
         SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
         BigDecimal securityPrice = securityQuote.getLastDone();
-        BigDecimal dte = new BigDecimal(optionsStrikeDate.getOptionExpiryDateDistance());
+        BigDecimal dte = new BigDecimal(optionsChain.dte());
         optionsChain.setTradeLevel(1);
         optionsChain.getOptionsList().forEach(options -> {
             OptionsStrategyData strategyData = new OptionsStrategyData();
@@ -92,7 +93,7 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
             strategyData.setRange(calculateRange(strikePrice, securityPrice));
 
         });
-        process(account, optionsStrikeDate, optionsChain, summary);
+        process(account, optionsChain, summary);
     }
 
     /**

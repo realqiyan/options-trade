@@ -109,8 +109,6 @@ public class WebApiController {
     public WebResult<OptionsChain> listOptionsChain(@RequestParam(value = "market", required = true) Integer market,
             @RequestParam(value = "code", required = true) String code,
             @RequestParam(value = "strikeTime", required = true) String strikeTime,
-            @RequestParam(value = "strikeTimestamp", required = true) Long strikeTimestamp,
-            @RequestParam(value = "optionExpiryDateDistance", required = true) Integer optionExpiryDateDistance,
             @RequestParam(value = "strategyId", required = false) String strategyId) throws Exception {
         log.info("get options chain. market:{}, code:{}, strikeTime:{}, strategyId:{}",
                 market,
@@ -120,11 +118,6 @@ public class WebApiController {
         Security security = new Security();
         security.setMarket(market);
         security.setCode(code);
-
-        OptionsStrikeDate optionsStrikeDate = new OptionsStrikeDate();
-        optionsStrikeDate.setStrikeTime(strikeTime);
-        optionsStrikeDate.setStrikeTimestamp(strikeTimestamp);
-        optionsStrikeDate.setOptionExpiryDateDistance(optionExpiryDateDistance);
 
         // 当传入策略ID，则查询对应的策略进行期权链处理。
         String currentOwner = SessionUtils.getCurrentOwner();
@@ -143,7 +136,7 @@ public class WebApiController {
         try {
             OptionsChain optionsChain = optionsQueryService.queryOptionsChain(currentOwner,
                     security,
-                    optionsStrikeDate,
+                    strikeTime,
                     strategy);
             return WebResult.success(optionsChain);
         } catch (Exception e) {

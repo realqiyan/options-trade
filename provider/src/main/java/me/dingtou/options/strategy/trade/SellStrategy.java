@@ -14,13 +14,15 @@ import java.util.List;
 public class SellStrategy extends BaseTradeStrategy {
 
     @Override
-    void process(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
+    void process(OwnerAccount account,
+            OptionsChain optionsChain,
             StrategySummary summary) {
-        String prompt = buildPrompt(account, optionsStrikeDate, optionsChain, summary);
+        String prompt = buildPrompt(account, optionsChain, summary);
         optionsChain.setPrompt(prompt);
     }
 
-    private String buildPrompt(OwnerAccount account, OptionsStrikeDate optionsStrikeDate, OptionsChain optionsChain,
+    private String buildPrompt(OwnerAccount account,
+            OptionsChain optionsChain,
             StrategySummary summary) {
 
         // 反转delta和theta
@@ -33,7 +35,7 @@ public class SellStrategy extends BaseTradeStrategy {
                 options.setRealtimeData(new OptionsRealtimeData());
             }
         });
-        
+
         // AI分析提示词
         VixIndicator vixIndicator = optionsChain.getVixIndicator();
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
@@ -46,7 +48,7 @@ public class SellStrategy extends BaseTradeStrategy {
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
         prompt.append("我准备卖出").append(securityQuote.getSecurity().toString())
-                .append("距离到期日").append(optionsStrikeDate.getOptionExpiryDateDistance()).append("天的期权");
+                .append("距离到期日").append(optionsChain.dte()).append("天的期权");
         if (null != summary) {
             prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
         }
