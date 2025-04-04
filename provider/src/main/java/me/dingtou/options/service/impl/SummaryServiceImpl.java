@@ -94,6 +94,7 @@ public class SummaryServiceImpl implements SummaryService {
 
             strategySummary.getStrategyOrders().stream()
                     .filter(OwnerOrder::isOpen)
+                    .filter(OwnerOrder::isOptionsOrder)
                     .forEach(unrealizedOrders::add);
         }
 
