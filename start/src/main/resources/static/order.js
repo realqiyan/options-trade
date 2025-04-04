@@ -218,7 +218,7 @@ function renderTable(orderList){
       var inst = table.render({
         elem: '#result',
         cols: [[
-          {field: 'order', title: '操作', width: 260, templet: '#TPL-orderOp'},
+          {field: 'order', title: '操作', width: 220, templet: '#TPL-orderOp'},
           {field: 'curDTE', title: '关注', width: 50, align: 'center', templet: '#TPL-colorStatus'},
           //{field: 'strategyId', title: '策略ID', width: 280, sort: true},
           //{field: 'underlyingCode', title: '股票', width: 80},

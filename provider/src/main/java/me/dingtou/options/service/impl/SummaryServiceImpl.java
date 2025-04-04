@@ -70,6 +70,8 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal allOptionsIncome = BigDecimal.ZERO;
         BigDecimal totalFee = BigDecimal.ZERO;
         BigDecimal unrealizedOptionsIncome = BigDecimal.ZERO;
+        BigDecimal allHoldStockProfit = BigDecimal.ZERO;
+        BigDecimal allIncome = BigDecimal.ZERO;
 
         List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategyForSummary(owner);
         List<StrategySummary> strategySummaries = new CopyOnWriteArrayList<>();
@@ -95,6 +97,9 @@ public class SummaryServiceImpl implements SummaryService {
                     .filter(OwnerOrder::isOptionsOrder)
                     .filter(order -> OrderStatus.of(order.getStatus()).isValid())
                     .forEach(unrealizedOrders::add);
+
+            allHoldStockProfit = allHoldStockProfit.add(strategySummary.getHoldStockProfit());
+            allIncome = allIncome.add(strategySummary.getAllIncome());
         }
 
         ownerSummary.setAllOptionsIncome(allOptionsIncome);
@@ -102,6 +107,8 @@ public class SummaryServiceImpl implements SummaryService {
         ownerSummary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
         ownerSummary.setStrategySummaries(strategySummaries);
         ownerSummary.setUnrealizedOrders(unrealizedOrders);
+        ownerSummary.setAllHoldStockProfit(allHoldStockProfit);
+        ownerSummary.setAllIncome(allIncome);
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM");
         Map<String, List<OwnerOrder>> monthOrder = strategySummaries.stream()
@@ -301,6 +308,10 @@ public class SummaryServiceImpl implements SummaryService {
                 : totalStockCost.divide(new BigDecimal(holdStockNum), 4, RoundingMode.HALF_UP);
         summary.setAverageStockCost(averageStockCost);
 
+        // 持股盈亏
+        BigDecimal holdStockProfit = lastDone.subtract(averageStockCost).multiply(new BigDecimal(holdStockNum));
+        summary.setHoldStockProfit(holdStockProfit);
+
         // 期权总金额
         List<OwnerOrder> allOptionsOrders = ownerOrders.stream()
                 .filter(order -> OrderStatus.of(order.getStatus()).isTraded())
@@ -314,6 +325,9 @@ public class SummaryServiceImpl implements SummaryService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         // 期权利润
         summary.setAllOptionsIncome(allOptionsIncome.subtract(totalFee));
+
+        // 总收入
+        summary.setAllIncome(allOptionsIncome.add(holdStockProfit));
 
         // 所有未平仓的期权利润
         BigDecimal unrealizedOptionsIncome = allOptionsOrders.stream()

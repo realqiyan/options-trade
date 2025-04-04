@@ -14,9 +14,19 @@ import java.util.TreeMap;
 @Data
 public class OwnerSummary {
     /**
+     * 总收入
+     */
+    private BigDecimal allIncome;
+
+    /**
      * 期权总收益
      */
     private BigDecimal allOptionsIncome;
+
+    /**
+     * 股票盈亏
+     */
+    private BigDecimal allHoldStockProfit;
 
     /**
      * 总手续费

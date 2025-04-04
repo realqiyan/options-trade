@@ -192,7 +192,10 @@ public class TradeManager {
             OwnerOrder platformOrder = plateformOrderMap.get(platformOrderId);
             if (null != platformOrder) {
                 dbOrder.setQuantity(platformOrder.getQuantity());
-                dbOrder.setStatus(platformOrder.getStatus());
+                // 提前指派后不再更新订单状态
+                if (!OrderStatus.EARLY_ASSIGNED.equals(OrderStatus.of(platformOrder.getStatus()))) {
+                    dbOrder.setStatus(platformOrder.getStatus());
+                }
                 dbOrder.setTradeTime(platformOrder.getTradeTime());
                 dbOrder.setStrikeTime(platformOrder.getStrikeTime());
                 dbOrder.setPlatformOrderIdEx(platformOrder.getPlatformOrderIdEx());
