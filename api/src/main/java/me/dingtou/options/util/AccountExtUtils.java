@@ -21,9 +21,9 @@ public class AccountExtUtils {
         if (account == null) {
             return null;
         }
-        return account.getExtValue(AccountExt.LONGPORT_APP_KEY);
+        return account.getExtValue(AccountExt.LONGPORT_APP_KEY, null);
     }
-    
+
     /**
      * 获取长桥平台App Secret
      *
@@ -34,9 +34,9 @@ public class AccountExtUtils {
         if (account == null) {
             return null;
         }
-        return account.getExtValue(AccountExt.LONGPORT_APP_SECRET);
+        return account.getExtValue(AccountExt.LONGPORT_APP_SECRET, null);
     }
-    
+
     /**
      * 获取长桥平台Access Token
      *
@@ -47,7 +47,7 @@ public class AccountExtUtils {
         if (account == null) {
             return null;
         }
-        return account.getExtValue(AccountExt.LONGPORT_ACCESS_TOKEN);
+        return account.getExtValue(AccountExt.LONGPORT_ACCESS_TOKEN, null);
     }
     
     /**
@@ -60,8 +60,7 @@ public class AccountExtUtils {
         if (account == null) {
             return "https://dashscope.aliyuncs.com/compatible-mode/v1";
         }
-        String baseUrl = account.getExtValue(AccountExt.AI_BASE_URL);
-        return baseUrl != null ? baseUrl : "https://dashscope.aliyuncs.com/compatible-mode/v1";
+        return account.getExtValue(AccountExt.AI_BASE_URL,"https://dashscope.aliyuncs.com/compatible-mode/v1");
     }
     
     /**
@@ -74,8 +73,7 @@ public class AccountExtUtils {
         if (account == null) {
             return "deepseek-r1";
         }
-        String model = account.getExtValue(AccountExt.AI_API_MODEL);
-        return model != null ? model : "deepseek-r1";
+        return account.getExtValue(AccountExt.AI_API_MODEL, "deepseek-r1");
     }
     
     /**
@@ -88,7 +86,7 @@ public class AccountExtUtils {
         if (account == null) {
             return null;
         }
-        return account.getExtValue(AccountExt.AI_API_KEY);
+        return account.getExtValue(AccountExt.AI_API_KEY, null);
     }
     
     /**
@@ -101,8 +99,7 @@ public class AccountExtUtils {
         if (account == null) {
             return "1.0";
         }
-        String temperature = account.getExtValue(AccountExt.AI_API_TEMPERATURE);
-        return temperature != null ? temperature : "1.0";
+        return account.getExtValue(AccountExt.AI_API_TEMPERATURE, "1.0");
     }
     
     /**
@@ -115,8 +112,7 @@ public class AccountExtUtils {
         if (account == null) {
             return "你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。";
         }
-        String systemPrompt = account.getExtValue(AccountExt.AI_SYSTEM_PROMPT);
-        return systemPrompt != null ? systemPrompt : "你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。";
+        return account.getExtValue(AccountExt.AI_SYSTEM_PROMPT, "你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。");
     }
     
     /**
@@ -129,10 +125,7 @@ public class AccountExtUtils {
         if (account == null) {
             return CandlestickPeriod.WEEK;
         }
-        String period = account.getExtValue(AccountExt.KLINE_PERIOD);
-        if (period == null || period.isEmpty()) {
-            return CandlestickPeriod.WEEK;
-        }
+        String period = account.getExtValue(AccountExt.KLINE_PERIOD, CandlestickPeriod.WEEK.name());
         try {
             return CandlestickPeriod.valueOf(period);
         } catch (IllegalArgumentException e) {

@@ -32,6 +32,7 @@ import me.dingtou.options.model.OwnerSummary;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
 import me.dingtou.options.model.StockIndicator;
+import me.dingtou.options.model.StrategyExt;
 import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.service.SummaryService;
 import me.dingtou.options.strategy.OrderTradeStrategy;
@@ -143,18 +144,29 @@ public class SummaryServiceImpl implements SummaryService {
 
         // 获取账户信息
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        String accountSizeConf = account.getExtValue(AccountExt.ACCOUNT_SIZE);
-        String marginRatioConf = account.getExtValue(AccountExt.MARGIN_RATIO);
-        String positionRatioConf = account.getExtValue(AccountExt.POSITION_RATIO);
+        String accountSizeConf = account.getExtValue(AccountExt.ACCOUNT_SIZE, null);
+        String marginRatioConf = account.getExtValue(AccountExt.MARGIN_RATIO, null);
+        String positionRatioConf = account.getExtValue(AccountExt.POSITION_RATIO, "0.1");
 
         if (StringUtils.isNotBlank(accountSizeConf) && StringUtils.isNotBlank(marginRatioConf)) {
             BigDecimal accountSize = new BigDecimal(accountSizeConf);
             BigDecimal marginRatio = new BigDecimal(marginRatioConf);
-            BigDecimal positionRatio = StringUtils.isNotBlank(positionRatioConf) ? new BigDecimal(positionRatioConf)
-                    : new BigDecimal("0.1");
-            ownerSummary.setAccountSize(accountSize);
+            BigDecimal positionRatio = new BigDecimal(positionRatioConf);
+
             ownerSummary.setMarginRatio(marginRatio);
             ownerSummary.setPositionRatio(positionRatio);
+
+            // 根据初始股票数和平均股价计算accountSize
+            BigDecimal initStockAccountSize = BigDecimal.ZERO;
+            for (StrategySummary strategySummary : strategySummaries) {
+                OwnerStrategy strategy = strategySummary.getStrategy();
+                int initialStockNum = Integer.parseInt(strategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
+                BigDecimal averageStockCost = strategySummary.getAverageStockCost();
+                BigDecimal totalStockCost = averageStockCost.multiply(new BigDecimal(initialStockNum));
+                initStockAccountSize = initStockAccountSize.add(totalStockCost);
+            }
+            accountSize = accountSize.add(initStockAccountSize);
+            ownerSummary.setAccountSize(accountSize);
 
             // 计算PUT订单保证金占用和持有股票总成本
             BigDecimal putMarginOccupied = BigDecimal.ZERO;
@@ -164,10 +176,14 @@ public class SummaryServiceImpl implements SummaryService {
                 totalStockCost = totalStockCost.add(strategySummary.getTotalStockCost());
             }
             ownerSummary.setPutMarginOccupied(putMarginOccupied);
-            ownerSummary.setTotalStockCost(totalStockCost);
+            // 计算持有股票总成本(初始股票扣除)
+            ownerSummary.setTotalStockCost(totalStockCost.add(initStockAccountSize));
 
             // 计算可用资金
-            ownerSummary.setAvailableFunds(accountSize.subtract(putMarginOccupied).subtract(totalStockCost));
+            BigDecimal availableFunds = accountSize.subtract(putMarginOccupied)
+                    .subtract(totalStockCost)
+                    .subtract(initStockAccountSize);
+            ownerSummary.setAvailableFunds(availableFunds);
             ownerSummary.setTotalInvestment(putMarginOccupied.add(totalStockCost));
 
             // 计算未平仓订单的头寸占比
@@ -300,13 +316,19 @@ public class SummaryServiceImpl implements SummaryService {
             }
 
         }
-        // 股票持有数量
-        summary.setHoldStockNum(holdStockNum);
+
         // 股票成本
         summary.setTotalStockCost(totalStockCost);
-        BigDecimal averageStockCost = holdStockNum == 0 ? BigDecimal.ZERO
+        BigDecimal averageStockCost = holdStockNum == 0
+                ? BigDecimal.ZERO
                 : totalStockCost.divide(new BigDecimal(holdStockNum), 4, RoundingMode.HALF_UP);
         summary.setAverageStockCost(averageStockCost);
+
+        // 初始股票数
+        Integer initialStockNum = Integer.parseInt(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
+        // 股票持有数量
+        holdStockNum = initialStockNum + holdStockNum;
+        summary.setHoldStockNum(holdStockNum);
 
         // 持股盈亏
         BigDecimal holdStockProfit = lastDone.subtract(averageStockCost).multiply(new BigDecimal(holdStockNum));
@@ -340,7 +362,7 @@ public class SummaryServiceImpl implements SummaryService {
         summary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
 
         // 计算PUT订单保证金占用
-        String marginRatioConfig = account.getExtValue(AccountExt.MARGIN_RATIO);
+        String marginRatioConfig = account.getExtValue(AccountExt.MARGIN_RATIO, null);
 
         if (null != marginRatioConfig) {
             BigDecimal marginRatio = new BigDecimal(marginRatioConfig);

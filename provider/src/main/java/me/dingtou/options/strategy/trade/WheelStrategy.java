@@ -54,7 +54,7 @@ public class WheelStrategy extends BaseTradeStrategy {
         BigDecimal sellPutAcceptableStrikePrice = null;
         if (isSellPutStage && summary.getStrategy() != null) {
             String sellPutStrikePriceStr = summary.getStrategy()
-                    .getExtValue(StrategyExt.WHEEL_SELLPUT_STRIKE_PRICE);
+                    .getExtValue(StrategyExt.WHEEL_SELLPUT_STRIKE_PRICE, null);
             if (StringUtils.isNotBlank(sellPutStrikePriceStr)) {
                 try {
                     sellPutAcceptableStrikePrice = new BigDecimal(sellPutStrikePriceStr);

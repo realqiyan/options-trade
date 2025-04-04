@@ -61,20 +61,21 @@ public class OwnerStrategy {
      */
     @TableField(typeHandler = JacksonTypeHandler.class)
     private Map<String, String> ext;
-    
+
     /**
      * 获取扩展字段值
      *
-     * @param extKey 扩展字段枚举
+     * @param extKey       扩展字段枚举
+     * @param defaultValue 默认值
      * @return 扩展字段值
      */
-    public String getExtValue(StrategyExt extKey) {
+    public String getExtValue(StrategyExt extKey, String defaultValue) {
         if (ext == null) {
-            return null;
+            return defaultValue;
         }
-        return ext.get(extKey.getKey());
+        return ext.getOrDefault(extKey.getKey(), defaultValue);
     }
-    
+
     /**
      * 设置扩展字段值
      *
