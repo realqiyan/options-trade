@@ -90,6 +90,9 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     field: 'ext', title: '扩展配置', width: 200, templet: function(d) {
                         var extStr = '';
                         if (d.ext && typeof d.ext === 'object') {
+                            if (d.ext.initial_stock_num) {
+                                extStr += '初始股票数: ' + d.ext.initial_stock_num + '<br>';
+                            }
                             if (d.ext.wheel_sellput_strike_price) {
                                 extStr += 'Sell Put行权价: ' + d.ext.wheel_sellput_strike_price;
                             }
@@ -300,6 +303,11 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                                     $('input[name="sellPutStrikePrice"]').val(data.ext.wheel_sellput_strike_price);
                                 }
                                 
+                                // 处理ext字段中的initial_stock_num
+                                if (data.ext && typeof data.ext === 'object' && data.ext.initial_stock_num) {
+                                    $('input[name="initialStockNum"]').val(data.ext.initial_stock_num);
+                                }
+                                
                                 // 根据策略代码显示或隐藏特定配置
                                 toggleStrategyConfig(data.strategyCode);
                                 
@@ -331,7 +339,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                             // 获取当前表单数据
                             var formData = form.val('strategyForm');
                             
-                            // 如果有ext数据，尝试从中提取wheel_sellput_strike_price
+                            // 如果有ext数据，尝试从中提取wheel_sellput_strike_price和initial_stock_num
                             if (formData.ext) {
                                 var extData;
                                 if (typeof formData.ext === 'string') {
@@ -347,6 +355,10 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                                 
                                 if (extData.wheel_sellput_strike_price) {
                                     $('input[name="sellPutStrikePrice"]').val(extData.wheel_sellput_strike_price);
+                                }
+                                
+                                if (extData.initial_stock_num) {
+                                    $('input[name="initialStockNum"]').val(extData.initial_stock_num);
                                 }
                             }
                         } else {
@@ -374,8 +386,14 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                             data.field.ext.wheel_sellput_strike_price = data.field.sellPutStrikePrice;
                         }
                         
+                        // 处理通用配置 - 初始股票数
+                        if (data.field.initialStockNum) {
+                            data.field.ext.initial_stock_num = data.field.initialStockNum;
+                        }
+                        
                         // 删除临时字段
                         delete data.field.sellPutStrikePrice;
+                        delete data.field.initialStockNum;
                         
                         console.log('提交的数据:', JSON.stringify(data.field));
                         
@@ -551,8 +569,14 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         data.field.ext.wheel_sellput_strike_price = data.field.sellPutStrikePrice;
                     }
                     
+                    // 处理通用配置 - 初始股票数
+                    if (data.field.initialStockNum) {
+                        data.field.ext.initial_stock_num = data.field.initialStockNum;
+                    }
+                    
                     // 删除临时字段
                     delete data.field.sellPutStrikePrice;
+                    delete data.field.initialStockNum;
                     
                     console.log('提交的数据:', JSON.stringify(data.field));
                     

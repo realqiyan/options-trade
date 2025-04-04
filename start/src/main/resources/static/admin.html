@@ -231,6 +231,13 @@
                     <input type="number" name="lotSize" required lay-verify="required" placeholder="请输入每份合约股票数" autocomplete="off" class="layui-input" value="100">
                 </div>
             </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">初始股票数</label>
+                <div class="layui-input-block">
+                    <input type="number" name="initialStockNum" placeholder="请输入策略初始股票数量" autocomplete="off" class="layui-input" value="0">
+                    <div class="layui-form-mid layui-word-aux">如果已持有股票，请输入持有数量，默认为0</div>
+                </div>
+            </div>
             <div class="layui-form-item" id="wheelStrategyConfig" style="display: none;">
                 <label class="layui-form-label">Sell Put行权价</label>
                 <div class="layui-input-block">

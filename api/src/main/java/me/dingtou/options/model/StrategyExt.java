@@ -7,6 +7,9 @@ package me.dingtou.options.model;
  * @author qiyan
  */
 public enum StrategyExt {
+    // 通用配置
+    INITIAL_STOCK_NUM("initial_stock_num", "策略初始股票数"),
+    
     // 车轮策略配置
     WHEEL_SELLPUT_STRIKE_PRICE("wheel_sellput_strike_price", "车轮策略Sell Put可接受的行权价");
     
