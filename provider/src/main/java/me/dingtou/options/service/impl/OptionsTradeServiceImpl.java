@@ -17,10 +17,14 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 public class OptionsTradeServiceImpl implements OptionsTradeService {
+
+    private final Map<String, Object> syncOrderLock = new ConcurrentHashMap<>();
 
     @Autowired
     private TradeManager tradeManager;
@@ -77,8 +81,12 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
 
     @Override
     public Boolean sync(String owner) {
-        Owner ownerObj = ownerManager.queryOwner(owner);
-        return tradeManager.syncOrder(ownerObj);
+        // 同步订单时，需要加锁，防止多个线程同时同步订单，导致订单数据不一致
+        Object lock = syncOrderLock.putIfAbsent(owner, new Object());
+        synchronized (lock) {
+            Owner ownerObj = ownerManager.queryOwner(owner);
+            return tradeManager.syncOrder(ownerObj);
+        }
     }
 
     @Override
