@@ -23,6 +23,7 @@ public enum OrderStatus {
     DISABLED(22, false, false), //已失效
     DELETED(23, false, false), //已删除，无成交的订单才能删除
     FILL_CANCELLED(24, false, false), //成交被撤销
+    EARLY_ASSIGNED(25, false, true), //提前指派
     ;
 
     /**

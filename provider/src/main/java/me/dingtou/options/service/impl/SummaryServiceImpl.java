@@ -93,6 +93,7 @@ public class SummaryServiceImpl implements SummaryService {
             strategySummary.getStrategyOrders().stream()
                     .filter(OwnerOrder::isOpen)
                     .filter(OwnerOrder::isOptionsOrder)
+                    .filter(order -> OrderStatus.of(order.getStatus()).isValid())
                     .forEach(unrealizedOrders::add);
         }
 
@@ -317,6 +318,8 @@ public class SummaryServiceImpl implements SummaryService {
         // 所有未平仓的期权利润
         BigDecimal unrealizedOptionsIncome = allOptionsOrders.stream()
                 .filter(OwnerOrder::isOpen)
+                .filter(OwnerOrder::isOptionsOrder)
+                .filter(order -> OrderStatus.of(order.getStatus()).isValid())
                 .map(OwnerOrder::income)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         // 期权利润

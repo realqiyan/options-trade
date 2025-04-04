@@ -2,6 +2,7 @@ package me.dingtou.options.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderAction;
+import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.job.JobClient;
 import me.dingtou.options.job.JobContext;
@@ -100,6 +101,15 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
             return 0;
         }
         return tradeManager.updateOrderStrategy(ownerAccount, orderIds, ownerStrategy);
+    }
+
+    @Override
+    public boolean updateOrderStatus(String owner, Long orderId, OrderStatus status) {
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+        if (null == account) {
+            return false;
+        }
+        return tradeManager.updateOrderStatus(account, orderId, status);
     }
 
 }

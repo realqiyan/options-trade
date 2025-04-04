@@ -218,6 +218,7 @@ function renderTable(orderList){
       var inst = table.render({
         elem: '#result',
         cols: [[
+          {field: 'order', title: '操作', width: 260, templet: '#TPL-orderOp'},
           {field: 'curDTE', title: '关注', width: 50, align: 'center', templet: '#TPL-colorStatus'},
           //{field: 'strategyId', title: '策略ID', width: 280, sort: true},
           //{field: 'underlyingCode', title: '股票', width: 80},
@@ -230,7 +231,6 @@ function renderTable(orderList){
           {field: 'strikeTime', title: '行权时间', width: 120, sort: true},
           {field: 'tradeTime', title: '交易时间', width: 165, sort: true},
           {field: 'statusStr', title: '状态', width: 100},
-          {field: 'order', title: '操作', width: 150, templet: '#TPL-orderOp'},
           {field: 'platformOrderId', title: '订单号', width: 180},
           {field: 'platformOrderIdEx', title: '订单号Ex', width: 200},
           {field: 'platformFillId', title: '成交单', width: 180},
@@ -277,6 +277,10 @@ function renderTable(orderList){
             } else {
                 layer.msg('没有可分析的数据');
             }
+        } else if (event === 'updateStatus') {
+            updateOrderStatus(data.id);
+        } else if (event === 'updateStrategy') {
+            updateOrderStrategy(data.id);
         }
       });
     });
@@ -325,6 +329,121 @@ function reloadData(){
         render();
         loadStrategyOrder(currentStrategyId);
       }
+    });
+}
+
+function updateOrderStatus(orderId) {
+    var statusOptions = [
+        {value: 1, title: '待提交'},
+        {value: 2, title: '提交中'},
+        {value: 5, title: '已提交'},
+        {value: 10, title: '部分成交'},
+        {value: 11, title: '全部成交'},
+        {value: 14, title: '部分撤单'},
+        {value: 15, title: '已撤单'},
+        {value: 21, title: '下单失败'},
+        {value: 22, title: '已失效'},
+        {value: 23, title: '已删除'},
+        {value: 24, title: '成交撤销'},
+        {value: 25, title: '提前指派'}
+    ];
+    
+    layer.open({
+        type: 1,
+        title: '修改订单状态',
+        area: ['400px', '300px'],
+        content: `
+            <div class="layui-form" style="padding: 20px;">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">选择状态</label>
+                    <div class="layui-input-block">
+                        <select name="status" lay-verify="required">
+                            ${statusOptions.map(opt => `<option value="${opt.value}">${opt.title}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `,
+        btn: ['确认', '取消'],
+        success: function(layero, index) {
+            layui.form.render('select');
+        },
+        yes: function(index, layero) {
+            var status = layero.find('select[name="status"]').val();
+            $.ajax({
+                url: "/trade/updateStatus",
+                method: 'POST',
+                data: {
+                    password: $("#totp").val(),
+                    orderId: orderId,
+                    status: status
+                },
+                success: function(response) {
+                    layer.msg(response.success ? '修改成功' : response.message);
+                    loadStrategyOrder(currentStrategyId);
+                    layer.close(index);
+                }
+            });
+        }
+    });
+}
+
+function updateOrderStrategy(orderId) {
+    $.ajax({
+        url: "/owner/get",
+        method: 'GET',
+        success: function(response) {
+            if (!response.success) {
+                layer.msg(response.message);
+                return;
+            }
+            
+            var strategies = response.data.strategyList;
+            layer.open({
+                type: 1,
+                title: '修改订单策略',
+                area: ['400px', '300px'],
+                content: `
+                    <div class="layui-form" style="padding: 20px;">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">选择策略</label>
+                            <div class="layui-input-block">
+                                <select name="strategyId" lay-verify="required">
+                                    <option value="">请选择策略</option>
+                                    ${strategies.map(strategy => `<option value="${strategy.strategyId}">${strategy.strategyName}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                btn: ['确认', '取消'],
+                success: function(layero, index) {
+                    layui.form.render('select');
+                },
+                yes: function(index, layero) {
+                    var strategyId = layero.find('select[name="strategyId"]').val();
+                    if (!strategyId) {
+                        layer.msg('请选择策略');
+                        return;
+                    }
+                    
+                    $.ajax({
+                        url: "/trade/updateStrategy",
+                        method: 'POST',
+                        data: {
+                            password: $("#totp").val(),
+                            orderId: orderId,
+                            strategyId: strategyId
+                        },
+                        success: function(response) {
+                            layer.msg(response.success ? '修改成功' : response.message);
+                            loadStrategyOrder(currentStrategyId);
+                            layer.close(index);
+                        }
+                    });
+                }
+            });
+        }
     });
 }
 

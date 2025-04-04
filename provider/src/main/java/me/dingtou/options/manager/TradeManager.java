@@ -357,4 +357,23 @@ public class TradeManager {
         }
         return num;
     }
+
+    /**
+     * 修改订单状态
+     *
+     * @param account 账户
+     * @param orderId 订单ID
+     * @param status  新状态
+     * @return 是否成功
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateOrderStatus(OwnerAccount account, Long orderId, OrderStatus status) {
+        OwnerOrder dbOrder = ownerOrderDAO.queryOwnerOrderById(account.getOwner(), orderId);
+        if (null == dbOrder || !account.getOwner().equals(dbOrder.getOwner())) {
+            return false;
+        }
+        dbOrder.setStatus(status.getCode());
+        dbOrder.setUpdateTime(new Date());
+        return ownerOrderDAO.updateById(dbOrder) > 0;
+    }
 }

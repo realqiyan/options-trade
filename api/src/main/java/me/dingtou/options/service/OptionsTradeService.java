@@ -1,6 +1,7 @@
 package me.dingtou.options.service;
 
 import me.dingtou.options.constant.OrderAction;
+import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OwnerOrder;
@@ -68,4 +69,14 @@ public interface OptionsTradeService {
      * @return 更新数量
      */
     Integer updateOrderStrategy(String owner, List<Long> orderIds, String strategyId);
+
+    /**
+     * 修改订单状态
+     *
+     * @param owner   账号
+     * @param orderId 订单ID
+     * @param status  新状态
+     * @return 是否成功
+     */
+    boolean updateOrderStatus(String owner, Long orderId, OrderStatus status);
 }

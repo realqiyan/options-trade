@@ -3,6 +3,7 @@ package me.dingtou.options.web;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderAction;
+import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.job.JobClient;
 import me.dingtou.options.job.JobContext;
@@ -271,6 +272,32 @@ public class WebApiController {
             return WebResult.success(0);
         }
         return WebResult.success(optionsTradeService.updateOrderStrategy(owner, orderIds, strategyId));
+    }
+
+    @RequestMapping(value = "/trade/updateStatus", method = RequestMethod.POST)
+    public WebResult<Boolean> updateOrderStatus(
+            @RequestParam(value = "orderId", required = true) Long orderId,
+            @RequestParam(value = "status", required = true) Integer status,
+            @RequestParam(value = "password", required = true) String password) throws Exception {
+        String owner = SessionUtils.getCurrentOwner();
+        log.info("trade updateStatus. owner:{}, orderId:{}, status:{}", owner, orderId, status);
+        if (!authService.auth(owner, password)) {
+            return WebResult.failure("验证码错误");
+        }
+        return WebResult.success(optionsTradeService.updateOrderStatus(owner, orderId, OrderStatus.of(status)));
+    }
+
+    @RequestMapping(value = "/trade/updateStrategy", method = RequestMethod.POST)
+    public WebResult<Boolean> updateOrderStrategy(
+            @RequestParam(value = "orderId", required = true) Long orderId,
+            @RequestParam(value = "strategyId", required = true) String strategyId,
+            @RequestParam(value = "password", required = true) String password) throws Exception {
+        String owner = SessionUtils.getCurrentOwner();
+        log.info("trade updateStrategy. owner:{}, orderId:{}, strategyId:{}", owner, orderId, strategyId);
+        if (!authService.auth(owner, password)) {
+            return WebResult.failure("验证码错误");
+        }
+        return WebResult.success(optionsTradeService.updateOrderStrategy(owner, Collections.singletonList(orderId), strategyId) > 0);
     }
 
 }
