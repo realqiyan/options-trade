@@ -76,13 +76,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<OwnerStrategy> listStrategies(String owner) {
-
-        LambdaUpdateWrapper<OwnerStrategy> queryWrapper = new LambdaUpdateWrapper<>();
-        queryWrapper.eq(OwnerStrategy::getOwner, owner);
-        queryWrapper.orderByDesc(OwnerStrategy::getStatus, OwnerStrategy::getId);
-        List<OwnerStrategy> strategies = ownerStrategyDAO.selectList(queryWrapper);
-
-        return strategies;
+        return ownerStrategyDAO.queryOwnerStrategies(owner);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package me.dingtou.options.manager;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeFrom;
@@ -310,14 +309,7 @@ public class TradeManager {
     }
 
     public OwnerStrategy queryStrategy(String ownerStrategyId) {
-        QueryWrapper<OwnerStrategy> querySecurity = new QueryWrapper<>();
-        querySecurity.eq("strategy_id", ownerStrategyId);
-        List<OwnerStrategy> ownerStrategyList = ownerStrategyDAO.selectList(querySecurity);
-        if (null == ownerStrategyList || ownerStrategyList.size() != 1) {
-            return null;
-        }
-        return ownerStrategyList.get(0);
-
+        return ownerStrategyDAO.queryStrategyByStrategyId(ownerStrategyId);
     }
 
     public BigDecimal queryTotalOrderFee(OwnerAccount account, List<OwnerOrder> ownerOrders) {

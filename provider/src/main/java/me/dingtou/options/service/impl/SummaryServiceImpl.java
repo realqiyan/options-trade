@@ -73,7 +73,7 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal allHoldStockProfit = BigDecimal.ZERO;
         BigDecimal allIncome = BigDecimal.ZERO;
 
-        List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategyForSummary(owner);
+        List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
         List<StrategySummary> strategySummaries = new CopyOnWriteArrayList<>();
         // 批量拉取策略数据
         ownerStrategies.parallelStream().forEach(ownerStrategy -> {

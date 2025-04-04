@@ -152,16 +152,6 @@ public class OwnerManager {
     }
 
     /**
-     * 查询owner策略用于统计
-     */
-    public List<OwnerStrategy> queryOwnerStrategyForSummary(String owner) {
-        QueryWrapper<OwnerStrategy> query = new QueryWrapper<>();
-        query.eq("owner", owner);
-        return ownerStrategyDAO.selectList(query);
-
-    }
-
-    /**
      * 查询owner订单
      *
      * @param owner   账号
