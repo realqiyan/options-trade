@@ -87,14 +87,14 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     }
                 },
                 {
-                    field: 'ext', title: '扩展配置', width: 200, templet: function(d) {
+                    field: 'ext', title: '扩展配置', width: 300, templet: function(d) {
                         var extStr = '';
                         if (d.ext && typeof d.ext === 'object') {
                             if (d.ext.initial_stock_num) {
-                                extStr += '初始股票数: ' + d.ext.initial_stock_num + '<br>';
+                                extStr += '初始股票数:' + d.ext.initial_stock_num+'; ';
                             }
                             if (d.ext.wheel_sellput_strike_price) {
-                                extStr += 'Sell Put行权价: ' + d.ext.wheel_sellput_strike_price;
+                                extStr += 'SellPut行权价:' + d.ext.wheel_sellput_strike_price+'; ';
                             }
                         }
                         return extStr;
