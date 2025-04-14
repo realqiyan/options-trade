@@ -38,7 +38,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
     /**
      * 期权链上下浮动的价格范围
      */
-    private static final BigDecimal PRICE_RANGE = BigDecimal.valueOf(0.20);
+    private static final BigDecimal PRICE_RANGE = BigDecimal.valueOf(0.30);
 
     @Override
     public List<OptionsStrikeDate> getOptionsExpDate(Security security) {
