@@ -209,11 +209,9 @@
             {{#  layui.each(d.strategySummaries, function(index, item){ }}
                 <div class="layui-colla-item">
                     <div class="layui-colla-title">
+                        <span class="layui-badge"><b style="color: gold;">Delta:{{ item.strategyDelta }}｜Gamma:{{ item.strategyGamma }}｜Theta:{{ item.strategyTheta }}</b></span>
                         <span style="font-weight: bold;">{{ item.strategy.strategyName }}</span>
                         <span class="layui-badge layui-bg-blue" style="margin-right: 10px;">${{ item.allOptionsIncome }}</span>
-
-                        <span style="font-weight: bold;">策略代码</span>
-                        <span class="layui-badge layui-bg-blue" style="margin-right: 10px;">{{ item.strategy.strategyCode }}</span>
 
                         <span style="font-weight: bold;">当前股价</span> 
                         <span class="layui-badge layui-bg-blue" style="margin-right: 10px;">${{ item.currentStockPrice }}</span>
@@ -232,7 +230,7 @@
                         <div class="layui-row layui-col-space15">
                             <div class="layui-col-md6">
                                 <div class="strategy-item">
-                                    <div><span style="font-weight: bold;">策略ID:</span> {{ item.strategy.strategyId }}</div>
+                                    <div><span style="font-weight: bold;">策略ID:</span> {{ item.strategy.strategyId }} <span style="color: #FF5722;">({{ item.strategy.strategyCode }})</span></div>
                                     <div><span style="font-weight: bold;">当前股价:</span> ${{ item.currentStockPrice }}</div>
                                     <div><span style="font-weight: bold;">期权已到账收入:</span> ${{ item.allOptionsIncome }} <span style="color: #FF5722;">(已扣除手续费${{ item.totalFee }})</span></div>
                                     <div><span style="font-weight: bold;">期权未到期收入:</span> ${{ item.unrealizedOptionsIncome }}</div>

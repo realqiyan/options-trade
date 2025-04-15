@@ -57,9 +57,10 @@
 
 </div>
 <script id="summary" type="text/html">
-    <h4 class="layui-bg-gray">{{ d.strategy.strategyName }} - ${{ d.allOptionsIncome }}（当前策略:{{ d.strategy.strategyCode }})</h4>
+    <h4 class="layui-bg-gray">{{ d.strategy.strategyName }}<b style="color: red;">（Delta:{{ d.strategyDelta }}｜Gamma:{{ d.strategyGamma }}｜Theta:{{ d.strategyTheta }}）</b></h4>
     <ul class="layui-font-12">
         <li><span class="layui-badge layui-bg-blue">策略ID:{{ d.strategy.strategyId }}</span></li>
+        <li><span class="layui-badge layui-bg-blue">策略类型:{{ d.strategy.strategyCode }}</span></li>
         <li><span class="layui-badge layui-bg-blue">期权已到账收入:${{ d.allOptionsIncome }} (已扣除手续费${{ d.totalFee }})</span></li>
         <li><span class="layui-badge layui-bg-blue">期权未到期收入:${{ d.unrealizedOptionsIncome }}</span></li>
         <li><span class="layui-badge layui-bg-blue">策略持有股票:{{ d.holdStockNum }}（当前股价:${{ d.currentStockPrice }}）</span></li>

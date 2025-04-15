@@ -19,6 +19,21 @@ public class StrategySummary {
     private OwnerStrategy strategy;
 
     /**
+     * 策略总体Delta
+     */
+    private BigDecimal strategyDelta;
+
+    /**
+     * 策略总体Gamma
+     */
+    private BigDecimal strategyGamma;
+
+    /**
+     * 策略总体Theta
+     */
+    private BigDecimal strategyTheta;
+
+    /**
      * 总手续费
      */
     private BigDecimal totalFee;

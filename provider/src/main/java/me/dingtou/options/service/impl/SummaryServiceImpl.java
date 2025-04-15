@@ -351,15 +351,59 @@ public class SummaryServiceImpl implements SummaryService {
         // 总收入
         summary.setAllIncome(allOptionsIncome.add(holdStockProfit));
 
-        // 所有未平仓的期权利润
-        BigDecimal unrealizedOptionsIncome = allOptionsOrders.stream()
+        // 所有未平仓的期权
+        List<OwnerOrder> allOpenOptionsOrder = allOptionsOrders.stream()
                 .filter(OwnerOrder::isOpen)
                 .filter(OwnerOrder::isOptionsOrder)
                 .filter(order -> OrderStatus.of(order.getStatus()).isValid())
+                .toList();
+
+        // 未平仓的期权利润
+        BigDecimal unrealizedOptionsIncome = allOpenOptionsOrder.stream()
                 .map(OwnerOrder::income)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         // 期权利润
         summary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
+
+        // 获取期权Delta
+        List<Security> allOpenOptionsSecurity = allOpenOptionsOrder.stream()
+                .map(order -> Security.of(order.getCode(), order.getMarket()))
+                .toList();
+        List<OptionsRealtimeData> allOpenOptionsRealtimeData = optionsManager
+                .queryOptionsRealtimeData(allOpenOptionsSecurity);
+        // 计算Delta
+        Map<Security, OptionsRealtimeData> securityDeltaMap = new HashMap<>();
+        for (OptionsRealtimeData realtimeData : allOpenOptionsRealtimeData) {
+            securityDeltaMap.put(realtimeData.getSecurity(), realtimeData);
+        }
+        // 计算未平仓期权的Delta
+        BigDecimal optionsDelta = BigDecimal.ZERO;
+        BigDecimal optionsGamma = BigDecimal.ZERO;
+        BigDecimal optionsTheta = BigDecimal.ZERO;
+        for (OwnerOrder order : allOpenOptionsOrder) {
+            OptionsRealtimeData realtimeData = securityDeltaMap.get(Security.of(order.getCode(), order.getMarket()));
+            if (null == realtimeData) {
+                continue;
+            }
+            BigDecimal quantity = new BigDecimal(order.getQuantity());
+            // 卖出为负 买入为正
+            BigDecimal side = new BigDecimal(TradeSide.of(order.getSide()).getSign() * -1);
+            BigDecimal delta = realtimeData.getDelta().multiply(side).multiply(quantity);
+            BigDecimal gamma = realtimeData.getGamma().multiply(side).multiply(quantity);
+            BigDecimal theta = realtimeData.getTheta().multiply(side).multiply(quantity);
+            
+            optionsDelta = optionsDelta.add(delta);
+            optionsGamma = optionsGamma.add(gamma);
+            optionsTheta = optionsTheta.add(theta);
+        }
+        // 股票Delta
+        BigDecimal stockDelta = BigDecimal.valueOf(holdStockNum).divide(lotSize, 4, RoundingMode.HALF_UP);
+        // 策略Delta
+        summary.setStrategyDelta(stockDelta.add(optionsDelta));
+        // 策略Gamma(未平仓期权Gamma)
+        summary.setStrategyGamma(optionsGamma);
+        // 策略Theta(未平仓期权Theta)
+        summary.setStrategyTheta(optionsTheta);
 
         // 计算PUT订单保证金占用
         String marginRatioConfig = account.getExtValue(AccountExt.MARGIN_RATIO, null);

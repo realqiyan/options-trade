@@ -84,6 +84,9 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
     public Boolean sync(String owner) {
         // 同步订单时，需要加锁，防止多个线程同时同步订单，导致订单数据不一致
         Object lock = syncOrderLock.putIfAbsent(owner, new Object());
+        if (null == lock) {
+            lock = syncOrderLock.get(owner);
+        }
         synchronized (lock) {
             Owner ownerObj = ownerManager.queryOwner(owner);
             return tradeManager.syncOrder(ownerObj);
