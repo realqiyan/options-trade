@@ -34,11 +34,11 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
     /**
      * 期权链的长度
      */
-    private static final int STRIKE_DATE_SIZE = 8;
+    private static final int STRIKE_DATE_SIZE = 10;
     /**
      * 期权链上下浮动的价格范围
      */
-    private static final BigDecimal PRICE_RANGE = BigDecimal.valueOf(0.30);
+    private static final BigDecimal PRICE_RANGE = BigDecimal.valueOf(0.25);
 
     @Override
     public List<OptionsStrikeDate> getOptionsExpDate(Security security) {
