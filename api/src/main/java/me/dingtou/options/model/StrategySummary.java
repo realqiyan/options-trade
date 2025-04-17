@@ -38,15 +38,15 @@ public class StrategySummary {
      */
     private BigDecimal totalFee;
 
-    /**
-     * 总收入（期权收入+股票盈亏）
-     */
-    private BigDecimal allIncome;
-
-    /**
-     * 期权总收益
+        /**
+     * 期权总收益(已经扣除手续费)
      */
     private BigDecimal allOptionsIncome;
+
+    /**
+     * 总收入（期权总收益+股票盈亏）
+     */
+    private BigDecimal allIncome;
 
     /**
      * 未实现期权收益

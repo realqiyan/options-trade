@@ -292,7 +292,7 @@ public class SummaryServiceImpl implements SummaryService {
         summary.setCurrentStockPrice(lastDone);
 
         // 股票订单
-        int holdStockNum = 0;
+        int orderHoldStockNum = 0;
         BigDecimal totalStockCost = BigDecimal.ZERO;
         List<OwnerOrder> securityOrders = ownerOrders.stream()
                 .filter(OwnerOrder::isStockOrder)
@@ -303,12 +303,12 @@ public class SummaryServiceImpl implements SummaryService {
             switch (tradeSide) {
                 case BUY:
                 case BUY_BACK:
-                    holdStockNum += securityOrder.getQuantity();
+                    orderHoldStockNum += securityOrder.getQuantity();
                     totalStockCost = totalStockCost.add(totalPrice);
                     break;
                 case SELL:
                 case SELL_SHORT:
-                    holdStockNum -= securityOrder.getQuantity();
+                    orderHoldStockNum -= securityOrder.getQuantity();
                     totalStockCost = totalStockCost.subtract(totalPrice);
                     break;
                 default:
@@ -319,19 +319,25 @@ public class SummaryServiceImpl implements SummaryService {
 
         // 股票成本
         summary.setTotalStockCost(totalStockCost);
-        BigDecimal averageStockCost = holdStockNum == 0
-                ? lastDone
-                : totalStockCost.divide(new BigDecimal(holdStockNum), 4, RoundingMode.HALF_UP);
+        BigDecimal averageStockCost = orderHoldStockNum == 0
+                ? BigDecimal.ZERO
+                : totalStockCost.divide(new BigDecimal(orderHoldStockNum), 4, RoundingMode.HALF_UP);
         summary.setAverageStockCost(averageStockCost);
 
         // 初始股票数
-        Integer initialStockNum = Integer.parseInt(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
-        // 股票持有数量
-        holdStockNum = initialStockNum + holdStockNum;
+        int initialStockNum = Integer.parseInt(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
+        // 总股票持有数量
+        int holdStockNum = initialStockNum + orderHoldStockNum;
         summary.setHoldStockNum(holdStockNum);
 
-        // 持股盈亏
-        BigDecimal holdStockProfit = lastDone.subtract(averageStockCost).multiply(new BigDecimal(holdStockNum));
+        int holdStockNumForProfit = holdStockNum - initialStockNum;
+        // 当初始股票被卖后 holdStockNum 会小于 initialStockNum 所以当holdStockNumForProfit
+        // 小于0时，不计算持股收益
+        if (holdStockNumForProfit < 0) {
+            holdStockNumForProfit = 0;
+        }
+        BigDecimal holdStockProfit = lastDone.subtract(averageStockCost)
+                .multiply(new BigDecimal(holdStockNumForProfit));
         summary.setHoldStockProfit(holdStockProfit);
 
         // 期权总金额
@@ -345,8 +351,9 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal allOptionsIncome = allOptionsOrders.stream()
                 .map(OwnerOrder::income)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        allOptionsIncome = allOptionsIncome.subtract(totalFee);
         // 期权利润
-        summary.setAllOptionsIncome(allOptionsIncome.subtract(totalFee));
+        summary.setAllOptionsIncome(allOptionsIncome);
 
         // 总收入
         summary.setAllIncome(allOptionsIncome.add(holdStockProfit));
@@ -391,7 +398,7 @@ public class SummaryServiceImpl implements SummaryService {
             BigDecimal delta = realtimeData.getDelta().multiply(side).multiply(quantity);
             BigDecimal gamma = realtimeData.getGamma().multiply(side).multiply(quantity);
             BigDecimal theta = realtimeData.getTheta().multiply(side).multiply(quantity);
-            
+
             optionsDelta = optionsDelta.add(delta);
             optionsGamma = optionsGamma.add(gamma);
             optionsTheta = optionsTheta.add(theta);
