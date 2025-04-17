@@ -320,7 +320,7 @@ public class SummaryServiceImpl implements SummaryService {
         // 股票成本
         summary.setTotalStockCost(totalStockCost);
         BigDecimal averageStockCost = holdStockNum == 0
-                ? BigDecimal.ZERO
+                ? lastDone
                 : totalStockCost.divide(new BigDecimal(holdStockNum), 4, RoundingMode.HALF_UP);
         summary.setAverageStockCost(averageStockCost);
 
