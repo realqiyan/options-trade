@@ -51,6 +51,13 @@ public class SellStrategy extends BaseTradeStrategy {
                 .append("距离到期日").append(optionsChain.dte()).append("天的期权");
         if (null != summary) {
             prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
+            if (null != summary.getHoldStockNum()) {
+                prompt.append("，当前持有股票数量：").append(summary.getHoldStockNum());
+                // 展示持有股票成本价
+                if (summary.getHoldStockCost() != null && summary.getHoldStockCost().compareTo(BigDecimal.ZERO) > 0) {
+                    prompt.append("，持有股票成本价：").append(summary.getHoldStockCost());
+                }
+            }
         }
         prompt.append("当前股票价格是").append(securityPrice)
                 .append(null != vixIndicator && null != vixIndicator.getCurrentVix()

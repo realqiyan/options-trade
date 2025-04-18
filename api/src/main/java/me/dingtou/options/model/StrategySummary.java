@@ -38,7 +38,7 @@ public class StrategySummary {
      */
     private BigDecimal totalFee;
 
-        /**
+    /**
      * 期权总收益(已经扣除手续费)
      */
     private BigDecimal allOptionsIncome;
@@ -57,6 +57,11 @@ public class StrategySummary {
      * 持有股票数
      */
     private Integer holdStockNum;
+
+    /**
+     * 持有股票成本价
+     */
+    private BigDecimal holdStockCost;
 
     /**
      * 持股盈亏

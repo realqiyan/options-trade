@@ -112,6 +112,13 @@ public class WheelStrategy extends BaseTradeStrategy {
                     .append("，行权价高于").append(finalSellPutAcceptableStrikePrice)
                     .append("的Put如果风险可控也接受卖出，但是快被指派前需要Rolling");
         }
+        if (null != summary.getHoldStockNum()) {
+            prompt.append("，当前持有股票数量：").append(summary.getHoldStockNum());
+            // 展示持有股票成本价
+            if (summary.getHoldStockCost() != null && summary.getHoldStockCost().compareTo(BigDecimal.ZERO) > 0) {
+                prompt.append("，持有股票成本价：").append(summary.getHoldStockCost());
+            }
+        }
         prompt.append("，当前股票价格是").append(securityPrice)
                 .append(null != vixIndicator && null != vixIndicator.getCurrentVix()
                         ? "，当前VIX指数是" + vixIndicator.getCurrentVix().getValue()

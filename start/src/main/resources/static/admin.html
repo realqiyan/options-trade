@@ -239,6 +239,13 @@
                     <div class="layui-form-mid layui-word-aux">如果已持有股票，请输入持有数量，默认为0</div>
                 </div>
             </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">初始成本价</label>
+                <div class="layui-input-block">
+                    <input type="number" name="initialStockCost" placeholder="请输入初始股票成本价" autocomplete="off" class="layui-input" value="0">
+                    <div class="layui-form-mid layui-word-aux">已持有股票的平均成本价，用于计算盈亏</div>
+                </div>
+            </div>
             <div class="layui-form-item" id="wheelStrategyConfig" style="display: none;">
                 <label class="layui-form-label">Sell Put行权价</label>
                 <div class="layui-input-block">
