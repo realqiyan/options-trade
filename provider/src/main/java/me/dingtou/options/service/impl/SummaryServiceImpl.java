@@ -324,19 +324,28 @@ public class SummaryServiceImpl implements SummaryService {
                 : totalStockCost.divide(new BigDecimal(orderHoldStockNum), 4, RoundingMode.HALF_UP);
         summary.setAverageStockCost(averageStockCost);
 
-        // 初始股票数
+        // 初始股票数&成本
         int initialStockNum = Integer.parseInt(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
+        BigDecimal initialStockCost = new BigDecimal(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_COST, "0"));
+
         // 总股票持有数量
         int holdStockNum = initialStockNum + orderHoldStockNum;
         summary.setHoldStockNum(holdStockNum);
 
         int holdStockNumForProfit = holdStockNum - initialStockNum;
-        // 当初始股票被卖后 holdStockNum 会小于 initialStockNum 所以当holdStockNumForProfit
-        // 小于0时，不计算持股收益
+        // 当初始股票被卖后 holdStockNum 会小于 initialStockNum
+        // 当holdStockNumForProfit小于0时，不计算持股收益
         if (holdStockNumForProfit < 0) {
             holdStockNumForProfit = 0;
         }
-        BigDecimal holdStockProfit = lastDone.subtract(averageStockCost)
+
+        // 未设置股票成本总盈亏 = （现价-平均成本） * 持股数量
+        // 股票现价小于股票成本时总盈亏 = （股票成本-平均成本） * 持股数量
+        BigDecimal holdStockPrice = lastDone;
+        if (initialStockCost.compareTo(lastDone) > 0) {
+            holdStockPrice = initialStockCost;
+        }
+        BigDecimal holdStockProfit = holdStockPrice.subtract(averageStockCost)
                 .multiply(new BigDecimal(holdStockNumForProfit));
         summary.setHoldStockProfit(holdStockProfit);
 
