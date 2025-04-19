@@ -66,25 +66,25 @@ public class WheelStrategy extends BaseTradeStrategy {
         }
         final BigDecimal finalSellPutAcceptableStrikePrice = sellPutAcceptableStrikePrice;
         optionsChain.getOptionsList().forEach(options -> {
-                OptionsRealtimeData realtimeData = options.getRealtimeData();
-                if (null != realtimeData) {
-                    realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
-                    realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
-                } else {
-                    options.setRealtimeData(new OptionsRealtimeData());
-                }
-                
-                // 根据策略阶段过滤不需要的期权类型:
-                // 1. 如果是卖出看跌期权(Sell Put)阶段,过滤掉看涨期权(Call,type=1)
-                // 2. 如果是备兑看涨期权(Covered Call)阶段,过滤掉看跌期权(Put,type=2)
-                // 通过将推荐标志设为false和推荐等级设为0来实现过滤
-                if (isSellPutStage && options.getOptionExData().getType() == 1) {
-                    options.getStrategyData().setRecommend(false);
-                    options.getStrategyData().setRecommendLevel(0);
-                } else if (isCoveredCallStage && options.getOptionExData().getType() == 2) {
-                    options.getStrategyData().setRecommend(false);
-                    options.getStrategyData().setRecommendLevel(0);
-                }
+            OptionsRealtimeData realtimeData = options.getRealtimeData();
+            if (null != realtimeData) {
+                realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
+                realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
+            } else {
+                options.setRealtimeData(new OptionsRealtimeData());
+            }
+
+            // 根据策略阶段过滤不需要的期权类型:
+            // 1. 如果是卖出看跌期权(Sell Put)阶段,过滤掉看涨期权(Call,type=1)
+            // 2. 如果是备兑看涨期权(Covered Call)阶段,过滤掉看跌期权(Put,type=2)
+            // 通过将推荐标志设为false和推荐等级设为0来实现过滤
+            if (isSellPutStage && options.getOptionExData().getType() == 1) {
+                options.getStrategyData().setRecommend(false);
+                options.getStrategyData().setRecommendLevel(0);
+            } else if (isCoveredCallStage && options.getOptionExData().getType() == 2) {
+                options.getStrategyData().setRecommend(false);
+                options.getStrategyData().setRecommendLevel(0);
+            }
         });
 
         VixIndicator vixIndicator = optionsChain.getVixIndicator();
@@ -100,10 +100,12 @@ public class WheelStrategy extends BaseTradeStrategy {
 
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
-        prompt.append("我准备使用车轮策略（WheelStrategy）卖出").append(securityQuote.getSecurity().toString())
+        prompt.append("当前日期是").append(sdf.format(new Date()))
+                .append("，我准备使用车轮策略（WheelStrategy）卖出").append(securityQuote.getSecurity().toString())
                 .append("距离到期日").append(optionsChain.dte()).append("天的")
                 .append(isSellPutStage ? "看跌期权（Cash-Secured Put）" : "看涨期权（Covered Call）");
-        prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
+        // prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
+        prompt.append("，倾向的Delta范围:0.25-0.35");
         if (isCoveredCallStage && null != finalUnderlyingOrder) {
             prompt.append("，当前指派的股票价格：").append(finalUnderlyingOrder.getPrice());
         }
@@ -111,6 +113,7 @@ public class WheelStrategy extends BaseTradeStrategy {
             prompt.append("，SellPut可接受最高指派价").append(finalSellPutAcceptableStrikePrice)
                     .append("，行权价高于").append(finalSellPutAcceptableStrikePrice)
                     .append("的Put如果风险可控也接受卖出，但是快被指派前需要Rolling");
+            prompt.append("，年化收益率计算公式:(期权权利金*100)/(DTE)*365/股票价格*100");
         }
         if (null != summary.getHoldStockNum()) {
             prompt.append("，当前持有股票数量：").append(summary.getHoldStockNum());
@@ -123,7 +126,6 @@ public class WheelStrategy extends BaseTradeStrategy {
                 .append(null != vixIndicator && null != vixIndicator.getCurrentVix()
                         ? "，当前VIX指数是" + vixIndicator.getCurrentVix().getValue()
                         : "")
-                .append("，当前日期是").append(sdf.format(new Date()))
                 .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我交易建议。\n\n");
 
         // 最近K线
@@ -162,10 +164,10 @@ public class WheelStrategy extends BaseTradeStrategy {
         prompt.append("## 交易标的\n");
         prompt.append("| 代码 ").append("| 期权类型 ").append("| 行权价 ").append("| 当前价格 ").append("| 隐含波动率 ")
                 .append("| Delta ").append("| Theta ").append("| Gamma ").append("| 未平仓合约数 ").append("| 当天交易量 ")
-                .append("| 预估年化收益率 ").append("| 距离行权价涨跌幅 ").append("| 购买倾向 ").append("|\n");
+                .append("| 预估年化收益率 ").append("| 距离行权价涨跌幅 ").append("| 技术指标状态 ").append("| 购买倾向 ").append("|\n");
         prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
                 .append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
-                .append("| --- ").append("|\n");
+                .append("| --- ").append("| --- ").append("|\n");
         optionsChain.getOptionsList().forEach(options -> {
             buildOptionsPrompt(prompt, options);
         });
@@ -233,6 +235,16 @@ public class WheelStrategy extends BaseTradeStrategy {
         if (Boolean.FALSE.equals(options.getStrategyData().getRecommend())) {
             return;
         }
+
+        // 技术指标状态评估
+        String techStatus = "中性";
+        BigDecimal delta = options.getRealtimeData().getDelta();
+        if (delta.compareTo(BigDecimal.valueOf(0.35)) > 0) {
+            techStatus = "高Delta风险";
+        } else if (delta.compareTo(BigDecimal.valueOf(0.25)) < 0) {
+            techStatus = "低Delta收益";
+        }
+
         prompt.append("| ").append(options.getBasic().getSecurity().getCode())
                 .append(" | ")
                 .append(Integer.valueOf(1).equals(options.getOptionExData().getType()) ? "Call" : "Put")
@@ -246,6 +258,7 @@ public class WheelStrategy extends BaseTradeStrategy {
                 .append(" | ").append(options.getRealtimeData().getVolume())
                 .append(" | ").append(options.getStrategyData().getSellAnnualYield()).append("%")
                 .append(" | ").append(options.getStrategyData().getRange()).append("%")
+                .append(" | ").append(techStatus)
                 .append(" | ").append(options.getStrategyData().getRecommendLevel() <= 1 ? "一般" : "倾向")
                 .append(" |\n");
     }
