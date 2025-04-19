@@ -121,6 +121,7 @@ public class VixQueryGatewayImpl implements VixQueryGateway {
             
             vixHistory.add(new StockIndicatorItem(date, indexValue));
         }
+        vixHistory.sort((a, b) -> b.getDate().compareTo(a.getDate()));
 
         for (JsonNode item : sp500HistoryData) {
             long effectiveDate = item.path("effectiveDate").asLong();
@@ -132,6 +133,7 @@ public class VixQueryGatewayImpl implements VixQueryGateway {
             
             sp500History.add(new StockIndicatorItem(date, indexValue));
         }
+        sp500History.sort((a, b) -> b.getDate().compareTo(a.getDate()));
 
         // 解析相关系数
         JsonNode correlationMatrix = root.path("indexCorrelationHolder").path("indexCorrelationMatrix");
@@ -179,6 +181,7 @@ public class VixQueryGatewayImpl implements VixQueryGateway {
         vixIndicator.setSp500DailyReturn(sp500DailyReturn);
         vixIndicator.setCorrelationWithSp500(correlationWithSp500);
 
+        // 历史数据由远到近排序 按日期ASC排序
         vixIndicator.setSp500History(sp500History);
         vixIndicator.setVixHistory(vixHistory);
 
