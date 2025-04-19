@@ -179,9 +179,20 @@
     <span class="layui-badge layui-bg-blue">周价格波动:<b class="layui-font-16">{{= d.stockIndicator.weekPriceRange}}</b></span>
     <span class="layui-badge layui-bg-blue">月价格波动:<b class="layui-font-16">{{= d.stockIndicator.monthPriceRange}}</b></span>
     <br/>
-    <span class="layui-badge layui-bg-orange">
+    <span class="layui-badge">
         <b class="layui-font-16">
-            VIX: {{= d.vixIndicator&&d.vixIndicator.currentVix?d.vixIndicator.currentVix.value:0 }}
+            <a href="javascript:;" onclick="showChart('VIX',{{= JSON.stringify(d.vixIndicator.vixHistory) }},'line')"
+               title="VIX历史走势">
+                <i class="layui-icon layui-icon-link"></i>VIX: {{= d.vixIndicator&&d.vixIndicator.currentVix?d.vixIndicator.currentVix.value:0 }}
+            </a>
+        </b>
+    </span>
+    <span class="layui-badge">
+        <b class="layui-font-16">
+            <a href="javascript:;" onclick="showChart('SP500',{{= JSON.stringify(d.vixIndicator.sp500History) }},'line')"
+               title="标普500历史走势">
+                <i class="layui-icon layui-icon-link"></i>SP500: {{= d.vixIndicator&&d.vixIndicator.currentSp500?d.vixIndicator.currentSp500.value:0 }}
+            </a>
         </b>
     </span>
     <span class="layui-badge">
