@@ -37,7 +37,7 @@ function assistant(title){
     localStorage.setItem("title", title);
     localStorage.setItem("prompt", currentPrompt);
     if(!assistantWindow || assistantWindow.closed){
-        assistantWindow = window.open("assistant.html", "assistant");
+        assistantWindow = window.open("assistant.html", "_blank");
     }else{
         assistantWindow.focus();
     }
