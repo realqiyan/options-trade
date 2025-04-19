@@ -20,6 +20,8 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -93,7 +95,53 @@ public class VixQueryGatewayImpl implements VixQueryGateway {
 
         StockIndicatorItem vix = null;
         StockIndicatorItem sp500 = null;
+        BigDecimal vixDailyChange = null;
+        BigDecimal vixDailyReturn = null;
+        BigDecimal vixMonthToDateReturn = null;
+        BigDecimal vixYearToDateReturn = null;
+        BigDecimal vixOneYearVolatility = null;
+        BigDecimal sp500DailyChange = null;
+        BigDecimal sp500DailyReturn = null;
+        BigDecimal correlationWithSp500 = null;
+        List<StockIndicatorItem> vixHistory = new ArrayList<>();
+        List<StockIndicatorItem> sp500History = new ArrayList<>();
 
+        // 解析历史数据
+        JsonNode levelComparison = root.path("levelComparisonHolder").path("indexLevelForComparison");
+        JsonNode vixHistoryData = levelComparison.path("92026376");
+        JsonNode sp500HistoryData = levelComparison.path("340");
+
+        for (JsonNode item : vixHistoryData) {
+            long effectiveDate = item.path("effectiveDate").asLong();
+            BigDecimal indexValue = NumberUtils.scale(new BigDecimal(item.path("indexValue").asText()));
+            
+            String date = Instant.ofEpochMilli(effectiveDate)
+                    .atZone(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE);
+            
+            vixHistory.add(new StockIndicatorItem(date, indexValue));
+        }
+
+        for (JsonNode item : sp500HistoryData) {
+            long effectiveDate = item.path("effectiveDate").asLong();
+            BigDecimal indexValue = NumberUtils.scale(new BigDecimal(item.path("indexValue").asText()));
+            
+            String date = Instant.ofEpochMilli(effectiveDate)
+                    .atZone(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE);
+            
+            sp500History.add(new StockIndicatorItem(date, indexValue));
+        }
+
+        // 解析相关系数
+        JsonNode correlationMatrix = root.path("indexCorrelationHolder").path("indexCorrelationMatrix");
+        for (JsonNode item : correlationMatrix) {
+            if (item.path("indexId_1").asInt() == 340 && item.path("indexId_2").asInt() == 92026376) {
+                correlationWithSp500 = NumberUtils.scale(new BigDecimal(item.path("correlationValue").asText()));
+            }
+        }
+
+        // 解析指标数据
         for (JsonNode item : indexPerformance) {
             String indexCode = item.path("indexCode").asText();
             long effectiveDate = item.path("effectiveDate").asLong();
@@ -107,14 +155,32 @@ public class VixQueryGatewayImpl implements VixQueryGateway {
 
             if ("VIX".equals(indexCode)) {
                 vix = new StockIndicatorItem(date, indexValue);
+                vixDailyChange = NumberUtils.scale(new BigDecimal(item.path("dailyChange").asText()));
+                vixDailyReturn = NumberUtils.scale(new BigDecimal(item.path("dailyReturn").asText()));
+                vixMonthToDateReturn = NumberUtils.scale(new BigDecimal(item.path("monthToDateReturn").asText()));
+                vixYearToDateReturn = NumberUtils.scale(new BigDecimal(item.path("yearToDateReturn").asText()));
+                vixOneYearVolatility = NumberUtils.scale(new BigDecimal(item.path("oneYearSD").asText()));
             } else if ("500".equals(indexCode)) {
                 sp500 = new StockIndicatorItem(date, indexValue);
+                sp500DailyChange = NumberUtils.scale(new BigDecimal(item.path("dailyChange").asText()));
+                sp500DailyReturn = NumberUtils.scale(new BigDecimal(item.path("dailyReturn").asText()));
             }
         }
 
         VixIndicator vixIndicator = new VixIndicator();
         vixIndicator.setCurrentVix(vix);
         vixIndicator.setCurrentSp500(sp500);
+        vixIndicator.setVixDailyChange(vixDailyChange);
+        vixIndicator.setVixDailyReturn(vixDailyReturn);
+        vixIndicator.setVixMonthToDateReturn(vixMonthToDateReturn);
+        vixIndicator.setVixYearToDateReturn(vixYearToDateReturn);
+        vixIndicator.setVixOneYearVolatility(vixOneYearVolatility);
+        vixIndicator.setSp500DailyChange(sp500DailyChange);
+        vixIndicator.setSp500DailyReturn(sp500DailyReturn);
+        vixIndicator.setCorrelationWithSp500(correlationWithSp500);
+
+        vixIndicator.setSp500History(sp500History);
+        vixIndicator.setVixHistory(vixHistory);
 
         return vixIndicator;
     }
