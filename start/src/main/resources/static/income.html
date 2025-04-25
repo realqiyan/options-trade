@@ -136,6 +136,7 @@
                         <span class="layui-badge">${{ d.totalFee }}</span>
                         <span class="income-label">策略总数:</span>
                         <span class="layui-badge">{{= d.strategySummaries.length}}个</span>
+                        <br/>
                         <span class="income-label">未到期收入:</span>
                         <span class="layui-badge">${{= d.unrealizedOptionsIncome}}</span>
                         <span class="income-label">未到期订单:</span>
@@ -154,7 +155,7 @@
                     <div class="income-item">
                         <span class="income-label">期权收入:</span>
                         <span class="layui-badge">${{ d.allOptionsIncome }}</span>
-                        -
+                        <br/>
                         <span class="income-label">股票盈亏:</span>
                         <span class="layui-badge">${{ d.allHoldStockProfit }}</span>
                     </div>
@@ -172,12 +173,13 @@
                     <div class="income-item">
                         <span class="income-label">投入资金:</span>
                         <span class="layui-badge">${{= d.accountSize}}</span>
+                        <span class="income-label">保证金比例:</span>
+                        <span class="layui-badge">{{= (d.marginRatio * 100) + '%' }}</span>
+                        <br/>
                         <span class="income-label">Put占用:</span>
                         <span class="layui-badge">${{= d.putMarginOccupied}}</span>
                         <span class="income-label">持股占用:</span>
                         <span class="layui-badge">${{= d.totalStockCost}}</span>
-                        <span class="income-label">保证金比例:</span>
-                        <span class="layui-badge">{{= (d.marginRatio * 100) + '%' }}</span>
                     </div>
                 </div>
             </div>

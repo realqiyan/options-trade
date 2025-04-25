@@ -95,6 +95,7 @@ public class SummaryServiceImpl implements SummaryService {
 
             strategySummary.getStrategyOrders().stream()
                     .filter(OwnerOrder::isOpen)
+                    .filter(OwnerOrder::isTraded)
                     .filter(OwnerOrder::isOptionsOrder)
                     .filter(order -> OrderStatus.of(order.getStatus()).isValid())
                     .forEach(unrealizedOrders::add);
@@ -370,6 +371,7 @@ public class SummaryServiceImpl implements SummaryService {
         // 所有未平仓的期权
         List<OwnerOrder> allOpenOptionsOrder = allOptionsOrders.stream()
                 .filter(OwnerOrder::isOpen)
+                .filter(OwnerOrder::isTraded)
                 .filter(OwnerOrder::isOptionsOrder)
                 .filter(order -> OrderStatus.of(order.getStatus()).isValid())
                 .toList();
@@ -444,14 +446,9 @@ public class SummaryServiceImpl implements SummaryService {
             summary.setPutMarginOccupied(putMarginOccupied);
         }
 
-        // 计算未平仓订单的AI提示
-        List<OwnerOrder> openOrders = ownerOrders.stream()
-                .filter(OwnerOrder::isOpen)
-                .filter(OwnerOrder::isOptionsOrder)
-                .toList();
         // 未平仓订单处理策略
         OrderTradeStrategy defaultOrderTradeStrategy = new DefaultOrderTradeStrategy();
-        for (OwnerOrder order : openOrders) {
+        for (OwnerOrder order : allOpenOptionsOrder) {
 
             // 查询未平仓订单可以Roll的期权实时数据 [当前行权价格, 当前行权价格-5]
             // 查询股票期权到期日
