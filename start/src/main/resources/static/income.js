@@ -119,6 +119,9 @@ function renderOrderTable(orderList){
               }
               return '';
           }},
+          {field: 'strategyName', title: '策略名称', width: 150, templet: function(d){
+              return d.ext && d.ext.strategyName ? d.ext.strategyName : '-';
+          }},
           {field: 'tradeTime', title: '交易时间', width: 165},
           {field: 'strikeTime', title: '行权时间', width: 120},
           {field: 'code', title: '期权代码', width: 180},

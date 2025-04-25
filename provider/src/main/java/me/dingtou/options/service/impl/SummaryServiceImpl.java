@@ -98,7 +98,10 @@ public class SummaryServiceImpl implements SummaryService {
                     .filter(OwnerOrder::isTraded)
                     .filter(OwnerOrder::isOptionsOrder)
                     .filter(order -> OrderStatus.of(order.getStatus()).isValid())
-                    .forEach(unrealizedOrders::add);
+                    .forEach(order -> {
+                        order.setExtValue(OrderExt.STRATEGY_NAME,strategySummary.getStrategy().getStrategyName());
+                        unrealizedOrders.add(order);
+                    });
 
             allHoldStockProfit = allHoldStockProfit.add(strategySummary.getHoldStockProfit());
             allIncome = allIncome.add(strategySummary.getAllIncome());
