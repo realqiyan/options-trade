@@ -1,9 +1,0 @@
----
-description: 
-globs: *.html,*.js
-alwaysApply: false
----
-
-# html and js rule content
-
-- html的script标签里type="text/html"的内容是layui模板，不要当做js尝试修复。
