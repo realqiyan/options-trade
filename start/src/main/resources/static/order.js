@@ -1,6 +1,21 @@
 // JS
 var currentStrategyId;
 var assistantWindow;
+var strategyList = []; // 存储策略列表
+
+// URL参数解析函数
+function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]); return null;
+}
+
+// 设置URL参数，不刷新页面
+function setUrlParam(name, value) {
+    var url = new URL(window.location.href);
+    url.searchParams.set(name, value);
+    window.history.pushState({}, '', url);
+}
 
 //owner: $("#owner").val(),
 function tradeModify(action, orderId){
@@ -8,6 +23,8 @@ function tradeModify(action, orderId){
         if(value === ''){
             return elem.focus();
         }
+        
+        var loadingIndex = layer.load(1, {shade: [0.1,'#fff']});
         $.ajax({
               url: "/trade/modify",
               method: 'POST',
@@ -17,16 +34,29 @@ function tradeModify(action, orderId){
                 orderId: orderId,
               },
               success: function( response ) {
+                layer.close(loadingIndex);
                 layer.msg(response.success ? '操作成功' : response.message);
-                loadStrategyOrder(currentStrategyId);
+                if (response.success && currentStrategyId) {
+                    loadStrategyOrder(currentStrategyId);
+                }
+                layer.close(index);
+              },
+              error: function() {
+                layer.close(loadingIndex);
+                layer.msg('操作失败，请重试');
               }
             });
-        layer.close(index);
     });
 }
 
 //owner: $("#owner").val(),
 function sync(){
+    if (!$("#totp").val()) {
+        layer.msg('请输入验证码');
+        return;
+    }
+    
+    var loadingIndex = layer.load(1, {shade: [0.1,'#fff']});
     $.ajax({
           url: "/trade/sync",
           method: 'GET',
@@ -35,8 +65,15 @@ function sync(){
             time: new Date().getTime()
           },
           success: function( result ) {
+            layer.close(loadingIndex);
             layer.msg(result.success ? '同步成功' : result.message);
-            loadStrategyOrder(currentStrategyId);
+            if (result.success && currentStrategyId) {
+                loadStrategyOrder(currentStrategyId);
+            }
+          },
+          error: function() {
+            layer.close(loadingIndex);
+            layer.msg('同步失败，请重试');
           }
         });
 }
@@ -152,20 +189,36 @@ function tradeClose(orderId, orderPrice, orderBook){
 }
 
 function closePosition(order){
-    var orderObj = JSON.parse(order);
-    $.ajax({
-         url: "/options/orderbook/get",
-         method: 'GET',
-         data: {
-           code: orderObj.code,
-           market: orderObj.market,
-           time: new Date().getTime()
-         },
-         success: function( response ) {
-            var result = response.data;
-            tradeClose(orderObj.id, orderObj.price, result);
-         }
-       });
+    try {
+        var orderObj = JSON.parse(order);
+        var loadingIndex = layer.load(1, {shade: [0.1,'#fff']});
+        
+        $.ajax({
+             url: "/options/orderbook/get",
+             method: 'GET',
+             data: {
+               code: orderObj.code,
+               market: orderObj.market,
+               time: new Date().getTime()
+             },
+             success: function( response ) {
+                layer.close(loadingIndex);
+                if (!response.success) {
+                    layer.msg(response.message || '获取市场数据失败');
+                    return;
+                }
+                var result = response.data;
+                tradeClose(orderObj.id, orderObj.price, result);
+             },
+             error: function() {
+                layer.close(loadingIndex);
+                layer.msg('获取市场数据失败，请重试');
+             }
+           });
+    } catch (e) {
+        console.error('解析订单数据失败', e);
+        layer.msg('订单数据无效，请刷新页面重试');
+    }
 }
 
 function assistant(prompt, title) {
@@ -220,8 +273,6 @@ function renderTable(orderList){
         cols: [[
           {field: 'order', title: '操作', width: 220, templet: '#TPL-orderOp'},
           {field: 'curDTE', title: '关注', width: 50, align: 'center', templet: '#TPL-colorStatus'},
-          //{field: 'strategyId', title: '策略ID', width: 280, sort: true},
-          //{field: 'underlyingCode', title: '股票', width: 80},
           {field: 'code', title: '证券代码', width: 180},
           {field: 'side', title: '类型', width: 80},
           {field: 'price', title: '价格', width: 85},
@@ -241,15 +292,10 @@ function renderTable(orderList){
         ]],
         data: convertedData,
         toolbar: true,
-        // height: 'full-390',
         lineStyle: 'height: 100%;',
         defaultToolbar: [
-          'filter', // 列筛选
-          'exports', // 导出
-          'print' // 打印
+          'filter', 'exports', 'print'
         ],
-        //skin: 'line',
-        //even: true,
         initSort: {
           field: 'tradeTime',
           type: 'desc'
@@ -284,13 +330,38 @@ function renderTable(orderList){
         }
       });
     });
+}
 
-    render();
-
+// 新增：根据ID查找策略名称
+function getStrategyNameById(strategyId) {
+    if (!strategyList || strategyList.length === 0) return "未知策略";
+    
+    var strategy = strategyList.find(function(item) {
+        return item.strategyId === strategyId;
+    });
+    
+    return strategy ? strategy.strategyName : "未知策略";
 }
 
 function loadStrategyOrder(strategyId){
+    // 更新当前策略ID并更新URL
     currentStrategyId = strategyId;
+    setUrlParam('strategyId', strategyId);
+    
+    // 如果layui已经初始化，更新选中的Tab
+    if (layui && layui.element) {
+        var tabTitles = document.getElementById("strategyTabTitle");
+        var tabs = tabTitles.getElementsByTagName('li');
+        
+        // 查找匹配的tab索引
+        for (var i = 0; i < tabs.length; i++) {
+            if (tabs[i].getAttribute('data-strategy-id') === strategyId) {
+                layui.element.tabChange('strategyTab', i.toString());
+                break;
+            }
+        }
+    }
+    
     $.ajax({
           url: "/options/strategy/get",
           data: {
@@ -298,12 +369,20 @@ function loadStrategyOrder(strategyId){
           },
           success: function( response ) {
             var result = response.data;
-            var getTpl = summary.innerHTML;
-            var view = document.getElementById('title');
-            laytpl(getTpl).render(result, function(html){
-              view.innerHTML = html;
+            if (!result) {
+                layer.msg('获取策略数据失败');
+                return;
+            }
+            
+            // 使用laytpl渲染模板
+            layui.laytpl(document.getElementById('summary').innerHTML).render(result, function(html){
+                document.getElementById('title').innerHTML = html;
             });
+            
             renderTable(result.strategyOrders);
+          },
+          error: function() {
+            layer.msg('获取策略数据失败');
           }
     });
 }
@@ -316,18 +395,76 @@ function reloadData(){
       },
       success: function( response ) {
         var result = response.data;
-        var output = document.getElementById("security");
-        output.innerHTML = "";
-        for(var i=0; i<result.strategyList.length; i++) {
-            var obj = result.strategyList[i];
-            if(i == 0){
-               currentStrategyId = obj.strategyId
-            }
-            //<dd><a href="javascript:;">loading...</a></dd>
-            output.innerHTML += '<dd onclick="loadStrategyOrder(\''+obj.strategyId+'\')"><a href="javascript:;">'+obj.strategyName+'</a></dd>';
+        if (!result || !result.strategyList || result.strategyList.length === 0) {
+            layer.msg('没有找到策略数据');
+            return;
         }
-        render();
-        loadStrategyOrder(currentStrategyId);
+        
+        strategyList = result.strategyList;
+        
+        // 获取URL中的strategyId参数
+        var urlStrategyId = getUrlParam('strategyId');
+        var targetStrategyId = null;
+        
+        // 创建Tab标题
+        var tabTitles = document.getElementById("strategyTabTitle");
+        tabTitles.innerHTML = "";
+        
+        // 如果URL中有指定策略ID且在策略列表中存在，则使用URL中的，否则使用第一个策略
+        if (urlStrategyId) {
+            var strategyExists = strategyList.some(function(s) { 
+                return s.strategyId === urlStrategyId; 
+            });
+            
+            if (strategyExists) {
+                targetStrategyId = urlStrategyId;
+            }
+        }
+        
+        // 如果没有找到有效的策略ID，使用第一个
+        if (!targetStrategyId && strategyList.length > 0) {
+            targetStrategyId = strategyList[0].strategyId;
+        }
+        
+        currentStrategyId = targetStrategyId;
+        
+        // 初始化并渲染Tab
+        layui.use('element', function(){
+            var element = layui.element;
+            
+            // 清空Tab内容
+            tabTitles.innerHTML = "";
+            
+            // 添加策略Tab
+            for(var i = 0; i < strategyList.length; i++) {
+                var obj = strategyList[i];
+                var isActive = (obj.strategyId === targetStrategyId);
+                
+                // 添加Tab项（使用索引作为lay-id，但也保留策略ID作为data属性）
+                tabTitles.innerHTML += '<li lay-id="' + i + '" data-strategy-id="' + obj.strategyId + '"' + 
+                                      (isActive ? ' class="layui-this"' : '') + '>' + 
+                                      obj.strategyName + '</li>';
+            }
+            
+            // 重新渲染Tab
+            element.render('tab');
+            
+            // 监听Tab切换事件
+            element.on('tab(strategyTab)', function(data){
+                var strategyId = tabTitles.getElementsByTagName('li')[data.index].getAttribute('data-strategy-id');
+                if (strategyId !== currentStrategyId) {
+                    loadStrategyOrder(strategyId);
+                }
+            });
+            
+            // 加载当前选中的策略订单
+            if (targetStrategyId) {
+                loadStrategyOrder(targetStrategyId);
+            }
+        });
+      },
+      error: function() {
+        layer.msg('获取数据失败');
       }
     });
 }
@@ -370,6 +507,12 @@ function updateOrderStatus(orderId) {
         },
         yes: function(index, layero) {
             var status = layero.find('select[name="status"]').val();
+            if (!status) {
+                layer.msg('请选择状态');
+                return;
+            }
+            
+            var loadingIndex = layer.load(1, {shade: [0.1,'#fff']});
             $.ajax({
                 url: "/trade/updateStatus",
                 method: 'POST',
@@ -379,9 +522,16 @@ function updateOrderStatus(orderId) {
                     status: status
                 },
                 success: function(response) {
+                    layer.close(loadingIndex);
                     layer.msg(response.success ? '修改成功' : response.message);
-                    loadStrategyOrder(currentStrategyId);
+                    if (response.success && currentStrategyId) {
+                        loadStrategyOrder(currentStrategyId);
+                    }
                     layer.close(index);
+                },
+                error: function() {
+                    layer.close(loadingIndex);
+                    layer.msg('操作失败，请重试');
                 }
             });
         }
@@ -389,16 +539,23 @@ function updateOrderStatus(orderId) {
 }
 
 function updateOrderStrategy(orderId) {
+    var loadingIndex = layer.load(1, {shade: [0.1,'#fff']});
     $.ajax({
         url: "/owner/get",
         method: 'GET',
         success: function(response) {
+            layer.close(loadingIndex);
             if (!response.success) {
                 layer.msg(response.message);
                 return;
             }
             
             var strategies = response.data.strategyList;
+            if (!strategies || strategies.length === 0) {
+                layer.msg('未找到可用策略');
+                return;
+            }
+            
             layer.open({
                 type: 1,
                 title: '修改订单策略',
@@ -427,6 +584,7 @@ function updateOrderStrategy(orderId) {
                         return;
                     }
                     
+                    var submitIndex = layer.load(1, {shade: [0.1,'#fff']});
                     $.ajax({
                         url: "/trade/updateStrategy",
                         method: 'POST',
@@ -436,15 +594,45 @@ function updateOrderStrategy(orderId) {
                             strategyId: strategyId
                         },
                         success: function(response) {
+                            layer.close(submitIndex);
                             layer.msg(response.success ? '修改成功' : response.message);
-                            loadStrategyOrder(currentStrategyId);
+                            if (response.success) {
+                                // 判断是否需要切换到新策略
+                                if (strategyId !== currentStrategyId) {
+                                    // 如果策略变更，则刷新当前策略，不切换
+                                    loadStrategyOrder(currentStrategyId);
+                                } else {
+                                    // 如果当前策略未变化，直接刷新
+                                    loadStrategyOrder(currentStrategyId);
+                                }
+                            }
                             layer.close(index);
+                        },
+                        error: function() {
+                            layer.close(submitIndex);
+                            layer.msg('操作失败，请重试');
                         }
                     });
                 }
             });
+        },
+        error: function() {
+            layer.close(loadingIndex);
+            layer.msg('获取策略列表失败');
         }
     });
 }
 
-reloadData();
+// 页面初始化
+$(function() {
+    // 使用layui组件
+    layui.use(['element', 'table', 'layer', 'form', 'laydate', 'laytpl'], function(){
+        window.laytpl = layui.laytpl;
+        window.layer = layui.layer;
+        window.form = layui.form;
+        window.laydate = layui.laydate;
+        
+        // 加载数据
+        reloadData();
+    });
+});

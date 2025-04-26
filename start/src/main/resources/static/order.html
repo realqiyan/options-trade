@@ -21,10 +21,7 @@
             <ul class="layui-nav layui-nav-tree">
                 <li class="layui-nav-item"><a href="index.html">标的分析</a></li>
                 <li class="layui-nav-item layui-nav-itemed layui-this">
-                    <a href="javascript:;">策略订单</a>
-                    <dl class="layui-nav-child" id="security" lay-filter="security">
-                        <dd><a href="javascript:;">loading...</a></dd>
-                    </dl>
+                    <a href="order.html">策略订单</a>
                 </li>
                 <li class="layui-nav-item"><a href="income.html">账户收益</a></li>
                 <li class="layui-nav-item"><a href="assistant.html">AI 助手</a></li>
@@ -45,11 +42,22 @@
                 <div class="layui-form-mid layui-word-aux">OTP验证码</div>
                 <button type="button" class="layui-btn layui-bg-blue" onClick="sync()">同步订单</button>
             </div>
-            <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
-                点击股票查询详情
-            </blockquote>
-            <div class="layui-card layui-panel">
-                <div class="layui-card-body" id="result" lay-filter="result">
+            
+            <!-- 策略Tab -->
+            <div class="layui-tab" lay-filter="strategyTab">
+                <ul class="layui-tab-title" id="strategyTabTitle">
+                    <li class="layui-this">加载中...</li>
+                </ul>
+                <div class="layui-tab-content">
+                    <div class="layui-tab-item layui-show">
+                        <blockquote class="layui-elem-quote layui-text" id="title" lay-filter="title">
+                            加载中...
+                        </blockquote>
+                        <div class="layui-card layui-panel">
+                            <div class="layui-card-body" id="result" lay-filter="result">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
