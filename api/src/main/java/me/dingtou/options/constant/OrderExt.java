@@ -50,6 +50,11 @@ public enum OrderExt {
     PROMPT("prompt", String.class),
 
     /**
+     * 策略ID
+     */
+    STRATEGY_ID("strategyId", String.class),
+
+    /**
      * 策略名称
      */
     STRATEGY_NAME("strategyName", String.class),

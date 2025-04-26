@@ -9,6 +9,17 @@ var filterState = {
 };
 var originalOrderData = [];
 
+/**
+ * 跳转到策略订单页面
+ * @param {string} strategyId 策略ID
+ */
+function goToStrategyOrders(strategyId) {
+    if (!strategyId) return;
+    
+    // 跳转到order.html页面并传递策略ID参数
+    window.location.href = 'order.html?strategyId=' + encodeURIComponent(strategyId);
+}
+
 function assistant(prompt, title) {
     localStorage.setItem("title", title || "期权订单分析");
     localStorage.setItem("prompt", prompt);
@@ -120,6 +131,9 @@ function renderOrderTable(orderList){
               return '';
           }},
           {field: 'strategyName', title: '策略名称', width: 150, templet: function(d){
+              if (d.ext && d.ext.strategyName && d.ext.strategyId) {
+                  return '<a href="javascript:void(0);" class="strategy-link" data-strategy-id="' + d.ext.strategyId + '">' + d.ext.strategyName + '</a>';
+              }
               return d.ext && d.ext.strategyName ? d.ext.strategyName : '-';
           }},
           {field: 'tradeTime', title: '交易时间', width: 165},
@@ -178,6 +192,14 @@ function renderOrderTable(orderList){
             
             // 绑定筛选按钮事件
             bindFilterEvents();
+            
+            // 绑定策略名称点击事件
+            table.find('.strategy-link').on('click', function() {
+                var strategyId = this.getAttribute('data-strategy-id');
+                if (strategyId) {
+                    goToStrategyOrders(strategyId);
+                }
+            });
         }
       });
       

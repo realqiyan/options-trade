@@ -99,6 +99,7 @@ public class SummaryServiceImpl implements SummaryService {
                     .filter(OwnerOrder::isOptionsOrder)
                     .filter(order -> OrderStatus.of(order.getStatus()).isValid())
                     .forEach(order -> {
+                        order.setExtValue(OrderExt.STRATEGY_ID,strategySummary.getStrategy().getStrategyId());
                         order.setExtValue(OrderExt.STRATEGY_NAME,strategySummary.getStrategy().getStrategyName());
                         unrealizedOrders.add(order);
                     });

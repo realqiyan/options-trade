@@ -66,6 +66,16 @@
             margin-left: 5px;
             background-color: #1E9FFF;
         }
+        /* 策略链接样式 */
+        .strategy-link {
+            color: #1E9FFF;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .strategy-link:hover {
+            color: #01AAED;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -247,6 +257,13 @@
                                     <div><span style="font-weight: bold;">平均成本:</span> ${{ item.averageStockCost }}</div>
                                     <div><span style="font-weight: bold;">持股盈亏:</span> ${{ item.holdStockProfit }}</div>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="layui-row">
+                            <div class="layui-col-md12">
+                                <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" onclick="goToStrategyOrders('{{ item.strategy.strategyId }}')">
+                                    <i class="layui-icon layui-icon-form"></i> 查看订单详情
+                                </button>
                             </div>
                         </div>
                     </div>
