@@ -9,6 +9,20 @@ var currentPrompt;
 var currentLabel;
 var currentChart;
 
+// URL参数解析函数
+function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return decodeURIComponent(r[2]); return null;
+}
+
+// 设置URL参数，不刷新页面
+function setUrlParam(name, value) {
+    var url = new URL(window.location.href);
+    url.searchParams.set(name, value);
+    window.history.pushState({}, '', url);
+}
+
 function filterStrategyByCode(jsonArray, code) {
     return jsonArray.filter(item => item.code === code);
 }
@@ -142,9 +156,14 @@ function showChart(label, data, type, options) {
         });
     }
 }
-function loadOptionsExpDate(code, market){
+function loadOptionsExpDate(code, market, urlStrikeTime){
     currentCode = code;
     currentMarket = market;
+    
+    // 更新URL参数
+    setUrlParam('code', code);
+    setUrlParam('market', market);
+    
     strategyLoad(code);
     console.log('loadOptionsExpDate code:'+ code+' market:'+ market+' currentStrategyId:'+currentStrategyId);
     $.ajax({
@@ -162,10 +181,17 @@ function loadOptionsExpDate(code, market){
             var tabs = layui.tabs;
             var titleList = [];
             var contentList = [];
+            var targetIndex = 0; // 默认选择第一个
+            
             for(var i=0; i<result.length; i++) {
                 var obj = result[i];
                 titleList.push({ title: `${obj.strikeTime}(${obj.optionExpiryDateDistance})` });
                 contentList.push({ content: ''});
+                
+                // 如果指定了urlStrikeTime且找到匹配项，记录索引
+                if (urlStrikeTime && obj.strikeTime == urlStrikeTime) {
+                    targetIndex = i;
+                }
             }
 
             tabs.on(`afterChange(strike-list)`, function(data) {
@@ -173,6 +199,7 @@ function loadOptionsExpDate(code, market){
                 console.log('change to index:'+data.index+' obj:',obj);
                 loadOptionsChain(obj.strikeTime);
             });
+            
             // 方法渲染
             tabs.render({
                 elem: '#strike-list',
@@ -190,6 +217,9 @@ function loadOptionsExpDate(code, market){
                     strategySelect(code,elem.value);
                 });
                 form.render();
+                
+                // 在渲染完成后，选择指定的期权日期
+                tabs.change('strike-list', targetIndex);
             });
       });
       }
@@ -198,6 +228,9 @@ function loadOptionsExpDate(code, market){
 // /options/chain/get?code=BABA&market=11&time=1733652854662&strikeTime=2024-12-13
 function loadOptionsChain(strikeTime){
     console.log('loadOptionsChain strikeTime:'+ strikeTime+' currentStrategyId:'+currentStrategyId);
+    // 更新URL参数
+    setUrlParam('strikeTime', strikeTime);
+    
     resetContent("loading...");
     $.ajax({
       url: "/options/chain/get",
@@ -585,6 +618,11 @@ function sell(options){
 }
 
 function reloadData(){
+    // 先获取URL参数
+    var urlCode = getUrlParam('code');
+    var urlMarket = getUrlParam('market');
+    var urlStrikeTime = getUrlParam('strikeTime');
+    
     $.ajax({
       url: "/owner/get",
       data: {
@@ -604,15 +642,38 @@ function reloadData(){
             var securityTab = $("#security");
             securityTab.empty();
             
+            // 根据URL参数查找默认标的的索引
+            var defaultSecurityIndex = 0;
+            var defaultSecurity = null;
+            
+            // 如果URL中存在code和market参数，查找对应的标的
+            if (urlCode && urlMarket) {
+                for (var i = 0; i < currentOwnerData.securityList.length; i++) {
+                    var security = currentOwnerData.securityList[i];
+                    if (security.code == urlCode && security.market == urlMarket) {
+                        defaultSecurityIndex = i;
+                        defaultSecurity = security;
+                        break;
+                    }
+                }
+            }
+            
+            // 如果没有找到匹配的标的或URL中没有指定标的，则选择第一个标的
+            if (!defaultSecurity && currentOwnerData.securityList.length > 0) {
+                defaultSecurity = currentOwnerData.securityList[0];
+                defaultSecurityIndex = 0;
+            }
+            
             // 添加标的列表到Tab
             for(var i=0; i<currentOwnerData.securityList.length; i++) {
                 var obj = currentOwnerData.securityList[i];
+                var isActive = (i == defaultSecurityIndex) ? ' class="layui-this"' : '';
                 var unexercisedCount = obj.unexercisedOrders ? obj.unexercisedOrders.length : 0;
                 var redDot = unexercisedCount > 0 ? 
                     '<span class="layui-badge-dot layui-bg-red security-badge-dot" data-orders=\'' + JSON.stringify(obj.unexercisedOrders) + '\'></span>' : '';
                 
-                // 添加Tab标签
-                securityTab.append('<li lay-id="' + obj.code + '" data-code="' + obj.code + '" data-market="' + obj.market + '">' + obj.name + obj.code + redDot + '</li>');
+                // 添加Tab标签，设置选中状态
+                securityTab.append('<li lay-id="' + obj.code + '" data-code="' + obj.code + '" data-market="' + obj.market + '"' + isActive + '>' + obj.name + obj.code + redDot + '</li>');
             }
             
             // 渲染Tab
@@ -627,14 +688,10 @@ function reloadData(){
                 }
             });
             
-            // 默认选中第一个标的
-            if(currentOwnerData.securityList.length > 0) {
-                var firstSecurity = currentOwnerData.securityList[0];
+            // 加载标的数据
+            if (defaultSecurity) {
                 // 需要延迟执行，确保Tab已经渲染完成
-                setTimeout(function() {
-                    // 手动加载第一个标的的数据
-                    loadOptionsExpDate(firstSecurity.code, firstSecurity.market);
-                }, 100);
+                loadOptionsExpDate(defaultSecurity.code, defaultSecurity.market, urlStrikeTime);
             }
             
             // 添加鼠标悬停事件
