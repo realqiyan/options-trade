@@ -178,6 +178,7 @@ function loadOptionsExpDate(code, market, urlStrikeTime){
         var result = response.data;
 
         layui.use(function(){
+            var ready = false;
             var tabs = layui.tabs;
             var titleList = [];
             var contentList = [];
@@ -195,6 +196,10 @@ function loadOptionsExpDate(code, market, urlStrikeTime){
             }
 
             tabs.on(`afterChange(strike-list)`, function(data) {
+                if (!ready){
+                    console.log('stop change to index:'+data.index+' obj:',obj);
+                    return;
+                }
                 var obj = result[data.index];
                 console.log('change to index:'+data.index+' obj:',obj);
                 loadOptionsChain(obj.strikeTime);
@@ -219,7 +224,10 @@ function loadOptionsExpDate(code, market, urlStrikeTime){
                 form.render();
                 
                 // 在渲染完成后，选择指定的期权日期
-                tabs.change('strike-list', targetIndex);
+                setTimeout(function() {
+                    ready = true;
+                    tabs.change('strike-list', targetIndex);
+                }, 10);
             });
       });
       }
