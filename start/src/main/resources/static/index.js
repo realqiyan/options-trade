@@ -197,7 +197,7 @@ function loadOptionsExpDate(code, market, urlStrikeTime){
 
             tabs.on(`afterChange(strike-list)`, function(data) {
                 if (!ready){
-                    console.log('stop change to index:'+data.index+' obj:',obj);
+                    console.log('stop change to index:'+data.index);
                     return;
                 }
                 var obj = result[data.index];
