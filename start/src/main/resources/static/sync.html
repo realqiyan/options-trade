@@ -14,29 +14,16 @@
     <div class="layui-header">
         <div class="layui-logo layui-hide-xs layui-bg-black">Options</div>
         <!-- 头部区域（可配合layui 已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="index.html">标的分析</a></li>
+            <li class="layui-nav-item"><a href="order.html">策略订单</a></li>
+            <li class="layui-nav-item"><a href="income.html">账户收益</a></li>
+            <li class="layui-nav-item"><a href="assistant.html">AI 助手</a></li>
+            <li class="layui-nav-item layui-this"><a href="sync.html">同步订单</a></li>
+            <li class="layui-nav-item"><a href="admin.html">后台管理</a></li>
+        </ul>
     </div>
-    <div class="layui-side layui-bg-black">
-        <div class="layui-side-scroll">
-            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
-            <ul class="layui-nav layui-nav-tree">
-                <li class="layui-nav-item">
-                    <a href="index.html">标的分析</a>
-                </li>
-                <li class="layui-nav-item">
-                    <a href="order.html">策略订单</a>
-                </li>
-                <li class="layui-nav-item">
-                    <a href="income.html">账户收益</a>
-                </li>
-                <li class="layui-nav-item"><a href="assistant.html">AI 助手</a></li>
-                <li class="layui-nav-item layui-nav-itemed layui-this">
-                    <a href="javascript:;">同步订单</a>
-                </li>
-                <li class="layui-nav-item"><a href="admin.html">后台管理</a></li>
-            </ul>
-        </div>
-    </div>
-    <div class="layui-body">
+    <div class="layui-body" style="left: 0;">
         <!-- 内容主体区域 -->
         <div style="padding: 15px;">
         <input type="hidden" id="owner"/>
