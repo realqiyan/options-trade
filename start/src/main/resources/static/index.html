@@ -74,6 +74,29 @@
             color: #009688;
             font-weight: bold;
         }
+        
+        /* 标的Tab样式 */
+        #security-tabs {
+            margin-bottom: 15px;
+        }
+        
+        #security-tabs .layui-tab-title {
+            border-bottom: 1px solid #e6e6e6;
+        }
+        
+        #security-tabs .layui-tab-title li {
+            padding: 0 15px;
+        }
+        
+        #security-tabs .layui-tab-title .layui-this {
+            color: #009688;
+        }
+        
+        .security-badge-dot {
+            position: relative;
+            top: -5px;
+            margin-left: 5px;
+        }
     </style>
     </head>
 <body>
@@ -88,9 +111,6 @@
             <ul class="layui-nav layui-nav-tree">
                 <li class="layui-nav-item layui-nav-itemed layui-this">
                     <a href="javascript:;">标的分析</a>
-                    <dl class="layui-nav-child" id="security" lay-filter="security">
-                        <dd><a href="javascript:;">loading...</a></dd>
-                    </dl>
                 </li>
                 <li class="layui-nav-item"><a href="order.html">策略订单</a></li>
                 <li class="layui-nav-item"><a href="income.html">账户收益</a></li>
@@ -105,6 +125,18 @@
         <div style="padding: 15px;">
             <input type="hidden" id="owner"/>
             <div class="layui-form">
+                <!-- 标的Tab选项卡 -->
+                <div class="layui-form-item">
+                    <div class="layui-tab layui-tab-brief" lay-filter="security-tabs" id="security-tabs">
+                        <ul class="layui-tab-title" id="security">
+                            <li>加载中...</li>
+                        </ul>
+                        <div class="layui-tab-content">
+                            <!-- 内容将由JS动态加载 -->
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="layui-form-item">
                     <div class="layui-inline">
                         <label class="layui-form-label">交易验证码</label>
@@ -182,25 +214,22 @@
     <br/>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('VIX',{{= JSON.stringify(d.vixIndicator.vixHistory) }},'line')"
-               title="VIX历史走势">
-                <i class="layui-icon layui-icon-link"></i>VIX: {{= d.vixIndicator&&d.vixIndicator.currentVix?d.vixIndicator.currentVix.value:0 }}
+            <a href="javascript:;" onclick="showChart('VIX',{{= JSON.stringify(d.vixIndicator.vixHistory) }},'line')">
+               <i class="layui-icon layui-icon-link"></i>VIX: {{= d.vixIndicator&&d.vixIndicator.currentVix?d.vixIndicator.currentVix.value:0 }}
             </a>
         </b>
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('SP500',{{= JSON.stringify(d.vixIndicator.sp500History) }},'line')"
-               title="标普500历史走势">
-                <i class="layui-icon layui-icon-link"></i>SP500: {{= d.vixIndicator&&d.vixIndicator.currentSp500?d.vixIndicator.currentSp500.value:0 }}
+            <a href="javascript:;" onclick="showChart('SP500',{{= JSON.stringify(d.vixIndicator.sp500History) }},'line')">
+               <i class="layui-icon layui-icon-link"></i>SP500: {{= d.vixIndicator&&d.vixIndicator.currentSp500?d.vixIndicator.currentSp500.value:0 }}
             </a>
         </b>
     </span>
     <span class="layui-badge">
         <b class="layui-font-16">
-            <a href="javascript:;" onclick="showChart('RSI',{{= JSON.stringify(d.stockIndicator.indicatorMap.rsi) }},'line')"
-               title="RSI">
-                <i class="layui-icon layui-icon-link"></i>RSI: {{= d.stockIndicator.indicatorMap.rsi?d.stockIndicator.indicatorMap.rsi[0].value:0 }}
+            <a href="javascript:;" onclick="showChart('RSI',{{= JSON.stringify(d.stockIndicator.indicatorMap.rsi) }},'line')">
+               <i class="layui-icon layui-icon-link"></i>RSI: {{= d.stockIndicator.indicatorMap.rsi?d.stockIndicator.indicatorMap.rsi[0].value:0 }}
             </a>
         </b>
     </span>
@@ -228,7 +257,7 @@
                         backgroundColor: 'rgba(54, 162, 235, 0.2)'
                     }
                 }
-            })" title="MACD指标">
+            })">
                 <i class="layui-icon layui-icon-link"></i>MACD: {{= d.stockIndicator.indicatorMap.macd?d.stockIndicator.indicatorMap.macd[0].value:0 }}
             </a>
         </b>
@@ -254,7 +283,7 @@
                         backgroundColor: 'rgba(54, 162, 235, 0.2)'
                     }
                 }
-            })" title="EMA(5 20 50)">
+            })">
                 <i class="layui-icon layui-icon-link"></i>EMA: {{= d.stockIndicator.indicatorMap.ema5?d.stockIndicator.indicatorMap.ema5[0].value:0 }}
                 {{= d.stockIndicator.indicatorMap.ema20?d.stockIndicator.indicatorMap.ema20[0].value:0 }}
                 {{= d.stockIndicator.indicatorMap.ema50?d.stockIndicator.indicatorMap.ema50[0].value:0 }}
@@ -282,7 +311,7 @@
                         backgroundColor: 'rgba(54, 162, 235, 0.2)'
                     }
                 }
-            })" title="BOLL(下轨 中轨 上轨)">
+            })">
                 <i class="layui-icon layui-icon-link"></i>BOLL:
                 {{= d.stockIndicator.indicatorMap.boll_lower?d.stockIndicator.indicatorMap.boll_lower[0].value:0 }}
                 {{= d.stockIndicator.indicatorMap.boll_middle?d.stockIndicator.indicatorMap.boll_middle[0].value:0 }}

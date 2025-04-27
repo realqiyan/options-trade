@@ -594,91 +594,124 @@ function reloadData(){
         currentOwnerData = response.data;
         $("#owner").val(currentOwnerData.owner);
 
-        var output = document.getElementById("security");
-        output.innerHTML = "";
-        for(var i=0; i<currentOwnerData.securityList.length; i++) {
-            var obj = currentOwnerData.securityList[i];
-            var unexercisedCount = obj.unexercisedOrders ? obj.unexercisedOrders.length : 0;
-            var redDot = unexercisedCount > 0 ? 
-                '<span class="layui-badge-dot layui-bg-red unexercised-dot" style="margin-left: 5px;" data-orders=\'' + JSON.stringify(obj.unexercisedOrders) + '\'></span>' : '';
-            output.innerHTML += '<dd onclick="loadOptionsExpDate(\'' + obj.code + '\',\'' + obj.market + '\')"><a href="javascript:;">' + obj.name + obj.code + redDot + '</a></dd>';
-        }
-        render();
-        
-        // 添加鼠标悬停事件
-        $('.unexercised-dot').each(function() {
-            var $dot = $(this);
-            var orders = JSON.parse($dot.attr('data-orders'));
+        // 使用layui tab
+        layui.use(['element', 'util'], function(){
+            var element = layui.element;
+            var util = layui.util;
+            var $ = layui.jquery;
             
-            // 处理订单数据，解析ext字段
-            orders = orders.map(order => {
-                try {
-                    if (order.ext) {
-                        let sourceOptions = null;
-                        if (typeof order.ext.sourceOptions === 'string') {
-                            try {
-                                sourceOptions = JSON.parse(order.ext.sourceOptions);
-                            } catch (e) {
-                                console.error('解析sourceOptions字符串失败:', e);
-                            }
-                        } else if (typeof order.ext.sourceOptions === 'object') {
-                            sourceOptions = order.ext.sourceOptions;
-                        }
-                        
-                        // 计算剩余天数
-                        const strikeDate = new Date(order.strikeTime);
-                        const today = new Date();
-                        const curDTE = Math.ceil((strikeDate - today) / (1000 * 60 * 60 * 24));
-                        
-                        return {
-                            ...order,
-                            ext: {
-                                ...order.ext,
-                                curDTE: curDTE
-                            }
-                        };
-                    }
-                    return order;
-                } catch (e) {
-                    console.error('处理订单数据失败:', e);
-                    return order;
+            // 清空标的列表
+            var securityTab = $("#security");
+            securityTab.empty();
+            
+            // 添加标的列表到Tab
+            for(var i=0; i<currentOwnerData.securityList.length; i++) {
+                var obj = currentOwnerData.securityList[i];
+                var unexercisedCount = obj.unexercisedOrders ? obj.unexercisedOrders.length : 0;
+                var redDot = unexercisedCount > 0 ? 
+                    '<span class="layui-badge-dot layui-bg-red security-badge-dot" data-orders=\'' + JSON.stringify(obj.unexercisedOrders) + '\'></span>' : '';
+                
+                // 添加Tab标签
+                securityTab.append('<li lay-id="' + obj.code + '" data-code="' + obj.code + '" data-market="' + obj.market + '">' + obj.name + obj.code + redDot + '</li>');
+            }
+            
+            // 渲染Tab
+            element.render('tab');
+            
+            // 绑定Tab点击事件
+            element.on('tab(security-tabs)', function(){
+                var code = $(this).attr('data-code');
+                var market = $(this).attr('data-market');
+                if(code && market) {
+                    loadOptionsExpDate(code, market);
                 }
             });
             
-            layui.use(['layer', 'laytpl'], function(){
-                var layer = layui.layer;
-                var laytpl = layui.laytpl;
+            // 默认选中第一个标的
+            if(currentOwnerData.securityList.length > 0) {
+                var firstSecurity = currentOwnerData.securityList[0];
+                // 需要延迟执行，确保Tab已经渲染完成
+                setTimeout(function() {
+                    // 手动加载第一个标的的数据
+                    loadOptionsExpDate(firstSecurity.code, firstSecurity.market);
+                }, 100);
+            }
+            
+            // 添加鼠标悬停事件
+            $('.security-badge-dot').each(function() {
+                var $dot = $(this);
+                var orders = JSON.parse($dot.attr('data-orders'));
                 
-                $dot.hover(function(e){
-                    // 使用模板渲染未行权期权信息
-                    laytpl(unexercisedOrders.innerHTML).render(orders, function(html){
-                        layer.open({
-                            type: 1,
-                            title: '未行权期权信息',
-                            shade: 0,
-                            offset: [e.pageY + 10, e.pageX + 10],
-                            area: ['400px'],
-                            skin: 'layui-layer-molv',
-                            content: html,
-                            success: function(layero, index){
-                                // 当鼠标离开弹出层和红点时关闭
-                                $(layero).add($dot).one('mouseleave', function(){
-                                    setTimeout(function(){
-                                        if(!$(layero).is(':hover') && !$dot.is(':hover')){
-                                            layer.close(index);
-                                        }
-                                    }, 100);
-                                });
+                // 处理订单数据，解析ext字段
+                orders = orders.map(order => {
+                    try {
+                        if (order.ext) {
+                            let sourceOptions = null;
+                            if (typeof order.ext.sourceOptions === 'string') {
+                                try {
+                                    sourceOptions = JSON.parse(order.ext.sourceOptions);
+                                } catch (e) {
+                                    console.error('解析sourceOptions字符串失败:', e);
+                                }
+                            } else if (typeof order.ext.sourceOptions === 'object') {
+                                sourceOptions = order.ext.sourceOptions;
                             }
-                        });
-                    });
-                }, function(){
-                    // 鼠标离开红点时，不立即关闭，让用户有机会移动到弹出层上
-                    setTimeout(function(){
-                        if(!$('.layui-layer').is(':hover')){
-                            layer.closeAll();
+                            
+                            // 计算剩余天数
+                            const strikeDate = new Date(order.strikeTime);
+                            const today = new Date();
+                            const curDTE = Math.ceil((strikeDate - today) / (1000 * 60 * 60 * 24));
+                            
+                            return {
+                                ...order,
+                                ext: {
+                                    ...order.ext,
+                                    curDTE: curDTE
+                                }
+                            };
                         }
-                    }, 100);
+                        return order;
+                    } catch (e) {
+                        console.error('处理订单数据失败:', e);
+                        return order;
+                    }
+                });
+                
+                layui.use(['layer', 'laytpl'], function(){
+                    var layer = layui.layer;
+                    var laytpl = layui.laytpl;
+                    
+                    $dot.hover(function(e){
+                        // 使用模板渲染未行权期权信息
+                        laytpl(unexercisedOrders.innerHTML).render(orders, function(html){
+                            layer.open({
+                                type: 1,
+                                title: '未行权期权信息',
+                                shade: 0,
+                                offset: [e.pageY + 10, e.pageX + 10],
+                                area: ['400px'],
+                                skin: 'layui-layer-molv',
+                                content: html,
+                                success: function(layero, index){
+                                    // 当鼠标离开弹出层和红点时关闭
+                                    $(layero).add($dot).one('mouseleave', function(){
+                                        setTimeout(function(){
+                                            if(!$(layero).is(':hover') && !$dot.is(':hover')){
+                                                layer.close(index);
+                                            }
+                                        }, 100);
+                                    });
+                                }
+                            });
+                        });
+                    }, function(){
+                        // 鼠标离开红点时，不立即关闭，让用户有机会移动到弹出层上
+                        setTimeout(function(){
+                            if(!$('.layui-layer').is(':hover')){
+                                layer.closeAll();
+                            }
+                        }, 100);
+                    });
                 });
             });
         });
