@@ -654,6 +654,57 @@
         @keyframes spin {
             to {transform: rotate(360deg);}
         }
+        
+        /* 设置表单样式 */
+        .setting-form {
+            padding: 20px;
+            background-color: var(--bg-light);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+        
+        .setting-form .layui-form-label {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .setting-form .layui-textarea {
+            min-height: 120px;
+            background-color: #fff;
+            border-color: var(--border-color);
+            transition: all var(--transition-normal) ease;
+        }
+        
+        .setting-form .layui-textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
+        }
+        
+        /* 滑块样式 */
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        
+        .slider-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        /* 设置按钮样式 */
+        #save-settings-btn {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        #save-settings-btn:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
     </style>
 </head>
 <body>
@@ -727,6 +778,7 @@
                             <div class="layui-tab layui-tab-brief chat-tabs" lay-filter="chat-tabs">
                                 <ul class="layui-tab-title">
                                     <li class="layui-this">聊天对话</li>
+                                    <li>设置</li>
                                 </ul>
                                 <div class="layui-tab-content">
                                     <!-- 聊天对话内容 -->
@@ -736,6 +788,35 @@
                                             <div class="empty-state">
                                                 <i class="layui-icon layui-icon-dialogue"></i>
                                                 <p>选择一个历史会话或开始新对话</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 设置内容 -->
+                                    <div class="layui-tab-item">
+                                        <div class="layui-form setting-form">
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">系统提示词</label>
+                                                <div class="layui-input-block">
+                                                    <textarea id="system-prompt" placeholder="设置AI助手的系统提示词，定制其行为和知识范围" class="layui-textarea" rows="6"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">创造性</label>
+                                                <div class="layui-input-block">
+                                                    <div id="temperature-slider"></div>
+                                                    <div class="slider-labels">
+                                                        <span class="slider-min">精确</span>
+                                                        <span class="slider-value">0.3</span>
+                                                        <span class="slider-max">创造</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="layui-form-item">
+                                                <div class="layui-input-block">
+                                                    <button type="button" class="layui-btn" id="save-settings-btn">保存设置</button>
+                                                    <button type="button" class="layui-btn layui-btn-primary" id="reset-settings-btn">重置默认</button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

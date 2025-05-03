@@ -16,6 +16,12 @@ layui.use(['layer', 'form', 'util'], function() {
             this.isTyping = false;
             this.currentMessage = {};
             
+            // 默认设置
+            this.settings = {
+                systemPrompt: "",
+                temperature: 0.1
+            };
+            
             // DOM元素缓存
             this.elements = {
                 chatHistory: document.getElementById('chat-history'),
@@ -29,7 +35,10 @@ layui.use(['layer', 'form', 'util'], function() {
                 newChatBtn: document.getElementById('new-chat-btn'),
                 saveTitleBtn: document.getElementById('save-title-btn'),
                 toggleHistoryBtn: document.getElementById('toggle-history-btn'),
-                titleActions: document.getElementById('title-actions')
+                titleActions: document.getElementById('title-actions'),
+                systemPrompt: document.getElementById('system-prompt'),
+                saveSettingsBtn: document.getElementById('save-settings-btn'),
+                resetSettingsBtn: document.getElementById('reset-settings-btn')
             };
             
             // 初始化应用
@@ -42,6 +51,8 @@ layui.use(['layer', 'form', 'util'], function() {
         init() {
             this.initEventSource();
             this.loadChatSessions();
+            this.loadSettings();
+            this.initSlider();
             this.bindEvents();
             this.loadPrompt();
             
@@ -133,6 +144,12 @@ layui.use(['layer', 'form', 'util'], function() {
             
             // 切换历史记录显示/隐藏
             this.elements.toggleHistoryBtn.addEventListener('click', () => this.toggleHistoryVisibility());
+            
+            // 保存AI设置
+            this.elements.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+            
+            // 重置AI设置
+            this.elements.resetSettingsBtn.addEventListener('click', () => this.resetSettings());
             
             // 按Enter键发送消息
             this.elements.chatInput.addEventListener('keydown', (e) => {
@@ -775,6 +792,139 @@ layui.use(['layer', 'form', 'util'], function() {
             .catch(error => {
                 console.error('Error:', error);
                 layer.msg('会话删除失败');
+            });
+        }
+        
+        /**
+         * 加载设置
+         */
+        loadSettings() {
+            // 从localStorage加载设置
+            const savedSettings = localStorage.getItem('ai_settings');
+            if (savedSettings) {
+                try {
+                    const parsedSettings = JSON.parse(savedSettings);
+                    this.settings = { ...this.settings, ...parsedSettings };
+                } catch (e) {
+                    console.error('解析设置失败:', e);
+                }
+            }
+            
+            // 设置UI元素的值
+            if (this.elements.systemPrompt) {
+                this.elements.systemPrompt.value = this.settings.systemPrompt || '';
+            }
+        }
+        
+        /**
+         * 初始化温度滑块
+         */
+        initSlider() {
+            // 使用layui的slider组件
+            layui.use('slider', () => {
+                const slider = layui.slider;
+                
+                // 创建滑块
+                this.temperatureSlider = slider.render({
+                    elem: '#temperature-slider',
+                    min: 0,
+                    max: 1,
+                    step: 0.1,
+                    value: this.settings.temperature,
+                    change: (value) => {
+                        this.settings.temperature = value;
+                        document.querySelector('.slider-value').textContent = value.toFixed(1);
+                    }
+                });
+                
+                // 初始化显示值
+                document.querySelector('.slider-value').textContent = this.settings.temperature.toFixed(1);
+            });
+        }
+        
+        /**
+         * 保存AI设置
+         */
+        saveSettings() {
+            // 获取系统提示词
+            const systemPrompt = this.elements.systemPrompt.value.trim();
+            
+            // 更新设置
+            this.settings.systemPrompt = systemPrompt;
+            
+            // 保存到localStorage
+            localStorage.setItem('ai_settings', JSON.stringify(this.settings));
+            
+            // 发送请求保存到服务器
+            fetch('/ai/settings/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    systemPrompt: this.settings.systemPrompt,
+                    temperature: this.settings.temperature
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    layer.msg('设置保存成功');
+                } else {
+                    layer.msg('设置保存失败: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                layer.msg('设置保存失败，但已保存到本地');
+            });
+        }
+        
+        /**
+         * 重置AI设置
+         */
+        resetSettings() {
+            // 默认设置
+            const defaultSettings = {
+                systemPrompt: "",
+                temperature: 0.1
+            };
+            
+            // 确认重置
+            layer.confirm('确定要重置为默认设置吗？', {
+                btn: ['确定', '取消']
+            }, () => {
+                // 更新设置
+                this.settings = { ...defaultSettings };
+                
+                // 更新UI
+                this.elements.systemPrompt.value = this.settings.systemPrompt;
+                this.temperatureSlider.setValue(this.settings.temperature);
+                
+                // 保存到localStorage
+                localStorage.setItem('ai_settings', JSON.stringify(this.settings));
+                
+                // 发送请求保存到服务器
+                fetch('/ai/settings/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        systemPrompt: this.settings.systemPrompt,
+                        temperature: this.settings.temperature
+                    })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        layer.msg('设置已重置为默认值');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    layer.msg('设置已在本地重置，但服务器保存失败');
+                });
             });
         }
     }

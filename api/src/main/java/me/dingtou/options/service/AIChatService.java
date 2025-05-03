@@ -60,4 +60,14 @@ public interface AIChatService {
      * @return 是否成功
      */
     boolean updateSessionTitle(String owner, String sessionId, String title);
+
+    /**
+     * 更新AI设置
+     *
+     * @param owner        所有者
+     * @param systemPrompt 系统提示词
+     * @param temperature  温度参数
+     * @return 是否成功
+     */
+    boolean updateSettings(String owner, String systemPrompt, Double temperature);
 }

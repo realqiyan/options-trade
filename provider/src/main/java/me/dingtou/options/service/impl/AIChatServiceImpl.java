@@ -5,6 +5,8 @@ import java.util.function.Function;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import me.dingtou.options.constant.AccountExt;
+import me.dingtou.options.dao.OwnerAccountDAO;
 import me.dingtou.options.dao.OwnerChatRecordDAO;
 import me.dingtou.options.manager.ChatManager;
 import me.dingtou.options.manager.OwnerManager;
@@ -27,6 +29,8 @@ public class AIChatServiceImpl implements AIChatService {
     private ChatManager chatManager;
     @Autowired
     private OwnerManager ownerManager;
+    @Autowired
+    private OwnerAccountDAO ownerAccountDAO;
 
     @Override
     public void chat(String owner, String sessionId, String title, List<Message> messages,
@@ -119,5 +123,22 @@ public class AIChatServiceImpl implements AIChatService {
                 .set(OwnerChatRecord::getTitle, title);
 
         return ownerChatRecordDAO.update(null, wrapper) > 0;
+    }
+
+    @Override
+    public boolean updateSettings(String owner, String systemPrompt, Double temperature) {
+        // 查询用户账号
+        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
+        if (ownerAccount == null) {
+            return false;
+        }
+        
+        // 更新AI设置
+        ownerAccount.setExtValue(AccountExt.AI_SYSTEM_PROMPT, systemPrompt);
+        ownerAccount.setExtValue(AccountExt.AI_API_TEMPERATURE, String.valueOf(temperature));
+        
+        // 保存到数据库
+        int rows = ownerAccountDAO.updateById(ownerAccount);
+        return rows > 0;
     }
 }

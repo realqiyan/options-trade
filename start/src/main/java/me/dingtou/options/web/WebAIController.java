@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.Map;
 
 /**
  * AI 控制器
@@ -49,8 +50,8 @@ public class WebAIController {
     /**
      * 聊天
      *
-     * @param requestId requestId
-     * @param message   message
+     * @param requestId 请求ID
+     * @param message   消息内容
      * @param title     标题（可选，股票+策略）
      * @return WebResult
      */
@@ -224,6 +225,41 @@ public class WebAIController {
         } catch (Exception e) {
             log.error("更新会话标题失败", e);
             return WebResult.failure("更新会话标题失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 更新AI设置
+     *
+     * @param systemPrompt 系统提示词
+     * @param temperature  温度参数
+     * @return WebResult
+     */
+    @PostMapping("/ai/settings/update")
+    public WebResult<Boolean> updateAISettings(@RequestBody Map<String, Object> params) {
+        try {
+            String owner = SessionUtils.getCurrentOwner();
+            String systemPrompt = params.get("systemPrompt") != null
+                    ? params.get("systemPrompt").toString()
+                    : null;
+            Double temperature = params.get("temperature") != null
+                    ? Double.parseDouble(params.get("temperature").toString())
+                    : null;
+
+            if (temperature == null) {
+                return WebResult.failure("temperature参数不能为空");
+            }
+
+            // 温度参数范围检查
+            if (temperature < 0 || temperature > 1) {
+                return WebResult.failure("温度参数必须在0-1之间");
+            }
+
+            boolean result = aiChatService.updateSettings(owner, systemPrompt, temperature);
+            return WebResult.success(result);
+        } catch (Exception e) {
+            log.error("更新AI设置失败", e);
+            return WebResult.failure("更新AI设置失败: " + e.getMessage());
         }
     }
 
