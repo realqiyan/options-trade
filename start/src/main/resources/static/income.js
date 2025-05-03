@@ -144,9 +144,9 @@ function renderOrderTable(orderList){
             }
           },
           {field: 'strikePrice', title: '行权价', width: 80},
-          {field: 'curDTE', title: '到期天数', width: 100},
+          {field: 'curDTE', title: '剩余/天', width: 100, sort: true},
           {field: 'side', title: '类型', width: 80},
-          {field: 'quantity', title: '数量', width: 80},
+          {field: 'quantity', title: '合约数', width: 80},
           {field: 'statusStr', title: '状态', width: 100},
           {field: 'price', title: '价格', width: 80},
           {field: 'totalIncome', title: '收入', width: 80},
@@ -176,6 +176,7 @@ function renderOrderTable(orderList){
           field: 'tradeTime',
           type: 'asc'
         },
+        sort: true,
         page: false,
         limits: [100, 200, 500],
         limit: 100,
