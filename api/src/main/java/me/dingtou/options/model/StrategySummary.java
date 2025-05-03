@@ -34,6 +34,11 @@ public class StrategySummary {
     private BigDecimal strategyTheta;
 
     /**
+     * 策略方向(-100->0->100) 100=100%看多，-100=100%看空
+     */
+    private BigDecimal strategyDirection;
+
+    /**
      * 总手续费
      */
     private BigDecimal totalFee;

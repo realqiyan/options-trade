@@ -58,7 +58,11 @@
 
 </div>
 <script id="summary" type="text/html">
-    <h4 class="layui-bg-gray">{{ d.strategy.strategyName }} | <b>${{ d.allOptionsIncome }}</b> <b style="color: red;"> (Delta:{{ d.strategyDelta }}｜Gamma:{{ d.strategyGamma }}｜Theta:{{ d.strategyTheta }}) </b></h4>
+    <h4 class="layui-bg-gray">
+        {{ d.strategy.strategyName }} | <b>${{ d.allOptionsIncome }}</b> 
+        <b style="color: red;"> (Delta:{{ d.strategyDelta }}｜Gamma:{{ d.strategyGamma }}｜Theta:{{ d.strategyTheta }}) </b>
+        <span class="layui-badge layui-font-16">持股多空:{{ d.strategyDirection }}%</span>
+    </h4>
     <ul class="layui-font-12">
         <li>
             <span class="layui-badge layui-bg-blue">

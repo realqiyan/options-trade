@@ -99,8 +99,8 @@ public class SummaryServiceImpl implements SummaryService {
                     .filter(OwnerOrder::isOptionsOrder)
                     .filter(order -> OrderStatus.of(order.getStatus()).isValid())
                     .forEach(order -> {
-                        order.setExtValue(OrderExt.STRATEGY_ID,strategySummary.getStrategy().getStrategyId());
-                        order.setExtValue(OrderExt.STRATEGY_NAME,strategySummary.getStrategy().getStrategyName());
+                        order.setExtValue(OrderExt.STRATEGY_ID, strategySummary.getStrategy().getStrategyId());
+                        order.setExtValue(OrderExt.STRATEGY_NAME, strategySummary.getStrategy().getStrategyName());
                         unrealizedOrders.add(order);
                     });
 
@@ -420,8 +420,18 @@ public class SummaryServiceImpl implements SummaryService {
         }
         // 股票Delta
         BigDecimal stockDelta = BigDecimal.valueOf(holdStockNum).divide(lotSize, 4, RoundingMode.HALF_UP);
+
         // 策略Delta
-        summary.setStrategyDelta(stockDelta.add(optionsDelta));
+        BigDecimal strategyDelta = stockDelta.add(optionsDelta);
+        summary.setStrategyDelta(strategyDelta);
+
+        // 多空方向：strategyDelta/(持股数量/lotSize)
+        BigDecimal holdNum = BigDecimal.valueOf(holdStockNum).divide(lotSize, 4, RoundingMode.HALF_UP);
+        BigDecimal strategyDirection = (holdStockNum == 0)
+                ? BigDecimal.ZERO
+                : strategyDelta.divide(holdNum, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+        summary.setStrategyDirection(strategyDirection);
+
         // 策略Gamma(未平仓期权Gamma)
         summary.setStrategyGamma(optionsGamma);
         // 策略Theta(未平仓期权Theta)
