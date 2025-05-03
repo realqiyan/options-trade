@@ -102,7 +102,7 @@ public class ChatManager {
         StringBuilder finalContent = new StringBuilder();
 
         // 如果系统提示词为空，使用默认提示词
-        String systemPrompt = AccountExtUtils.getAiSystemPrompt(account);
+        String systemPrompt = AccountExtUtils.getSystemPrompt(account);
         if (StringUtils.isBlank(systemPrompt)) {
             systemPrompt = SYSTEM_PROMPT_TEMPLATE;
         }

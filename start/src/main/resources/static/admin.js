@@ -741,8 +741,8 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         $('#ai_base_url').val(data.ext.ai_base_url || 'https://dashscope.aliyuncs.com/compatible-mode/v1');
                         $('#ai_api_model').val(data.ext.ai_api_model || 'deepseek-r1');
                         $('#ai_api_key').val(data.ext.ai_api_key || '');
-                        $('#ai_api_temperature').val(data.ext.ai_api_temperature || '1.0');
-                        $('#ai_system_prompt').val(data.ext.ai_system_prompt || '你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。');
+                        $('#ai_api_temperature').val(data.ext.ai_api_temperature || '0.3');
+                        $('#ai_system_prompt').val(data.ext.ai_system_prompt || '');
                         
                         // 设置分析配置
                         $('#kline_period').val(data.ext.kline_period || 'WEEK');

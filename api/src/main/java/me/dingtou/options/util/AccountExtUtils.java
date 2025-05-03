@@ -108,11 +108,11 @@ public class AccountExtUtils {
      * @param account 账户对象
      * @return AI系统提示词
      */
-    public static String getAiSystemPrompt(OwnerAccount account) {
+    public static String getSystemPrompt(OwnerAccount account) {
         if (account == null) {
-            return "你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。";
+            return null;
         }
-        return account.getExtValue(AccountExt.AI_SYSTEM_PROMPT, "你是一个专业的期权交易助手，可以帮助用户分析期权交易策略和市场行情。");
+        return account.getExtValue(AccountExt.AI_SYSTEM_PROMPT, null);
     }
     
     /**
