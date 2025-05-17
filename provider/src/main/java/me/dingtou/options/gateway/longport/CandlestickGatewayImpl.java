@@ -3,6 +3,8 @@ package me.dingtou.options.gateway.longport;
 import com.longport.quote.AdjustType;
 import com.longport.quote.Period;
 import com.longport.quote.QuoteContext;
+import com.longport.quote.TradeSessions;
+
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.CandlestickAdjustType;
 import me.dingtou.options.constant.CandlestickPeriod;
@@ -42,7 +44,7 @@ public class CandlestickGatewayImpl extends BaseLongPortGateway implements Candl
                 case NO_ADJUST -> AdjustType.NoAdjust;
             };
             CompletableFuture<com.longport.quote.Candlestick[]> completableFuture = ctx
-                    .getCandlesticks(security.toString(), queryPeriod, count, queryAdjustType);
+                    .getCandlesticks(security.toString(), queryPeriod, count, queryAdjustType, TradeSessions.All);
             com.longport.quote.Candlestick[] candlesticks = completableFuture.get(10, TimeUnit.SECONDS);
             for (com.longport.quote.Candlestick candlestick : candlesticks) {
                 if (null == candlestick) {
