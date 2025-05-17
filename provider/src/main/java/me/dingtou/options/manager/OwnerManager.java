@@ -241,18 +241,20 @@ public class OwnerManager {
         }
 
         for (OwnerOrder ownerOrder : ownerOrders) {
-            if (OwnerOrder.isOptionsOrder(ownerOrder)) {
-                // 订单收益
-                BigDecimal totalIncome = OwnerOrder.income(ownerOrder);
-                ownerOrder.setExtValue(OrderExt.TOTAL_INCOME, totalIncome);
-            }
 
             // 订单是否平仓
             boolean currentOrderClose = OwnerOrder.isClose(ownerOrder);
             Boolean isClose = currentOrderClose || orderClose.getOrDefault(ownerOrder.getCode(), false);
             ownerOrder.setExtValue(OrderExt.IS_CLOSE, isClose);
 
+            // 订单标的类型 （Call、Put、Stock）
+            ownerOrder.setExtValue(OrderExt.CODE_TYPE, OwnerOrder.codeType(ownerOrder));
+
             if (OwnerOrder.isOptionsOrder(ownerOrder)) {
+                // 订单收益
+                BigDecimal totalIncome = OwnerOrder.income(ownerOrder);
+                ownerOrder.setExtValue(OrderExt.TOTAL_INCOME, totalIncome);
+
                 // 计算期权到期日ownerOrder.getStrikeTime()和now的间隔天数
                 long daysToExpiration = OwnerOrder.dte(ownerOrder);
                 ownerOrder.setExtValue(OrderExt.CUR_DTE, daysToExpiration);

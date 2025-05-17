@@ -216,6 +216,24 @@ public class OwnerOrder implements Cloneable {
     }
 
     /**
+     * 获取订单类型
+     * 
+     * @param order 订单对象
+     * @return 订单类型代码，可能的值为"PUT", "CALL", 或"STOCK"
+     */
+    public static String codeType(OwnerOrder order) {
+        if (isPut(order)) {
+            return "PUT";
+        } else if (isCall(order)) {
+            return "CALL";
+        } else if (isStockOrder(order)) {
+            return "STOCK";
+        } else {
+            return "UNKNOWN";
+        }
+    }
+
+    /**
      * 订单是否未平仓
      * 
      * @param order 订单

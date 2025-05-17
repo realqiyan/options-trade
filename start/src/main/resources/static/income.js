@@ -70,6 +70,7 @@ function renderOrderTable(orderList){
             "statusStr": statusMapping(item.status+''),
             "curDTE": item.ext ? item.ext.curDTE : null,
             "strikePrice": item.ext ? item.ext.strikePrice : null,
+            "codeType": item.ext ? item.ext.codeType : null,
             "isPut": item.ext ? item.ext.isPut : false,
             "isCall": item.ext ? item.ext.isCall : false,
             "totalIncome": item.ext ? item.ext.totalIncome : null,
@@ -137,16 +138,17 @@ function renderOrderTable(orderList){
               return d.ext && d.ext.strategyName ? d.ext.strategyName : '-';
           }},
           {field: 'tradeTime', title: '交易时间', width: 165},
-          {field: 'strikeTime', title: '行权时间', width: 120},
           {field: 'code', title: '期权代码', width: 180},
-          {field: 'underlyingCode', title: '证券代码', width: 150, templet: function(d){
-                return `<span>${d.underlyingCode}</span><b name="stock_${d.market}_${d.underlyingCode}" class="current-price layui-badge"></b>`;
+          {field: 'underlyingCode', title: '证券代码', width: 90},
+          {field: 'strikeTime', title: '行权时间', width: 120},
+          {field: 'codeType', title: '标的类型', width: 90},
+          {field: 'strikePrice', title: '行权价/现价', width: 120, templet: function(d){
+                return `<span>${d.strikePrice}</span><b name="stock_${d.market}_${d.underlyingCode}" class="current-price layui-badge"></b>`;
             }
           },
-          {field: 'strikePrice', title: '行权价', width: 80},
-          {field: 'curDTE', title: '剩余/天', width: 100, sort: true},
           {field: 'side', title: '类型', width: 80},
           {field: 'quantity', title: '合约数', width: 80},
+          {field: 'curDTE', title: '剩余/天', width: 100, sort: true},
           {field: 'statusStr', title: '状态', width: 100},
           {field: 'price', title: '价格', width: 80},
           {field: 'totalIncome', title: '收入', width: 80},

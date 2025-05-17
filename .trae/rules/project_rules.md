@@ -115,9 +115,9 @@
 前端页面位于 @start/src/main/resources/static 目录，主要包括：
 
 1. 核心页面：
-   - @index.html：标的分析页面
+   - @analyze.html：标的分析页面
    - @order.html：订单管理页面
-   - @income.html：账户收益页面
+   - @income.html：账户汇总页面
    - @assistant.html：AI助手页面
    - @admin.html：后台管理页面
    - @sync.html：同步订单页面

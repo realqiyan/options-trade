@@ -79,6 +79,11 @@ public enum OrderExt {
     STRIKE_PRICE("strikePrice", BigDecimal.class),
 
     /**
+     * 标的类型
+     */
+    CODE_TYPE("codeType", String.class),
+
+    /**
      * 是否是认沽订单
      */
     IS_PUT("isPut", Boolean.class),
@@ -123,7 +128,8 @@ public enum OrderExt {
         if (this.getClassType().isAssignableFrom(obj.getClass())) {
             return JSON.toJSONString(obj);
         }
-        throw new IllegalArgumentException("type not match: expected " + this.getClassType().getName() + ", but got " + obj.getClass().getName());
+        throw new IllegalArgumentException(
+                "type not match: expected " + this.getClassType().getName() + ", but got " + obj.getClass().getName());
     }
 
     public Object fromString(String str) {
