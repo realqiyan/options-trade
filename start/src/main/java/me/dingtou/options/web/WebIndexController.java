@@ -20,7 +20,7 @@ public class WebIndexController {
      */
     @GetMapping("/")
     public String index() {
-        return "redirect:summary.html";
+        return "forward:/summary.html";
     }
 
 }
