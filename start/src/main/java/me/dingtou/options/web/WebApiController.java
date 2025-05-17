@@ -210,17 +210,6 @@ public class WebApiController {
         return WebResult.success(order);
     }
 
-    @RequestMapping(value = "/trade/order/draft", method = RequestMethod.GET)
-    public WebResult<List<OwnerOrder>> queryDraftOrder(
-            @RequestParam(value = "password", required = true) String password) throws Exception {
-        String owner = SessionUtils.getCurrentOwner();
-        log.info("query order draft. owner:{}, password:{}", owner, password);
-        if (!authService.auth(owner, password)) {
-            return WebResult.failure("验证码错误");
-        }
-        return WebResult.success(optionsQueryService.queryDraftOrder(owner));
-    }
-
     @RequestMapping(value = "/trade/close", method = RequestMethod.POST)
     public WebResult<OwnerOrder> close(@RequestParam(value = "price", required = true) String price,
             @RequestParam(value = "orderId", required = true) Long orderId,
@@ -248,14 +237,25 @@ public class WebApiController {
     }
 
     @RequestMapping(value = "/trade/sync", method = RequestMethod.GET)
-    public WebResult<Boolean> sync(@RequestParam(value = "password", required = true) String password)
+    public WebResult<Boolean> sync(@RequestParam(value = "password", required = false) String password)
             throws Exception {
         String owner = SessionUtils.getCurrentOwner();
-        log.info("trade sync. owner:{}", owner);
-        if (!authService.auth(owner, password)) {
-            return WebResult.failure("验证码错误");
+        log.info("trade sync. owner:{}, password:{}", owner, password);
+        if (StringUtils.isBlank(owner)) {
+            return WebResult.failure("未登录");
         }
         return WebResult.success(optionsTradeService.sync(owner));
+    }
+
+    @RequestMapping(value = "/trade/order/draft", method = RequestMethod.GET)
+    public WebResult<List<OwnerOrder>> queryDraftOrder(
+            @RequestParam(value = "password", required = false) String password) throws Exception {
+        String owner = SessionUtils.getCurrentOwner();
+        log.info("query order draft. owner:{}, password:{}", owner, password);
+        if (StringUtils.isBlank(owner)) {
+            return WebResult.failure("未登录");
+        }
+        return WebResult.success(optionsQueryService.queryDraftOrder(owner));
     }
 
     @RequestMapping(value = "/trade/update", method = RequestMethod.POST)

@@ -253,7 +253,7 @@ public class OwnerManager {
             if (OwnerOrder.isOptionsOrder(ownerOrder)) {
                 // 订单收益
                 BigDecimal totalIncome = OwnerOrder.income(ownerOrder);
-                ownerOrder.setExtValue(OrderExt.TOTAL_INCOME, totalIncome);
+                ownerOrder.setExtValue(OrderExt.TOTAL_INCOME, NumberUtils.scale(totalIncome));
 
                 // 计算期权到期日ownerOrder.getStrikeTime()和now的间隔天数
                 long daysToExpiration = OwnerOrder.dte(ownerOrder);

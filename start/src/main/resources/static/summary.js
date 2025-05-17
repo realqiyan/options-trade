@@ -150,9 +150,9 @@ function renderOrderTable(orderList){
           {field: 'quantity', title: '合约数', width: 80},
           {field: 'curDTE', title: '剩余/天', width: 100, sort: true},
           {field: 'statusStr', title: '状态', width: 100},
-          {field: 'price', title: '价格', width: 80},
-          {field: 'totalIncome', title: '收入', width: 80},
+          {field: 'price', title: '订单价', width: 80},
           {field: 'curPrice', title: '现价', width: 80},
+          {field: 'totalIncome', title: '总收入', width: 80},
           {field: 'orderFee', title: '订单费用', width: 100},
           {field: 'profitRatio', title: '盈亏', width: 80, templet: function(d){
               return '<span class="' + d.profitRatioClass + '">' + d.profitRatio + '</span>';
