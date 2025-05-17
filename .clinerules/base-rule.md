@@ -117,7 +117,7 @@
 1. 核心页面：
    - @analyze.html：标的分析页面
    - @order.html：订单管理页面
-   - @income.html：账户汇总页面
+   - @summary.html：账户汇总页面
    - @assistant.html：AI助手页面
    - @admin.html：后台管理页面
    - @sync.html：同步订单页面

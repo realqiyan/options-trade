@@ -16,11 +16,11 @@ public class WebIndexController {
 
 
     /**
-     * 默认打开账户汇总income.html
+     * 默认打开账户汇总summary.html
      */
     @GetMapping("/")
     public String index() {
-        return "redirect:/income.html";
+        return "redirect:/summary.html";
     }
 
 }
