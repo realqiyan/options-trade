@@ -296,11 +296,11 @@ function renderTable(result){
           {field: 'side', title: '类型', width: 80},
           {field: 'price', title: '价格', width: 85},
           {field: 'quantity', title: '数量', width: 80},
-          {field: 'groupId', title: '分组收益', width: 120, templet: function(d){
+          {field: 'groupId', title: '分组收益', width: 130, templet: function(d){
               // 分组收益 title修改时需要同步修改done方法中名字，否则合并单元格会失败
-              return `${result.orderGroups[d._groupId].totalIncome}(${result.orderGroups[d._groupId].orderCount}单)`;
+              return `<div title="分组订单数:${result.orderGroups[d._groupId].orderCount}">收益:${result.orderGroups[d._groupId].totalIncome}<br/>费用:${result.orderGroups[d._groupId].totalOrderFee}</div>`;
           }},
-          {field: 'totalIncome', title: '子单收入', width: 100},
+          {field: 'totalIncome', title: '订单收益', width: 100},
           {field: 'orderFee', title: '订单费用', width: 100},
           {field: 'strikeTime', title: '行权时间', width: 120, sort: true},
           {field: 'tradeTime', title: '交易时间', width: 165, sort: true},
