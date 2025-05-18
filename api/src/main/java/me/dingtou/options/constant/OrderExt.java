@@ -1,6 +1,5 @@
 package me.dingtou.options.constant;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import com.alibaba.fastjson.JSON;

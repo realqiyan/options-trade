@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 策略汇总
@@ -97,4 +98,10 @@ public class StrategySummary {
      * 订单列表
      */
     private List<OwnerOrder> strategyOrders;
+
+    /**
+     * 订单分组
+     */
+    private Map<String, OwnerOrderGroup> orderGroups;
+
 }

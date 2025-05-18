@@ -27,6 +27,7 @@ import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
+import me.dingtou.options.model.OwnerOrderGroup;
 import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.model.OwnerSummary;
 import me.dingtou.options.model.Security;
@@ -284,6 +285,31 @@ public class SummaryServiceImpl implements SummaryService {
         // 订单列表
         List<OwnerOrder> ownerOrders = ownerManager.queryStrategyOrder(ownerStrategy);
         summary.setStrategyOrders(ownerOrders);
+
+        // 订单组聚合
+        Map<String, List<OwnerOrder>> groupByPlatformOrderId = ownerOrders.stream()
+                .filter(order -> order.getPlatformOrderId() != null)
+                .collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
+        Map<String,OwnerOrderGroup> orderGroups = new HashMap<>();
+        for (Map.Entry<String, List<OwnerOrder>> entry : groupByPlatformOrderId.entrySet()) {
+            String platformOrderId = entry.getKey();
+            List<OwnerOrder> groupOrders = entry.getValue();
+            // 累计收益
+            BigDecimal totalIncome = groupOrders.stream()
+                    .map(OwnerOrder::income)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            // 累计手续费
+            BigDecimal totalOrderFee = groupOrders.stream()
+                    .map(OwnerOrder::getOrderFee)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            OwnerOrderGroup group = new OwnerOrderGroup();
+            group.setPlatformOrderId(platformOrderId);
+            group.setTotalIncome(totalIncome);
+            group.setTotalOrderFee(totalOrderFee);
+            orderGroups.put(platformOrderId, group);
+        }
+        summary.setOrderGroups(orderGroups);
 
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         // 订单费用
