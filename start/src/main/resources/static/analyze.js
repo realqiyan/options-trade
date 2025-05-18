@@ -311,7 +311,7 @@ function loadOptionsChain(strikeTime){
               {field: 'range', title: '涨跌幅', width: 80},
               {field: 'curPrice', title: '当前价格', width: 110},
               {field: 'sellAnnualYield', title: '年化', width: 80},
-              {title: '交易参考信息', width: 480, templet: '#TPL-table-tradeInfo'},
+              {title: '交易参考信息', width: 500, templet: '#TPL-table-tradeInfo'},
               {field: 'group', title: '分组', width: 80},
               {field: 'options', title: '卖出', width: 80, templet: function(d) {
                   if (d.options) {
