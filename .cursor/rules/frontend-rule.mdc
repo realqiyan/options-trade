@@ -8,7 +8,7 @@ alwaysApply: true
 ## 前端技术栈
 
 该项目前端主要使用以下技术：
-- Layui v2.10.1 作为UI框架
+- Layui v2.11.2 作为UI框架
 - Chart.js 用于图表展示
 - Marked.js 用于Markdown渲染
 
