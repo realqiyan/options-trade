@@ -290,10 +290,14 @@ public class SummaryServiceImpl implements SummaryService {
         Map<String, List<OwnerOrder>> groupByPlatformOrderId = ownerOrders.stream()
                 .filter(order -> order.getPlatformOrderId() != null)
                 .collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
-        Map<String,OwnerOrderGroup> orderGroups = new HashMap<>();
+        Map<String, OwnerOrderGroup> orderGroups = new HashMap<>();
         for (Map.Entry<String, List<OwnerOrder>> entry : groupByPlatformOrderId.entrySet()) {
             String platformOrderId = entry.getKey();
             List<OwnerOrder> groupOrders = entry.getValue();
+            // 只保留多成交单订单
+            if (null == groupOrders || groupOrders.size() <= 1) {
+                continue;
+            }
             // 累计收益
             BigDecimal totalIncome = groupOrders.stream()
                     .map(OwnerOrder::income)
