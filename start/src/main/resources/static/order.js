@@ -231,16 +231,32 @@ function assistant(prompt, title) {
     }
 }
 
-function renderTable(orderList){
+function renderTable(result){
+    var orderList = result.strategyOrders;
     if(!orderList){
         return;
     }
 
+    // 生成分组颜色映射
+    var groupColors = {};
+    var colorIndex = 0;
+    var colors = ['#f2f2f2', '#e6f7ff', '#f6ffed', '#fff7e6', '#f9f0ff'];
+    
     var convertedData = orderList.map(item => {
+        // 获取分组ID，如果没有则使用默认分组
+        var groupId = result.orderGroups[item.platformOrderId]?.groupId || 'default';
+        
+        // 为每个分组分配颜色
+        if(!groupColors[groupId]) {
+            groupColors[groupId] = colors[colorIndex % colors.length];
+            colorIndex++;
+        }
+        
         return {
             "LAY_CHECKED": item.ext && "true" == item.ext.isClose ? false : true,
             "order": JSON.stringify(item),
             "id": item.id,
+            "_groupId": groupId, // 用于样式设置
             "strategyId": item.strategyId,
             "platformOrderId": item.platformOrderId,
             "platformOrderIdEx": item.platformOrderIdEx,
@@ -280,7 +296,10 @@ function renderTable(orderList){
           {field: 'side', title: '类型', width: 80},
           {field: 'price', title: '价格', width: 85},
           {field: 'quantity', title: '数量', width: 80},
-          {field: 'totalIncome', title: '收入', width: 100},
+          {field: 'groupId', title: '分组收益', width: 120, templet: function(d){
+              return `${result.orderGroups[d._groupId].totalIncome}(${result.orderGroups[d._groupId].orderCount}单)`;
+          }},
+          {field: 'totalIncome', title: '子单收入', width: 100},
           {field: 'orderFee', title: '订单费用', width: 100},
           {field: 'strikeTime', title: '行权时间', width: 120, sort: true},
           {field: 'tradeTime', title: '交易时间', width: 165, sort: true},
@@ -296,6 +315,15 @@ function renderTable(orderList){
         data: convertedData,
         toolbar: true,
         lineStyle: 'height: 100%;',
+        done: function(res, curr, count){
+          // 设置分组行样式
+          $('.layui-table-body tr').each(function(){
+            var data = table.cache.result[$(this).data('index')];
+            if(data && data._groupId) {
+              $(this).css('background-color', groupColors[data._groupId]);
+            }
+          });
+        },
         defaultToolbar: [
           'filter', 'exports', 'print'
         ],
@@ -382,7 +410,7 @@ function loadStrategyOrder(strategyId){
                 document.getElementById('title').innerHTML = html;
             });
             
-            renderTable(result.strategyOrders);
+            renderTable(result);
           },
           error: function() {
             layer.msg('获取策略数据失败');

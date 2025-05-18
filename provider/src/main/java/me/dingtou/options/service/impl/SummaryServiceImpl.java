@@ -294,10 +294,6 @@ public class SummaryServiceImpl implements SummaryService {
         for (Map.Entry<String, List<OwnerOrder>> entry : groupByPlatformOrderId.entrySet()) {
             String platformOrderId = entry.getKey();
             List<OwnerOrder> groupOrders = entry.getValue();
-            // 只保留多成交单订单
-            if (null == groupOrders || groupOrders.size() <= 1) {
-                continue;
-            }
             // 累计收益
             BigDecimal totalIncome = groupOrders.stream()
                     .map(OwnerOrder::income)
@@ -307,10 +303,10 @@ public class SummaryServiceImpl implements SummaryService {
                     .map(OwnerOrder::getOrderFee)
                     .filter(Objects::nonNull)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-            OwnerOrderGroup group = new OwnerOrderGroup();
-            group.setPlatformOrderId(platformOrderId);
+            OwnerOrderGroup group = new OwnerOrderGroup(platformOrderId);
             group.setTotalIncome(totalIncome);
             group.setTotalOrderFee(totalOrderFee);
+            group.setOrderCount(groupOrders.size());
             orderGroups.put(platformOrderId, group);
         }
         summary.setOrderGroups(orderGroups);
