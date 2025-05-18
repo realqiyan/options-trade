@@ -37,7 +37,7 @@ public enum OrderExt {
     /**
      * 总收益
      */
-    TOTAL_INCOME("totalIncome", BigDecimal.class),
+    TOTAL_INCOME("totalIncome", String.class),
 
     /**
      * 是否平仓（会计算多订单之间的买卖抵消）
@@ -76,7 +76,7 @@ public enum OrderExt {
     /**
      * 当前行权价
      */
-    STRIKE_PRICE("strikePrice", BigDecimal.class),
+    STRIKE_PRICE("strikePrice", String.class),
 
     /**
      * 标的类型

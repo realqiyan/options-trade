@@ -273,6 +273,9 @@ function renderTable(orderList){
         cols: [[
           {field: 'order', title: '操作', width: 220, templet: '#TPL-orderOp'},
           {field: 'curDTE', title: '关注', width: 50, align: 'center', templet: '#TPL-colorStatus'},
+          {field: 'underlyingCode', title: '标的代码', width: 90, templet: function(d){
+              return `<a href="analyze.html?code=${d.underlyingCode}&market=${d.market}&strikeTime=${d.strikeTime}" class="layui-btn layui-btn-primary layui-btn-xs">${d.underlyingCode}</a>`;
+          }},
           {field: 'code', title: '证券代码', width: 180},
           {field: 'side', title: '类型', width: 80},
           {field: 'price', title: '价格', width: 85},
