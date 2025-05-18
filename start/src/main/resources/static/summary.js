@@ -133,13 +133,15 @@ function renderOrderTable(orderList){
           }},
           {field: 'strategyName', title: '策略名称', width: 150, templet: function(d){
               if (d.ext && d.ext.strategyName && d.ext.strategyId) {
-                  return '<a href="javascript:void(0);" class="strategy-link" data-strategy-id="' + d.ext.strategyId + '">' + d.ext.strategyName + '</a>';
+                  return '<a href="javascript:void(0);" class="strategy-link table-link" data-strategy-id="' + d.ext.strategyId + '">' + d.ext.strategyName + '</a>';
               }
               return d.ext && d.ext.strategyName ? d.ext.strategyName : '-';
           }},
           {field: 'tradeTime', title: '交易时间', width: 165},
           {field: 'code', title: '期权代码', width: 180},
-          {field: 'underlyingCode', title: '证券代码', width: 90},
+          {field: 'underlyingCode', title: '证券代码', width: 90, templet: function(d){
+              return `<a href="analyze.html?code=${d.underlyingCode}&market=${d.market}&strikeTime=${d.strikeTime}" class="table-link">${d.underlyingCode}</a>`;
+          }},
           {field: 'strikeTime', title: '行权时间', width: 120},
           {field: 'codeType', title: '标的类型', width: 90},
           {field: 'strikePrice', title: '行权价/现价', width: 120, templet: function(d){
@@ -575,4 +577,3 @@ function closeSse() {
 window.onbeforeunload = function () {
     closeSse();
 };
-
