@@ -240,7 +240,7 @@ function renderTable(result){
     // 生成分组颜色映射
     var groupColors = {};
     var colorIndex = 0;
-    var colors = ['#f2f2f2', '#e6f7ff', '#f6ffed', '#fff7e6', '#f9f0ff'];
+    var colors = ['#e6f7ff', '#f6ffed'];
     
     var convertedData = orderList.map(item => {
         // 获取分组ID，如果没有则使用默认分组
@@ -297,6 +297,7 @@ function renderTable(result){
           {field: 'price', title: '价格', width: 85},
           {field: 'quantity', title: '数量', width: 80},
           {field: 'groupId', title: '分组收益', width: 120, templet: function(d){
+              // 分组收益 title修改时需要同步修改done方法中名字，否则合并单元格会失败
               return `${result.orderGroups[d._groupId].totalIncome}(${result.orderGroups[d._groupId].orderCount}单)`;
           }},
           {field: 'totalIncome', title: '子单收入', width: 100},
@@ -323,6 +324,46 @@ function renderTable(result){
               $(this).css('background-color', groupColors[data._groupId]);
             }
           });
+
+          // 动态查找"分组收益"列的索引
+          var groupIncomeColIdx = -1;
+          $('.layui-table-header th').each(function(idx){
+            if ($(this).text().replace(/\s/g, '') === '分组收益') {
+              groupIncomeColIdx = idx;
+            }
+          });
+          if (groupIncomeColIdx === -1) return; // 没找到直接返回
+
+          // 合并_groupId相同的"分组收益"列
+          var $trs = $('.layui-table-body tr');
+          var lastGroupId = null, groupStartIdx = 0, groupCount = 0;
+          $trs.each(function(idx){
+            var data = table.cache.result[$(this).data('index')];
+            var groupId = data ? data._groupId : null;
+            if(groupId !== lastGroupId && lastGroupId !== null){
+              // 合并上一组
+              if(groupCount > 1){
+                var $firstTd = $trs.eq(groupStartIdx).find('td').eq(groupIncomeColIdx);
+                $firstTd.attr('rowspan', groupCount);
+                for(var i=1;i<groupCount;i++){
+                  $trs.eq(groupStartIdx+i).find('td').eq(groupIncomeColIdx).hide();
+                }
+              }
+              groupStartIdx = idx;
+              groupCount = 1;
+            }else{
+              groupCount++;
+            }
+            lastGroupId = groupId;
+          });
+          // 合并最后一组
+          if(groupCount > 1){
+            var $firstTd = $trs.eq(groupStartIdx).find('td').eq(groupIncomeColIdx);
+            $firstTd.attr('rowspan', groupCount);
+            for(var i=1;i<groupCount;i++){
+              $trs.eq(groupStartIdx+i).find('td').eq(groupIncomeColIdx).hide();
+            }
+          }
         },
         defaultToolbar: [
           'filter', 'exports', 'print'
