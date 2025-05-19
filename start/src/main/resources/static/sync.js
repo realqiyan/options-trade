@@ -168,8 +168,12 @@ function update(orders){
             orderIds: orderIds,
           },
           success: function( response ) {
-            layer.msg('执行完成 result:'+ JSON.stringify(response));
-            query();
+            if(response.success){
+                layer.msg('执行完成:' + response.success);
+                query();
+            }else{
+                layer.msg('执行失败:' + response.message);
+            }
           }
         });
 

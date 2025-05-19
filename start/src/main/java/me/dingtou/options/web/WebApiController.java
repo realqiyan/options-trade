@@ -261,15 +261,15 @@ public class WebApiController {
     @RequestMapping(value = "/trade/update", method = RequestMethod.POST)
     public WebResult<Integer> updateOrderStrategy(
             @RequestParam(value = "strategyId", required = true) String strategyId,
-            @RequestParam(value = "orderIds", required = true) List<Long> orderIds,
+            @RequestParam(value = "orderIds", required = false) List<Long> orderIds,
             @RequestParam(value = "password", required = true) String password) throws Exception {
         String owner = SessionUtils.getCurrentOwner();
         log.info("trade update. owner:{}, strategyId:{}, orderIds:{}", owner, strategyId, orderIds);
         if (!authService.auth(owner, password)) {
             return WebResult.failure("验证码错误");
         }
-        if (orderIds.isEmpty()) {
-            return WebResult.success(0);
+        if (null == orderIds || orderIds.isEmpty()) {
+            return WebResult.failure("订单为空");
         }
         return WebResult.success(optionsTradeService.updateOrderStrategy(owner, orderIds, strategyId));
     }
@@ -297,7 +297,8 @@ public class WebApiController {
         if (!authService.auth(owner, password)) {
             return WebResult.failure("验证码错误");
         }
-        return WebResult.success(optionsTradeService.updateOrderStrategy(owner, Collections.singletonList(orderId), strategyId) > 0);
+        return WebResult.success(
+                optionsTradeService.updateOrderStrategy(owner, Collections.singletonList(orderId), strategyId) > 0);
     }
 
 }

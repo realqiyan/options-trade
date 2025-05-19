@@ -112,6 +112,12 @@ public class SummaryServiceImpl implements SummaryService {
         ownerSummary.setAllOptionsIncome(allOptionsIncome);
         ownerSummary.setTotalFee(totalFee);
         ownerSummary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
+        strategySummaries.sort(new Comparator<StrategySummary>() {
+            @Override
+            public int compare(StrategySummary o1, StrategySummary o2) {
+                return o2.getAllOptionsIncome().compareTo(o1.getAllOptionsIncome());
+            }
+        });
         ownerSummary.setStrategySummaries(strategySummaries);
         ownerSummary.setUnrealizedOrders(unrealizedOrders);
         ownerSummary.setAllHoldStockProfit(allHoldStockProfit);
