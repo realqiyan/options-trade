@@ -48,11 +48,12 @@ public class CoveredCallStrategy extends BaseTradeStrategy {
         BigDecimal securityPrice = securityQuote.getLastDone();
         StringBuilder prompt = new StringBuilder();
         prompt.append("我打算长期持有").append(securityQuote.getSecurity().toString())
-                .append("，同时准备通过做CoveredCall对冲组合风险，如果可以顺便赚取部分权利金，组合目标Delta0.25到0.75之间，备选的期权距离到期日")
+                .append("，同时准备通过做CoveredCall对冲组合风险，如果可以顺便赚取部分权利金，整体策略目标Delta0.25到0.75之间，备选的期权距离到期日")
                 .append(optionsChain.dte()).append("天");
         if (null != summary) {
             prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
             prompt.append("，当前持有股数:").append(summary.getHoldStockNum());
+            prompt.append("，当前策略Delta:").append(summary.getStrategyDelta());
         }
         prompt.append("，当前股票价格是").append(securityPrice)
                 .append(null != vixIndicator && null != vixIndicator.getCurrentVix()

@@ -16,6 +16,7 @@ import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.model.StockIndicator;
+import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.strategy.OrderTradeStrategy;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.IndicatorDataFrameUtil;
@@ -26,6 +27,12 @@ import me.dingtou.options.util.IndicatorDataFrameUtil;
  * @author qiyan
  */
 public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
+
+    private StrategySummary summary;
+
+    public DefaultOrderTradeStrategy(StrategySummary summary) {
+        this.summary = summary;
+    }
 
     @Override
     public boolean isSupport(OwnerStrategy strategy) {
@@ -42,6 +49,13 @@ public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         StringBuilder prompt = new StringBuilder();
         String sideName = TradeSide.of(order.getSide()).getName();
+
+        prompt.append("当前使用的策略是").append(summary.getStrategy().getStrategyCode())
+                .append("，策略持股：").append(summary.getHoldStockNum())
+                .append("，平均持股成本：").append(summary.getAverageStockCost())
+                .append("，策略Delta：").append(summary.getStrategyDelta())
+                .append("。\n");
+
         prompt.append("我在").append(dateTimeFormat.format(order.getTradeTime())).append(sideName).append(order.getCode())
                 .append("，行权日期为").append(dateFormat.format(order.getStrikeTime()))
                 .append("，行权价为").append(OwnerOrder.strikePrice(order))
