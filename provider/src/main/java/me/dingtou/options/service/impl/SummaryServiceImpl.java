@@ -450,24 +450,26 @@ public class SummaryServiceImpl implements SummaryService {
             optionsGamma = optionsGamma.add(gamma);
             optionsTheta = optionsTheta.add(theta);
         }
+        // 策略Gamma(未平仓期权Delta)
+        summary.setOptionsDelta(optionsDelta);
+        // 策略Gamma(未平仓期权Gamma)
+        summary.setOptionsGamma(optionsGamma);
+        // 策略Theta(未平仓期权Theta)
+        summary.setOptionsTheta(optionsTheta);
+
         // 股票Delta
-        BigDecimal stockDelta = BigDecimal.valueOf(holdStockNum).divide(lotSize, 4, RoundingMode.HALF_UP);
+        BigDecimal stockDelta = BigDecimal.valueOf(holdStockNum);
 
         // 策略Delta
-        BigDecimal strategyDelta = stockDelta.add(optionsDelta);
+        BigDecimal strategyDelta = stockDelta.add(optionsDelta.multiply(lotSize));
         summary.setStrategyDelta(strategyDelta);
 
         // 多空方向：strategyDelta/(持股数量/lotSize)
-        BigDecimal holdNum = BigDecimal.valueOf(holdStockNum).divide(lotSize, 4, RoundingMode.HALF_UP);
+        BigDecimal holdNum = BigDecimal.valueOf(holdStockNum);
         BigDecimal strategyDirection = (holdStockNum == 0)
                 ? BigDecimal.ZERO
                 : strategyDelta.divide(holdNum, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
         summary.setStrategyDirection(strategyDirection);
-
-        // 策略Gamma(未平仓期权Gamma)
-        summary.setStrategyGamma(optionsGamma);
-        // 策略Theta(未平仓期权Theta)
-        summary.setStrategyTheta(optionsTheta);
 
         // 计算PUT订单保证金占用
         String marginRatioConfig = account.getExtValue(AccountExt.MARGIN_RATIO, null);

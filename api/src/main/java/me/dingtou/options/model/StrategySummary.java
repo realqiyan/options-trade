@@ -25,14 +25,19 @@ public class StrategySummary {
     private BigDecimal strategyDelta;
 
     /**
-     * 策略总体Gamma
+     * 策略总体Options Delta
      */
-    private BigDecimal strategyGamma;
+    private BigDecimal optionsDelta;
 
     /**
-     * 策略总体Theta
+     * 策略总体Options Gamma
      */
-    private BigDecimal strategyTheta;
+    private BigDecimal optionsGamma;
+
+    /**
+     * 策略总体Options Theta
+     */
+    private BigDecimal optionsTheta;
 
     /**
      * 策略方向(-100->0->100) 100=100%看多，-100=100%看空

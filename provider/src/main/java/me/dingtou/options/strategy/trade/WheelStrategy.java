@@ -105,7 +105,7 @@ public class WheelStrategy extends BaseTradeStrategy {
                 .append("距离到期日").append(optionsChain.dte()).append("天的")
                 .append(isSellPutStage ? "看跌期权（Cash-Secured Put）" : "看涨期权（Covered Call）");
         // prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
-        prompt.append("，倾向的Delta范围:0.25-0.35");
+        prompt.append("，倾向的期权Delta范围:0.25-0.35");
         if (isCoveredCallStage && null != finalUnderlyingOrder) {
             prompt.append("，当前指派的股票价格：").append(finalUnderlyingOrder.getPrice());
         }
