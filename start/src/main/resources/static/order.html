@@ -60,7 +60,7 @@
 <script id="summary" type="text/html">
     <h4 class="layui-bg-gray">
         {{ d.strategy.strategyName }} | <b>${{ d.allOptionsIncome }}</b> 
-        <b style="color: red;"> (TotalDelta:{{ d.strategyDelta }}｜Delta:{{ d.optionsDelta }}｜Gamma:{{ d.optionsGamma }}｜Theta:{{ d.optionsTheta }}) </b>
+        <b style="color: red;"> (策略Delta:{{ d.strategyDelta }}｜Delta:{{ d.optionsDelta }}｜Gamma:{{ d.optionsGamma }}｜Theta:{{ d.optionsTheta }}) </b>
         <span class="layui-badge layui-font-16">持股多空:{{ d.strategyDirection }}%</span>
     </h4>
     <ul class="layui-font-12">
@@ -82,7 +82,7 @@
                 策略持有股票:<b>{{ d.holdStockNum }}</b> 
                 | 平均成本:<b>${{ d.averageStockCost }}</b> 
                 | 当前股价:<b>${{ d.currentStockPrice }}</b> 
-                | 股票花费:<b>${{ d.totalStockCost }}</b> 
+                | 股票支出:<b>${{ d.totalStockCost }}</b> 
                 | 股票盈亏:<b>${{ d.holdStockProfit }}</b>
             </span>
         </li>

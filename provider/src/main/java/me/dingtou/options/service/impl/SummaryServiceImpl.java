@@ -356,41 +356,63 @@ public class SummaryServiceImpl implements SummaryService {
 
         // 股票成本
         summary.setTotalStockCost(totalStockCost);
+        // 股票平均成本 = 系统设置 or 股票持有数量 / 股票数量
         BigDecimal averageStockCost = orderHoldStockNum == 0
-                ? BigDecimal.ZERO
+                ? new BigDecimal(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_COST, "0"))
                 : totalStockCost.divide(new BigDecimal(orderHoldStockNum), 4, RoundingMode.HALF_UP);
+
+        // 如果平均成本为0，则使用当前价格
+        if (BigDecimal.ZERO.equals(averageStockCost)) {
+            averageStockCost = lastDone;
+        }
         summary.setAverageStockCost(averageStockCost);
 
         // 初始股票数&成本
         int initialStockNum = Integer.parseInt(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
-        BigDecimal initialStockCost = new BigDecimal(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_COST, "0"));
 
         // 总股票持有数量
         int holdStockNum = initialStockNum + orderHoldStockNum;
         summary.setHoldStockNum(holdStockNum);
 
-        int holdStockNumForProfit = holdStockNum - initialStockNum;
+        int holdStockNumForProfit = holdStockNum;
         // 当初始股票被卖后 holdStockNum 会小于 initialStockNum
         // 当holdStockNumForProfit小于0时，不计算持股收益
         if (holdStockNumForProfit < 0) {
             holdStockNumForProfit = 0;
         }
 
-        // 未设置股票成本总盈亏 = （现价-平均成本） * 持股数量
-        // 股票现价小于股票成本时总盈亏 = （股票成本-平均成本） * 持股数量
+        // 持有股票价格
         BigDecimal holdStockPrice = lastDone;
-        if (initialStockCost.compareTo(lastDone) > 0) {
-            holdStockPrice = initialStockCost;
-        }
-        BigDecimal holdStockProfit = holdStockPrice.subtract(averageStockCost)
-                .multiply(new BigDecimal(holdStockNumForProfit));
-        summary.setHoldStockProfit(holdStockProfit);
 
-        // 期权总金额
+        // 期权订单
         List<OwnerOrder> allOptionsOrders = ownerOrders.stream()
                 .filter(order -> OrderStatus.of(order.getStatus()).isTraded())
                 .filter(OwnerOrder::isOptionsOrder)
                 .toList();
+
+        // 卖空订单
+        List<OwnerOrder> sellCallOrders = allOptionsOrders.stream()
+                .filter(OwnerOrder::isSell)
+                .filter(OwnerOrder::isOpen)
+                .filter(OwnerOrder::isCall)
+                .toList();
+
+        // 计算持股盈利
+        BigDecimal holdStockProfit = BigDecimal.ZERO;
+        BigDecimal holdStockNumForProfitLoop = BigDecimal.valueOf(holdStockNumForProfit);
+        for (OwnerOrder ownerOrder : sellCallOrders) {
+            BigDecimal strikePrice = OwnerOrder.strikePrice(ownerOrder);
+            BigDecimal currLotSize = BigDecimal.valueOf(OwnerOrder.lotSize(ownerOrder));
+            // 卖空订单小于holdStockPrice 并且剩余持有数量大于当前订单的lotSize时
+            if (strikePrice.compareTo(holdStockPrice) <= 0 && holdStockNumForProfitLoop.compareTo(currLotSize) >= 0) {
+                BigDecimal currHoldStockProfit = strikePrice.subtract(averageStockCost).multiply(currLotSize);
+                holdStockProfit = holdStockProfit.add(currHoldStockProfit);
+                holdStockNumForProfitLoop = holdStockNumForProfitLoop.subtract(currLotSize);
+            }
+        }
+        BigDecimal otherHoldStockProfit = holdStockPrice.subtract(averageStockCost).multiply(holdStockNumForProfitLoop);
+        holdStockProfit = holdStockProfit.add(otherHoldStockProfit);
+        summary.setHoldStockProfit(holdStockProfit);
 
         BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
         // 所有期权利润

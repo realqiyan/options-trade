@@ -133,13 +133,9 @@
                     <div class="income-item">
                         <span class="income-label">已扣除手续费:</span>
                         <span class="layui-badge">${{ d.totalFee }}</span>
+                        <br/>
                         <span class="income-label">策略总数:</span>
                         <span class="layui-badge">{{= d.strategySummaries.length}}个</span>
-                        <br/>
-                        <span class="income-label">未到期收入:</span>
-                        <span class="layui-badge">${{= d.unrealizedOptionsIncome}}</span>
-                        <span class="income-label">未到期订单:</span>
-                        <span class="layui-badge">{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span>
                     </div>
                 </div>
             </div>
@@ -201,7 +197,7 @@
                     <div class="layui-colla-title">
                         <span class="layui-badge layui-font-16" style="margin-right: 10px;">持股多空:{{ item.strategyDirection }}%</span>
                         <span class="layui-font-16" style="font-weight: bold; margin-right: 10px;">{{ item.strategy.strategyName }}</span>
-                        <span class="layui-badge layui-font-16"><b style="color: gold;">TotalDelta:{{ item.strategyDelta }}｜Delta:{{ item.optionsDelta }}｜Gamma:{{ item.optionsGamma }}｜Theta:{{ item.optionsTheta }}</b></span>
+                        <span class="layui-badge layui-font-16"><b style="color: gold;">策略Delta:{{ item.strategyDelta }}｜Delta:{{ item.optionsDelta }}｜Gamma:{{ item.optionsGamma }}｜Theta:{{ item.optionsTheta }}</b></span>
 
                         <span style="font-weight: bold;">期权盈利</span>
                         <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.allOptionsIncome }}</span>
@@ -212,7 +208,7 @@
                         <span style="font-weight: bold;">持有股票</span> 
                         <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">{{ item.holdStockNum }}</span>
 
-                        <span style="font-weight: bold;">股票花费</span> 
+                        <span style="font-weight: bold;">股票支出</span> 
                         <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.totalStockCost }} (成本: ${{ item.averageStockCost }})</span>
 
                         <span style="font-weight: bold;">持股盈亏</span> 
@@ -234,7 +230,7 @@
                             <div class="layui-col-md6">
                                 <div class="strategy-item">
                                     <div><span style="font-weight: bold;">策略持有股票:</span> {{ item.holdStockNum }} 股</div>
-                                    <div><span style="font-weight: bold;">策略股票花费:</span> ${{ item.totalStockCost }}</div>
+                                    <div><span style="font-weight: bold;">策略股票支出:</span> ${{ item.totalStockCost }}</div>
                                     <div><span style="font-weight: bold;">平均成本:</span> ${{ item.averageStockCost }}</div>
                                     <div><span style="font-weight: bold;">持股盈亏:</span> ${{ item.holdStockProfit }}</div>
                                 </div>
