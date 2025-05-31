@@ -73,6 +73,7 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal totalFee = BigDecimal.ZERO;
         BigDecimal unrealizedOptionsIncome = BigDecimal.ZERO;
         BigDecimal allHoldStockProfit = BigDecimal.ZERO;
+        BigDecimal allOpenOptionsQuantity = BigDecimal.ZERO;
         BigDecimal allIncome = BigDecimal.ZERO;
 
         List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
@@ -107,11 +108,13 @@ public class SummaryServiceImpl implements SummaryService {
 
             allHoldStockProfit = allHoldStockProfit.add(strategySummary.getHoldStockProfit());
             allIncome = allIncome.add(strategySummary.getAllIncome());
+            allOpenOptionsQuantity = allOpenOptionsQuantity.add(strategySummary.getOpenOptionsQuantity());
         }
 
         ownerSummary.setAllOptionsIncome(allOptionsIncome);
         ownerSummary.setTotalFee(totalFee);
         ownerSummary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
+        ownerSummary.setAllOpenOptionsQuantity(allOpenOptionsQuantity);
         strategySummaries.sort(new Comparator<StrategySummary>() {
             @Override
             public int compare(StrategySummary o1, StrategySummary o2) {
@@ -456,6 +459,7 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal optionsDelta = BigDecimal.ZERO;
         BigDecimal optionsGamma = BigDecimal.ZERO;
         BigDecimal optionsTheta = BigDecimal.ZERO;
+        BigDecimal openOptionsQuantity = BigDecimal.ZERO;
         for (OwnerOrder order : allOpenOptionsOrder) {
             OptionsRealtimeData realtimeData = securityDeltaMap.get(Security.of(order.getCode(), order.getMarket()));
             if (null == realtimeData) {
@@ -464,13 +468,27 @@ public class SummaryServiceImpl implements SummaryService {
             BigDecimal quantity = new BigDecimal(order.getQuantity());
             // 卖出为负 买入为正
             BigDecimal side = new BigDecimal(TradeSide.of(order.getSide()).getSign() * -1);
-            BigDecimal delta = realtimeData.getDelta().multiply(side).multiply(quantity);
+
+            // 深度虚值或深度实值期权的delta API返回可能为0
+            BigDecimal currentDelta = realtimeData.getDelta();
+            if (BigDecimal.ZERO.equals(currentDelta)) {
+                // 深度虚值时Delta设置为0 深度实值时Delta设置为1
+                if (realtimeData.getCurPrice().compareTo(new BigDecimal("0.01")) <= 0) {
+                    currentDelta = BigDecimal.ZERO;
+                } else if (realtimeData.getCurPrice().compareTo(new BigDecimal("1")) > 0) {
+                    currentDelta = BigDecimal.ONE;
+                }
+
+            }
+
+            BigDecimal delta = currentDelta.multiply(side).multiply(quantity);
             BigDecimal gamma = realtimeData.getGamma().multiply(side).multiply(quantity);
             BigDecimal theta = realtimeData.getTheta().multiply(side).multiply(quantity);
 
             optionsDelta = optionsDelta.add(delta);
             optionsGamma = optionsGamma.add(gamma);
             optionsTheta = optionsTheta.add(theta);
+            openOptionsQuantity = openOptionsQuantity.add(quantity);
         }
         // 策略Gamma(未平仓期权Delta)
         summary.setOptionsDelta(optionsDelta);
@@ -478,6 +496,8 @@ public class SummaryServiceImpl implements SummaryService {
         summary.setOptionsGamma(optionsGamma);
         // 策略Theta(未平仓期权Theta)
         summary.setOptionsTheta(optionsTheta);
+        // 策略期权合约数
+        summary.setOpenOptionsQuantity(openOptionsQuantity);
 
         // 股票Delta
         BigDecimal stockDelta = BigDecimal.valueOf(holdStockNum);
@@ -486,12 +506,15 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal strategyDelta = stockDelta.add(optionsDelta.multiply(lotSize));
         summary.setStrategyDelta(strategyDelta);
 
-        // 多空方向：strategyDelta/(持股数量/lotSize)
-        BigDecimal holdNum = BigDecimal.valueOf(holdStockNum);
-        BigDecimal strategyDirection = (holdStockNum == 0)
-                ? BigDecimal.ZERO
-                : strategyDelta.divide(holdNum, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
-        summary.setStrategyDirection(strategyDirection);
+        // avgDelta 未持股直接取期权整体Delta 否则取策略总Delta/持股数
+        BigDecimal avgDelta = BigDecimal.ZERO;
+        if (holdStockNum != 0) {
+            BigDecimal holdStockNumBigDecimal = BigDecimal.valueOf(holdStockNum);
+            avgDelta = strategyDelta.divide(holdStockNumBigDecimal, 2, RoundingMode.HALF_UP);
+        } else if (!BigDecimal.ZERO.equals(openOptionsQuantity)) {
+            avgDelta = optionsDelta.divide(openOptionsQuantity, 2, RoundingMode.HALF_UP);
+        }
+        summary.setAvgDelta(avgDelta);
 
         // 计算PUT订单保证金占用
         String marginRatioConfig = account.getExtValue(AccountExt.MARGIN_RATIO, null);

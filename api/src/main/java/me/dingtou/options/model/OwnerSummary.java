@@ -39,6 +39,11 @@ public class OwnerSummary {
     private BigDecimal unrealizedOptionsIncome;
 
     /**
+     * 所有未到期期权合约数
+     */
+    private BigDecimal allOpenOptionsQuantity;
+
+    /**
      * 策略汇总
      */
     private List<StrategySummary> strategySummaries;

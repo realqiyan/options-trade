@@ -54,7 +54,7 @@ public class CoveredCallStrategy extends BaseTradeStrategy {
             prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
             prompt.append("，当前持有股数:").append(summary.getHoldStockNum());
             prompt.append("，当前策略整体Delta:").append(summary.getStrategyDelta());
-            prompt.append("，策略持仓组合每股Delta:").append(summary.getStrategyDirection().divide(BigDecimal.valueOf(100)));
+            prompt.append("，策略持仓组合每股Delta:").append(summary.getAvgDelta());
         }
         prompt.append("，当前股票价格是").append(securityPrice)
                 .append(null != vixIndicator && null != vixIndicator.getCurrentVix()

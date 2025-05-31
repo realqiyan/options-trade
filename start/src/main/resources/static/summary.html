@@ -134,8 +134,8 @@
                         <span class="income-label">已扣除手续费:</span>
                         <span class="layui-badge">${{ d.totalFee }}</span>
                         <br/>
-                        <span class="income-label">策略总数:</span>
-                        <span class="layui-badge">{{= d.strategySummaries.length}}个</span>
+                        <span class="income-label">未到期合约总数:</span>
+                        <span class="layui-badge">{{= d.allOpenOptionsQuantity}}个</span>
                     </div>
                 </div>
             </div>
@@ -182,31 +182,34 @@
     </div>
 
     <div class="layui-card income-card" style="margin-top: 10px;">
-        <div class="layui-card-header"><b>未平仓期权订单</b> <span class="layui-badge">{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span></div>
+        <div class="income-header">
+            <h3>未平仓期权订单 <span class="layui-badge">{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span></h3>
+        </div>
         <div class="layui-card-body">
             <div id="orderTable"></div>
         </div>
     </div> 
 
     <div class="layui-card income-card" style="margin-top: 10px;">
-        <div class="layui-card-header"><b>策略收益明细</b></div>
+        <div class="income-header">
+            <h3>策略收益明细 <span class="layui-badge">期权净收益：${{ d.allOptionsIncome }}</span></h3>
+        </div>
         <div class="layui-card-body">
             <div class="layui-collapse">
             {{#  layui.each(d.strategySummaries, function(index, item){ }}
                 <div class="layui-colla-item">
                     <div class="layui-colla-title">
-                        <span class="layui-badge layui-font-16" style="margin-right: 10px;">持股多空:{{ item.strategyDirection }}%</span>
+                        <span class="layui-badge layui-font-16" style="margin-right: 10px;">Delta:{{ item.strategyDelta }}｜看多比例:{{ item.avgDelta }}</span>
                         <span class="layui-font-16" style="font-weight: bold; margin-right: 10px;">{{ item.strategy.strategyName }}</span>
-                        <span class="layui-badge layui-font-16"><b style="color: gold;">策略Delta:{{ item.strategyDelta }}｜Delta:{{ item.optionsDelta }}｜Gamma:{{ item.optionsGamma }}｜Theta:{{ item.optionsTheta }}</b></span>
 
                         <span style="font-weight: bold;">期权盈利</span>
                         <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.allOptionsIncome }}</span>
 
-                        <span style="font-weight: bold;">当前股价</span>
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.currentStockPrice }}</span>
-
                         <span style="font-weight: bold;">持有股票</span> 
                         <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">{{ item.holdStockNum }}</span>
+
+                        <span style="font-weight: bold;">当前股价</span>
+                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.currentStockPrice }}</span>
 
                         <span style="font-weight: bold;">股票支出</span> 
                         <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.totalStockCost }} (成本: ${{ item.averageStockCost }})</span>
@@ -222,6 +225,7 @@
                             <div class="layui-col-md6">
                                 <div class="strategy-item">
                                     <div><span style="font-weight: bold;">策略ID:</span> {{ item.strategy.strategyId }} <span style="color: #FF5722;">({{ item.strategy.strategyCode }})</span></div>
+                                    <div><span style="font-weight: bold;">希腊字母:</span> Delta:{{ item.optionsDelta }}｜Gamma:{{ item.optionsGamma }}｜Theta:{{ item.optionsTheta }}</div>
                                     <div><span style="font-weight: bold;">当前股价:</span> ${{ item.currentStockPrice }}</div>
                                     <div><span style="font-weight: bold;">期权已到账收入:</span> ${{ item.allOptionsIncome }} <span style="color: #FF5722;">(已扣除手续费${{ item.totalFee }})</span></div>
                                     <div><span style="font-weight: bold;">期权未到期收入:</span> ${{ item.unrealizedOptionsIncome }}</div>
@@ -251,7 +255,9 @@
     </div>
 
     <div class="layui-card income-card" style="margin-top: 10px;">
-        <div class="layui-card-header"><b>月度期权收益</b> <span class="layui-badge">统计近{{= Object.keys(d.monthlyIncome).length }}个月数据</span></div>
+        <div class="income-header">
+            <h3>月度期权收益 <span class="layui-badge">统计近{{= Object.keys(d.monthlyIncome).length }}个月数据</span></h3>
+        </div>
         <div class="layui-card-body">
             <canvas id="monthlyIncomeChart" height="300" width="100%"></canvas>
         </div>

@@ -39,10 +39,15 @@ public class StrategySummary {
      */
     private BigDecimal optionsTheta;
 
-    /**
-     * 策略方向(-100->0->100) 100=100%看多，-100=100%看空
+     /**
+     * 策略未平仓的持有期权合约数
      */
-    private BigDecimal strategyDirection;
+    private BigDecimal openOptionsQuantity;
+
+    /**
+     * 平均Delta
+     */
+    private BigDecimal avgDelta;
 
     /**
      * 总手续费
