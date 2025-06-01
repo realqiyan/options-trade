@@ -11,6 +11,7 @@ public class TemplateRenderer {
     
     static {
         cfg.setClassLoaderForTemplateLoading(TemplateRenderer.class.getClassLoader(), "templates/strategy");
+        cfg.setDefaultEncoding("UTF-8");
     }
     
     public static String render(String templateName, Map<String, Object> data) {
