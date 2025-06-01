@@ -42,7 +42,7 @@ public class CoveredCallStrategy extends BaseTradeStrategy {
         data.put("vixIndicator", optionsChain.getVixIndicator());
         data.put("currentDate", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         
-        String promptStr = TemplateRenderer.render("covered_call_prompt.ftl", data);
+        String promptStr = TemplateRenderer.render("trade_cc_strategy.ftl", data);
         return new StringBuilder(promptStr);
     }
 

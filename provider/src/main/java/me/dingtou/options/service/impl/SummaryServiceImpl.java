@@ -37,7 +37,7 @@ import me.dingtou.options.model.StrategyExt;
 import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.service.SummaryService;
 import me.dingtou.options.strategy.OrderTradeStrategy;
-import me.dingtou.options.strategy.order.DefaultOrderTradeStrategy;
+import me.dingtou.options.strategy.order.DefaultTradeStrategy;
 
 import org.springframework.util.CollectionUtils;
 
@@ -540,7 +540,7 @@ public class SummaryServiceImpl implements SummaryService {
         }
 
         // 未平仓订单处理策略
-        OrderTradeStrategy defaultOrderTradeStrategy = new DefaultOrderTradeStrategy(summary);
+        OrderTradeStrategy defaultOrderTradeStrategy = new DefaultTradeStrategy(summary);
         for (OwnerOrder order : allOpenOptionsOrder) {
 
             // 查询未平仓订单可以Roll的期权实时数据 [当前行权价格, 当前行权价格-5]

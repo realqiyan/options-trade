@@ -33,11 +33,11 @@ import me.dingtou.options.util.TemplateRenderer;
  * 
  * @author qiyan
  */
-public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
+public class DefaultTradeStrategy implements OrderTradeStrategy {
 
     private StrategySummary summary;
 
-    public DefaultOrderTradeStrategy(StrategySummary summary) {
+    public DefaultTradeStrategy(StrategySummary summary) {
         this.summary = summary;
     }
 
@@ -89,7 +89,7 @@ public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
             data.put("periodName", period.getName());
             data.put("securityQuote", stockIndicator.getSecurityQuote());
 
-            String table = TemplateRenderer.render("recent_candlesticks.ftl", data);
+            String table = TemplateRenderer.render("data_candlesticks.ftl", data);
             prompt.append(table).append("\n");
         }
 
@@ -102,7 +102,7 @@ public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
         indicatorsData.put("periodName", period.getName());
         indicatorsData.put("securityQuote", stockIndicator.getSecurityQuote());
 
-        String indicatorsTable = TemplateRenderer.render("technical_indicators.ftl", indicatorsData);
+        String indicatorsTable = TemplateRenderer.render("data_indicators.ftl", indicatorsData);
         prompt.append(indicatorsTable).append("\n");
 
         String extValue = order.getExtValue(OrderExt.ROLL_OPTIONS);

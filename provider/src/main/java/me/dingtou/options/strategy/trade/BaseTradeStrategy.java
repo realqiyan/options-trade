@@ -123,7 +123,7 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
             headPrompt = new StringBuilder();
         }
 
-        // 生成提示词
+        //  最终提示词
         StringBuilder finalPrompt = finalPrompt(optionsChain, summary);
 
         optionsChain.setPrompt(headPrompt.append(finalPrompt).toString());
@@ -138,6 +138,11 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
     private StringBuilder finalPrompt(OptionsChain optionsChain, StrategySummary summary) {
 
         StringBuilder prompt = new StringBuilder();
+
+        // 策略说明
+        String strategyTemplate = String.format("strategy_%s.ftl", summary.getStrategy().getStrategyCode());
+        String strategyPrompt = TemplateRenderer.render(strategyTemplate, new HashMap<>());
+        prompt.append(strategyPrompt).append("\n");
 
         // AI分析提示词
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
@@ -155,7 +160,7 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
             data.put("periodName", period.getName());
             data.put("securityQuote", stockIndicator.getSecurityQuote());
 
-            String table = TemplateRenderer.render("recent_candlesticks.ftl", data);
+            String table = TemplateRenderer.render("data_candlesticks.ftl", data);
             prompt.append(table).append("\n");
         }
 
@@ -167,7 +172,7 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
         indicatorsData.put("period", dataSize);
         indicatorsData.put("periodName", period.getName());
         indicatorsData.put("securityQuote", stockIndicator.getSecurityQuote());
-        String indicatorsTable = TemplateRenderer.render("technical_indicators.ftl", indicatorsData);
+        String indicatorsTable = TemplateRenderer.render("data_indicators.ftl", indicatorsData);
         prompt.append(indicatorsTable).append("\n");
 
         // 过滤出推荐的数据
@@ -178,7 +183,7 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
         Map<String, Object> optionsData = new HashMap<>();
         optionsData.put("optionsList", recommendedOptions);
 
-        String optionsTable = TemplateRenderer.render("options_contracts.ftl", optionsData);
+        String optionsTable = TemplateRenderer.render("data_options.ftl", optionsData);
         prompt.append(optionsTable);
 
         return prompt;

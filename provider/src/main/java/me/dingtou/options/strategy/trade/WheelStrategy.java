@@ -173,7 +173,7 @@ public class WheelStrategy extends BaseTradeStrategy {
         }
         data.put("finalSellPutAcceptableStrikePrice", sellPutAcceptableStrikePrice);
         
-        String promptStr = TemplateRenderer.render("wheel_prompt.ftl", data);
+        String promptStr = TemplateRenderer.render("trade_wheel_strategy.ftl", data);
         return new StringBuilder(promptStr);
     }
 

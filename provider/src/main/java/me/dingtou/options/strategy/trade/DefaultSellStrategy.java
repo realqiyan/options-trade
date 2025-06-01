@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class SellStrategy extends BaseTradeStrategy {
+public class DefaultSellStrategy extends BaseTradeStrategy {
 
     @Override
     void processData(OwnerAccount account,
@@ -42,7 +42,7 @@ public class SellStrategy extends BaseTradeStrategy {
         data.put("vixIndicator", optionsChain.getVixIndicator());
         data.put("currentDate", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
         
-        String promptStr = TemplateRenderer.render("sell_prompt.ftl", data);
+        String promptStr = TemplateRenderer.render("trade_default.ftl", data);
         return new StringBuilder(promptStr);
     }
 
