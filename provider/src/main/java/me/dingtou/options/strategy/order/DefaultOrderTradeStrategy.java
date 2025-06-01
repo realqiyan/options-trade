@@ -3,7 +3,9 @@ package me.dingtou.options.strategy.order;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.alibaba.fastjson2.JSON;
 
@@ -11,6 +13,7 @@ import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.model.Candlestick;
+import me.dingtou.options.model.IndicatorDataFrame;
 import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
@@ -20,6 +23,7 @@ import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.strategy.OrderTradeStrategy;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.IndicatorDataFrameUtil;
+import me.dingtou.options.util.TemplateRenderer;
 
 /**
  * 默认订单交易策略
@@ -71,37 +75,30 @@ public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
         // 最近K线
         List<Candlestick> candlesticks = stockIndicator.getCandlesticks();
         if (null != candlesticks && !candlesticks.isEmpty()) {
-            prompt.append("## 原始").append(period.getName()).append("K线\n");
             int subListSize = Math.min(candlesticks.size(), 30);
-            candlesticks = candlesticks.subList(candlesticks.size() - subListSize, candlesticks.size());
+            List<Candlestick> recentCandlesticks = candlesticks.subList(candlesticks.size() - subListSize,
+                    candlesticks.size());
 
-            prompt.append("| 日期 ").append("| 开盘价 ").append("| 收盘价 ").append("| 最高价 ").append("| 最低价 ").append("| 成交量 ")
-                    .append("| 成交额 ").append("|\n");
-            prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
-                    .append("| --- ").append("|\n");
+            Map<String, Object> data = new HashMap<>();
+            data.put("candlesticks", recentCandlesticks);
+            data.put("period", subListSize);
+            data.put("periodName", period.getName());
 
-            candlesticks.forEach(candlestick -> {
-                Long timestamp = candlestick.getTimestamp();
-                prompt.append("| ").append(dateFormat.format(new Date(timestamp * 1000)))
-                        .append(" | ").append(candlestick.getOpen())
-                        .append(" | ").append(candlestick.getClose())
-                        .append(" | ").append(candlestick.getHigh())
-                        .append(" | ").append(candlestick.getLow())
-                        .append(" | ").append(candlestick.getVolume())
-                        .append(" | ").append(candlestick.getTurnover())
-                        .append(" |\n");
-            });
-            prompt.append("\n");
+            String table = TemplateRenderer.render("recent_candlesticks.ftl", data);
+            prompt.append(table).append("\n");
         }
 
         int dataSize = 20;
-        prompt.append("### 近").append(dataSize).append(period.getName()).append("技术指标\n");
-
-        // 使用IndicatorDataFrameUtil生成技术指标表格
-        prompt.append(IndicatorDataFrameUtil.createMarkdownTable(stockIndicator, dataSize));
+        // 使用模板渲染技术指标表格
+        IndicatorDataFrame dataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, dataSize);
+        Map<String, Object> indicatorsData = new HashMap<>();
+        indicatorsData.put("dataFrame", dataFrame);
+        indicatorsData.put("period", dataSize);
+        indicatorsData.put("periodName", period.getName());
+        String indicatorsTable = TemplateRenderer.render("technical_indicators.ftl", indicatorsData);
+        prompt.append(indicatorsTable).append("\n");
 
         String extValue = order.getExtValue(OrderExt.ROLL_OPTIONS);
-
         if (null != extValue) {
             List<OptionsRealtimeData> optionsRealtimeDataList = JSON.parseArray(extValue, OptionsRealtimeData.class);
 

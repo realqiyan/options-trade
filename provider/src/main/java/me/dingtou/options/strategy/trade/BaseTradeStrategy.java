@@ -1,11 +1,18 @@
 package me.dingtou.options.strategy.trade;
 
+import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.model.*;
 import me.dingtou.options.strategy.OptionsTradeStrategy;
+import me.dingtou.options.util.IndicatorDataFrameUtil;
 import me.dingtou.options.util.NumberUtils;
+import me.dingtou.options.util.TemplateRenderer;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 基础策略
@@ -24,13 +31,24 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
     private static final BigDecimal MAX_DELTA = BigDecimal.valueOf(0.4);
 
     /**
-     * 继续加工
+     * 数据加工
      *
-     * @param account        账户
-     * @param optionsChain   期权链
-     * @param summary        策略信息（可选）
+     * @param account      账户
+     * @param optionsChain 期权链
+     * @param summary      策略信息（可选）
      */
-    abstract void process(OwnerAccount account,
+    abstract void processData(OwnerAccount account,
+            OptionsChain optionsChain,
+            StrategySummary summary);
+
+    /**
+     * 提示词加工 （仅需要处理策略基础提示词，公共数据统一处理）
+     * 
+     * @param account      账户
+     * @param optionsChain 期权链
+     * @param summary      策略信息（可选）
+     */
+    abstract StringBuilder processPrompt(OwnerAccount account,
             OptionsChain optionsChain,
             StrategySummary summary);
 
@@ -93,7 +111,72 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
             strategyData.setRange(calculateRange(strikePrice, securityPrice));
 
         });
-        process(account, optionsChain, summary);
+        // 数据加工
+        processData(account, optionsChain, summary);
+
+        // 提示词加工
+        StringBuilder headPrompt = processPrompt(account, optionsChain, summary);
+        if (null == headPrompt) {
+            headPrompt = new StringBuilder();
+        }
+
+        // 生成提示词
+        StringBuilder finalPrompt = finalPrompt(optionsChain, summary);
+
+        optionsChain.setPrompt(headPrompt.append(finalPrompt).toString());
+    }
+
+    /**
+     * 通用提示信息
+     * 
+     * @param summary
+     * @param optionsChain
+     */
+    private StringBuilder finalPrompt(OptionsChain optionsChain, StrategySummary summary) {
+
+        StringBuilder prompt = new StringBuilder();
+
+        // AI分析提示词
+        StockIndicator stockIndicator = optionsChain.getStockIndicator();
+        CandlestickPeriod period = stockIndicator.getPeriod();
+        // 最近K线
+        List<Candlestick> candlesticks = stockIndicator.getCandlesticks();
+        if (null != candlesticks && !candlesticks.isEmpty()) {
+            int subListSize = Math.min(candlesticks.size(), 30);
+            List<Candlestick> recentCandlesticks = candlesticks.subList(candlesticks.size() - subListSize,
+                    candlesticks.size());
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("candlesticks", recentCandlesticks);
+            data.put("period", subListSize);
+            data.put("periodName", period.getName());
+
+            String table = TemplateRenderer.render("recent_candlesticks.ftl", data);
+            prompt.append(table).append("\n");
+        }
+
+        int dataSize = 20;
+        // 使用模板渲染技术指标表格
+        IndicatorDataFrame dataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, dataSize);
+        Map<String, Object> indicatorsData = new HashMap<>();
+        indicatorsData.put("dataFrame", dataFrame);
+        indicatorsData.put("period", dataSize);
+        indicatorsData.put("periodName", period.getName());
+        String indicatorsTable = TemplateRenderer.render("technical_indicators.ftl", indicatorsData);
+        prompt.append(indicatorsTable).append("\n");
+
+        // 过滤出推荐的数据
+        List<Options> recommendedOptions = optionsChain.getOptionsList().stream()
+                .filter(options -> Boolean.TRUE.equals(options.getStrategyData().getRecommend()))
+                .collect(Collectors.toList());
+
+        Map<String, Object> optionsData = new HashMap<>();
+        optionsData.put("optionsList", recommendedOptions);
+
+        String optionsTable = TemplateRenderer.render("options_contracts.ftl", optionsData);
+        prompt.append(optionsTable);
+
+        return prompt;
     }
 
     /**

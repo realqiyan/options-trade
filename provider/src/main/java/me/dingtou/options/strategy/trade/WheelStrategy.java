@@ -1,11 +1,8 @@
 package me.dingtou.options.strategy.trade;
 
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.constant.IndicatorKey;
 import me.dingtou.options.model.*;
-import me.dingtou.options.util.AccountExtUtils;
-import me.dingtou.options.util.IndicatorDataFrameUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -23,48 +20,19 @@ public class WheelStrategy extends BaseTradeStrategy {
     }
 
     @Override
-    public void process(OwnerAccount account,
+    void processData(OwnerAccount account,
             OptionsChain optionsChain,
             StrategySummary summary) {
-        // 当前策略信息
+
         if (null == summary) {
-            log.warn("策略信息为空，请检查！");
             return;
         }
-
-        CandlestickPeriod period = AccountExtUtils.getKlinePeriod(account);
 
         Integer holdStockNum = summary.getHoldStockNum();
         // 空仓执行sell put 否则执行cc
         boolean isSellPutStage = null == holdStockNum || holdStockNum == 0;
         boolean isCoveredCallStage = !isSellPutStage;
 
-        // 如果是cc阶段，需要找到最近的指派订单
-        OwnerOrder currentUnderlyingOrder = null;
-        if (isCoveredCallStage) {
-            Optional<OwnerOrder> optionalOwnerOrder = summary.getStrategyOrders().stream()
-                    .filter(order -> order.getCode().equals(order.getUnderlyingCode())).findFirst();
-            if (optionalOwnerOrder.isPresent()) {
-                currentUnderlyingOrder = optionalOwnerOrder.get();
-            }
-        }
-        final OwnerOrder finalUnderlyingOrder = currentUnderlyingOrder;
-
-        // 获取sellput可接受的行权价配置
-        BigDecimal sellPutAcceptableStrikePrice = null;
-        if (isSellPutStage && summary.getStrategy() != null) {
-            String sellPutStrikePriceStr = summary.getStrategy()
-                    .getExtValue(StrategyExt.WHEEL_SELLPUT_STRIKE_PRICE, null);
-            if (StringUtils.isNotBlank(sellPutStrikePriceStr)) {
-                try {
-                    sellPutAcceptableStrikePrice = new BigDecimal(sellPutStrikePriceStr);
-                    log.info("车轮策略Sell Put可接受的行权价配置: {}", sellPutAcceptableStrikePrice);
-                } catch (Exception e) {
-                    log.warn("解析车轮策略Sell Put可接受的行权价配置失败: {}", sellPutStrikePriceStr, e);
-                }
-            }
-        }
-        final BigDecimal finalSellPutAcceptableStrikePrice = sellPutAcceptableStrikePrice;
         optionsChain.getOptionsList().forEach(options -> {
             OptionsRealtimeData realtimeData = options.getRealtimeData();
             if (null != realtimeData) {
@@ -92,87 +60,6 @@ public class WheelStrategy extends BaseTradeStrategy {
 
         int tradeLevel = tradeLevel(vixIndicator, stockIndicator);
         optionsChain.setTradeLevel(tradeLevel);
-
-        // AI分析提示词
-        SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-        BigDecimal securityPrice = securityQuote.getLastDone();
-        StringBuilder prompt = new StringBuilder();
-        prompt.append("当前日期是").append(sdf.format(new Date()))
-                .append("，我准备使用车轮策略（WheelStrategy）卖出").append(securityQuote.getSecurity().toString())
-                .append("距离到期日").append(optionsChain.dte()).append("天的")
-                .append(isSellPutStage ? "看跌期权（Cash-Secured Put）" : "看涨期权（Covered Call）");
-        // prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
-        prompt.append("，倾向的期权Delta范围:0.25-0.35");
-        if (isCoveredCallStage && null != finalUnderlyingOrder) {
-            prompt.append("，当前指派的股票价格：").append(finalUnderlyingOrder.getPrice());
-        }
-        if (isSellPutStage && finalSellPutAcceptableStrikePrice != null) {
-            prompt.append("，SellPut可接受最高指派价").append(finalSellPutAcceptableStrikePrice)
-                    .append("，行权价高于").append(finalSellPutAcceptableStrikePrice)
-                    .append("的Put如果风险可控也接受卖出，但是快被指派前需要Rolling");
-            prompt.append("，年化收益率计算公式:(期权权利金*100)/(DTE)*365/股票价格*100");
-        }
-        if (null != summary.getHoldStockNum()) {
-            prompt.append("，当前持有股票数量：").append(summary.getHoldStockNum());
-            // 展示持有股票成本价
-            if (summary.getHoldStockCost() != null && summary.getHoldStockCost().compareTo(BigDecimal.ZERO) > 0) {
-                prompt.append("，持有股票成本价：").append(summary.getHoldStockCost());
-            }
-        }
-        prompt.append("，当前股票价格是").append(securityPrice)
-                .append(null != vixIndicator && null != vixIndicator.getCurrentVix()
-                        ? "，当前VIX指数是" + vixIndicator.getCurrentVix().getValue()
-                        : "")
-                .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我交易建议。\n\n");
-
-        // 最近K线
-        List<Candlestick> candlesticks = stockIndicator.getCandlesticks();
-        if (null != candlesticks && !candlesticks.isEmpty()) {
-            prompt.append("## 原始").append(period.getName()).append("K线\n");
-            int subListSize = Math.min(candlesticks.size(), 30);
-            candlesticks = candlesticks.subList(candlesticks.size() - subListSize, candlesticks.size());
-
-            prompt.append("| 日期 ").append("| 开盘价 ").append("| 收盘价 ").append("| 最高价 ").append("| 最低价 ").append("| 成交量 ")
-                    .append("| 成交额 ").append("|\n");
-            prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
-                    .append("| --- ").append("|\n");
-
-            candlesticks.forEach(candlestick -> {
-                Long timestamp = candlestick.getTimestamp();
-                prompt.append("| ").append(sdf.format(new Date(timestamp * 1000)))
-                        .append(" | ").append(candlestick.getOpen())
-                        .append(" | ").append(candlestick.getClose())
-                        .append(" | ").append(candlestick.getHigh())
-                        .append(" | ").append(candlestick.getLow())
-                        .append(" | ").append(candlestick.getVolume())
-                        .append(" | ").append(candlestick.getTurnover())
-                        .append(" |\n");
-            });
-            prompt.append("\n");
-        }
-
-        int dataSize = 20;
-        prompt.append("### 近").append(dataSize).append(period.getName()).append("技术指标\n");
-
-        // 使用IndicatorDataFrameUtil生成技术指标表格
-        prompt.append(IndicatorDataFrameUtil.createMarkdownTable(stockIndicator, dataSize));
-
-        prompt.append("\n");
-        prompt.append("## 交易标的\n");
-        prompt.append("| 代码 ").append("| 期权类型 ").append("| 行权价 ").append("| 当前价格 ").append("| 隐含波动率 ")
-                .append("| Delta ").append("| Theta ").append("| Gamma ").append("| 未平仓合约数 ").append("| 当天交易量 ")
-                .append("| 预估年化收益率 ").append("| 距离行权价涨跌幅 ").append("| 技术指标状态 ").append("| 购买倾向 ").append("|\n");
-        prompt.append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
-                .append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ").append("| --- ")
-                .append("| --- ").append("| --- ").append("|\n");
-        optionsChain.getOptionsList().forEach(options -> {
-            buildOptionsPrompt(prompt, options);
-        });
-        prompt.append("\n");
-        optionsChain.setPrompt(prompt.toString());
     }
 
     private int tradeLevel(VixIndicator vixIndicator, StockIndicator stockIndicator) {
@@ -231,35 +118,86 @@ public class WheelStrategy extends BaseTradeStrategy {
         return 1;
     }
 
-    private void buildOptionsPrompt(StringBuilder prompt, Options options) {
-        if (Boolean.FALSE.equals(options.getStrategyData().getRecommend())) {
-            return;
+    @Override
+    StringBuilder processPrompt(OwnerAccount account, OptionsChain optionsChain, StrategySummary summary) {
+
+        // 当前策略信息
+        if (null == summary) {
+            log.warn("策略信息为空，请检查！");
+            return null;
         }
 
-        // 技术指标状态评估
-        String techStatus = "中性";
-        BigDecimal delta = options.getRealtimeData().getDelta();
-        if (delta.compareTo(BigDecimal.valueOf(0.35)) > 0) {
-            techStatus = "高Delta风险";
-        } else if (delta.compareTo(BigDecimal.valueOf(0.25)) < 0) {
-            techStatus = "低Delta收益";
-        }
+        Integer holdStockNum = summary.getHoldStockNum();
+        // 空仓执行sell put 否则执行cc
+        boolean isSellPutStage = null == holdStockNum || holdStockNum == 0;
+        boolean isCoveredCallStage = !isSellPutStage;
 
-        prompt.append("| ").append(options.getBasic().getSecurity().getCode())
-                .append(" | ")
-                .append(Integer.valueOf(1).equals(options.getOptionExData().getType()) ? "Call" : "Put")
-                .append(" | ").append(options.getOptionExData().getStrikePrice())
-                .append(" | ").append(options.getRealtimeData().getCurPrice())
-                .append(" | ").append(options.getRealtimeData().getImpliedVolatility())
-                .append(" | ").append(options.getRealtimeData().getDelta())
-                .append(" | ").append(options.getRealtimeData().getTheta())
-                .append(" | ").append(options.getRealtimeData().getGamma())
-                .append(" | ").append(options.getRealtimeData().getOpenInterest())
-                .append(" | ").append(options.getRealtimeData().getVolume())
-                .append(" | ").append(options.getStrategyData().getSellAnnualYield()).append("%")
-                .append(" | ").append(options.getStrategyData().getRange()).append("%")
-                .append(" | ").append(techStatus)
-                .append(" | ").append(options.getStrategyData().getRecommendLevel() <= 1 ? "一般" : "倾向")
-                .append(" |\n");
+        // 如果是cc阶段，需要找到最近的指派订单
+        OwnerOrder currentUnderlyingOrder = null;
+        if (isCoveredCallStage) {
+            Optional<OwnerOrder> optionalOwnerOrder = summary.getStrategyOrders().stream()
+                    .filter(order -> order.getCode().equals(order.getUnderlyingCode())).findFirst();
+            if (optionalOwnerOrder.isPresent()) {
+                currentUnderlyingOrder = optionalOwnerOrder.get();
+            }
+        }
+        final OwnerOrder finalUnderlyingOrder = currentUnderlyingOrder;
+
+        // 获取sellput可接受的行权价配置
+        BigDecimal sellPutAcceptableStrikePrice = null;
+        if (isSellPutStage && summary.getStrategy() != null) {
+            String sellPutStrikePriceStr = summary.getStrategy()
+                    .getExtValue(StrategyExt.WHEEL_SELLPUT_STRIKE_PRICE, null);
+            if (StringUtils.isNotBlank(sellPutStrikePriceStr)) {
+                try {
+                    sellPutAcceptableStrikePrice = new BigDecimal(sellPutStrikePriceStr);
+                    log.info("车轮策略Sell Put可接受的行权价配置: {}", sellPutAcceptableStrikePrice);
+                } catch (Exception e) {
+                    log.warn("解析车轮策略Sell Put可接受的行权价配置失败: {}", sellPutStrikePriceStr, e);
+                }
+            }
+        }
+        final BigDecimal finalSellPutAcceptableStrikePrice = sellPutAcceptableStrikePrice;
+
+        VixIndicator vixIndicator = optionsChain.getVixIndicator();
+        StockIndicator stockIndicator = optionsChain.getStockIndicator();
+
+        // AI分析提示词
+        SecurityQuote securityQuote = stockIndicator.getSecurityQuote();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+        BigDecimal securityPrice = securityQuote.getLastDone();
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("当前日期是").append(sdf.format(new Date()))
+                .append("，我准备使用车轮策略（WheelStrategy）卖出").append(securityQuote.getSecurity().toString())
+                .append("距离到期日").append(optionsChain.dte()).append("天的")
+                .append(isSellPutStage ? "看跌期权（Cash-Secured Put）" : "看涨期权（Covered Call）");
+        // prompt.append("，策略ID:").append(summary.getStrategy().getStrategyId());
+        prompt.append("，倾向的期权Delta范围:0.25-0.35");
+        if (isCoveredCallStage && null != finalUnderlyingOrder) {
+            prompt.append("，当前指派的股票价格：").append(finalUnderlyingOrder.getPrice());
+        }
+        if (isSellPutStage && finalSellPutAcceptableStrikePrice != null) {
+            prompt.append("，SellPut可接受最高指派价").append(finalSellPutAcceptableStrikePrice)
+                    .append("，行权价高于").append(finalSellPutAcceptableStrikePrice)
+                    .append("的Put如果风险可控也接受卖出，但是快被指派前需要Rolling");
+            prompt.append("，年化收益率计算公式:(期权权利金*100)/(DTE)*365/股票价格*100");
+        }
+        if (null != summary.getHoldStockNum()) {
+            prompt.append("，当前持有股票数量：").append(summary.getHoldStockNum());
+            // 展示持有股票成本价
+            if (summary.getHoldStockCost() != null && summary.getHoldStockCost().compareTo(BigDecimal.ZERO) > 0) {
+                prompt.append("，持有股票成本价：").append(summary.getHoldStockCost());
+            }
+        }
+        prompt.append("，当前股票价格是").append(securityPrice)
+                .append(null != vixIndicator && null != vixIndicator.getCurrentVix()
+                        ? "，当前VIX指数是" + vixIndicator.getCurrentVix().getValue()
+                        : "")
+                .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我交易建议。\n\n");
+
+        return prompt;
     }
+
 }
