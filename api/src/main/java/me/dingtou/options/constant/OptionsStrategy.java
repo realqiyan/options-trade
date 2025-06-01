@@ -5,8 +5,10 @@ import lombok.Getter;
 @Getter
 public enum OptionsStrategy {
 
-    CC_Strategy("cc_strategy", "Covered Call Strategy"),
+    CC_STRATEGY("cc_strategy", "Covered Call Strategy"),
+
     WHEEL_STRATEGY("wheel_strategy", "车轮策略(Wheel Strategy)"),
+
     DEFAULT("default", "卖期权策略");
 
     private String code;

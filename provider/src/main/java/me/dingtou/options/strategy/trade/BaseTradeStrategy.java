@@ -123,7 +123,7 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
             headPrompt = new StringBuilder();
         }
 
-        //  最终提示词
+        // 最终提示词
         StringBuilder finalPrompt = finalPrompt(optionsChain, summary);
 
         optionsChain.setPrompt(headPrompt.append(finalPrompt).toString());
@@ -138,7 +138,7 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
     private StringBuilder finalPrompt(OptionsChain optionsChain, StrategySummary summary) {
 
         StringBuilder prompt = new StringBuilder();
-
+        prompt.append("\n");
         // 策略说明
         String strategyTemplate = String.format("strategy_%s.ftl", summary.getStrategy().getStrategyCode());
         String strategyPrompt = TemplateRenderer.render(strategyTemplate, new HashMap<>());

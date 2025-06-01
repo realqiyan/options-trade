@@ -74,6 +74,11 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
                 .append("，当前日期是").append(dateFormat.format(new Date()))
                 .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我当前这笔订单的交易建议。\n\n");
 
+        // 策略说明
+        String strategyTemplate = String.format("strategy_%s.ftl", summary.getStrategy().getStrategyCode());
+        String strategyPrompt = TemplateRenderer.render(strategyTemplate, new HashMap<>());
+        prompt.append(strategyPrompt).append("\n");
+
         CandlestickPeriod period = AccountExtUtils.getKlinePeriod(account);
 
         // 最近K线
