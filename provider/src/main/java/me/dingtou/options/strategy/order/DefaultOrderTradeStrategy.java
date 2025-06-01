@@ -2,14 +2,17 @@ package me.dingtou.options.strategy.order;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.alibaba.fastjson2.JSON;
+import com.google.common.collect.Lists;
 
 import me.dingtou.options.constant.CandlestickPeriod;
+import me.dingtou.options.constant.OptionsStrategy;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.model.Candlestick;
@@ -54,7 +57,8 @@ public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
         StringBuilder prompt = new StringBuilder();
         String sideName = TradeSide.of(order.getSide()).getName();
 
-        prompt.append("当前使用的策略是").append(summary.getStrategy().getStrategyCode())
+        OptionsStrategy strategy = OptionsStrategy.of(summary.getStrategy().getStrategyCode());
+        prompt.append("当前使用的策略是").append(strategy.getName())
                 .append("，策略持股：").append(summary.getHoldStockNum())
                 .append("，平均持股成本：").append(summary.getAverageStockCost())
                 .append("，策略Delta：").append(summary.getStrategyDelta())
@@ -80,9 +84,10 @@ public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
                     candlesticks.size());
 
             Map<String, Object> data = new HashMap<>();
-            data.put("candlesticks", recentCandlesticks);
+            data.put("candlesticks", Lists.reverse(new ArrayList<>(recentCandlesticks)));
             data.put("period", subListSize);
             data.put("periodName", period.getName());
+            data.put("securityQuote", stockIndicator.getSecurityQuote());
 
             String table = TemplateRenderer.render("recent_candlesticks.ftl", data);
             prompt.append(table).append("\n");
@@ -95,6 +100,8 @@ public class DefaultOrderTradeStrategy implements OrderTradeStrategy {
         indicatorsData.put("dataFrame", dataFrame);
         indicatorsData.put("period", dataSize);
         indicatorsData.put("periodName", period.getName());
+        indicatorsData.put("securityQuote", stockIndicator.getSecurityQuote());
+
         String indicatorsTable = TemplateRenderer.render("technical_indicators.ftl", indicatorsData);
         prompt.append(indicatorsTable).append("\n");
 

@@ -9,10 +9,13 @@ import me.dingtou.options.util.TemplateRenderer;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.google.common.collect.Lists;
 
 /**
  * 基础策略
@@ -147,9 +150,10 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
                     candlesticks.size());
 
             Map<String, Object> data = new HashMap<>();
-            data.put("candlesticks", recentCandlesticks);
+            data.put("candlesticks", Lists.reverse(new ArrayList<>(recentCandlesticks)));
             data.put("period", subListSize);
             data.put("periodName", period.getName());
+            data.put("securityQuote", stockIndicator.getSecurityQuote());
 
             String table = TemplateRenderer.render("recent_candlesticks.ftl", data);
             prompt.append(table).append("\n");
@@ -162,6 +166,7 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
         indicatorsData.put("dataFrame", dataFrame);
         indicatorsData.put("period", dataSize);
         indicatorsData.put("periodName", period.getName());
+        indicatorsData.put("securityQuote", stockIndicator.getSecurityQuote());
         String indicatorsTable = TemplateRenderer.render("technical_indicators.ftl", indicatorsData);
         prompt.append(indicatorsTable).append("\n");
 
