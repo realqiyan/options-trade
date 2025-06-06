@@ -95,62 +95,10 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
             List<OptionsRealtimeData> optionsRealtimeDataList = JSON.parseArray(extValue, OptionsRealtimeData.class);
 
             if (null != optionsRealtimeDataList && !optionsRealtimeDataList.isEmpty()) {
-                prompt.append("\n<options>\n");
-                prompt.append("# Roll备选期权列表\n");
-                prompt.append(
-                        "| 期权代码 | 期权类型 | 行权价 | 当前价格 | Delta | Gamma | Theta | Vega | 隐含波动率 | 溢价 | 未平仓数量 | 成交量 |\n");
-                prompt.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n");
-
-                for (OptionsRealtimeData data : optionsRealtimeDataList) {
-                    if (data == null || data.getSecurity() == null) {
-                        continue;
-                    }
-
-                    // 获取期权类型（1为看涨，2为看跌）
-                    String optionType = "未知";
-                    if (data.getSecurity().getCode().contains("C")) {
-                        optionType = "Call";
-                    } else if (data.getSecurity().getCode().contains("P")) {
-                        optionType = "Put";
-                    }
-
-                    // 从期权代码中提取行权价
-                    String strikePrice = "未知";
-                    String code = data.getSecurity().getCode();
-                    int strikeIndex = code.lastIndexOf("C") > code.lastIndexOf("P") ? code.lastIndexOf("C") + 1
-                            : code.lastIndexOf("P") + 1;
-                    if (strikeIndex > 0 && strikeIndex < code.length()) {
-                        strikePrice = code.substring(strikeIndex);
-                        strikePrice = new BigDecimal(strikePrice).divide(new BigDecimal(1000)).toPlainString();
-                    }
-
-                    prompt.append("| ")
-                            .append(data.getSecurity().getCode())
-                            .append(" | ")
-                            .append(optionType)
-                            .append(" | ")
-                            .append(strikePrice)
-                            .append(" | ")
-                            .append(data.getCurPrice() != null ? data.getCurPrice() : "-")
-                            .append(" | ")
-                            .append(data.getDelta() != null ? data.getDelta() : "-")
-                            .append(" | ")
-                            .append(data.getGamma() != null ? data.getGamma() : "-")
-                            .append(" | ")
-                            .append(data.getTheta() != null ? data.getTheta() : "-")
-                            .append(" | ")
-                            .append(data.getVega() != null ? data.getVega() : "-")
-                            .append(" | ")
-                            .append(data.getImpliedVolatility() != null ? data.getImpliedVolatility() + "%" : "-")
-                            .append(" | ")
-                            .append(data.getPremium() != null ? data.getPremium() + "%" : "-")
-                            .append(" | ")
-                            .append(data.getOpenInterest() != null ? data.getOpenInterest() : "-")
-                            .append(" | ")
-                            .append(data.getVolume() != null ? data.getVolume() : "-")
-                            .append(" |\n");
-                }
-                prompt.append("\n</options>\n");
+                Map<String, Object> data = new HashMap<>();
+                data.put("optionsRealtimeDataList", optionsRealtimeDataList);
+                String table = TemplateRenderer.render("data_roll_options.ftl", data);
+                prompt.append(table).append("\n");
             }
         }
 
