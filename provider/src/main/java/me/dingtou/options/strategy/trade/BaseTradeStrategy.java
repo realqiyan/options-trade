@@ -118,15 +118,15 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
         processData(account, optionsChain, summary);
 
         // 提示词加工
-        StringBuilder headPrompt = processPrompt(account, optionsChain, summary);
-        if (null == headPrompt) {
-            headPrompt = new StringBuilder();
+        StringBuilder strategyPrompt = processPrompt(account, optionsChain, summary);
+        if (null == strategyPrompt) {
+            strategyPrompt = new StringBuilder();
         }
 
         // 最终提示词
-        StringBuilder finalPrompt = finalPrompt(optionsChain, summary);
+        StringBuilder dataPrompt = dataPrompt(optionsChain, summary);
 
-        optionsChain.setPrompt(headPrompt.append(finalPrompt).toString());
+        optionsChain.setPrompt(dataPrompt.append(strategyPrompt).toString());
     }
 
     /**
@@ -135,10 +135,8 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
      * @param summary
      * @param optionsChain
      */
-    private StringBuilder finalPrompt(OptionsChain optionsChain, StrategySummary summary) {
-
+    private StringBuilder dataPrompt(OptionsChain optionsChain, StrategySummary summary) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("\n");
         // 策略说明
         if (summary != null && summary.getStrategy() != null) {
             String strategyTemplate = String.format("strategy_%s.ftl", summary.getStrategy().getStrategyCode());

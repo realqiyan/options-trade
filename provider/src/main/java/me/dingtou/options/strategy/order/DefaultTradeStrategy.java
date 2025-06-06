@@ -52,27 +52,7 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
             return;
         }
 
-        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         StringBuilder prompt = new StringBuilder();
-        String sideName = TradeSide.of(order.getSide()).getName();
-
-        OptionsStrategy strategy = OptionsStrategy.of(summary.getStrategy().getStrategyCode());
-        prompt.append("当前使用的策略是").append(strategy.getName())
-                .append("，策略持股：").append(summary.getHoldStockNum())
-                .append("，平均持股成本：").append(summary.getAverageStockCost())
-                .append("，策略Delta：").append(summary.getStrategyDelta())
-                .append("。\n");
-
-        prompt.append("我在").append(dateTimeFormat.format(order.getTradeTime())).append(sideName).append(order.getCode())
-                .append("，行权日期为").append(dateFormat.format(order.getStrikeTime()))
-                .append("，行权价为").append(OwnerOrder.strikePrice(order))
-                .append("，").append(sideName).append("价格为").append(order.getPrice())
-                .append("，").append(sideName).append("数量为").append(order.getQuantity())
-                .append("，当前价格为").append(order.getExtValue(OrderExt.CUR_PRICE))
-                .append("，当前股票价格为").append(stockIndicator.getSecurityQuote().getLastDone())
-                .append("，当前日期是").append(dateFormat.format(new Date()))
-                .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我当前这笔订单的交易建议。\n\n");
 
         // 策略说明
         String strategyTemplate = String.format("strategy_%s.ftl", summary.getStrategy().getStrategyCode());
@@ -115,8 +95,8 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
             List<OptionsRealtimeData> optionsRealtimeDataList = JSON.parseArray(extValue, OptionsRealtimeData.class);
 
             if (null != optionsRealtimeDataList && !optionsRealtimeDataList.isEmpty()) {
-                prompt.append("\n");
-                prompt.append("## Roll备选期权列表\n");
+                prompt.append("\n<options>\n");
+                prompt.append("# Roll备选期权列表\n");
                 prompt.append(
                         "| 期权代码 | 期权类型 | 行权价 | 当前价格 | Delta | Gamma | Theta | Vega | 隐含波动率 | 溢价 | 未平仓数量 | 成交量 |\n");
                 prompt.append("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n");
@@ -170,9 +150,31 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
                             .append(data.getVolume() != null ? data.getVolume() : "-")
                             .append(" |\n");
                 }
-                prompt.append("\n");
+                prompt.append("\n</options>\n");
             }
         }
+
+        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        String sideName = TradeSide.of(order.getSide()).getName();
+
+        OptionsStrategy strategy = OptionsStrategy.of(summary.getStrategy().getStrategyCode());
+        prompt.append("当前使用的策略是").append(strategy.getName())
+                .append("，策略持股：").append(summary.getHoldStockNum())
+                .append("，平均持股成本：").append(summary.getAverageStockCost())
+                .append("，策略Delta：").append(summary.getStrategyDelta())
+                .append("。\n");
+
+        prompt.append("我在").append(dateTimeFormat.format(order.getTradeTime())).append(sideName).append(order.getCode())
+                .append("，行权日期为").append(dateFormat.format(order.getStrikeTime()))
+                .append("，行权价为").append(OwnerOrder.strikePrice(order))
+                .append("，").append(sideName).append("价格为").append(order.getPrice())
+                .append("，").append(sideName).append("数量为").append(order.getQuantity())
+                .append("，当前价格为").append(order.getExtValue(OrderExt.CUR_PRICE))
+                .append("，当前股票价格为").append(stockIndicator.getSecurityQuote().getLastDone())
+                .append("，当前日期是").append(dateFormat.format(new Date()))
+                .append("，接下来我将使用markdown格式给你提供一些信息，你需要根据信息给我当前这笔订单的交易建议。");
 
         order.setExtValue(OrderExt.PROMPT, prompt.toString());
     }
