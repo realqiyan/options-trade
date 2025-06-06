@@ -10,6 +10,8 @@ import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
+import me.dingtou.options.util.ExceptionUtils;
+
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -89,6 +91,7 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
                 getQuoteContext(ownerAccount, true);
             } catch (Exception exception) {
                 log.error("subscribeQuote error. message:{}", exception.getMessage());
+                ExceptionUtils.throwRuntimeException(exception);
             }
         }
 

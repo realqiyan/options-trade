@@ -6,6 +6,7 @@ import com.longport.quote.QuoteContext;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.util.AccountExtUtils;
+import me.dingtou.options.util.ExceptionUtils;
 
 @Slf4j
 public class BaseLongPortGateway {
@@ -28,7 +29,7 @@ public class BaseLongPortGateway {
             }
         } catch (Throwable e) {
             log.error("init longport_java error. message:{}", e.getMessage());
-            throw new RuntimeException(e);
+            ExceptionUtils.throwRuntimeException(e);
         }
         return quoteContext;
     }

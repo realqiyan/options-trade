@@ -140,13 +140,18 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
         StringBuilder prompt = new StringBuilder();
         prompt.append("\n");
         // 策略说明
-        String strategyTemplate = String.format("strategy_%s.ftl", summary.getStrategy().getStrategyCode());
-        String strategyPrompt = TemplateRenderer.render(strategyTemplate, new HashMap<>());
-        prompt.append(strategyPrompt).append("\n");
+        if (summary != null && summary.getStrategy() != null) {
+            String strategyTemplate = String.format("strategy_%s.ftl", summary.getStrategy().getStrategyCode());
+            String strategyPrompt = TemplateRenderer.render(strategyTemplate, new HashMap<>());
+            prompt.append(strategyPrompt).append("\n");
+        }
 
         // AI分析提示词
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
         CandlestickPeriod period = stockIndicator.getPeriod();
+        if (null == period) {
+            period = CandlestickPeriod.DAY;
+        }
         // 最近K线
         List<Candlestick> candlesticks = stockIndicator.getCandlesticks();
         if (null != candlesticks && !candlesticks.isEmpty()) {

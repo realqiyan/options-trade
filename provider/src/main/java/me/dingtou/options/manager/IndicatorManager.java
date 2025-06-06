@@ -50,6 +50,7 @@ import me.dingtou.options.model.StockIndicator;
 import me.dingtou.options.model.StockIndicatorItem;
 import me.dingtou.options.model.SupportPriceIndicator;
 import me.dingtou.options.util.AccountExtUtils;
+import me.dingtou.options.util.ExceptionUtils;
 import me.dingtou.options.util.NumberUtils;
 
 @Slf4j
@@ -161,6 +162,7 @@ public class IndicatorManager {
             });
         } catch (Exception e) {
             log.error("计算股票指标失败", e);
+            ExceptionUtils.throwRuntimeException(e);
             return null;
         }
     }
