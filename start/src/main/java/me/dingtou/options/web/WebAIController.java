@@ -235,6 +235,23 @@ public class WebAIController {
      * @param temperature  温度参数
      * @return WebResult
      */
+    /**
+     * 获取AI设置
+     *
+     * @return WebResult
+     */
+    @GetMapping("/ai/settings")
+    public WebResult<Map<String, Object>> getAISettings() {
+        try {
+            String owner = SessionUtils.getCurrentOwner();
+            Map<String, Object> settings = aiChatService.getSettings(owner);
+            return WebResult.success(settings);
+        } catch (Exception e) {
+            log.error("获取AI设置失败", e);
+            return WebResult.failure("获取AI设置失败: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/ai/settings/update")
     public WebResult<Boolean> updateAISettings(@RequestBody Map<String, Object> params) {
         try {

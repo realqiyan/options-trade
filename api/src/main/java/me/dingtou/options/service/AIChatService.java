@@ -4,6 +4,7 @@ import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.model.Message;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -23,6 +24,14 @@ public interface AIChatService {
      * @param callback  回调
      */
     void chat(String owner, String sessionId, String title, List<Message> messages, Function<Message, Void> callback);
+    
+    /**
+     * 获取AI设置
+     * 
+     * @param owner 所有者
+     * @return 设置键值对（systemPrompt, temperature）
+     */
+    Map<String, Object> getSettings(String owner);
 
     /**
      * 获取用户所有会话列表（GROUP BY后的沟通记录）

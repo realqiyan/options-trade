@@ -14,6 +14,9 @@ import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import me.dingtou.options.util.AccountExtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,28 @@ import me.dingtou.options.service.AIChatService;
 
 @Service
 public class AIChatServiceImpl implements AIChatService {
+
+    @Override
+    public Map<String, Object> getSettings(String owner) {
+        // 查询用户账号
+        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
+        if (ownerAccount == null) {
+            // 返回默认设置
+            Map<String, Object> defaultSettings = new HashMap<>();
+            defaultSettings.put("systemPrompt", "");
+            defaultSettings.put("temperature", 0.1);
+            return defaultSettings;
+        }
+        
+        // 从账号扩展字段中获取设置
+        Map<String, Object> settings = new HashMap<>();
+        settings.put("systemPrompt", ownerAccount.getExtValue(AccountExt.AI_SYSTEM_PROMPT, ""));
+        settings.put("temperature", Double.parseDouble(
+            ownerAccount.getExtValue(AccountExt.AI_API_TEMPERATURE, "0.1")
+        ));
+        
+        return settings;
+    }
 
     @Autowired
     private OwnerChatRecordDAO ownerChatRecordDAO;

@@ -795,27 +795,34 @@ layui.use(['layer', 'form', 'util'], function() {
             });
         }
         
-        /**
-         * 加载设置
-         */
-        loadSettings() {
-            // 从localStorage加载设置
-            const savedSettings = localStorage.getItem('ai_settings');
-            if (savedSettings) {
-                try {
-                    const parsedSettings = JSON.parse(savedSettings);
-                    this.settings = { ...this.settings, ...parsedSettings };
-                } catch (e) {
-                    console.error('解析设置失败:', e);
+    /**
+     * 从服务端加载设置
+     */
+    loadSettings() {
+        // 从服务端获取设置
+        fetch('/ai/settings')
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    this.settings = {
+                        systemPrompt: result.data.systemPrompt || "",
+                        temperature: result.data.temperature || 0.1
+                    };
+                    
+                    // 更新UI
+                    this.elements.systemPrompt.value = this.settings.systemPrompt;
+                    if (this.temperatureSlider) {
+                        this.temperatureSlider.setValue(this.settings.temperature);
+                        document.querySelector('.slider-value').textContent = this.settings.temperature.toFixed(1);
+                    }
+                } else {
+                    console.error('从服务端加载设置失败:', result.message);
                 }
-            }
-            
-            // 设置UI元素的值
-            if (this.elements.systemPrompt) {
-                this.elements.systemPrompt.value = this.settings.systemPrompt || '';
-            }
-        }
-        
+            })
+            .catch(error => {
+                console.error('加载设置失败:', error);
+            });
+    } 
         /**
          * 初始化温度滑块
          */
@@ -841,7 +848,7 @@ layui.use(['layer', 'form', 'util'], function() {
                 document.querySelector('.slider-value').textContent = this.settings.temperature.toFixed(1);
             });
         }
-        
+            
         /**
          * 保存AI设置
          */
@@ -852,10 +859,15 @@ layui.use(['layer', 'form', 'util'], function() {
             // 更新设置
             this.settings.systemPrompt = systemPrompt;
             
-            // 保存到localStorage
+            // 保存到本地和服务端
             localStorage.setItem('ai_settings', JSON.stringify(this.settings));
-            
-            // 发送请求保存到服务器
+            this.saveSettingsToServer();
+        }
+        
+        /**
+         * 将设置保存到服务端
+         */
+        saveSettingsToServer() {
             fetch('/ai/settings/update', {
                 method: 'POST',
                 headers: {
@@ -931,4 +943,4 @@ layui.use(['layer', 'form', 'util'], function() {
     
     // 创建并导出AI聊天应用
     window.aiChatApp = new AIChatApp();
-}); 
+});
