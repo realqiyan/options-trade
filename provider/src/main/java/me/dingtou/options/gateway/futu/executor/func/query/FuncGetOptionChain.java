@@ -7,6 +7,7 @@ import java.util.List;
 import com.alibaba.fastjson.JSON;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionChain;
+import com.futu.openapi.pb.QotGetOptionChain.C2S.Builder;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
@@ -25,11 +26,17 @@ public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
     private final int market;
     private final String code;
     private final String strikeTime;
+    private final boolean isAll;
 
     public FuncGetOptionChain(int market, String code, String strikeTime) {
+        this(market, code, strikeTime, false);
+    }
+
+    public FuncGetOptionChain(int market, String code, String strikeTime, boolean isAll) {
         this.market = market;
         this.code = code;
         this.strikeTime = strikeTime;
+        this.isAll = isAll;
     }
 
     @Override
@@ -40,17 +47,19 @@ public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
                 .setCode(code)
                 .build();
 
-
         QotGetOptionChain.DataFilter.Builder builder = QotGetOptionChain.DataFilter.newBuilder();
         // builder.setDeltaMax(0.800).setDeltaMin(-0.800);
         QotGetOptionChain.DataFilter dataFilter = builder.build();
 
-        QotGetOptionChain.C2S c2s = QotGetOptionChain.C2S.newBuilder()
+        Builder chainBuilder = QotGetOptionChain.C2S.newBuilder();
+        if (!isAll) {
+            chainBuilder.setDataFilter(dataFilter)
+                    .setCondition(QotGetOptionChain.OptionCondType.OptionCondType_Outside_VALUE);
+        }
+        QotGetOptionChain.C2S c2s = chainBuilder
                 .setOwner(sec)
-                .setCondition(QotGetOptionChain.OptionCondType.OptionCondType_Outside_VALUE)
                 .setBeginTime(strikeTime)
                 .setEndTime(strikeTime)
-                .setDataFilter(dataFilter)
                 .build();
 
         QotGetOptionChain.Request req = QotGetOptionChain.Request.newBuilder().setC2S(c2s).build();

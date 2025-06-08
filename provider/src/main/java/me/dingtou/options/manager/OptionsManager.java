@@ -36,6 +36,17 @@ public class OptionsManager {
     }
 
     /**
+     * 查询期权标的
+     * 
+     * @param security   股票
+     * @param strikeDate 期权到期日
+     * @return
+     */
+    public List<Options> queryAllOptions(Security security, String strikeDate) {
+        return optionsChainGateway.queryAllOptions(security, strikeDate);
+    }
+
+    /**
      * 查询期权链
      * 
      * @param ownerAccount 账户

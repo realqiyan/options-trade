@@ -32,6 +32,14 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             .build();
 
     /**
+     * 期权缓存
+     */
+    private static final Cache<String, List<Options>> OPTIONS_LIST_CACHE = CacheBuilder.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build();
+
+    /**
      * 期权链的长度
      */
     private static final int STRIKE_DATE_SIZE = 10;
@@ -63,6 +71,23 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             throw new RuntimeException("get options strike date failed", e);
         }
 
+    }
+
+    @Override
+    public List<Options> queryAllOptions(Security security, String strikeTime) {
+        String key = security.toString() + "_" + strikeTime;
+        try {
+            return OPTIONS_LIST_CACHE.get(key, new Callable<List<Options>>() {
+                @Override
+                public List<Options> call() throws Exception {
+                    return QueryExecutor
+                            .query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime, true));
+                }
+            });
+        } catch (ExecutionException e) {
+            log.error("get all options failed, security: {}", security, e);
+            throw new RuntimeException("get all options failed", e);
+        }
     }
 
     @Override
@@ -115,10 +140,11 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
     public List<OptionsRealtimeData> queryOptionsRealtimeData(List<Security> optionsSecurityList) {
         List<OptionsRealtimeData> optionsRealtimeData = QueryExecutor
                 .query(new FuncGetOptionsRealtimeData(optionsSecurityList));
-        if (null == optionsRealtimeData || optionsRealtimeData.isEmpty()) {
-            log.warn("query options basic info failed, retry");
-            optionsRealtimeData = QueryExecutor.query(new FuncGetOptionsRealtimeData(optionsSecurityList));
-        }
+        // if (null == optionsRealtimeData || optionsRealtimeData.isEmpty()) {
+        // log.warn("query options realtime data failed, retry");
+        // optionsRealtimeData = QueryExecutor.query(new
+        // FuncGetOptionsRealtimeData(optionsSecurityList));
+        // }
         return optionsRealtimeData;
     }
 

@@ -303,7 +303,7 @@ public class OwnerManager {
         }
         List<OptionsRealtimeData> optionsBasicInfo = QueryExecutor.query(new FuncGetOptionsRealtimeData(securityList));
         if (optionsBasicInfo.isEmpty()) {
-            log.warn("query options basic info failed, retry");
+            log.warn("query FuncGetOptionsRealtimeData failed, retry");
             optionsBasicInfo = QueryExecutor.query(new FuncGetOptionsRealtimeData(securityList));
         }
         if (optionsBasicInfo.isEmpty()) {

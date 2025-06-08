@@ -1,5 +1,6 @@
 package me.dingtou.options.gateway;
 
+import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.OptionsStrikeDate;
@@ -22,6 +23,15 @@ public interface OptionsChainGateway {
      * @return 期权到期时间线
      */
     List<OptionsStrikeDate> getOptionsExpDate(Security security);
+
+    /**
+     * 查询期权列表
+     *
+     * @param security   证券
+     * @param strikeTime 行权时间
+     * @return 期权列表
+     */
+    List<Options> queryAllOptions(Security security, String strikeTime);
 
     /**
      * 查询期权链
