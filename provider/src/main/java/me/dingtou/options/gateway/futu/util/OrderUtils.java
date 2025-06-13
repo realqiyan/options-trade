@@ -20,6 +20,8 @@ import me.dingtou.options.model.OwnerSecurity;
 
 @Slf4j
 public class OrderUtils {
+    // BABA241220P830000 BABA1241220P830000
+    private static Pattern CODE_PATTERN = Pattern.compile("^([A-Z0-9]*)([0-9]{6})([CP])([0-9]*)$");
 
     /**
      * 转换富途订单为OwnerOrder
@@ -36,9 +38,7 @@ public class OrderUtils {
             String code = order.getCode();
             Date strikeTime = null;
 
-            String regexStr = "^([A-Z0-9]*)([0-9]{6})([CP])([0-9]*)$";
-            Pattern codePattern = Pattern.compile(regexStr);
-            Matcher matcher = codePattern.matcher(code);
+            Matcher matcher = CODE_PATTERN.matcher(code);
             final String underlyingCode;
             if (!matcher.find()) {
                 underlyingCode = code;
@@ -49,9 +49,10 @@ public class OrderUtils {
                 strikeTime = strikeTimeFormat.parse(matcher.group(2));
             }
 
-            // 检查是否属于目标股票
+            // 检查是否属于目标股票 股票分红后历史期权代码会加编号 例如：BABA1 BABA2
             Optional<OwnerSecurity> securityOptional = owner.getSecurityList().stream()
-                    .filter(security -> security.getCode().equals(underlyingCode))
+                    .filter(security -> security.getCode().equals(underlyingCode)
+                            || Pattern.compile(security.getCode() + "[0-9]").matcher(underlyingCode).matches())
                     .findAny();
             if (securityOptional.isEmpty()) {
                 return null;
@@ -59,7 +60,7 @@ public class OrderUtils {
 
             OwnerOrder ownerOrder = new OwnerOrder();
             ownerOrder.setOwner(owner.getOwner());
-            ownerOrder.setUnderlyingCode(underlyingCode);
+            ownerOrder.setUnderlyingCode(securityOptional.get().getCode());
             ownerOrder.setMarket(owner.getAccount().getMarket());
             ownerOrder.setTradeFrom(TradeFrom.PULL_ORDER.getCode());
 
@@ -144,15 +145,14 @@ public class OrderUtils {
         }
     }
 
-
     /**
      * 解析日期
      * 
      * @param dateStr 日期字符串
      * @return 日期
-     * @throws ParseException 
+     * @throws ParseException
      */
-    private static Date parseDate(String dateStr) throws ParseException {   
+    private static Date parseDate(String dateStr) throws ParseException {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         try {
             return dateFormat.parse(dateStr);
