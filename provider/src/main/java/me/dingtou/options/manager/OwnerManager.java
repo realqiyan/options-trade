@@ -221,7 +221,7 @@ public class OwnerManager {
 
         // 计算提交的交易单是否已经平仓用
         Map<String, List<OwnerOrder>> codeOrdersMap = ownerOrders.stream()
-                .collect(Collectors.groupingBy(OwnerOrder::getCode));
+                .collect(Collectors.groupingBy(OwnerOrder::logicCode));
         Map<String, Boolean> orderClose = new HashMap<>();
         for (Map.Entry<String, List<OwnerOrder>> codeOrders : codeOrdersMap.entrySet()) {
             String code = codeOrders.getKey();
@@ -244,7 +244,7 @@ public class OwnerManager {
 
             // 订单是否平仓
             boolean currentOrderClose = OwnerOrder.isClose(ownerOrder);
-            Boolean isClose = currentOrderClose || orderClose.getOrDefault(ownerOrder.getCode(), false);
+            Boolean isClose = currentOrderClose || orderClose.getOrDefault(ownerOrder.logicCode(), false);
             ownerOrder.setExtValue(OrderExt.IS_CLOSE, isClose);
 
             // 订单标的类型 （Call、Put、Stock）

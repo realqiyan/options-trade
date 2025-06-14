@@ -170,6 +170,30 @@ public class OwnerOrder implements Cloneable {
         }
     }
 
+    /**
+     * 获取订单逻辑编码 解决证券标的因为分红等原因调整代码的问题
+     * 
+     * @return 期权：底层标的+日期期+看涨看跌+行权价 股票：underlyingCode
+     */
+    public String logicCode() {
+        if (!OwnerOrder.isOptionsOrder(this)) {
+            return this.code;
+        }
+        // 格式化到期日为yyMMdd
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMdd");
+        String formattedDate = dateFormat.format(strikeTime);
+
+        // 确定看涨/看跌类型
+        String type = OwnerOrder.isCall(this) ? "C" : "P";
+
+        // 获取行权价并转换为整数（乘以1000）
+        BigDecimal strikePrice = OwnerOrder.strikePrice(this).multiply(BigDecimal.valueOf(1000));
+        String formattedStrikePrice = strikePrice.toBigInteger().toString();
+
+        // 拼接逻辑期权代码：标的代码 + 到期日 + 类型 + 行权价
+        return underlyingCode + formattedDate + type + formattedStrikePrice;
+    }
+
     @Override
     public OwnerOrder clone() {
         try {
