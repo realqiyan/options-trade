@@ -53,4 +53,4 @@ org:
 options-trade:
   default-owner: qiyan
   cookie:
-    maxAgeDays: 90
+    maxAgeDays: 30
