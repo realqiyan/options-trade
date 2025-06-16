@@ -24,8 +24,9 @@ spring:
     suffix: .ftl
     template-loader-path: classpath:/templates/ #comma-separated list
 
-  resources:
-    static-locations: classpath:/static/
+  web:
+    resources:
+      static-locations: classpath:/static/
 
 
   jackson:
@@ -37,9 +38,6 @@ spring:
 #    serialization:
 #      write_bigdecimal_as_plain: true
 
-options-trade:
-  default-owner: qiyan
-
 org:
   jobrunr:
     background-job-server:
@@ -50,3 +48,9 @@ org:
       permanently-delete-deleted-jobs-after: 8760h
     dashboard:
       enabled: true
+
+# 应用自定义配置
+options-trade:
+  default-owner: qiyan
+  cookie:
+    maxAgeDays: 90

@@ -31,9 +31,11 @@ public class LoginFilter implements Filter {
     public static final String JWT = "jwt";
     public static final String OWNER = "owner";
     private final AuthService authService;
+    private final int cookieMaxAgeDays;
 
-    public LoginFilter(AuthService authService) {
+    public LoginFilter(AuthService authService, int cookieMaxAgeDays) {
         this.authService = authService;
+        this.cookieMaxAgeDays = cookieMaxAgeDays;
     }
 
     @Override
@@ -170,20 +172,20 @@ public class LoginFilter implements Filter {
                 .subject(loginInfo.getOwner())
                 .issuedAt(new Date())
                 // 设置过期时间
-                .expiration(new Date(System.currentTimeMillis() + oneDay * 7 * 1000));
+                .expiration(new Date(System.currentTimeMillis() + oneDay * cookieMaxAgeDays * 1000L));
 
         String jwt = builder.compact();
         Cookie jwtCookie = new Cookie(JWT, jwt);
         jwtCookie.setSecure(true);
         jwtCookie.setPath("/");
         jwtCookie.setHttpOnly(true);
-        jwtCookie.setMaxAge(oneDay * 7);
+        jwtCookie.setMaxAge(oneDay * cookieMaxAgeDays);
 
         Cookie ownerCookie = new Cookie(OWNER, loginInfo.getOwner());
         ownerCookie.setSecure(true);
         ownerCookie.setPath("/");
         ownerCookie.setHttpOnly(true);
-        ownerCookie.setMaxAge(oneDay * 7);
+        ownerCookie.setMaxAge(oneDay * cookieMaxAgeDays);
 
         httpResponse.addCookie(jwtCookie);
         httpResponse.addCookie(ownerCookie);

@@ -13,9 +13,12 @@ public class WebConfiguration {
     @Value("${options-trade.default-owner}")
     private String defaultOwner;
 
+    @Value("${options-trade.cookie.maxAgeDays:7}")
+    private int cookieMaxAgeDays;
+
     @Bean
     public LoginFilter loginFilter(AuthService authService) {
-        return new LoginFilter(authService);
+        return new LoginFilter(authService, cookieMaxAgeDays);
     }
 
     @Bean
