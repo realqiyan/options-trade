@@ -28,9 +28,11 @@ import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.OptionsStrikeDate;
+import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerOrderGroup;
+import me.dingtou.options.model.OwnerPosition;
 import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.model.OwnerSummary;
 import me.dingtou.options.model.Security;
@@ -216,6 +218,13 @@ public class SummaryServiceImpl implements SummaryService {
                 order.getExt().put("positionRatio", positionRatio.toString());
             }
         }
+
+        // 获取持仓
+        List<String> stockCodes = strategySummaries.stream()
+                .map(item -> item.getStrategy().getCode())
+                .collect(Collectors.toList());
+        List<OwnerPosition> ownerPositionList = tradeManager.queryOwnerPosition(account, stockCodes);
+        ownerSummary.setPositions(ownerPositionList);
 
         return ownerSummary;
     }

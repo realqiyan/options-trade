@@ -30,6 +30,29 @@ function assistant(prompt, title) {
     }
 }
 
+function renderPositionTable(positions){
+    if(!positions){
+        return;
+    }
+    layui.use(['table'], function () {
+        const table = layui.table;
+        // 初始化表格
+        table.render({
+            elem: '#positionTable',
+            data: positions,
+            cols: [[
+                {field: 'securityCode', title: '代码', width: 220},
+                {field: 'securityName', title: '名称', width: 360},
+                {field: 'quantity', title: '持仓数量', width: 120},
+                {field: 'canSellQty', title: '可卖数量', width: 120},
+                {field: 'costPrice', title: '成本价', width: 120},
+                {field: 'currentPrice', title: '当前价', width: 120}
+            ]]
+        });
+    });
+
+}
+
 function renderOrderTable(orderList){
     if(!orderList){
         return;
@@ -442,6 +465,7 @@ function reloadData(){
         laytpl(getTpl).render(result, function(html){
           view.innerHTML = html;
         });
+        renderPositionTable(result.positions);
         renderOrderTable(result.unrealizedOrders);
 
         // 准备月度收益数据

@@ -8,6 +8,8 @@ import me.dingtou.options.gateway.futu.executor.func.trade.*;
 import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
+import me.dingtou.options.model.OwnerPosition;
+
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -57,5 +59,10 @@ public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
     @Override
     public void subscribeOrderPush(List<Owner> allOwner, Function<OwnerOrder, Void> callback) {
         OrderPushExecutor.submit(allOwner, callback);
+    }
+
+    @Override
+    public List<OwnerPosition> getPosition(OwnerAccount account) {
+        return TradeExecutor.submit(new FuncGetPosition(account));
     }
 }

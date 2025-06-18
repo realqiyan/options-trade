@@ -92,4 +92,9 @@ public class OwnerSummary {
      * 当前投资占用
      */
     private BigDecimal totalInvestment;
+
+    /**
+     * 持仓
+     */
+    private List<OwnerPosition> positions;
 }

@@ -50,7 +50,7 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
             if (!connect) {
                 throw new RuntimeException("initConnect fail");
             }
-            return client.call.result(client.future.get(12, TimeUnit.SECONDS));
+            return client.call.result(client.future.get(30, TimeUnit.SECONDS));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -127,6 +127,11 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
 
     @Override
     public void onReply_GetOrderFee(FTAPI_Conn client, int nSerialNo, TrdGetOrderFee.Response rsp) {
+        handleQotOnReply(rsp);
+    }
+
+    @Override
+    public void onReply_GetPositionList(FTAPI_Conn client, int nSerialNo, TrdGetPositionList.Response rsp) {
         handleQotOnReply(rsp);
     }
 }
