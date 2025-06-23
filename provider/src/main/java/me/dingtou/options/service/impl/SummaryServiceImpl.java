@@ -405,21 +405,33 @@ public class SummaryServiceImpl implements SummaryService {
 
         }
 
+        // 初始股票数&成本
+        int initialStockNum = Integer.parseInt(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
+        BigDecimal initialStockCost = new BigDecimal(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_COST, "0"));
+
         // 股票成本
         summary.setTotalStockCost(totalStockCost);
+
+        BigDecimal averageStockCost = BigDecimal.ZERO;
         // 股票平均成本 = 系统设置 or 股票持有数量 / 股票数量
-        BigDecimal averageStockCost = orderHoldStockNum == 0
-                ? new BigDecimal(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_COST, "0"))
-                : totalStockCost.divide(new BigDecimal(orderHoldStockNum), 4, RoundingMode.HALF_UP);
+        if (orderHoldStockNum == 0) {
+            averageStockCost = initialStockCost;
+        } else {
+            averageStockCost = totalStockCost.divide(new BigDecimal(orderHoldStockNum), 4, RoundingMode.HALF_UP);
+        }
 
         // 如果平均成本为0，则使用当前价格
         if (BigDecimal.ZERO.equals(averageStockCost)) {
             averageStockCost = lastDone;
         }
-        summary.setAverageStockCost(averageStockCost);
 
-        // 初始股票数&成本
-        int initialStockNum = Integer.parseInt(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
+        // 如果交易产生了成本或收益 则往平均成本上累计
+        if (initialStockNum != 0 && !BigDecimal.ZERO.equals(totalStockCost)) {
+            BigDecimal avgCost = totalStockCost.divide(BigDecimal.valueOf(initialStockNum), 4, RoundingMode.HALF_UP);
+            averageStockCost = averageStockCost.add(avgCost);
+        }
+
+        summary.setAverageStockCost(averageStockCost);
 
         // 总股票持有数量
         int holdStockNum = initialStockNum + orderHoldStockNum;
