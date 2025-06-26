@@ -287,7 +287,7 @@ function renderTable(result){
       var inst = table.render({
         elem: '#result',
         cols: [[
-          {field: 'order', title: '操作', width: 220, templet: '#TPL-orderOp'},
+          {field: 'order', title: '操作', width: 280, templet: '#TPL-orderOp'},
           {field: 'curDTE', title: '关注', width: 50, align: 'center', templet: '#TPL-colorStatus'},
           {field: 'underlyingCode', title: '标的代码', width: 90, templet: function(d){
               return `<a href="analyze.html?code=${d.underlyingCode}&market=${d.market}&strikeTime=${d.strikeTime}" class="layui-btn layui-btn-primary layui-btn-xs">${d.underlyingCode}</a>`;
@@ -301,6 +301,9 @@ function renderTable(result){
               return `<div title="分组订单数:${result.orderGroups[d._groupId].orderCount}">收益:${result.orderGroups[d._groupId].totalIncome}<br/>费用:${result.orderGroups[d._groupId].totalOrderFee}</div>`;
           }},
           {field: 'totalIncome', title: '订单收益', width: 100},
+          {field: 'manualIncome', title: '是否修正', width: 100, templet: function(d){
+              return d.ext && d.ext.manualIncome ? '是' : '-';
+          }},
           {field: 'orderFee', title: '订单费用', width: 100},
           {field: 'strikeTime', title: '行权时间', width: 120, sort: true},
           {field: 'tradeTime', title: '交易时间', width: 165, sort: true},
