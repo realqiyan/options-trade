@@ -146,18 +146,9 @@ public class SummaryServiceImpl implements SummaryService {
         for (Map.Entry<String, List<OwnerOrder>> entry : monthOrder.entrySet()) {
             BigDecimal income = entry.getValue().stream()
                     .filter(OwnerOrder::isOptionsOrder)
-                    .filter(OwnerOrder::isTraded)
-                    .map(order -> {
-                        BigDecimal sign = new BigDecimal(TradeSide.of(order.getSide()).getSign());
-                        BigDecimal quantity = new BigDecimal(order.getQuantity());
-                        BigDecimal lotSize = stockLotSizeMap.get(order.getUnderlyingCode());
-                        lotSize = null != lotSize ? lotSize : BigDecimal.valueOf(100);
-                        return order.getPrice()
-                                .multiply(quantity)
-                                .multiply(lotSize)
-                                .multiply(sign)
-                                .subtract(order.getOrderFee());
-                    }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .map(OwnerOrder::income)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
             monthlyIncome.put(entry.getKey(), income);
         }
         ownerSummary.setMonthlyIncome(monthlyIncome);
@@ -482,7 +473,6 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal allOptionsIncome = allOptionsOrders.stream()
                 .map(OwnerOrder::income)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        allOptionsIncome = allOptionsIncome.subtract(totalFee);
         summary.setAllOptionsIncome(allOptionsIncome);
 
         // 所有期权利润会有误差，后续关注交易收入，否则指派后卖出股票和期权时会多计算盈利。
@@ -496,10 +486,8 @@ public class SummaryServiceImpl implements SummaryService {
             BigDecimal principal = initialStockCost.multiply(BigDecimal.valueOf(sellNum));
             allTradeIncome = allTradeIncome.subtract(principal);
         }
-        summary.setAllTradeIncome(allTradeIncome);
-
         // 总收入
-        summary.setAllIncome(allOptionsIncome.add(holdStockProfit));
+        summary.setAllIncome(allTradeIncome);
 
         // 所有未平仓的期权
         List<OwnerOrder> allOpenOptionsOrder = allOptionsOrders.stream()

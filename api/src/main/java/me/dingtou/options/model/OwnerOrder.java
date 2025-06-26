@@ -403,6 +403,9 @@ public class OwnerOrder implements Cloneable {
      * @return 收益
      */
     public static BigDecimal income(OwnerOrder order) {
+        if (!OwnerOrder.isTraded(order)) {
+            return BigDecimal.ZERO;
+        }
         int lotSize = lotSize(order);
         if (OwnerOrder.isStockOrder(order)) {
             lotSize = 1;
