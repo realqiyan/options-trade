@@ -39,7 +39,7 @@ public class StrategySummary {
      */
     private BigDecimal optionsTheta;
 
-     /**
+    /**
      * 策略未平仓的持有期权合约数
      */
     private BigDecimal openOptionsQuantity;
@@ -56,8 +56,15 @@ public class StrategySummary {
 
     /**
      * 期权总收益(已经扣除手续费)
+     * 指派后卖出股票和新的期权后，allOptionsIncome会有偏差。
      */
+    @Deprecated
     private BigDecimal allOptionsIncome;
+
+    /**
+     * 策略所有交易总收益(已经扣除手续+初始化投资)
+     */
+    private BigDecimal allTradeIncome;
 
     /**
      * 总收入（期权总收益+股票盈亏）

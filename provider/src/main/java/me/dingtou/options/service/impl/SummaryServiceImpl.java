@@ -483,8 +483,20 @@ public class SummaryServiceImpl implements SummaryService {
                 .map(OwnerOrder::income)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         allOptionsIncome = allOptionsIncome.subtract(totalFee);
-        // 期权利润
         summary.setAllOptionsIncome(allOptionsIncome);
+
+        // 所有期权利润会有误差，后续关注交易收入，否则指派后卖出股票和期权时会多计算盈利。
+        BigDecimal allTradeIncome = ownerOrders.stream()
+                .map(OwnerOrder::income)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        allTradeIncome = allTradeIncome.subtract(totalFee);
+        if (holdStockNum < initialStockNum) {
+            // 卖掉的初始本金不算盈利
+            int sellNum = initialStockNum - holdStockNum;
+            BigDecimal principal = initialStockCost.multiply(BigDecimal.valueOf(sellNum));
+            allTradeIncome = allTradeIncome.subtract(principal);
+        }
+        summary.setAllTradeIncome(allTradeIncome);
 
         // 总收入
         summary.setAllIncome(allOptionsIncome.add(holdStockProfit));

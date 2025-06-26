@@ -249,11 +249,11 @@ public class OwnerManager {
 
             // 订单标的类型 （Call、Put、Stock）
             ownerOrder.setExtValue(OrderExt.CODE_TYPE, OwnerOrder.codeType(ownerOrder));
+            // 订单收益
+            BigDecimal totalIncome = OwnerOrder.income(ownerOrder);
+            ownerOrder.setExtValue(OrderExt.TOTAL_INCOME, NumberUtils.scale(totalIncome).toPlainString());
 
             if (OwnerOrder.isOptionsOrder(ownerOrder)) {
-                // 订单收益
-                BigDecimal totalIncome = OwnerOrder.income(ownerOrder);
-                ownerOrder.setExtValue(OrderExt.TOTAL_INCOME, NumberUtils.scale(totalIncome).toPlainString());
 
                 // 计算期权到期日ownerOrder.getStrikeTime()和now的间隔天数
                 long daysToExpiration = OwnerOrder.dte(ownerOrder);
