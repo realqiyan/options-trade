@@ -394,4 +394,17 @@ public class TradeManager {
                         .anyMatch(code -> position.getSecurityCode().startsWith(code)))
                 .toList();
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateOrderIncome(String owner, Long orderId, BigDecimal manualIncome) {
+        OwnerOrder dbOrder = ownerOrderDAO.queryOwnerOrderById(owner, orderId);
+        if (dbOrder == null) {
+            return false;
+        }
+        
+        // 更新扩展属性中的手动收益
+        dbOrder.setExtValue(OrderExt.MANUAL_INCOME, manualIncome.toString());
+        dbOrder.setUpdateTime(new Date());
+        return ownerOrderDAO.updateById(dbOrder) > 0;
+    }
 }

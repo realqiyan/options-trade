@@ -115,4 +115,12 @@ public class OptionsTradeServiceImpl implements OptionsTradeService {
         return tradeManager.updateOrderStatus(account, orderId, status);
     }
 
+    @Override
+    public boolean updateOrderIncome(String owner, Long orderId, BigDecimal manualIncome) {
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+        if (null == account) {
+            return false;
+        }
+        return tradeManager.updateOrderIncome(owner, orderId, manualIncome);
+    }
 }

@@ -399,6 +399,8 @@ function renderTable(result){
             updateOrderStatus(data.id);
         } else if (event === 'updateStrategy') {
             updateOrderStrategy(data.id);
+        } else if (event === 'updateIncome') {
+            updateOrderIncome(data.id, data.ext && data.ext.totalIncome ? data.ext.totalIncome : "0");
         }
       });
     });
@@ -411,7 +413,7 @@ function getStrategyNameById(strategyId) {
     var strategy = strategyList.find(function(item) {
         return item.strategyId === strategyId;
     });
-    
+
     return strategy ? strategy.strategyName : "未知策略";
 }
 
@@ -538,6 +540,48 @@ function reloadData(){
       error: function() {
         layer.msg('获取数据失败');
       }
+    });
+}
+
+function updateOrderIncome(orderId, currentIncome) {
+    layer.prompt({
+        title: '请输入修正的收益值',
+        value: currentIncome,
+        formType: 0 // 0 表示文本输入
+    }, function(value, index, elem) {
+        if (value === '') {
+            layer.msg('收益值不能为空');
+            return elem.focus();
+        }
+        
+        // 验证是否为有效数字
+        if (isNaN(parseFloat(value))) {
+            layer.msg('请输入有效的数字');
+            return elem.focus();
+        }
+        
+        var loadingIndex = layer.load(1, {shade: [0.1, '#fff']});
+        $.ajax({
+            url: "/trade/updateIncome",
+            method: 'POST',
+            data: {
+                password: $("#totp").val(),
+                orderId: orderId,
+                manualIncome: value
+            },
+            success: function(response) {
+                layer.close(loadingIndex);
+                layer.msg(response.success ? '收益更新成功' : response.message);
+                if (response.success && currentStrategyId) {
+                    loadStrategyOrder(currentStrategyId);
+                }
+                layer.close(index);
+            },
+            error: function() {
+                layer.close(loadingIndex);
+                layer.msg('更新失败，请重试');
+            }
+        });
     });
 }
 

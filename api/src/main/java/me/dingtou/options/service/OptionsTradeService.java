@@ -79,4 +79,14 @@ public interface OptionsTradeService {
      * @return 是否成功
      */
     boolean updateOrderStatus(String owner, Long orderId, OrderStatus status);
+    
+    /**
+     * 更新订单收益
+     *
+     * @param owner       账号
+     * @param orderId     订单ID
+     * @param manualIncome 修正后的收益值
+     * @return 是否成功
+     */
+    boolean updateOrderIncome(String owner, Long orderId, BigDecimal manualIncome);
 }

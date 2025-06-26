@@ -100,7 +100,12 @@ public enum OrderExt {
     /**
      * 来源期权
      */
-    SOURCE_OPTIONS("sourceOptions", Options.class);
+    SOURCE_OPTIONS("sourceOptions", Options.class),
+
+    /**
+     * 修正后的收益值
+     */
+    MANUAL_INCOME("manualIncome", String.class);
 
     private final String key;
     private final Class<?> classType;

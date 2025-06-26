@@ -406,6 +406,16 @@ public class OwnerOrder implements Cloneable {
         if (!OwnerOrder.isTraded(order)) {
             return BigDecimal.ZERO;
         }
+        // 修正收益
+        // put期权提前指派后，卖出被指派股票和被指派期权后，allOptionsIncome会失真，一部分收益是股票差价。
+        // * 例如：
+        // * BABA250627P130000 在股价117.05时被指派。
+        // * 接下来卖出100股BABA（117.05） + BABA250718P130000（13.45）
+        // * 实际收益(13.45+117.05-130)*100 = 50，但是系统会记录收益1345，因为卖了一张13.45的期权。
+        String manualIncome = order.getExtValue(OrderExt.MANUAL_INCOME);
+        if (null != manualIncome) {
+            return new BigDecimal(manualIncome);
+        }
         int lotSize = lotSize(order);
         if (OwnerOrder.isStockOrder(order)) {
             lotSize = 1;

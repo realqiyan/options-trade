@@ -286,6 +286,24 @@ public class WebApiController {
         }
         return WebResult.success(optionsTradeService.updateOrderStatus(owner, orderId, OrderStatus.of(status)));
     }
+    
+    @RequestMapping(value = "/trade/updateIncome", method = RequestMethod.POST)
+    public WebResult<Boolean> updateOrderIncome(
+            @RequestParam(value = "orderId", required = true) Long orderId,
+            @RequestParam(value = "manualIncome", required = true) String manualIncome,
+            @RequestParam(value = "password", required = true) String password) throws Exception {
+        String owner = SessionUtils.getCurrentOwner();
+        log.info("trade updateIncome. owner:{}, orderId:{}, manualIncome:{}", owner, orderId, manualIncome);
+        if (!authService.auth(owner, password)) {
+            return WebResult.failure("验证码错误");
+        }
+        try {
+            BigDecimal incomeValue = new BigDecimal(manualIncome);
+            return WebResult.success(optionsTradeService.updateOrderIncome(owner, orderId, incomeValue));
+        } catch (NumberFormatException e) {
+            return WebResult.failure("收益值格式错误");
+        }
+    }
 
     @RequestMapping(value = "/trade/updateStrategy", method = RequestMethod.POST)
     public WebResult<Boolean> updateOrderStrategy(
