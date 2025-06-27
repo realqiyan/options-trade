@@ -33,9 +33,15 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
 
     @Tool(description = "查询期权到期日，根据股票代码和市场代码查询股票对应的期权到期日。")
     @Override
-    public List<OptionsStrikeDate> queryOptionsExpDate(@ToolParam(required = true, description = "股票代码") String code,
+    public String queryOptionsExpDate(@ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
-        return optionsManager.queryOptionsExpDate(code, market);
+        List<OptionsStrikeDate> expDates = optionsManager.queryOptionsExpDate(code, market);
+        // 准备模板数据
+        Map<String, Object> data = new HashMap<>();
+        data.put("security", Security.of(code, market));
+        data.put("expDates", expDates);
+        // 渲染模板
+        return TemplateRenderer.render("mcp_options_exp_date.ftl", data);
     }
 
     @Tool(description = "查询指定日期期权链和股票相关技术指标，根据股票代码、市场代码、到期日查询股票对应的期权到期日的期权链以及股票技术指标（K线、EMA、BOLL、MACD、RSI）。")
@@ -60,9 +66,15 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
 
     @Tool(description = "查询指定期权代码的报价，根据期权代码、市场代码查询当前期权买卖报价。")
     @Override
-    public SecurityOrderBook queryOrderBook(@ToolParam(required = true, description = "期权代码") String code,
+    public String queryOrderBook(@ToolParam(required = true, description = "期权代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
-        return tradeManager.querySecurityOrderBook(code, market);
+        SecurityOrderBook orderBook = tradeManager.querySecurityOrderBook(code, market);
+        // 准备模板数据
+        Map<String, Object> data = new HashMap<>();
+        data.put("security", Security.of(code, market));
+        data.put("orderBook", orderBook);
+        // 渲染模板
+        return TemplateRenderer.render("mcp_order_book.ftl", data);
     }
 
 }

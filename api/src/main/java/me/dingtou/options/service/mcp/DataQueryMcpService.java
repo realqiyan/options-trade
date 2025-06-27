@@ -1,9 +1,5 @@
 package me.dingtou.options.service.mcp;
 
-import me.dingtou.options.model.*;
-
-import java.util.List;
-
 /**
  * 数据查询MCP服务
  *
@@ -19,7 +15,7 @@ public interface DataQueryMcpService {
      * 
      * @return 期权到期日列表
      */
-    List<OptionsStrikeDate> queryOptionsExpDate(String code,
+    String queryOptionsExpDate(String code,
             Integer market);
 
     /**
@@ -42,7 +38,7 @@ public interface DataQueryMcpService {
      * @param market 市场代码
      * @return 实时盘口
      */
-    SecurityOrderBook queryOrderBook(String code,
+    String queryOrderBook(String code,
             Integer market);
 
 }
