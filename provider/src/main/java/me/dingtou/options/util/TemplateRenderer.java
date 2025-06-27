@@ -10,7 +10,7 @@ public class TemplateRenderer {
     private static final Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
     
     static {
-        cfg.setClassLoaderForTemplateLoading(TemplateRenderer.class.getClassLoader(), "templates/strategy");
+        cfg.setClassLoaderForTemplateLoading(TemplateRenderer.class.getClassLoader(), "templates");
         cfg.setDefaultEncoding("UTF-8");
     }
     

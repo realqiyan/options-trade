@@ -9,8 +9,6 @@ import me.dingtou.options.dao.OwnerStrategyDAO;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
-import me.dingtou.options.service.AdminService;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
