@@ -72,6 +72,18 @@ public class IndicatorManager {
     private CandlestickGateway candlestickGateway;
 
     /**
+     * 获取股票价格
+     * 
+     * @param ownerAccount 账户
+     * @param security     股票
+     * @return 价格
+     */
+    public BigDecimal queryStockPrice(OwnerAccount ownerAccount, Security security) {
+        SecurityQuote securityQuote = securityQuoteGateway.quote(ownerAccount, security);
+        return securityQuote.getLastDone();
+    }
+
+    /**
      * 计算股票指标
      * 
      * @param ownerAccount 账户

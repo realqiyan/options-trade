@@ -1,6 +1,7 @@
 package me.dingtou.options.web.util;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.context.SessionContext;
 import me.dingtou.options.web.model.LoginInfo;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -35,6 +36,7 @@ public class SessionUtils {
      * @param owner 当前登陆用户
      */
     public static void setCurrentOwner(String owner) {
+        SessionContext.setOwner(owner);
         CURRENT_OWNER.set(owner);
     }
 
@@ -42,9 +44,9 @@ public class SessionUtils {
      * 清除当前登陆用户
      */
     public static void clearCurrentOwner() {
+        SessionContext.clearOwner();
         CURRENT_OWNER.remove();
     }
-
 
     /**
      * 获取登陆用户
@@ -56,7 +58,6 @@ public class SessionUtils {
         return SESSION_OWNER.get(owner);
     }
 
-
     /**
      * 登陆
      *
@@ -65,7 +66,6 @@ public class SessionUtils {
     public static void login(LoginInfo loginInfo) {
         SESSION_OWNER.put(loginInfo.getOwner(), loginInfo);
     }
-
 
     /**
      * 创建sse连接
@@ -84,7 +84,6 @@ public class SessionUtils {
         return sseemitter;
     }
 
-
     /**
      * 获取sse连接
      *
@@ -95,7 +94,6 @@ public class SessionUtils {
     public static SseEmitter getConnect(String owner, String requestId) {
         return SSE_EMITTER_MAP.get(buildUniqueKey(owner, requestId));
     }
-
 
     /**
      * 关闭sse连接

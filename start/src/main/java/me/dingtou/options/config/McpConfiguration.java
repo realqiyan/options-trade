@@ -10,7 +10,9 @@ import org.springframework.context.annotation.Configuration;
 public class McpConfiguration {
 	@Bean
 	public ToolCallbackProvider weatherTools(DataQueryMcpService dataQueryMcpService) {
-		return MethodToolCallbackProvider.builder().toolObjects(dataQueryMcpService).build();
+		return MethodToolCallbackProvider.builder()
+				.toolObjects(dataQueryMcpService)
+				.build();
 	}
 
 }
