@@ -38,7 +38,7 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
         return optionsManager.queryOptionsExpDate(code, market);
     }
 
-    @Tool(description = "查询指定日期期权链，根据股票代码、市场代码、到期日查询股票对应的期权到期日的期权链。")
+    @Tool(description = "查询指定日期期权链和股票相关技术指标，根据股票代码、市场代码、到期日查询股票对应的期权到期日的期权链以及股票技术指标（K线、EMA、BOLL、MACD、RSI）。")
     @Override
     public String queryOptionsChain(@ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
