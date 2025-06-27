@@ -649,11 +649,15 @@ layui.use(['layer', 'form', 'util'], function() {
             // 显示AI正在输入的指示器
             this.showTypingIndicator();
             
+            // 获取选择的模式
+            const mode = document.getElementById('chat-mode').value;
+            
             // 构建请求参数
             const params = new URLSearchParams({
                 requestId: this.currentClientId,
                 title: title || '未命名会话',
-                message: message
+                message: message,
+                mode: mode  // 添加模式参数
             });
             
             // 如果有会话ID，添加到参数中
@@ -661,8 +665,12 @@ layui.use(['layer', 'form', 'util'], function() {
                 params.append('sessionId', this.currentSessionId);
             }
             
-            // 确定请求endpoint
-            const endpoint = this.currentSessionId ? '/ai/chat/continue' : '/ai/chat';
+        // 确定请求endpoint
+        const endpoint = this.currentSessionId ? '/ai/continue' : '/ai/chat';
+        
+        // 添加模式到请求路径（如果需要）
+        // const endpointWithMode = `${endpoint}?mode=${mode}`;
+        // 注意：我们已将模式放在请求体中，所以不需要修改URL
             
             // 发送请求
             fetch(endpoint, {

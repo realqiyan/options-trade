@@ -119,6 +119,16 @@ public class OwnerManager {
     }
 
     /**
+     * 更新owner账号
+     *
+     * @param owner 账号
+     * @return 更新行
+     */
+    public int updateOwnerAccount(OwnerAccount account) {
+        return ownerAccountDAO.updateById(account);
+    }
+
+    /**
      * 查询所有owner账号
      *
      * @return 所有owner账号

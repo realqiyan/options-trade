@@ -12,7 +12,7 @@ import java.util.function.Function;
  * 
  * @author qiyan
  */
-public interface AIChatService {
+public interface AssistantService {
 
     /**
      * 聊天（带标题）
@@ -23,8 +23,27 @@ public interface AIChatService {
      * @param messages  消息列表
      * @param callback  回调
      */
-    void chat(String owner, String sessionId, String title, List<Message> messages, Function<Message, Void> callback);
-    
+    void chat(String owner,
+            String sessionId,
+            String title,
+            List<Message> messages,
+            Function<Message, Void> callback);
+
+    /**
+     * Agent模式（带标题）
+     * 
+     * @param owner     所有者
+     * @param sessionId 会话ID
+     * @param title     标题（股票+策略）
+     * @param messages  消息列表
+     * @param callback  回调
+     */
+    void agent(String owner,
+            String sessionId,
+            String title,
+            List<Message> messages,
+            Function<Message, Void> callback);
+
     /**
      * 获取AI设置
      * 
@@ -39,7 +58,7 @@ public interface AIChatService {
      * @param owner 所有者
      * @param limit 限制数量
      * @return 会话列表
-     */ 
+     */
     List<OwnerChatRecord> summaryChatRecord(String owner, int limit);
 
     /**

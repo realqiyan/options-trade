@@ -6,7 +6,7 @@ package me.dingtou.options.service.impl;
 
 //import java.util.function.Function;
 
-class AIChatServiceImplTest {
+class assistantServiceImplTest {
 
 //    @Test
 //    void chat() {

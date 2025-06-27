@@ -825,7 +825,14 @@
                             
                             <div class="chat-input-area">
                                 <div class="layui-form">
-                                    <!-- 删除原来的标题输入框 -->
+                                    <!-- 模式选择框 -->
+                                    <div class="layui-form-item">
+                                        <select id="chat-mode" lay-filter="chat-mode">
+                                            <option value="ask" selected>Ask模式</option>
+                                            <option value="agent">Agent模式</option>
+                                        </select>
+                                    </div>
+                                    <!-- 消息输入框 -->
                                     <div class="layui-form-item">
                                         <textarea id="chat-input" class="layui-textarea" placeholder="输入消息..." rows="3"></textarea>
                                     </div>
@@ -855,4 +862,4 @@
 <script src="common.js"></script>
 <script src="assistant.js"></script>
 </body>
-</html> 
+</html>

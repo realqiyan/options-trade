@@ -3,7 +3,7 @@ package me.dingtou.options.web;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerChatRecord;
-import me.dingtou.options.service.AIChatService;
+import me.dingtou.options.service.AssistantService;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ public class WebAIController {
             new ThreadFactoryBuilder().setNameFormat("ai-chat-%d").build());
 
     @Autowired
-    private AIChatService aiChatService;
+    private AssistantService assistantService;
 
     /**
      * 建立连接
@@ -53,12 +53,15 @@ public class WebAIController {
      * @param requestId 请求ID
      * @param message   消息内容
      * @param title     标题（可选，股票+策略）
+     * @param mode      模式
+     * 
      * @return WebResult
      */
     @PostMapping("/ai/chat")
     public WebResult<String> chat(@RequestParam(value = "requestId", required = true) String requestId,
             @RequestParam(value = "title", required = false) String title,
-            @RequestParam(value = "message", required = true) String message) {
+            @RequestParam(value = "message", required = true) String message,
+            @RequestParam(value = "mode", required = true) String mode) {
         String owner = SessionUtils.getCurrentOwner();
         String sessionId = UUID.randomUUID().toString();
         // 使用线程池提交
@@ -70,14 +73,25 @@ public class WebAIController {
                 public void run() {
                     List<Message> messages = new ArrayList<>();
                     messages.add(chatMessage);
-                    aiChatService.chat(owner, sessionId, title, messages, msg -> {
-                        try {
-                            connect.send(msg);
-                        } catch (IOException e) {
-                            log.error("send message error", e);
-                        }
-                        return null;
-                    });
+                    if ("ask".equals(mode)) {
+                        assistantService.chat(owner, sessionId, title, messages, msg -> {
+                            try {
+                                connect.send(msg);
+                            } catch (IOException e) {
+                                log.error("send message error", e);
+                            }
+                            return null;
+                        });
+                    } else if ("agent".equals(mode)) {
+                        assistantService.agent(owner, sessionId, title, messages, msg -> {
+                            try {
+                                connect.send(msg);
+                            } catch (IOException e) {
+                                log.error("send message error", e);
+                            }
+                            return null;
+                        });
+                    }
                     connect.complete();
                 }
             });
@@ -94,12 +108,14 @@ public class WebAIController {
      * @param requestId 请求ID
      * @param sessionId 会话ID
      * @param message   新消息
+     * @param mode      模式
      * @return WebResult
      */
-    @PostMapping("/ai/chat/continue")
+    @PostMapping("/ai/continue")
     public WebResult<String> continueChat(@RequestParam(value = "requestId", required = true) String requestId,
             @RequestParam(value = "sessionId", required = true) String sessionId,
-            @RequestParam(value = "message", required = true) String message) {
+            @RequestParam(value = "message", required = true) String message,
+            @RequestParam(value = "mode", required = true) String mode) {
         String owner = SessionUtils.getCurrentOwner();
 
         // 使用线程池提交
@@ -109,7 +125,7 @@ public class WebAIController {
                 @Override
                 public void run() {
                     // 获取历史消息
-                    List<OwnerChatRecord> records = aiChatService.listRecordsBySessionId(owner, sessionId);
+                    List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
                     if (records == null || records.isEmpty()) {
                         try {
                             connect.send(new Message(null, "assistant", "无法找到历史对话记录", null));
@@ -137,14 +153,25 @@ public class WebAIController {
                     String title = records.get(0).getTitle();
 
                     // 发送消息
-                    aiChatService.chat(owner, sessionId, title, messages, msg -> {
-                        try {
-                            connect.send(msg);
-                        } catch (IOException e) {
-                            log.error("send message error", e);
-                        }
-                        return null;
-                    });
+                    if ("ask".equals(mode)) {
+                        assistantService.chat(owner, sessionId, title, messages, msg -> {
+                            try {
+                                connect.send(msg);
+                            } catch (IOException e) {
+                                log.error("send message error", e);
+                            }
+                            return null;
+                        });
+                    } else if ("agent".equals(mode)) {
+                        assistantService.agent(owner, sessionId, title, messages, msg -> {
+                            try {
+                                connect.send(msg);
+                            } catch (IOException e) {
+                                log.error("send message error", e);
+                            }
+                            return null;
+                        });
+                    }
                 }
             });
         } catch (Exception e) {
@@ -165,7 +192,7 @@ public class WebAIController {
         try {
             String owner = SessionUtils.getCurrentOwner();
             // 获取最近200条会话ID列表
-            return WebResult.success(aiChatService.summaryChatRecord(owner, 200));
+            return WebResult.success(assistantService.summaryChatRecord(owner, 200));
         } catch (Exception e) {
             log.error("获取会话ID列表失败", e);
             return WebResult.failure("获取会话ID列表失败: " + e.getMessage());
@@ -182,7 +209,7 @@ public class WebAIController {
     public WebResult<List<OwnerChatRecord>> listRecordsBySessionId(@RequestParam("sessionId") String sessionId) {
         try {
             String owner = SessionUtils.getCurrentOwner();
-            List<OwnerChatRecord> records = aiChatService.listRecordsBySessionId(owner, sessionId);
+            List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
             return WebResult.success(records);
         } catch (Exception e) {
             log.error("获取沟通记录失败", e);
@@ -200,7 +227,7 @@ public class WebAIController {
     public WebResult<Boolean> deleteBySessionId(@RequestParam("sessionId") String sessionId) {
         try {
             String owner = SessionUtils.getCurrentOwner();
-            boolean result = aiChatService.deleteBySessionId(owner, sessionId);
+            boolean result = assistantService.deleteBySessionId(owner, sessionId);
             return WebResult.success(result);
         } catch (Exception e) {
             log.error("删除会话记录失败", e);
@@ -220,7 +247,7 @@ public class WebAIController {
             @RequestParam("title") String title) {
         try {
             String owner = SessionUtils.getCurrentOwner();
-            boolean result = aiChatService.updateSessionTitle(owner, sessionId, title);
+            boolean result = assistantService.updateSessionTitle(owner, sessionId, title);
             return WebResult.success(result);
         } catch (Exception e) {
             log.error("更新会话标题失败", e);
@@ -244,7 +271,7 @@ public class WebAIController {
     public WebResult<Map<String, Object>> getAISettings() {
         try {
             String owner = SessionUtils.getCurrentOwner();
-            Map<String, Object> settings = aiChatService.getSettings(owner);
+            Map<String, Object> settings = assistantService.getSettings(owner);
             return WebResult.success(settings);
         } catch (Exception e) {
             log.error("获取AI设置失败", e);
@@ -272,7 +299,7 @@ public class WebAIController {
                 return WebResult.failure("温度参数必须在0-1之间");
             }
 
-            boolean result = aiChatService.updateSettings(owner, systemPrompt, temperature);
+            boolean result = assistantService.updateSettings(owner, systemPrompt, temperature);
             return WebResult.success(result);
         } catch (Exception e) {
             log.error("更新AI设置失败", e);
