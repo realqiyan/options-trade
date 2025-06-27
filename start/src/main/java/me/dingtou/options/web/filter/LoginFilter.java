@@ -20,10 +20,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.crypto.SecretKey;
+
+import com.alibaba.fastjson.JSON;
 
 @Slf4j
 public class LoginFilter implements Filter {
@@ -109,6 +108,13 @@ public class LoginFilter implements Filter {
                 }
             }
 
+            // header auth
+            String jwtToken = httpRequest.getHeader("jwtToken");
+            LoginInfo tokenUser = jwtLogin(jwtToken);
+            if (null != tokenUser) {
+                return tokenUser;
+            }
+
             return loginFromCookie(httpRequest.getCookies());
         } catch (Exception ex) {
             log.error("getLoginInfo error.", ex);
@@ -127,20 +133,25 @@ public class LoginFilter implements Filter {
         if (null == cookies) {
             return null;
         }
-        Map<String, String> cookieMap = new HashMap<>();
         for (Cookie cookie : cookies) {
-            cookieMap.put(cookie.getName(), cookie.getValue());
+            if (JWT.equals(cookie.getName())) {
+                return jwtLogin(cookie.getValue());
+            }
         }
-        if (!cookieMap.containsKey(OWNER) || !cookieMap.containsKey(JWT)) {
-            return null;
-        }
-        String owner = cookieMap.get(OWNER);
-        String jwtStr = cookieMap.get(JWT);
+        return null;
+    }
 
+    /**
+     * jwt登录
+     * 
+     * @param jwtStr jwt
+     * @return 登录信息
+     */
+    private LoginInfo jwtLogin(String jwtStr) {
+        String owner = decodeJwtOwner(jwtStr);
         String secretKey = authService.secretKeySha256(owner);
         try {
             SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
-
             JwtParser jwtParser = Jwts.parser()
                     // 设置签名的秘钥
                     .verifyWith(key)
@@ -153,6 +164,35 @@ public class LoginFilter implements Filter {
             log.error("parseClaimsJws error, jwtStr:{}, message:{}", jwtStr, e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * 解析JWT 获取sub属性
+     * 
+     * @param jwtStr jwt
+     * @return sub
+     */
+    private String decodeJwtOwner(String jwtStr) {
+        if (jwtStr == null || jwtStr.isEmpty()) {
+            return "";
+        }
+
+        // 分割JWT获取payload部分
+        String[] parts = jwtStr.split("\\.");
+        if (parts.length < 2) {
+            return ""; // 无效JWT
+        }
+
+        String payload = parts[1];
+        try {
+            // Base64URL解码
+            byte[] decodedBytes = Base64.getUrlDecoder().decode(payload);
+            String payloadJson = new String(decodedBytes, StandardCharsets.UTF_8);
+            return JSON.parseObject(payloadJson).getString("sub");
+        } catch (Exception e) {
+            log.error("decodeJwtOwner error, jwtStr:{}", jwtStr, e);
+            return "";
+        }
     }
 
     /**
@@ -181,14 +221,7 @@ public class LoginFilter implements Filter {
         jwtCookie.setHttpOnly(true);
         jwtCookie.setMaxAge(oneDay * cookieMaxAgeDays);
 
-        Cookie ownerCookie = new Cookie(OWNER, loginInfo.getOwner());
-        ownerCookie.setSecure(true);
-        ownerCookie.setPath("/");
-        ownerCookie.setHttpOnly(true);
-        ownerCookie.setMaxAge(oneDay * cookieMaxAgeDays);
-
         httpResponse.addCookie(jwtCookie);
-        httpResponse.addCookie(ownerCookie);
     }
 
     /**

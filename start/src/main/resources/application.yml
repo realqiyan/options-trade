@@ -34,10 +34,30 @@ spring:
 #      write_numbers_as_strings: true
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
-    default-property-inclusion: non_null
+    default-property-inclusion: NON_NULL
 #    serialization:
 #      write_bigdecimal_as_plain: true
 
+# AI https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html
+  ai:
+    mcp:
+      server:
+        enabled: true
+        stdio: false
+        name: options-trade-mcp-server
+        version: 1.0.0
+        type: SYNC
+        tool-change-notification: true
+        capabilities:
+          resource: false
+          tool: true
+          prompt: false
+          completion: false
+        sse-message-endpoint: /mcp/message
+        sse-endpoint: /sse
+        request-timeout: 30
+
+# JobRunr
 org:
   jobrunr:
     background-job-server:

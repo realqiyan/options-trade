@@ -28,7 +28,6 @@ import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.OptionsStrikeDate;
-import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerOrderGroup;

@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.9</version>
+        <version>3.4.7</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>me.dingtou.options</groupId>
@@ -27,9 +27,16 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>1.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-freemarker</artifactId>
-                <version>3.3.9</version>
+                <version>3.4.7</version>
             </dependency>
             <dependency>
                 <groupId>me.dingtou.options</groupId>
