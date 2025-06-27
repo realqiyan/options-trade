@@ -1,4 +1,4 @@
-package me.dingtou.options.service.impl;
+package me.dingtou.options.service.mcp;
 
 import java.util.List;
 
@@ -15,7 +15,6 @@ import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityOrderBook;
-import me.dingtou.options.service.mcp.DataQueryMcpService;
 
 @Service
 public class DataQueryMcpServiceImpl implements DataQueryMcpService {
@@ -38,11 +37,13 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
 
     @Tool(description = "查询指定日期期权链，根据股票代码、市场代码、到期日查询股票对应的期权到期日的期权链。")
     @Override
-    public OptionsChain queryOptionsChain(@ToolParam(required = true, description = "股票代码") String code,
+    public String queryOptionsChain(@ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer marke,
             @ToolParam(required = true, description = "期权到期日 2025-06-27") String strikeDate) {
         OwnerAccount account = ownerManager.queryOwnerAccount("qiyan");
-        return optionsManager.queryOptionsChain(account, Security.of(code, marke), strikeDate);
+        OptionsChain optionsChain = optionsManager.queryOptionsChain(account, Security.of(code, marke), strikeDate);
+        
+        return null;
     }
 
     @Tool(description = "查询指定期权代码的报价，根据期权代码、市场代码查询当前期权买卖报价。")

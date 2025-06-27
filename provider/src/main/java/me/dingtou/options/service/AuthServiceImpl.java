@@ -1,10 +1,9 @@
-package me.dingtou.options.service.impl;
+package me.dingtou.options.service;
 
 import com.bastiaanjansen.otp.TOTPGenerator;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
-import me.dingtou.options.service.AuthService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

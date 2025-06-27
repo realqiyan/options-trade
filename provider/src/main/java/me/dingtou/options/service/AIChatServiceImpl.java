@@ -1,4 +1,4 @@
-package me.dingtou.options.service.impl;
+package me.dingtou.options.service;
 
 import java.util.List;
 import java.util.function.Function;
@@ -20,8 +20,6 @@ import java.util.Map;
 import me.dingtou.options.util.AccountExtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import me.dingtou.options.service.AIChatService;
 
 @Service
 public class AIChatServiceImpl implements AIChatService {

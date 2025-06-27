@@ -1,4 +1,4 @@
-package me.dingtou.options.service.impl;
+package me.dingtou.options.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;

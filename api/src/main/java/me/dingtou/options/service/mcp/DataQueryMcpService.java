@@ -31,7 +31,7 @@ public interface DataQueryMcpService {
      * 
      * @return 期权链
      */
-    OptionsChain queryOptionsChain(String code,
+    String queryOptionsChain(String code,
             Integer marke,
             String strikeDate);
 

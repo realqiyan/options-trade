@@ -1,4 +1,4 @@
-package me.dingtou.options.service.impl;
+package me.dingtou.options.service;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderAction;
@@ -11,7 +11,6 @@ import me.dingtou.options.job.background.CannelOrderJob.CannelOrderJobArgs;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.*;
-import me.dingtou.options.service.OptionsTradeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

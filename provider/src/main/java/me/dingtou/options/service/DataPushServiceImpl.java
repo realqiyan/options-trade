@@ -1,4 +1,4 @@
-package me.dingtou.options.service.impl;
+package me.dingtou.options.service;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.PushDataType;
@@ -9,7 +9,6 @@ import me.dingtou.options.manager.PushDataManager;
 import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.PushData;
-import me.dingtou.options.service.DataPushService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
