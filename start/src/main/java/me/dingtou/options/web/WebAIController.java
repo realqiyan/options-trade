@@ -4,16 +4,16 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.service.AssistantService;
+import me.dingtou.options.service.copilot.CopilotService;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -32,8 +32,24 @@ public class WebAIController {
     private final ExecutorService executorService = Executors.newFixedThreadPool(10,
             new ThreadFactoryBuilder().setNameFormat("ai-chat-%d").build());
 
-    @Autowired
+    /**
+     * 助手服务
+     */
     private AssistantService assistantService;
+
+    /**
+     * copilot服务
+     */
+    private Map<String, CopilotService> copilotServiceMap = new HashMap<>();
+
+    WebAIController(AssistantService assistantService, List<CopilotService> copilotServices) {
+        // 初始化助手服务
+        this.assistantService = assistantService;
+        // 初始化copilot服务
+        copilotServices
+                .stream()
+                .forEach(copilot -> copilotServiceMap.put(copilot.mode(), copilot));
+    }
 
     /**
      * 建立连接
@@ -66,32 +82,26 @@ public class WebAIController {
         String sessionId = UUID.randomUUID().toString();
         // 使用线程池提交
         SseEmitter connect = SessionUtils.getConnect(owner, requestId);
-        Message chatMessage = new Message(null, "user", message, null);
+        Message chatMessage = new Message(null, sessionId, "user", message, null);
         try {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    List<Message> messages = new ArrayList<>();
-                    messages.add(chatMessage);
-                    if ("ask".equals(mode)) {
-                        assistantService.chat(owner, sessionId, title, messages, msg -> {
-                            try {
-                                connect.send(msg);
-                            } catch (IOException e) {
-                                log.error("send message error", e);
-                            }
-                            return null;
-                        });
-                    } else if ("agent".equals(mode)) {
-                        assistantService.agent(owner, sessionId, title, messages, msg -> {
-                            try {
-                                connect.send(msg);
-                            } catch (IOException e) {
-                                log.error("send message error", e);
-                            }
-                            return null;
-                        });
-                    }
+                    copilotServiceMap.get(mode).start(owner, title, chatMessage, msg -> {
+                        try {
+                            connect.send(msg);
+                        } catch (IOException e) {
+                            log.error("send message error", e);
+                        }
+                        return null;
+                    }, msg -> {
+                        try {
+                            connect.send(msg);
+                        } catch (IOException e) {
+                            log.error("send message error", e);
+                        }
+                        return null;
+                    });
                     connect.complete();
                 }
             });
@@ -124,54 +134,23 @@ public class WebAIController {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    // 获取历史消息
-                    List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
-                    if (records == null || records.isEmpty()) {
+
+                    Message newMessage = new Message(null, sessionId, "user", message, null);
+                    copilotServiceMap.get(mode).continuing(owner, sessionId, newMessage, msg -> {
                         try {
-                            connect.send(new Message(null, "assistant", "无法找到历史对话记录", null));
+                            connect.send(msg);
                         } catch (IOException e) {
-                            log.error("send error message error", e);
+                            log.error("send message error", e);
                         }
-                        return;
-                    }
-
-                    // 转换历史消息为Message对象
-                    List<Message> messages = new ArrayList<>();
-                    for (OwnerChatRecord record : records) {
-                        Message chatMessage = new Message(record.getMessageId(),
-                                record.getRole(),
-                                record.getContent(),
-                                record.getReasoningContent());
-                        messages.add(chatMessage);
-                    }
-
-                    // 添加新消息
-                    Message newMessage = new Message(null, "user", message, null);
-                    messages.add(newMessage);
-
-                    // 获取会话标题
-                    String title = records.get(0).getTitle();
-
-                    // 发送消息
-                    if ("ask".equals(mode)) {
-                        assistantService.chat(owner, sessionId, title, messages, msg -> {
-                            try {
-                                connect.send(msg);
-                            } catch (IOException e) {
-                                log.error("send message error", e);
-                            }
-                            return null;
-                        });
-                    } else if ("agent".equals(mode)) {
-                        assistantService.agent(owner, sessionId, title, messages, msg -> {
-                            try {
-                                connect.send(msg);
-                            } catch (IOException e) {
-                                log.error("send message error", e);
-                            }
-                            return null;
-                        });
-                    }
+                        return null;
+                    }, msg -> {
+                        try {
+                            connect.send(msg);
+                        } catch (IOException e) {
+                            log.error("send message error", e);
+                        }
+                        return null;
+                    });
                 }
             });
         } catch (Exception e) {

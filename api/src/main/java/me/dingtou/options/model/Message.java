@@ -14,6 +14,10 @@ public class Message {
      */
     private String id;
     /**
+     * 会话ID
+     */
+    private String sessionId;
+    /**
      * 角色
      */
     private String role;
@@ -29,8 +33,14 @@ public class Message {
     public Message() {
     }
 
-    public Message(String id, String role, String content, String reasoningContent) {
+    public Message(String role, String content) {
+        this.role = role;
+        this.content = content;
+    }
+
+    public Message(String id, String sessionId, String role, String content, String reasoningContent) {
         this.id = id;
+        this.sessionId = sessionId;
         this.role = role;
         this.content = content;
         this.reasoningContent = reasoningContent;
@@ -40,6 +50,7 @@ public class Message {
     public String toString() {
         return "Message{" +
                 "id='" + id + '\'' +
+                ", sessionId='" + sessionId + '\'' +
                 ", role='" + role + '\'' +
                 ", content='" + content + '\'' +
                 ", reasoningContent='" + reasoningContent + '\'' +

@@ -22,6 +22,8 @@ import java.util.Base64;
 import java.util.Date;
 import javax.crypto.SecretKey;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.fastjson.JSON;
 
 @Slf4j
@@ -149,6 +151,9 @@ public class LoginFilter implements Filter {
      */
     private LoginInfo jwtLogin(String jwtStr) {
         String owner = decodeJwtOwner(jwtStr);
+        if (StringUtils.isBlank(owner)) {
+            return null;
+        }
         String secretKey = authService.secretKeySha256(owner);
         try {
             SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));

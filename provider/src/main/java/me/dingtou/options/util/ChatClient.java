@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.Message;
 import okhttp3.*;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -59,7 +58,6 @@ public class ChatClient {
             String apiKey,
             String model,
             Double temperature,
-            String systemPrompt,
             List<Message> messages,
             Consumer<ChatResponse> chunkConsumer) {
 
@@ -72,7 +70,7 @@ public class ChatClient {
             OkHttpClient client = getClient(baseUrl);
 
             // 构建请求体
-            JSONObject requestBody = buildRequestBody(messages, model, temperature, true, systemPrompt);
+            JSONObject requestBody = buildRequestBody(messages, model, temperature, true);
 
             // 构建请求
             Request request = new Request.Builder()
@@ -173,28 +171,19 @@ public class ChatClient {
      * @param model        模型
      * @param temperature  温度
      * @param stream       是否流式请求
-     * @param systemPrompt 系统提示词
+     * 
      * @return 请求体JSON对象
      */
     private static JSONObject buildRequestBody(List<Message> messages,
             String model,
             double temperature,
-            boolean stream,
-            String systemPrompt) {
+            boolean stream) {
         JSONObject requestBody = new JSONObject();
         requestBody.put("model", model);
         requestBody.put("temperature", temperature);
         requestBody.put("stream", stream);
 
         JSONArray messagesArray = new JSONArray();
-
-        // 添加系统消息
-        if (StringUtils.isNotBlank(systemPrompt)) {
-            JSONObject systemMessage = new JSONObject();
-            systemMessage.put("role", "system");
-            systemMessage.put("content", systemPrompt);
-            messagesArray.add(systemMessage);
-        }
 
         // 添加用户消息
         for (Message message : messages) {

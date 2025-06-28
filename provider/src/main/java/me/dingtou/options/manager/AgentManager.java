@@ -20,9 +20,6 @@ import java.util.function.Function;
 public class AgentManager {
 
     @Autowired
-    private ChatManager chatManager;
-
-    @Autowired
     private OwnerManager ownerManager;
 
     @Autowired

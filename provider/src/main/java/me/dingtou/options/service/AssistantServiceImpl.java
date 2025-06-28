@@ -1,19 +1,13 @@
 package me.dingtou.options.service;
 
 import java.util.List;
-import java.util.function.Function;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.dao.OwnerChatRecordDAO;
-import me.dingtou.options.manager.AgentManager;
-import me.dingtou.options.manager.AskManager;
 import me.dingtou.options.manager.OwnerManager;
-import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,18 +17,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class AssistantServiceImpl implements AssistantService {
 
-    private final AskManager askManager;
-
-    @Autowired
-    private AgentManager agentManager;
     @Autowired
     private OwnerManager ownerManager;
     @Autowired
     private OwnerChatRecordDAO ownerChatRecordDAO;
-
-    AssistantServiceImpl(AskManager askManager) {
-        this.askManager = askManager;
-    }
 
     @Override
     public Map<String, Object> getSettings(String owner) {
@@ -110,23 +96,5 @@ public class AssistantServiceImpl implements AssistantService {
         // 保存到数据库
         int rows = ownerManager.updateOwnerAccount(ownerAccount);
         return rows > 0;
-    }
-
-    @Override
-    public void chat(String owner,
-            String sessionId,
-            String title,
-            List<Message> messages,
-            Function<Message, Void> callback) {
-        askManager.ask(owner, sessionId, title, messages, callback);
-    }
-
-    @Override
-    public void agent(String owner,
-            String sessionId,
-            String title,
-            List<Message> messages,
-            Function<Message, Void> callback) {
-        agentManager.agent(owner, sessionId, title, messages, callback);
     }
 }

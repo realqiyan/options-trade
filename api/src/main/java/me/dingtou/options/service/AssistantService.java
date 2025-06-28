@@ -1,11 +1,8 @@
 package me.dingtou.options.service;
 
 import me.dingtou.options.model.OwnerChatRecord;
-import me.dingtou.options.model.Message;
-
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * AI服务
@@ -13,36 +10,6 @@ import java.util.function.Function;
  * @author qiyan
  */
 public interface AssistantService {
-
-    /**
-     * 聊天（带标题）
-     * 
-     * @param owner     所有者
-     * @param sessionId 会话ID
-     * @param title     标题（股票+策略）
-     * @param messages  消息列表
-     * @param callback  回调
-     */
-    void chat(String owner,
-            String sessionId,
-            String title,
-            List<Message> messages,
-            Function<Message, Void> callback);
-
-    /**
-     * Agent模式（带标题）
-     * 
-     * @param owner     所有者
-     * @param sessionId 会话ID
-     * @param title     标题（股票+策略）
-     * @param messages  消息列表
-     * @param callback  回调
-     */
-    void agent(String owner,
-            String sessionId,
-            String title,
-            List<Message> messages,
-            Function<Message, Void> callback);
 
     /**
      * 获取AI设置
@@ -62,7 +29,7 @@ public interface AssistantService {
     List<OwnerChatRecord> summaryChatRecord(String owner, int limit);
 
     /**
-     * 根据会话ID获取沟通记录
+     * 根据会话ID获取沟通记录(user & assistant)
      *
      * @param owner     所有者
      * @param sessionId 会话ID
