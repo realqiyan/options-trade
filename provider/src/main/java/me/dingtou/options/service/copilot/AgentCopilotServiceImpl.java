@@ -19,7 +19,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
 
     @Autowired
     private OwnerManager ownerManager;
-Ç
+
     @Override
     public String mode() {
         return "agent";
@@ -43,6 +43,8 @@ public class AgentCopilotServiceImpl implements CopilotService {
         // 解析回复
 
         // 执行工具
+
+        return null;
 
     }
 
