@@ -87,22 +87,26 @@ public class WebAIController {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    copilotServiceMap.get(mode).start(owner, title, chatMessage, msg -> {
-                        try {
-                            connect.send(msg);
-                        } catch (IOException e) {
-                            log.error("send message error", e);
-                        }
-                        return null;
-                    }, msg -> {
-                        try {
-                            connect.send(msg);
-                        } catch (IOException e) {
-                            log.error("send message error", e);
-                        }
-                        return null;
-                    });
-                    connect.complete();
+                    try {
+                        copilotServiceMap.get(mode).start(owner, title, chatMessage, msg -> {
+                            try {
+                                connect.send(msg);
+                            } catch (IOException e) {
+                                log.error("send message error", e);
+                            }
+                            return null;
+                        }, msg -> {
+                            try {
+                                connect.send(msg);
+                            } catch (IOException e) {
+                                log.error("send message error", e);
+                            }
+                            return null;
+                        });
+                        connect.complete();
+                    } catch (Throwable e) {
+                        log.error("Error: ", e);
+                    }
                 }
             });
         } catch (Exception e) {
@@ -134,23 +138,26 @@ public class WebAIController {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-
-                    Message newMessage = new Message(null, sessionId, "user", message, null);
-                    copilotServiceMap.get(mode).continuing(owner, sessionId, newMessage, msg -> {
-                        try {
-                            connect.send(msg);
-                        } catch (IOException e) {
-                            log.error("send message error", e);
-                        }
-                        return null;
-                    }, msg -> {
-                        try {
-                            connect.send(msg);
-                        } catch (IOException e) {
-                            log.error("send message error", e);
-                        }
-                        return null;
-                    });
+                    try {
+                        Message newMessage = new Message(null, sessionId, "user", message, null);
+                        copilotServiceMap.get(mode).continuing(owner, sessionId, newMessage, msg -> {
+                            try {
+                                connect.send(msg);
+                            } catch (IOException e) {
+                                log.error("send message error", e);
+                            }
+                            return null;
+                        }, msg -> {
+                            try {
+                                connect.send(msg);
+                            } catch (IOException e) {
+                                log.error("send message error", e);
+                            }
+                            return null;
+                        });
+                    } catch (Throwable e) {
+                        log.error("Error: ", e);
+                    }
                 }
             });
         } catch (Exception e) {
