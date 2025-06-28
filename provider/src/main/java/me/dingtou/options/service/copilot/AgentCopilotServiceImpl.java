@@ -34,15 +34,15 @@ public class AgentCopilotServiceImpl implements CopilotService {
         String sessionId = message.getSessionId();
         List<Message> messages = new ArrayList<>();
         
-        // 初始化系统提示词
+        // 1.初始化系统提示词 系统提示词通过模版初始化，里面包含MCP工具列表。
+        
+        // 2.初始化用户问题
 
-        // 添加用户输入
+        // 3.请求大模型
 
-        // 请求大模型
+        // 4.解析回复中是否包含MCP工具调用 如果有则调用mcp服务
 
-        // 解析回复
-
-        // 执行工具
+        // 5.将MCP服务请求结果补充提交给大模型 如有需要循环3、4、5，直到解决好用户问题，或需要用户提供其他信息。
 
         return null;
 
@@ -54,6 +54,9 @@ public class AgentCopilotServiceImpl implements CopilotService {
             Message message,
             Function<Message, Void> callback,
             Function<Message, Void> failCallback) {
+
+        //任务完成后用户继续补充提问
+
         // 获取历史消息(user & assistant)
         List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
         if (records == null || records.isEmpty()) {
