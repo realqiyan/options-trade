@@ -8,9 +8,6 @@ spring:
     username: ${db.username}
     password: ${db.password}
 
-
-
-
   # FREEMARKER (FreeMarkerAutoConfiguration)
   freemarker:
     allow-request-override: false
@@ -28,17 +25,16 @@ spring:
     resources:
       static-locations: classpath:/static/
 
-
   jackson:
-#    generator:
-#      write_numbers_as_strings: true
+    #    generator:
+    #      write_numbers_as_strings: true
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
     default-property-inclusion: NON_NULL
-#    serialization:
-#      write_bigdecimal_as_plain: true
+  #    serialization:
+  #      write_bigdecimal_as_plain: true
 
-# AI https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html
+  # AI https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html
   ai:
     mcp:
       server:
@@ -53,8 +49,8 @@ spring:
           tool: true
           prompt: false
           completion: false
-        sse-message-endpoint: /mcp/message
-        sse-endpoint: /sse
+        # sse-message-endpoint: /mcp/message
+        # sse-endpoint: /sse
         request-timeout: 30
 
 # JobRunr

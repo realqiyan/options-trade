@@ -60,7 +60,7 @@ public class AskCopilotServiceImpl implements CopilotService {
         List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
         if (records == null || records.isEmpty()) {
             failCallback.apply(new Message(null, sessionId, "assistant", "无法找到历史对话记录", null));
-
+            return;
         }
 
         // 转换历史消息为Message对象
