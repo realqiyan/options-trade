@@ -97,4 +97,26 @@ public class AssistantServiceImpl implements AssistantService {
         int rows = ownerManager.updateOwnerAccount(ownerAccount);
         return rows > 0;
     }
+
+    @Override
+    public Boolean addChatRecord(String owner, String sessionId, OwnerChatRecord record) {
+        if (null == record) {
+            return Boolean.FALSE;
+        }
+        record.setOwner(owner);
+        record.setSessionId(sessionId);
+        int row = ownerChatRecordDAO.insert(record);
+
+        return row > 0;
+    }
+
+    
+    @Override
+    public OwnerChatRecord getRecordByMessageId(String owner, String messageId) {
+        // 查询这条消息的会话ID
+        LambdaQueryWrapper<OwnerChatRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(OwnerChatRecord::getOwner, owner)
+                .eq(OwnerChatRecord::getMessageId, messageId);
+        return ownerChatRecordDAO.selectOne(queryWrapper);
+    }
 }

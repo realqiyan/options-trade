@@ -38,6 +38,25 @@ public interface AssistantService {
     List<OwnerChatRecord> listRecordsBySessionId(String owner, String sessionId);
 
     /**
+     * 根据消息ID获取沟通记录
+     * 
+     * @param owner     所有者
+     * @param messageId 消息ID
+     * @return 沟通记录
+     */
+    OwnerChatRecord getRecordByMessageId(String owner, String messageId);
+
+    /**
+     * 添加沟通记录
+     *
+     * @param owner     所有者
+     * @param sessionId 会话ID
+     * @param record    消息记录
+     * @return 添加结果
+     */
+    Boolean addChatRecord(String owner, String sessionId, OwnerChatRecord record);
+
+    /**
      * 删除会话记录
      *
      * @param owner     所有者
