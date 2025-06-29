@@ -1,13 +1,28 @@
 package me.dingtou.options.service.copilot.processer;
 
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.Builder;
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import com.alibaba.fastjson.JSON;
+
+import io.modelcontextprotocol.client.McpClient;
+import io.modelcontextprotocol.client.McpSyncClient;
+import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
+import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
+import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
+import io.modelcontextprotocol.spec.McpSchema.ClientCapabilities;
+import io.modelcontextprotocol.spec.McpSchema.ListToolsResult;
+import io.modelcontextprotocol.spec.McpSchema.TextContent;
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.config.ConfigUtils;
 import me.dingtou.options.model.copilot.McpToolCallRequest;
 import me.dingtou.options.model.copilot.ToolCallRequest;
 import me.dingtou.options.service.copilot.ToolProcesser;
@@ -61,10 +76,38 @@ public class McpToolProcesser implements ToolProcesser {
         if (!(toolCallRequest instanceof McpToolCallRequest)) {
             return "参数异常";
         }
+        // test
         McpToolCallRequest mcpToolCallRequest = (McpToolCallRequest) toolCallRequest;
+        HttpClientSseClientTransport transport = HttpClientSseClientTransport.builder("http://127.0.0.1:8888")
+                .customizeRequest(new Consumer<HttpRequest.Builder>() {
+                    @Override
+                    public void accept(Builder t) {
+                        t.header("jwtToken", ConfigUtils.getConfig("mcp.server.jwtToken"));
+                    }
+                })
+                .build();
+        // Create a sync client with custom configuration
+        McpSyncClient client = McpClient.sync(transport)
+                .requestTimeout(Duration.ofSeconds(10))
+                .capabilities(ClientCapabilities.builder()
+                        .roots(true) // Enable roots capability
+                        .sampling() // Enable sampling capability
+                        .build())
+                .build();
+        // Initialize connection
+        client.initialize();
 
-        // TODO 执行工具调用
-        return "999";
+        // List available tools
+        ListToolsResult tools = client.listTools();
+        System.out.println(tools);
+
+        String arguments = mcpToolCallRequest.getArguments();
+        Map params = JSON.parseObject(arguments, Map.class);
+
+        CallToolResult result = client.callTool(new CallToolRequest(mcpToolCallRequest.getToolName(), params));
+        TextContent content = (TextContent) result.content().get(0);
+
+        return content.text();
     }
 
     @Override
