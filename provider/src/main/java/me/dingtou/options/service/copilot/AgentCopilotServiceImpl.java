@@ -1,8 +1,5 @@
 package me.dingtou.options.service.copilot;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-
 import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +18,7 @@ import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
+import me.dingtou.options.model.copilot.ToolCallRequest;
 import me.dingtou.options.service.AssistantService;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.ChatClient;
@@ -29,7 +26,10 @@ import me.dingtou.options.util.TemplateRenderer;
 
 @Slf4j
 @Component
-public class AgentCopilotServiceImpl implements CopilotService, InitializingBean {
+public class AgentCopilotServiceImpl implements CopilotService {
+
+    @Autowired
+    private List<ToolProcesser> toolProcessers;
 
     @Autowired
     private AssistantService assistantService;
@@ -78,7 +78,7 @@ public class AgentCopilotServiceImpl implements CopilotService, InitializingBean
         String finalResponse = null;
 
         while (iteration++ < maxIterations && finalResponse == null) {
-            // 3. 请求大模型
+            // 请求大模型
             ChatClient.ChatResponse chatResponse = sendChatRequest(ownerAccount, messages, callback);
 
             if (chatResponse == null || chatResponse.getContent() == null) {
@@ -86,58 +86,59 @@ public class AgentCopilotServiceImpl implements CopilotService, InitializingBean
                 break;
             }
 
-            // 4. 解析回复中是否包含MCP工具调用
-            if (isToolCall(chatResponse.getContent())) {
-                // 提取工具调用信息
-                JSONObject toolCall = parseToolCall(chatResponse.getContent());
-                if (toolCall != null) {
-                    // 调用MCP服务
-                    String toolResult = callMcpTool(toolCall.getString("tool"), toolCall.getJSONObject("arguments"));
-
-                    // 保存模型回复（含工具调用）
-                    OwnerChatRecord assistantRecord = new OwnerChatRecord(
-                            owner,
-                            sessionId,
-                            chatResponse.getId(),
-                            title,
-                            "assistant",
-                            chatResponse.getContent(),
-                            chatResponse.getReasoningContent());
-                    assistantService.addChatRecord(owner, sessionId, assistantRecord);
-
-                    // 添加工具响应消息
-                    Message toolMessage = new Message(
-                            null,
-                            sessionId,
-                            "tool",
-                            toolResult,
-                            null);
-                    messages.add(toolMessage);
-
-                    // 5. 将MCP结果提交给大模型继续处理
-                    continue;
-                }
-            }
-
-            // 没有工具调用，返回最终结果
-            finalResponse = chatResponse.getContent();
-
-            // 保存最终回复
+            // 保存模型回复
             OwnerChatRecord assistantRecord = new OwnerChatRecord(
                     owner,
                     sessionId,
                     chatResponse.getId(),
                     title,
                     "assistant",
-                    finalResponse,
+                    chatResponse.getContent(),
                     chatResponse.getReasoningContent());
             assistantService.addChatRecord(owner, sessionId, assistantRecord);
+
+            // 提取工具调用信息
+            ToolProcesser toolProcesser = findToolProcesser(chatResponse.getContent());
+            if (null != toolProcesser) {
+                ToolCallRequest toolCall = toolProcesser.parseToolRequest(chatResponse.getContent());
+                if (toolCall != null) {
+                    // 调用MCP服务
+                    String toolResult = toolProcesser.callTool(toolCall);
+
+                    // 构建工具调用结果提示
+                    String toolResultPrompt = toolProcesser.buildResultPrompt(toolCall, toolResult);
+
+                    // 添加工具响应消息
+                    Message toolMessage = new Message(
+                            null,
+                            sessionId,
+                            "user",
+                            toolResultPrompt,
+                            null);
+                    messages.add(toolMessage);
+                    // 保存用户消息
+                    OwnerChatRecord toolResultRecord = new OwnerChatRecord(owner,
+                            sessionId,
+                            String.valueOf(System.currentTimeMillis()),
+                            title,
+                            toolMessage.getRole(),
+                            toolMessage.getContent(),
+                            null);
+                    assistantService.addChatRecord(owner, sessionId, toolResultRecord);
+                    callback.apply(toolMessage);
+
+                    // 将MCP结果提交给大模型继续处理
+                    continue;
+                }
+            }
+
+            // 没有工具调用，返回最终结果
+            finalResponse = chatResponse.getContent();
         }
 
+        // 处理最终结果
         if (finalResponse == null) {
             failCallback.apply(new Message(null, sessionId, "assistant", "问题未解决", null));
-        } else {
-            callback.apply(new Message(null, sessionId, "assistant", finalResponse, null));
         }
 
         return sessionId;
@@ -187,37 +188,16 @@ public class AgentCopilotServiceImpl implements CopilotService, InitializingBean
     }
 
     /**
-     * 检查是否为工具调用
+     * 寻找匹配的工具处理器
      */
-    private boolean isToolCall(String content) {
-        return content != null && content.trim().startsWith("{") && content.contains("\"tool\"");
-    }
-
-    /**
-     * 解析工具调用
-     */
-    private JSONObject parseToolCall(String content) {
-        try {
-            return JSON.parseObject(content);
-        } catch (Exception e) {
-            return null;
+    private ToolProcesser findToolProcesser(String content) {
+        for (ToolProcesser toolProcesser : toolProcessers) {
+            if (toolProcesser.support(content)) {
+                return toolProcesser;
+            }
         }
+        return null;
     }
-
-    /**
-     * 调用MCP工具
-     */
-    private String callMcpTool(String toolName, JSONObject arguments) {
-        // 实际调用MCP服务的逻辑
-        // 使用OkHttpClient发送HTTP请求到MCP服务端点
-        // 示例URL: http://mcp-server/tools/{toolName}
-        // 请求体: arguments
-
-        // 这里返回模拟响应
-        return "工具调用成功: " + toolName + " 参数: " + arguments;
-    }
-
-    // 删除冲突的ChatResponse内部类
 
     @Override
     public void continuing(String owner,
@@ -252,21 +232,6 @@ public class AgentCopilotServiceImpl implements CopilotService, InitializingBean
 
         // 获取会话标题
         // String title = records.get(0).getTitle();
-
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        // HttpClientSseClientTransport transport =
-        // HttpClientSseClientTransport.builder("http:/127.0.0.1:8888").build();
-        // McpSyncClient client = McpClient.sync(transport)
-        // .requestTimeout(Duration.ofSeconds(10))
-        // .capabilities(ClientCapabilities.builder()
-        // .roots(true) // Enable roots capability
-        // .build())
-        // .build();
-        // ListToolsResult listTools = client.listTools();
-        // System.out.println(listTools);
 
     }
 
