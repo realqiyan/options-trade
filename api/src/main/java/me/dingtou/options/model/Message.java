@@ -38,6 +38,12 @@ public class Message {
         this.content = content;
     }
 
+    public Message(String sessionId, String role, String content) {
+        this.sessionId = sessionId;
+        this.role = role;
+        this.content = content;
+    }
+
     public Message(String id, String sessionId, String role, String content, String reasoningContent) {
         this.id = id;
         this.sessionId = sessionId;

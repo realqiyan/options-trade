@@ -49,8 +49,8 @@ spring:
           tool: true
           prompt: false
           completion: false
-        # sse-message-endpoint: /mcp/message
-        # sse-endpoint: /sse
+        sse-message-endpoint: /mcp/message
+        sse-endpoint: /sse
         request-timeout: 30
 
 # JobRunr

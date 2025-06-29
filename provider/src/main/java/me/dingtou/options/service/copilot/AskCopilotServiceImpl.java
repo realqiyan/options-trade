@@ -25,6 +25,8 @@ import me.dingtou.options.util.ChatClient.ChatResponse;
 @Component
 public class AskCopilotServiceImpl implements CopilotService {
 
+    private final String SYSTEM_PROMPT = "You are a helpful assistant.";
+
     @Autowired
     private AssistantService assistantService;
 
@@ -44,6 +46,7 @@ public class AskCopilotServiceImpl implements CopilotService {
             Function<Message, Void> failCallback) {
         String sessionId = message.getSessionId();
         List<Message> messages = new ArrayList<>();
+        messages.add(new Message("system", SYSTEM_PROMPT));
         messages.add(message);
         ask(owner, sessionId, title, messages, callback);
         return sessionId;

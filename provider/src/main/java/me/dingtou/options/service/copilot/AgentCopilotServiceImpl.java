@@ -3,18 +3,12 @@ package me.dingtou.options.service.copilot;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
-import io.modelcontextprotocol.client.McpClient;
-import io.modelcontextprotocol.client.McpSyncClient;
-import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
-import io.modelcontextprotocol.spec.McpClientTransport;
-import io.modelcontextprotocol.spec.McpSchema.ClientCapabilities;
-import io.modelcontextprotocol.spec.McpSchema.CreateMessageResult;
-import io.modelcontextprotocol.spec.McpSchema.ListToolsResult;
-import io.modelcontextprotocol.spec.McpTransport;
-
-import java.time.Duration;
+import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -31,7 +25,9 @@ import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.service.AssistantService;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.ChatClient;
+import me.dingtou.options.util.TemplateRenderer;
 
+@Slf4j
 @Component
 public class AgentCopilotServiceImpl implements CopilotService, InitializingBean {
 
@@ -53,9 +49,7 @@ public class AgentCopilotServiceImpl implements CopilotService, InitializingBean
             Function<Message, Void> callback,
             Function<Message, Void> failCallback) {
         String sessionId = message.getSessionId();
-        List<Message> messages = new ArrayList<>();
 
-        // 1. 初始化系统提示词（包含MCP工具列表）
         OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
         if (ownerAccount == null) {
             failCallback.apply(new Message(null, sessionId, "assistant", "账号不存在", null));
@@ -63,24 +57,23 @@ public class AgentCopilotServiceImpl implements CopilotService, InitializingBean
         }
 
         // 构建包含MCP工具描述的系统提示词
-        String systemPrompt = buildSystemPrompt(ownerAccount);
-        messages.add(new Message("system", systemPrompt));
-
-        // 2. 初始化用户问题
-        messages.add(message);
+        String systemPrompt = buildPrompt(message.getContent());
+        List<Message> messages = new ArrayList<>();
+        Message agentMessage = new Message(sessionId, "user", systemPrompt);
+        messages.add(agentMessage);
 
         // 保存用户消息
         OwnerChatRecord userRecord = new OwnerChatRecord(owner,
                 sessionId,
                 String.valueOf(System.currentTimeMillis()),
                 title,
-                "user",
-                message.getContent(),
+                agentMessage.getRole(),
+                agentMessage.getContent(),
                 null);
         assistantService.addChatRecord(owner, sessionId, userRecord);
 
         // 最大循环次数防止无限循环
-        int maxIterations = 5;
+        int maxIterations = 10;
         int iteration = 0;
         String finalResponse = null;
 
@@ -150,25 +143,12 @@ public class AgentCopilotServiceImpl implements CopilotService, InitializingBean
         return sessionId;
     }
 
-    /**
-     * 构建包含MCP工具描述的系统提示词
-     */
-    private String buildSystemPrompt(OwnerAccount ownerAccount) {
-        String basePrompt = AccountExtUtils.getSystemPrompt(ownerAccount);
-        if (basePrompt == null)
-            basePrompt = "";
-
-        return basePrompt + "\n\n" +
-                "你可以使用以下工具解决用户问题:\n" +
-                "1. queryOptionsExpDate: 查询期权到期日\n" +
-                "   - 参数: code(股票代码), market(市场代码)\n" +
-                "2. queryOptionsChain: 查询期权链和股票指标\n" +
-                "   - 参数: code(股票代码), market(市场代码), strikeDate(到期日)\n" +
-                "3. queryOrderBook: 查询期权报价\n" +
-                "   - 参数: code(期权代码), market(市场代码)\n" +
-                "4. queryStockRealPrice: 查询股票实时价格\n" +
-                "   - 参数: code(股票代码), market(市场代码)\n\n" +
-                "调用工具时请使用JSON格式: {\"tool\":\"工具名\", \"arguments\":{参数}}";
+    private String buildPrompt(String content) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("task", content);
+        data.put("time", new Date().toString());
+        // 渲染模板
+        return TemplateRenderer.render("agent_system_prompt.ftl", data);
     }
 
     /**
@@ -201,6 +181,7 @@ public class AgentCopilotServiceImpl implements CopilotService, InitializingBean
                     });
             return future.get(300, TimeUnit.SECONDS);
         } catch (Exception e) {
+            log.error("sendChatRequest: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -276,13 +257,14 @@ public class AgentCopilotServiceImpl implements CopilotService, InitializingBean
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        // HttpClientSseClientTransport transport = HttpClientSseClientTransport.builder("http:/127.0.0.1:8888").build();
+        // HttpClientSseClientTransport transport =
+        // HttpClientSseClientTransport.builder("http:/127.0.0.1:8888").build();
         // McpSyncClient client = McpClient.sync(transport)
-        //         .requestTimeout(Duration.ofSeconds(10))
-        //         .capabilities(ClientCapabilities.builder()
-        //                 .roots(true) // Enable roots capability
-        //                 .build())
-        //         .build();
+        // .requestTimeout(Duration.ofSeconds(10))
+        // .capabilities(ClientCapabilities.builder()
+        // .roots(true) // Enable roots capability
+        // .build())
+        // .build();
         // ListToolsResult listTools = client.listTools();
         // System.out.println(listTools);
 
