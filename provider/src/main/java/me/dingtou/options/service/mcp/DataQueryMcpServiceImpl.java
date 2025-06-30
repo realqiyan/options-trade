@@ -9,6 +9,7 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import me.dingtou.options.context.SessionContext;
 import me.dingtou.options.manager.IndicatorManager;
 import me.dingtou.options.manager.OptionsManager;
 import me.dingtou.options.manager.OwnerManager;
