@@ -20,12 +20,12 @@ public class McpToolCallRequest extends ToolCallRequest {
      */
     private String arguments;
 
-    public McpToolCallRequest() {
-        super("use_mcp_tool");
+    public McpToolCallRequest(String owner) {
+        super(owner, "use_mcp_tool");
     }
 
-    public McpToolCallRequest(String serverName, String toolName, String argsContent) {
-        this();
+    public McpToolCallRequest(String owner, String serverName, String toolName, String argsContent) {
+        this(owner);
         this.serverName = serverName;
         this.toolName = toolName;
         this.arguments = argsContent;

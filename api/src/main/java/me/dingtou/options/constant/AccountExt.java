@@ -17,7 +17,7 @@ public enum AccountExt {
     AI_API_MODEL("ai_api_model", "AI模型名称"),
     AI_API_KEY("ai_api_key", "AI接口Key"),
     AI_API_TEMPERATURE("ai_api_temperature", "AI温度参数"),
-    AI_SYSTEM_PROMPT("ai_system_prompt", "AI系统提示词"),
+    AI_MCP_SETTINGS("ai_mcp_settings", "MCP服务器配置"),
     
     // 分析配置
     KLINE_PERIOD("kline_period", "K线周期，可选值：DAY(日K线)、WEEK(周K线)，默认为WEEK"),

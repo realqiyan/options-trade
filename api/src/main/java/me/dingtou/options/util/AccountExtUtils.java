@@ -112,7 +112,7 @@ public class AccountExtUtils {
         if (account == null) {
             return null;
         }
-        return account.getExtValue(AccountExt.AI_SYSTEM_PROMPT, null);
+        return account.getExtValue(AccountExt.AI_MCP_SETTINGS, null);
     }
     
     /**

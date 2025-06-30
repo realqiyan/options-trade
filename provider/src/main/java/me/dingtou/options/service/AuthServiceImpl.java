@@ -1,6 +1,10 @@
 package me.dingtou.options.service;
 
 import com.bastiaanjansen.otp.TOTPGenerator;
+
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
@@ -10,7 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Date;
+
+import javax.crypto.SecretKey;
 
 @Slf4j
 @Service
@@ -76,5 +84,21 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return null;
+    }
+
+    @Override
+    public String jwt(String owner, Date expireDate) {
+        String secretKeySha256 = secretKeySha256(owner);
+        SecretKey key = Keys.hmacShaKeyFor(secretKeySha256.getBytes(StandardCharsets.UTF_8));
+
+        // 设置jwt的body
+        JwtBuilder builder = Jwts.builder()
+                .signWith(key)
+                .subject(owner)
+                .issuedAt(new Date())
+                // 设置过期时间
+                .expiration(expireDate);
+
+        return builder.compact();
     }
 }

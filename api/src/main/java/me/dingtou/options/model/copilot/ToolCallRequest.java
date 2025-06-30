@@ -6,11 +6,17 @@ import lombok.Data;
 public abstract class ToolCallRequest {
 
     /**
+     * owner
+     */
+    private String owner;
+
+    /**
      * 工具名称
      */
     private String tool;
 
-    public ToolCallRequest(String tool) {
+    public ToolCallRequest(String owner, String tool) {
+        this.owner = owner;
         this.tool = tool;
     }
 }

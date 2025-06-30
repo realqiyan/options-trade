@@ -14,6 +14,13 @@ public class TemplateRenderer {
         cfg.setDefaultEncoding("UTF-8");
     }
     
+    /**
+     * 模板渲染
+     * 
+     * @param templateName 模板名称
+     * @param data 模板数据
+     * @return 渲染结果
+     */
     public static String render(String templateName, Map<String, Object> data) {
         try {
             Template tpl = cfg.getTemplate(templateName);

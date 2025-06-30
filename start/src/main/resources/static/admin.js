@@ -742,7 +742,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         $('#ai_api_model').val(data.ext.ai_api_model || 'deepseek-r1');
                         $('#ai_api_key').val(data.ext.ai_api_key || '');
                         $('#ai_api_temperature').val(data.ext.ai_api_temperature || '0.3');
-                        $('#ai_system_prompt').val(data.ext.ai_system_prompt || '');
+                        $('#ai_mcp_settings').val(data.ext.ai_mcp_settings || '');
                         
                         // 设置分析配置
                         $('#kline_period').val(data.ext.kline_period || 'WEEK');
@@ -770,7 +770,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         ext.ai_api_model = $('#ai_api_model').val();
                         ext.ai_api_key = $('#ai_api_key').val();
                         ext.ai_api_temperature = $('#ai_api_temperature').val();
-                        ext.ai_system_prompt = $('#ai_system_prompt').val();
+                        ext.ai_mcp_settings = $('#ai_mcp_settings').val();
                         
                         // 处理分析配置
                         ext.kline_period = $('#kline_period').val();
@@ -857,7 +857,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     ext.ai_api_model = $('#ai_api_model').val();
                     ext.ai_api_key = $('#ai_api_key').val();
                     ext.ai_api_temperature = $('#ai_api_temperature').val();
-                    ext.ai_system_prompt = $('#ai_system_prompt').val();
+                    ext.ai_mcp_settings = $('#ai_mcp_settings').val();
                     
                     // 处理分析配置
                     ext.kline_period = $('#kline_period').val();

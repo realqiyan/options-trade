@@ -18,10 +18,12 @@ public interface ToolProcesser {
     /**
      * 从模型返回中解析工具调用信息
      * 
+     * @param owner   用户
      * @param content 模型返回内容
+     * 
      * @return 工具调用信息
      */
-    ToolCallRequest parseToolRequest(String content);
+    ToolCallRequest parseToolRequest(String owner, String content);
 
     /**
      * 执行工具调用

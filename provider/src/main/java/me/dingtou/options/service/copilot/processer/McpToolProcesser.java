@@ -1,31 +1,29 @@
 package me.dingtou.options.service.copilot.processer;
 
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.Builder;
-import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
-
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 
-import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
-import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
-import io.modelcontextprotocol.spec.McpSchema.ClientCapabilities;
-import io.modelcontextprotocol.spec.McpSchema.ListToolsResult;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.config.ConfigUtils;
+import me.dingtou.options.constant.AccountExt;
+import me.dingtou.options.manager.OwnerManager;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.copilot.McpToolCallRequest;
 import me.dingtou.options.model.copilot.ToolCallRequest;
+import me.dingtou.options.service.AuthService;
 import me.dingtou.options.service.copilot.ToolProcesser;
+import me.dingtou.options.util.McpUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
 /**
@@ -34,6 +32,12 @@ import me.dingtou.options.util.TemplateRenderer;
 @Component
 @Slf4j
 public class McpToolProcesser implements ToolProcesser {
+
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private OwnerManager ownerManager;
 
     @Override
     public boolean support(String content) {
@@ -44,7 +48,7 @@ public class McpToolProcesser implements ToolProcesser {
     }
 
     @Override
-    public ToolCallRequest parseToolRequest(String content) {
+    public ToolCallRequest parseToolRequest(String owner, String content) {
         // 尝试解析use_mcp_tool
         try {
             ToolCallRequest toolCall = null;
@@ -57,7 +61,7 @@ public class McpToolProcesser implements ToolProcesser {
                 String serverName = matcher.group(1).trim();
                 String toolName = matcher.group(2).trim();
                 String argsContent = matcher.group(3).trim();
-                toolCall = new McpToolCallRequest(serverName, toolName, argsContent);
+                toolCall = new McpToolCallRequest(owner, serverName, toolName, argsContent);
                 return toolCall;
             }
         } catch (Exception xmlException) {
@@ -71,43 +75,60 @@ public class McpToolProcesser implements ToolProcesser {
         return null;
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public String callTool(ToolCallRequest toolCallRequest) {
         if (!(toolCallRequest instanceof McpToolCallRequest)) {
             return "参数异常";
         }
-        // test
         McpToolCallRequest mcpToolCallRequest = (McpToolCallRequest) toolCallRequest;
-        HttpClientSseClientTransport transport = HttpClientSseClientTransport.builder("http://127.0.0.1:8888")
-                .customizeRequest(new Consumer<HttpRequest.Builder>() {
-                    @Override
-                    public void accept(Builder t) {
-                        t.header("jwtToken", ConfigUtils.getConfig("mcp.server.jwtToken"));
-                    }
-                })
-                .build();
-        // Create a sync client with custom configuration
-        McpSyncClient client = McpClient.sync(transport)
-                .requestTimeout(Duration.ofSeconds(10))
-                .capabilities(ClientCapabilities.builder()
-                        .roots(true) // Enable roots capability
-                        .sampling() // Enable sampling capability
-                        .build())
-                .build();
-        // Initialize connection
-        client.initialize();
+        try {
 
-        // List available tools
-        ListToolsResult tools = client.listTools();
-        System.out.println(tools);
+            McpSyncClient client = McpUtils.getMcpClient(mcpToolCallRequest.getOwner(),
+                    mcpToolCallRequest.getServerName());
+            if (null == client) {
+                initMcpServers(mcpToolCallRequest.getOwner());
+                client = McpUtils.getMcpClient(mcpToolCallRequest.getOwner(), mcpToolCallRequest.getServerName());
+            }
 
-        String arguments = mcpToolCallRequest.getArguments();
-        Map params = JSON.parseObject(arguments, Map.class);
+            String arguments = mcpToolCallRequest.getArguments();
+            Map params = JSON.parseObject(arguments, Map.class);
 
-        CallToolResult result = client.callTool(new CallToolRequest(mcpToolCallRequest.getToolName(), params));
-        TextContent content = (TextContent) result.content().get(0);
+            CallToolResult result = client.callTool(new CallToolRequest(mcpToolCallRequest.getToolName(), params));
+            TextContent content = (TextContent) result.content().get(0);
 
-        return content.text();
+            return content.text();
+        } catch (Exception e) {
+            log.error("Failed to call server: {} tool: {} error: {}",
+                    mcpToolCallRequest.getServerName(),
+                    mcpToolCallRequest.getTool(),
+                    e.getMessage(), e);
+            return "调用工具失败:" + e.getMessage();
+        }
+    }
+
+    private void initMcpServers(String owner) {
+
+        // 初始化mcp服务器
+        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
+        String mcpSettings = ownerAccount.getExtValue(AccountExt.AI_MCP_SETTINGS, "");
+        if (StringUtils.isBlank(mcpSettings)) {
+            Map<String, Object> params = new HashMap<>();
+            Date expireDate = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 365 * 1000L);
+            params.put("jwt", authService.jwt(owner, expireDate));
+            mcpSettings = TemplateRenderer.render("config_default_mcp_settings.ftl", params);
+        }
+        JSONObject mcpServers = JSON.parseObject(mcpSettings).getJSONObject("mcpServers");
+        if (null == mcpServers) {
+            return;
+        }
+        for (String serverName : mcpServers.keySet()) {
+            JSONObject server = mcpServers.getJSONObject(serverName);
+            String url = server.getString("url");
+            Map<String, String> headers = server.getObject("headers", new TypeReference<Map<String, String>>() {
+            });
+            McpUtils.initMcpSseClient(owner, serverName, url, headers);
+        }
     }
 
     @Override

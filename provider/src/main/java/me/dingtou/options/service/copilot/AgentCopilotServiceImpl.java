@@ -100,7 +100,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
             // 提取工具调用信息
             ToolProcesser toolProcesser = findToolProcesser(chatResponse.getContent());
             if (null != toolProcesser) {
-                ToolCallRequest toolCall = toolProcesser.parseToolRequest(chatResponse.getContent());
+                ToolCallRequest toolCall = toolProcesser.parseToolRequest(owner, chatResponse.getContent());
                 if (toolCall != null) {
                     // 调用MCP服务
                     String toolResult = toolProcesser.callTool(toolCall);

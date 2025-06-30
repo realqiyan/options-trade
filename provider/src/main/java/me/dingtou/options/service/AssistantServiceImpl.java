@@ -36,7 +36,7 @@ public class AssistantServiceImpl implements AssistantService {
 
         // 从账号扩展字段中获取设置
         Map<String, Object> settings = new HashMap<>();
-        settings.put("systemPrompt", ownerAccount.getExtValue(AccountExt.AI_SYSTEM_PROMPT, ""));
+        settings.put("systemPrompt", ownerAccount.getExtValue(AccountExt.AI_MCP_SETTINGS, ""));
         settings.put("temperature", Double.parseDouble(
                 ownerAccount.getExtValue(AccountExt.AI_API_TEMPERATURE, "0.1")));
 
@@ -90,7 +90,7 @@ public class AssistantServiceImpl implements AssistantService {
         }
 
         // 更新AI设置
-        ownerAccount.setExtValue(AccountExt.AI_SYSTEM_PROMPT, systemPrompt);
+        ownerAccount.setExtValue(AccountExt.AI_MCP_SETTINGS, systemPrompt);
         ownerAccount.setExtValue(AccountExt.AI_API_TEMPERATURE, String.valueOf(temperature));
 
         // 保存到数据库
