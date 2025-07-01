@@ -77,8 +77,8 @@ public class AgentCopilotServiceImpl implements CopilotService {
         initMcpServer(account);
 
         // 构建包含MCP工具描述的系统提示词
-        String systemPrompt = buildPrompt(owner, ownerCode, message.getContent());
-        Message agentMessage = new Message(sessionId, "user", systemPrompt);
+        String mcpSettings = buildPrompt(owner, ownerCode, message.getContent());
+        Message agentMessage = new Message(sessionId, "user", mcpSettings);
 
         agentWork(account, title, agentMessage, callback, failCallback, sessionId, new ArrayList<>());
 

@@ -8,15 +8,21 @@ import me.dingtou.options.dao.OwnerChatRecordDAO;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
+import me.dingtou.options.util.TemplateRenderer;
+
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AssistantServiceImpl implements AssistantService {
 
+    @Autowired
+    private AuthService authService;
     @Autowired
     private OwnerManager ownerManager;
     @Autowired
@@ -29,14 +35,22 @@ public class AssistantServiceImpl implements AssistantService {
         if (ownerAccount == null) {
             // 返回默认设置
             Map<String, Object> defaultSettings = new HashMap<>();
-            defaultSettings.put("systemPrompt", "");
+            defaultSettings.put("mcpSettings", "");
             defaultSettings.put("temperature", 0.1);
             return defaultSettings;
         }
 
+        String mcpSettings = ownerAccount.getExtValue(AccountExt.AI_MCP_SETTINGS, "");
+        if (StringUtils.isBlank(mcpSettings)) {
+            Map<String, Object> params = new HashMap<>();
+            Date expireDate = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 365 * 1000L);
+            params.put("jwt", authService.jwt(ownerAccount.getOwner(), expireDate));
+            mcpSettings = TemplateRenderer.render("config_default_mcp_settings.ftl", params);
+        }
+
         // 从账号扩展字段中获取设置
         Map<String, Object> settings = new HashMap<>();
-        settings.put("systemPrompt", ownerAccount.getExtValue(AccountExt.AI_MCP_SETTINGS, ""));
+        settings.put("mcpSettings", mcpSettings);
         settings.put("temperature", Double.parseDouble(
                 ownerAccount.getExtValue(AccountExt.AI_API_TEMPERATURE, "0.1")));
 
@@ -82,7 +96,7 @@ public class AssistantServiceImpl implements AssistantService {
     }
 
     @Override
-    public boolean updateSettings(String owner, String systemPrompt, Double temperature) {
+    public boolean updateSettings(String owner, String mcpSettings, Double temperature) {
         // 查询用户账号
         OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
         if (ownerAccount == null) {
@@ -90,7 +104,7 @@ public class AssistantServiceImpl implements AssistantService {
         }
 
         // 更新AI设置
-        ownerAccount.setExtValue(AccountExt.AI_MCP_SETTINGS, systemPrompt);
+        ownerAccount.setExtValue(AccountExt.AI_MCP_SETTINGS, mcpSettings);
         ownerAccount.setExtValue(AccountExt.AI_API_TEMPERATURE, String.valueOf(temperature));
 
         // 保存到数据库
@@ -110,7 +124,6 @@ public class AssistantServiceImpl implements AssistantService {
         return row > 0;
     }
 
-    
     @Override
     public OwnerChatRecord getRecordByMessageId(String owner, String messageId) {
         // 查询这条消息的会话ID

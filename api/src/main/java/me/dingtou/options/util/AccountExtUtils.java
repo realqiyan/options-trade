@@ -103,10 +103,10 @@ public class AccountExtUtils {
     }
     
     /**
-     * 获取AI系统提示词
+     * 获取MCP服务器配置
      *
      * @param account 账户对象
-     * @return AI系统提示词
+     * @return MCP服务器配置
      */
     public static String getSystemPrompt(OwnerAccount account) {
         if (account == null) {

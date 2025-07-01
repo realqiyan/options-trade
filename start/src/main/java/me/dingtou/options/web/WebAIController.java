@@ -254,7 +254,7 @@ public class WebAIController {
     /**
      * 更新AI设置
      *
-     * @param systemPrompt 系统提示词
+     * @param mcpSettings MCP服务器配置
      * @param temperature  温度参数
      * @return WebResult
      */
@@ -279,8 +279,8 @@ public class WebAIController {
     public WebResult<Boolean> updateAISettings(@RequestBody Map<String, Object> params) {
         try {
             String owner = SessionUtils.getCurrentOwner();
-            String systemPrompt = params.get("systemPrompt") != null
-                    ? params.get("systemPrompt").toString()
+            String mcpSettings = params.get("mcpSettings") != null
+                    ? params.get("mcpSettings").toString()
                     : null;
             Double temperature = params.get("temperature") != null
                     ? Double.parseDouble(params.get("temperature").toString())
@@ -295,7 +295,7 @@ public class WebAIController {
                 return WebResult.failure("温度参数必须在0-1之间");
             }
 
-            boolean result = assistantService.updateSettings(owner, systemPrompt, temperature);
+            boolean result = assistantService.updateSettings(owner, mcpSettings, temperature);
             return WebResult.success(result);
         } catch (Exception e) {
             log.error("更新AI设置失败", e);

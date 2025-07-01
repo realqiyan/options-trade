@@ -46,13 +46,7 @@ public class ChatClient {
     private static final String CHAT_COMPLETIONS_PATH = "/chat/completions";
 
     /**
-     * 发送流式聊天请求（带系统提示词）
-     *
-     * @param account       账号
-     * @param systemPrompt  系统提示词
-     * @param messages      消息列表
-     * @param chunkConsumer 数据块消费函数
-     * @return 聊天响应结果
+     * 发送流式聊天请求
      */
     public static CompletableFuture<ChatResponse> sendStreamChatRequest(String baseUrl,
             String apiKey,
@@ -165,12 +159,12 @@ public class ChatClient {
     }
 
     /**
-     * 构建请求体（带系统提示词）
+     * 构建请求体
      *
-     * @param messages     消息列表
-     * @param model        模型
-     * @param temperature  温度
-     * @param stream       是否流式请求
+     * @param messages    消息列表
+     * @param model       模型
+     * @param temperature 温度
+     * @param stream      是否流式请求
      * 
      * @return 请求体JSON对象
      */

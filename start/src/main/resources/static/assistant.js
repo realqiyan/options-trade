@@ -18,7 +18,7 @@ layui.use(['layer', 'form', 'util'], function() {
             
             // 默认设置
             this.settings = {
-                systemPrompt: "",
+                mcpSettings: "",
                 temperature: 0.1
             };
             
@@ -36,7 +36,7 @@ layui.use(['layer', 'form', 'util'], function() {
                 saveTitleBtn: document.getElementById('save-title-btn'),
                 toggleHistoryBtn: document.getElementById('toggle-history-btn'),
                 titleActions: document.getElementById('title-actions'),
-                systemPrompt: document.getElementById('system-prompt'),
+                mcpSettings: document.getElementById('mcp-settings'),
                 saveSettingsBtn: document.getElementById('save-settings-btn'),
                 resetSettingsBtn: document.getElementById('reset-settings-btn')
             };
@@ -54,29 +54,12 @@ layui.use(['layer', 'form', 'util'], function() {
             this.loadSettings();
             this.initSlider();
             this.bindEvents();
-            this.loadPrompt();
             
             // 监听窗口大小变化，确保滚动正常工作
             window.addEventListener('resize', () => {
                 // 重新检查聊天历史滚动条
                 setTimeout(() => this.scrollToBottom(), 200);
             });
-        }
-
-        /**
-         * 加载提示词
-         */
-        loadPrompt(){
-            const title = localStorage.getItem("title");
-            const prompt = localStorage.getItem("prompt");
-            if(title){
-                this.elements.chatTitle.value = title;
-                localStorage.removeItem("title");
-            }
-            if(prompt){
-                this.elements.chatInput.value = prompt;
-                localStorage.removeItem("prompt");
-            }
         }
         
         /**
@@ -813,12 +796,12 @@ layui.use(['layer', 'form', 'util'], function() {
             .then(result => {
                 if (result.success) {
                     this.settings = {
-                        systemPrompt: result.data.systemPrompt || "",
+                        mcpSettings: result.data.mcpSettings || "",
                         temperature: result.data.temperature || 0.1
                     };
                     
                     // 更新UI
-                    this.elements.systemPrompt.value = this.settings.systemPrompt;
+                    this.elements.mcpSettings.value = this.settings.mcpSettings;
                     if (this.temperatureSlider) {
                         this.temperatureSlider.setValue(this.settings.temperature);
                         document.querySelector('.slider-value').textContent = this.settings.temperature.toFixed(1);
@@ -861,14 +844,13 @@ layui.use(['layer', 'form', 'util'], function() {
          * 保存AI设置
          */
         saveSettings() {
-            // 获取系统提示词
-            const systemPrompt = this.elements.systemPrompt.value.trim();
+            // 获取系MCP服务器配置
+            const mcpSettings = this.elements.mcpSettings.value.trim();
             
             // 更新设置
-            this.settings.systemPrompt = systemPrompt;
+            this.settings.mcpSettings = mcpSettings;
             
-            // 保存到本地和服务端
-            localStorage.setItem('ai_settings', JSON.stringify(this.settings));
+            // 保存到服务端
             this.saveSettingsToServer();
         }
         
@@ -882,7 +864,7 @@ layui.use(['layer', 'form', 'util'], function() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    systemPrompt: this.settings.systemPrompt,
+                    mcpSettings: this.settings.mcpSettings,
                     temperature: this.settings.temperature
                 })
             })
@@ -906,7 +888,7 @@ layui.use(['layer', 'form', 'util'], function() {
         resetSettings() {
             // 默认设置
             const defaultSettings = {
-                systemPrompt: "",
+                mcpSettings: "",
                 temperature: 0.1
             };
             
@@ -918,7 +900,7 @@ layui.use(['layer', 'form', 'util'], function() {
                 this.settings = { ...defaultSettings };
                 
                 // 更新UI
-                this.elements.systemPrompt.value = this.settings.systemPrompt;
+                this.elements.mcpSettings.value = this.settings.mcpSettings;
                 this.temperatureSlider.setValue(this.settings.temperature);
                 
                 // 保存到localStorage
@@ -931,7 +913,7 @@ layui.use(['layer', 'form', 'util'], function() {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        systemPrompt: this.settings.systemPrompt,
+                        mcpSettings: this.settings.mcpSettings,
                         temperature: this.settings.temperature
                     })
                 })

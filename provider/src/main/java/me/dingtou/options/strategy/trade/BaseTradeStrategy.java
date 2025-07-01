@@ -144,7 +144,6 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
             prompt.append(strategyPrompt).append("\n");
         }
 
-        // AI分析提示词
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
         CandlestickPeriod period = stockIndicator.getPeriod();
         if (null == period) {

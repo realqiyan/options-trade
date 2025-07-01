@@ -168,10 +168,10 @@ public class AskCopilotServiceImpl implements CopilotService {
         StringBuilder finalContent = new StringBuilder();
 
         // 系统提示词
-        String systemPrompt = AccountExtUtils.getSystemPrompt(account);
+        String mcpSettings = AccountExtUtils.getSystemPrompt(account);
         // 添加系统消息
-        if (StringUtils.isNotBlank(systemPrompt)) {
-            messages.add(0, new Message("system", systemPrompt));
+        if (StringUtils.isNotBlank(mcpSettings)) {
+            messages.add(0, new Message("system", mcpSettings));
         }
 
         String baseUrl = AccountExtUtils.getAiBaseUrl(account);
@@ -181,7 +181,7 @@ public class AskCopilotServiceImpl implements CopilotService {
 
         ChatResponse chatResponse;
         try {
-            // chatResponse = ChatClient.sendChatRequest(account, systemPrompt, messages);
+            // chatResponse = ChatClient.sendChatRequest(account, mcpSettings, messages);
             String sessionId = messages.get(0).getSessionId();
             chatResponse = ChatClient.sendStreamChatRequest(baseUrl,
                     apiKey,

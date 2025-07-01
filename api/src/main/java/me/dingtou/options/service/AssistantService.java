@@ -15,7 +15,7 @@ public interface AssistantService {
      * 获取AI设置
      * 
      * @param owner 所有者
-     * @return 设置键值对（systemPrompt, temperature）
+     * @return 设置键值对（mcpSettings, temperature）
      */
     Map<String, Object> getSettings(String owner);
 
@@ -78,10 +78,10 @@ public interface AssistantService {
     /**
      * 更新AI设置
      *
-     * @param owner        所有者
-     * @param systemPrompt 系统提示词
-     * @param temperature  温度参数
+     * @param owner       所有者
+     * @param mcpSettings MCP服务器配置
+     * @param temperature 温度参数
      * @return 是否成功
      */
-    boolean updateSettings(String owner, String systemPrompt, Double temperature);
+    boolean updateSettings(String owner, String mcpSettings, Double temperature);
 }
