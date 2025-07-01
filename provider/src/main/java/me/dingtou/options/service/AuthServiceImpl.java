@@ -16,6 +16,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
@@ -100,5 +102,19 @@ public class AuthServiceImpl implements AuthService {
                 .expiration(expireDate);
 
         return builder.compact();
+    }
+
+    @Override
+    public String encodeOwner(String owner) {
+        String secretKeySha256 = secretKeySha256(owner) + LocalDate.now().toString();
+        // ASE加密
+        
+        return null;
+    }
+
+    @Override
+    public String decodeOwner(String ownerCode) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'decodeOwner'");
     }
 }

@@ -10,46 +10,54 @@ public interface DataQueryMcpService {
         /**
          * 查询股票价格
          *
-         * @param code   股票代码
-         * @param market 市场代码
+         * @param ownerCode 用户加密编码
+         * @param code      股票代码
+         * @param market    市场代码
          * 
          * @return 股票价格
          */
-        String queryStockRealPrice(String code,
+        String queryStockRealPrice(String ownerCode,
+                        String code,
                         Integer market);
 
         /**
          * 查询期权到期日列表
          *
-         * @param code   股票代码
-         * @param market 市场代码
+         * @param ownerCode 用户加密编码
+         * @param code      股票代码
+         * @param market    市场代码
          * 
          * @return 期权到期日列表
          */
-        String queryOptionsExpDate(String code,
+        String queryOptionsExpDate(String ownerCode,
+                        String code,
                         Integer market);
 
         /**
          * 查询期权链
          *
+         * @param ownerCode  用户加密编码
          * @param code       股票代码
          * @param market     市场代码
          * @param strikeDate 期权到期日
          * 
          * @return 期权链
          */
-        String queryOptionsChain(String code,
+        String queryOptionsChain(String ownerCode,
+                        String code,
                         Integer marke,
                         String strikeDate);
 
         /**
          * 查询市场实时盘口
          *
-         * @param code   股票代码
-         * @param market 市场代码
+         * @param ownerCode 用户加密编码
+         * @param code      股票代码
+         * @param market    市场代码
          * @return 实时盘口
          */
-        String queryOrderBook(String code,
+        String queryOrderBook(String ownerCode,
+                        String code,
                         Integer market);
 
 }
