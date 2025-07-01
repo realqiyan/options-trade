@@ -8,6 +8,7 @@ import me.dingtou.options.service.copilot.CopilotService;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -201,6 +202,10 @@ public class WebAIController {
         try {
             String owner = SessionUtils.getCurrentOwner();
             List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
+            records.forEach(record -> {
+                record.setContent(StringEscapeUtils.escapeHtml4(record.getContent()));
+                record.setReasoningContent(StringEscapeUtils.escapeHtml4(record.getReasoningContent()));
+            });
             return WebResult.success(records);
         } catch (Exception e) {
             log.error("获取沟通记录失败", e);

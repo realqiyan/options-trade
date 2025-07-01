@@ -96,101 +96,18 @@ MCP 服务器
 
 当服务器连接成功后，您可以通过`use_mcp_tool`工具使用该服务器的工具，并通过`access_mcp_resource`工具访问服务器的资源。
 
-## options-trade
+<#list servers as server>
+## ${server.name}
 
 ### 可用工具
-- queryOrderBook: 查询指定期权代码的报价，根据期权代码、市场代码查询当前期权买卖报价。
-    Input Schema:
-    {
-      \"type\": \"object\",
-      \"properties\": {
-        \"code\": {
-          \"type\": \"string\",
-          \"description\": \"期权代码\"
-        },
-        \"market\": {
-          \"type\": \"integer\",
-          \"format\": \"int32\",
-          \"description\": \"市场代码 1:港股 11:美股\"
-        }
-      },
-      \"required\": [
-        \"code\",
-        \"market\"
-      ],
-      \"additionalProperties\": false
-    }
 
-- queryOptionsExpDate: 查询期权到期日，根据股票代码和市场代码查询股票对应的期权到期日。
+<#list server.tools as tool>
+- ${tool.name}: ${tool.description}
     Input Schema:
-    {
-      \"type\": \"object\",
-      \"properties\": {
-        \"code\": {
-          \"type\": \"string\",
-          \"description\": \"股票代码\"
-        },
-        \"market\": {
-          \"type\": \"integer\",
-          \"format\": \"int32\",
-          \"description\": \"市场代码 1:港股 11:美股\"
-        }
-      },
-      \"required\": [
-        \"code\",
-        \"market\"
-      ],
-      \"additionalProperties\": false
-    }
+    ${tool.inputSchema}
 
-- queryOptionsChain: 查询指定日期期权链和股票相关技术指标，根据股票代码、市场代码、到期日查询股票对应的期权到期日的期权链以及股票技术指标（K线、EMA、BOLL、MACD、RSI）。
-    Input Schema:
-    {
-      \"type\": \"object\",
-      \"properties\": {
-        \"code\": {
-          \"type\": \"string\",
-          \"description\": \"股票代码\"
-        },
-        \"market\": {
-          \"type\": \"integer\",
-          \"format\": \"int32\",
-          \"description\": \"市场代码 1:港股 11:美股\"
-        },
-        \"strikeDate\": {
-          \"type\": \"string\",
-          \"description\": \"期权到期日 2025-06-27\"
-        }
-      },
-      \"required\": [
-        \"code\",
-        \"market\",
-        \"strikeDate\"
-      ],
-      \"additionalProperties\": false
-    }
-
-- queryStockRealPrice: 查询指股票代码的当前价格，根据股票代码、市场代码查询当前股票价格。
-    Input Schema:
-    {
-      \"type\": \"object\",
-      \"properties\": {
-        \"code\": {
-          \"type\": \"string\",
-          \"description\": \"股票代码\"
-        },
-        \"market\": {
-          \"type\": \"integer\",
-          \"format\": \"int32\",
-          \"description\": \"市场代码 1:港股 11:美股\"
-        }
-      },
-      \"required\": [
-        \"code\",
-        \"market\"
-      ],
-      \"additionalProperties\": false
-    }
+</#list>
+</#list>
 
 ====
 
@@ -210,7 +127,7 @@ MCP 服务器
 ${task}
 </task>
 <environment_details>
-# 当前用户
+# 当前用户Token
 ${ownerCode}
 
 # 当前时间

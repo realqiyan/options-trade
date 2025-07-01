@@ -1,6 +1,6 @@
 package me.dingtou.options.service.copilot.processer;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -95,7 +95,7 @@ public class McpToolProcesser implements ToolProcesser {
         Map<String, Object> data = new HashMap<>();
         data.put("toolRequest", toolRequest);
         data.put("toolResult", toolResult);
-        data.put("time", new Date().toString());
+        data.put("time", LocalDateTime.now().toString());
         // 渲染模板
         return TemplateRenderer.render("agent_mcp_tool_result_prompt.ftl", data);
 
