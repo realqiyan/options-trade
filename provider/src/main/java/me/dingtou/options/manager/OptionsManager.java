@@ -1,11 +1,12 @@
 package me.dingtou.options.manager;
 
 import me.dingtou.options.gateway.OptionsChainGateway;
-import me.dingtou.options.gateway.VixQueryGateway;
 import me.dingtou.options.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -14,9 +15,6 @@ public class OptionsManager {
 
     @Autowired
     private OptionsChainGateway optionsChainGateway;
-
-    @Autowired
-    private VixQueryGateway vixQueryGateway;
 
     @Autowired
     private IndicatorManager indicatorManager;
@@ -49,28 +47,40 @@ public class OptionsManager {
     /**
      * 查询期权链
      * 
-     * @param ownerAccount 账户
-     * @param security     股票
-     * @param strikeDate   期权到期日
+     * @param ownerAccount     账户
+     * @param security         股票
+     * @param strikeDate       期权到期日
+     * @param includeIndicator 是否包含技术指标
+     * 
      * @return 期权链
      */
     public OptionsChain queryOptionsChain(OwnerAccount ownerAccount,
             Security security,
-            String strikeDate) {
+            String strikeDate,
+            boolean includeIndicator) {
         if (null == security || null == strikeDate) {
             return null;
         }
 
-        // 策略分析提供基础指标数据
-        StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(ownerAccount, security);
+        BigDecimal lastDone = null;
+        StockIndicator stockIndicator = null;
+        VixIndicator vixIndicator = null;
+
+        if (includeIndicator) {
+            // 策略分析提供基础指标数据
+            stockIndicator = indicatorManager.calculateStockIndicator(ownerAccount, security);
+            vixIndicator = indicatorManager.queryCurrentVix();
+
+            lastDone = stockIndicator.getSecurityQuote().getLastDone();
+        } else {
+            lastDone = indicatorManager.queryStockPrice(ownerAccount, security);
+        }
 
         // 期权链
         OptionsChain optionsChain = optionsChainGateway.queryOptionsChain(security,
                 strikeDate,
-                stockIndicator.getSecurityQuote().getLastDone());
+                lastDone);
         optionsChain.setStockIndicator(stockIndicator);
-
-        VixIndicator vixIndicator = vixQueryGateway.queryCurrentVix();
         optionsChain.setVixIndicator(vixIndicator);
 
         return optionsChain;

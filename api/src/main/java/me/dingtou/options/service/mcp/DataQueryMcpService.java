@@ -49,6 +49,19 @@ public interface DataQueryMcpService {
                         String strikeDate);
 
         /**
+         * 查询股票指标
+         *
+         * @param ownerCode 用户加密编码
+         * @param code      股票代码
+         * @param market    市场代码
+         * 
+         * @return 股票指标
+         */
+        String queryStockIndicator(String ownerCode,
+                        String code,
+                        Integer marke);
+
+        /**
          * 查询市场实时盘口
          *
          * @param ownerCode 用户加密编码

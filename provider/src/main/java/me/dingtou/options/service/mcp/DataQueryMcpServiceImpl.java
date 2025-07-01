@@ -18,6 +18,8 @@ import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityOrderBook;
+import me.dingtou.options.model.StockIndicator;
+import me.dingtou.options.model.VixIndicator;
 import me.dingtou.options.service.AuthService;
 import me.dingtou.options.util.TemplateRenderer;
 
@@ -57,7 +59,7 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
         return TemplateRenderer.render("mcp_options_exp_date.ftl", data);
     }
 
-    @Tool(description = "查询指定日期期权链和股票相关技术指标，根据股票代码、市场代码、到期日查询股票对应的期权到期日的期权链以及股票技术指标（K线、EMA、BOLL、MACD、RSI）。")
+    @Tool(description = "查询指定日期期权链，根据股票代码、市场代码、到期日查询股票对应的期权数据（价格、成交、Delta、Delta、Gamma、Theta）。")
     @Override
     public String queryOptionsChain(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
@@ -68,18 +70,38 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
             return "用户编码信息不正确或已经过期";
         }
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        OptionsChain optionsChain = optionsManager.queryOptionsChain(account, Security.of(code, market), strikeDate);
+        OptionsChain optionsChain = optionsManager.queryOptionsChain(account, Security.of(code, market), strikeDate,
+                false);
 
         // 准备模板数据
         Map<String, Object> data = new HashMap<>();
         data.put("security", optionsChain.getSecurity());
         data.put("strikeTime", optionsChain.getStrikeTime());
         data.put("optionsList", optionsChain.getOptionsList());
-        data.put("vixIndicator", optionsChain.getVixIndicator());
-        data.put("stockIndicator", optionsChain.getStockIndicator());
 
         // 渲染模板
         return TemplateRenderer.render("mcp_options_chain.ftl", data);
+    }
+
+    @Tool(description = "查询股票技术指标，根据股票代码、市场代码查询股票技术指标（K线、EMA、BOLL、MACD、RSI）。")
+    @Override
+    public String queryStockIndicator(@ToolParam(required = true, description = "用户Token") String ownerCode,
+            @ToolParam(required = true, description = "股票代码") String code,
+            @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
+        String owner = authService.decodeOwner(ownerCode);
+        if (null == owner) {
+            return "用户编码信息不正确或已经过期";
+        }
+        Security security = Security.of(code, market);
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+        StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security);
+        VixIndicator vixIndicator = indicatorManager.queryCurrentVix();
+        Map<String, Object> data = new HashMap<>();
+        data.put("security", security);
+        data.put("vixIndicator", vixIndicator);
+        data.put("stockIndicator", stockIndicator);
+        // 渲染模板
+        return TemplateRenderer.render("mcp_stock_indicator.ftl", data);
     }
 
     @Tool(description = "查询指定期权代码的报价，根据期权代码、市场代码查询当前期权买卖报价。")

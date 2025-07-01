@@ -41,6 +41,7 @@ import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.constant.IndicatorKey;
 import me.dingtou.options.gateway.CandlestickGateway;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
+import me.dingtou.options.gateway.VixQueryGateway;
 import me.dingtou.options.model.Candlestick;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.Security;
@@ -49,6 +50,7 @@ import me.dingtou.options.model.SecurityQuote;
 import me.dingtou.options.model.StockIndicator;
 import me.dingtou.options.model.StockIndicatorItem;
 import me.dingtou.options.model.SupportPriceIndicator;
+import me.dingtou.options.model.VixIndicator;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.ExceptionUtils;
 import me.dingtou.options.util.NumberUtils;
@@ -71,6 +73,9 @@ public class IndicatorManager {
     @Autowired
     private CandlestickGateway candlestickGateway;
 
+    @Autowired
+    private VixQueryGateway vixQueryGateway;
+
     /**
      * 获取股票价格
      * 
@@ -81,6 +86,15 @@ public class IndicatorManager {
     public BigDecimal queryStockPrice(OwnerAccount ownerAccount, Security security) {
         SecurityQuote securityQuote = securityQuoteGateway.quote(ownerAccount, security);
         return securityQuote.getLastDone();
+    }
+
+    /**
+     * 获取VIX指数
+     * 
+     * @return VIX指数
+     */
+    public VixIndicator queryCurrentVix() {
+        return vixQueryGateway.queryCurrentVix();
     }
 
     /**

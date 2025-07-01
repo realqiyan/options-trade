@@ -66,7 +66,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
             String strikeDate,
             OwnerStrategy strategy) {
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        OptionsChain optionsChain = optionsManager.queryOptionsChain(account, security, strikeDate);
+        OptionsChain optionsChain = optionsManager.queryOptionsChain(account, security, strikeDate, true);
 
         if (null == allOptionsStrategy || allOptionsStrategy.isEmpty()) {
             return optionsChain;
