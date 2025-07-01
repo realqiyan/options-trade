@@ -14,10 +14,12 @@ import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
 import io.modelcontextprotocol.spec.McpSchema.ClientCapabilities;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * mcp工具类
  */
+@Slf4j
 public class McpUtils {
 
     /**
@@ -58,12 +60,15 @@ public class McpUtils {
      * @param mcpSettings mcp设置
      */
     public static void initMcpClient(String owner, String mcpSettings) {
+        log.warn("初始化mcp客户端: {}", mcpSettings);
         // 初始化mcp服务器
         JSONObject mcpServers = JSON.parseObject(mcpSettings).getJSONObject("mcpServers");
         if (null == mcpServers) {
+            log.warn("mcpServers is null");
             return;
         }
         for (String serverName : mcpServers.keySet()) {
+            log.warn("初始化mcp服务器: {}", serverName);
             JSONObject server = mcpServers.getJSONObject(serverName);
             String url = server.getString("url");
             Map<String, String> headers = server.getObject("headers", new TypeReference<Map<String, String>>() {
@@ -123,6 +128,7 @@ public class McpUtils {
         client.initialize();
 
         mcpServers.put(serverName, client);
+        log.info("McpClient init success, serverName: {}", serverName);
 
         return client;
     }
