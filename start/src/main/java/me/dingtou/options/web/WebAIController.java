@@ -7,6 +7,7 @@ import me.dingtou.options.service.AssistantService;
 import me.dingtou.options.service.copilot.CopilotService;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -90,6 +91,7 @@ public class WebAIController {
                     try {
                         copilotServiceMap.get(mode).start(owner, title, chatMessage, msg -> {
                             try {
+                                msg.escapeHtml4();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -97,6 +99,7 @@ public class WebAIController {
                             return null;
                         }, msg -> {
                             try {
+                                msg.escapeHtml4();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -142,6 +145,7 @@ public class WebAIController {
                         Message newMessage = new Message(null, sessionId, "user", message, null);
                         copilotServiceMap.get(mode).continuing(owner, sessionId, newMessage, msg -> {
                             try {
+                                msg.escapeHtml4();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -149,6 +153,7 @@ public class WebAIController {
                             return null;
                         }, msg -> {
                             try {
+                                msg.escapeHtml4();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);

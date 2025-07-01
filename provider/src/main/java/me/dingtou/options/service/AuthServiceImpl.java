@@ -16,11 +16,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.time.Instant;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 
+import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 @Slf4j
 @Service
@@ -106,15 +110,69 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String encodeOwner(String owner) {
-        String secretKeySha256 = secretKeySha256(owner) + LocalDate.now().toString();
-        // ASE加密
-        
-        return null;
+        // AES加密
+        try {
+            SecretKeySpec secretKey = buildSecretKey(owner);
+
+            // 初始化加密器
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+
+            // 加密owner
+            byte[] encryptedBytes = cipher.doFinal(owner.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(encryptedBytes);
+        } catch (Exception e) {
+            log.error("encodeOwner error", e);
+            return null;
+        }
+    }
+
+    /**
+     * 获取动态密码
+     * 
+     * @param owner 用户
+     * @return SecretKeySpec
+     * @throws NoSuchAlgorithmException
+     */
+    private SecretKeySpec buildSecretKey(String owner) throws NoSuchAlgorithmException {
+        String currentSecretKey = secretKeySha256(owner) + LocalDate.now().toString();
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] keyBytes = digest.digest(currentSecretKey.getBytes(StandardCharsets.UTF_8));
+        SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "AES");
+        return secretKey;
     }
 
     @Override
     public String decodeOwner(String ownerCode) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'decodeOwner'");
+        try {
+            // 获取所有owner账户
+            List<OwnerAccount> accounts = ownerManager.queryAllOwnerAccount();
+            // 尝试每个owner进行解密
+            for (OwnerAccount account : accounts) {
+                String owner = account.getOwner();
+                SecretKeySpec secretKey = buildSecretKey(owner);
+
+                // 初始化解密器
+                Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                cipher.init(Cipher.DECRYPT_MODE, secretKey);
+
+                try {
+                    // 执行解密
+                    byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(ownerCode));
+                    String decryptedText = new String(decryptedBytes, StandardCharsets.UTF_8);
+                    if (owner.equals(decryptedText)) {
+                        return owner;
+                    }
+                } catch (Exception e) {
+                    // 解密失败，尝试下一个owner
+                    continue;
+                }
+            }
+            log.error("decodeOwner failed: no valid owner found or expired code");
+            return null;
+        } catch (Exception e) {
+            log.error("decodeOwner error", e);
+            return null;
+        }
     }
 }

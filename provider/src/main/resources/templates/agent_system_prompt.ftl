@@ -210,6 +210,9 @@ MCP 服务器
 ${task}
 </task>
 <environment_details>
+# 当前用户
+${ownerCode}
+
 # 当前时间
 ${time}
 </environment_details>

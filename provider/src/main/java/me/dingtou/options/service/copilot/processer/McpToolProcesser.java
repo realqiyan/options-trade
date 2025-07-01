@@ -4,24 +4,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
-
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.constant.AccountExt;
-import me.dingtou.options.manager.OwnerManager;
-import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.copilot.McpToolCallRequest;
 import me.dingtou.options.model.copilot.ToolCallRequest;
-import me.dingtou.options.service.AuthService;
 import me.dingtou.options.service.copilot.ToolProcesser;
 import me.dingtou.options.util.McpUtils;
 import me.dingtou.options.util.TemplateRenderer;
@@ -32,12 +24,6 @@ import me.dingtou.options.util.TemplateRenderer;
 @Component
 @Slf4j
 public class McpToolProcesser implements ToolProcesser {
-
-    @Autowired
-    private AuthService authService;
-
-    @Autowired
-    private OwnerManager ownerManager;
 
     @Override
     public boolean support(String content) {
@@ -86,10 +72,6 @@ public class McpToolProcesser implements ToolProcesser {
 
             McpSyncClient client = McpUtils.getMcpClient(mcpToolCallRequest.getOwner(),
                     mcpToolCallRequest.getServerName());
-            if (null == client) {
-                initMcpServers(mcpToolCallRequest.getOwner());
-                client = McpUtils.getMcpClient(mcpToolCallRequest.getOwner(), mcpToolCallRequest.getServerName());
-            }
 
             String arguments = mcpToolCallRequest.getArguments();
             Map params = JSON.parseObject(arguments, Map.class);
@@ -104,30 +86,6 @@ public class McpToolProcesser implements ToolProcesser {
                     mcpToolCallRequest.getTool(),
                     e.getMessage(), e);
             return "调用工具失败:" + e.getMessage();
-        }
-    }
-
-    private void initMcpServers(String owner) {
-
-        // 初始化mcp服务器
-        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
-        String mcpSettings = ownerAccount.getExtValue(AccountExt.AI_MCP_SETTINGS, "");
-        if (StringUtils.isBlank(mcpSettings)) {
-            Map<String, Object> params = new HashMap<>();
-            Date expireDate = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 365 * 1000L);
-            params.put("jwt", authService.jwt(owner, expireDate));
-            mcpSettings = TemplateRenderer.render("config_default_mcp_settings.ftl", params);
-        }
-        JSONObject mcpServers = JSON.parseObject(mcpSettings).getJSONObject("mcpServers");
-        if (null == mcpServers) {
-            return;
-        }
-        for (String serverName : mcpServers.keySet()) {
-            JSONObject server = mcpServers.getJSONObject(serverName);
-            String url = server.getString("url");
-            Map<String, String> headers = server.getObject("headers", new TypeReference<Map<String, String>>() {
-            });
-            McpUtils.initMcpSseClient(owner, serverName, url, headers);
         }
     }
 

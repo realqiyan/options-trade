@@ -1,5 +1,7 @@
 package me.dingtou.options.model;
 
+import org.apache.commons.text.StringEscapeUtils;
+
 import lombok.Data;
 
 /**
@@ -50,6 +52,16 @@ public class Message {
         this.role = role;
         this.content = content;
         this.reasoningContent = reasoningContent;
+    }
+
+    public void escapeHtml4() {
+        this.content = StringEscapeUtils.escapeHtml4(this.content);
+        this.reasoningContent = StringEscapeUtils.escapeHtml4(this.reasoningContent);
+    }
+
+    public void escapeJson() {
+        this.content = StringEscapeUtils.escapeJson(this.content);
+        this.reasoningContent = StringEscapeUtils.escapeJson(this.reasoningContent);
     }
 
     @Override

@@ -1,7 +1,6 @@
 package me.dingtou.options.web.util;
 
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.context.SessionContext;
 import me.dingtou.options.web.model.LoginInfo;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -36,7 +35,6 @@ public class SessionUtils {
      * @param owner 当前登陆用户
      */
     public static void setCurrentOwner(String owner) {
-        SessionContext.setOwner(owner);
         CURRENT_OWNER.set(owner);
     }
 
@@ -44,7 +42,6 @@ public class SessionUtils {
      * 清除当前登陆用户
      */
     public static void clearCurrentOwner() {
-        SessionContext.clearOwner();
         CURRENT_OWNER.remove();
     }
 

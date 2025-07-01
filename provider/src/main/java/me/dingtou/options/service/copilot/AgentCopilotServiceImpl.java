@@ -11,17 +11,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import io.modelcontextprotocol.client.McpSyncClient;
+import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.model.copilot.ToolCallRequest;
 import me.dingtou.options.service.AssistantService;
+import me.dingtou.options.service.AuthService;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.ChatClient;
+import me.dingtou.options.util.McpUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
 @Slf4j
@@ -33,6 +38,9 @@ public class AgentCopilotServiceImpl implements CopilotService {
 
     @Autowired
     private AssistantService assistantService;
+
+    @Autowired
+    private AuthService authService;
 
     @Autowired
     private OwnerManager ownerManager;
@@ -56,8 +64,13 @@ public class AgentCopilotServiceImpl implements CopilotService {
             return sessionId;
         }
 
+        String ownerCode = authService.encodeOwner(owner);
+
+        // 初始化MCP服务
+        initMcpServer(ownerAccount);
+
         // 构建包含MCP工具描述的系统提示词
-        String systemPrompt = buildPrompt(message.getContent());
+        String systemPrompt = buildPrompt(owner, ownerCode, message.getContent());
         List<Message> messages = new ArrayList<>();
         Message agentMessage = new Message(sessionId, "user", systemPrompt);
         messages.add(agentMessage);
@@ -144,10 +157,26 @@ public class AgentCopilotServiceImpl implements CopilotService {
         return sessionId;
     }
 
-    private String buildPrompt(String content) {
+    private void initMcpServer(OwnerAccount ownerAccount) {
+        String mcpSettings = ownerAccount.getExtValue(AccountExt.AI_MCP_SETTINGS, "");
+        if (StringUtils.isBlank(mcpSettings)) {
+            Map<String, Object> params = new HashMap<>();
+            Date expireDate = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 365 * 1000L);
+            params.put("jwt", authService.jwt(ownerAccount.getOwner(), expireDate));
+            mcpSettings = TemplateRenderer.render("config_default_mcp_settings.ftl", params);
+            McpUtils.initMcpClient(ownerAccount.getOwner(), mcpSettings);
+        }
+    }
+
+    private String buildPrompt(String owner, String ownerCode, String content) {
         Map<String, Object> data = new HashMap<>();
         data.put("task", content);
+        data.put("ownerCode", ownerCode);
         data.put("time", new Date().toString());
+
+        Map<String, McpSyncClient> ownerMcpClient = McpUtils.getOwnerMcpClient(owner);
+        // 获取所有MCP服务
+
         // 渲染模板
         return TemplateRenderer.render("agent_system_prompt.ftl", data);
     }
