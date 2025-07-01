@@ -205,26 +205,28 @@ public class AgentCopilotServiceImpl implements CopilotService {
 
         // 获取所有MCP服务
         Map<String, McpSyncClient> ownerMcpClient = McpUtils.getOwnerMcpClient(owner);
-        List<Map<String, Object>> servers = new ArrayList<>();
-        for (Map.Entry<String, McpSyncClient> server : ownerMcpClient.entrySet()) {
-            String serverName = server.getKey();
-            McpSyncClient mcpClient = server.getValue();
-            ListToolsResult listTools = mcpClient.listTools();
-            List<Tool> tools = listTools.tools();
-            List<Map<String, Object>> toolList = new ArrayList<>();
-            for (Tool tool : tools) {
-                Map<String, Object> toolInfo = new HashMap<>();
-                toolInfo.put("name", tool.name());
-                toolInfo.put("description", tool.description());
-                toolInfo.put("inputSchema", JSON.toJSONString(tool.inputSchema()));
-                toolList.add(toolInfo);
+        if (null != ownerMcpClient) {
+            List<Map<String, Object>> servers = new ArrayList<>();
+            for (Map.Entry<String, McpSyncClient> server : ownerMcpClient.entrySet()) {
+                String serverName = server.getKey();
+                McpSyncClient mcpClient = server.getValue();
+                ListToolsResult listTools = mcpClient.listTools();
+                List<Tool> tools = listTools.tools();
+                List<Map<String, Object>> toolList = new ArrayList<>();
+                for (Tool tool : tools) {
+                    Map<String, Object> toolInfo = new HashMap<>();
+                    toolInfo.put("name", tool.name());
+                    toolInfo.put("description", tool.description());
+                    toolInfo.put("inputSchema", JSON.toJSONString(tool.inputSchema()));
+                    toolList.add(toolInfo);
+                }
+                Map<String, Object> serverInfo = new HashMap<>();
+                serverInfo.put("name", serverName);
+                serverInfo.put("tools", toolList);
+                servers.add(serverInfo);
             }
-            Map<String, Object> serverInfo = new HashMap<>();
-            serverInfo.put("name", serverName);
-            serverInfo.put("tools", toolList);
-            servers.add(serverInfo);
+            data.put("servers", servers);
         }
-        data.put("servers", servers);
 
         // 渲染模板
         return TemplateRenderer.render("agent_system_prompt.ftl", data);
