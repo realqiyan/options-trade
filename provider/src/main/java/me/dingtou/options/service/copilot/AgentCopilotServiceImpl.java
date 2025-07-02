@@ -63,9 +63,11 @@ public class AgentCopilotServiceImpl implements CopilotService {
             Function<Message, Void> callback,
             Function<Message, Void> failCallback) {
         String sessionId = message.getSessionId();
+        log.info("[Agent] 开始新会话, owner={}, sessionId={}, title={}", owner, sessionId, title);
 
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         if (account == null) {
+            log.error("[Agent] 账号不存在, owner={}", owner);
             failCallback.apply(new Message(null, sessionId, "assistant", "账号不存在", null));
             return sessionId;
         }
@@ -113,6 +115,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
 
         String owner = account.getOwner();
         while (iteration++ < maxIterations && finalResponse == null) {
+            log.info("[Agent] 迭代处理, sessionId={}, 当前迭代={}/{}", sessionId, iteration, maxIterations);
             // 请求大模型
             ChatClient.ChatResponse chatResponse = sendChatRequest(account, messages, callback);
 
@@ -146,8 +149,11 @@ public class AgentCopilotServiceImpl implements CopilotService {
             if (null != toolProcesser) {
                 ToolCallRequest toolCall = toolProcesser.parseToolRequest(owner, chatResponse.getContent());
                 if (toolCall != null) {
+                    log.info("[Agent] 调用工具, sessionId={}, tool={}, request={}", 
+                        sessionId, toolProcesser.getClass().getSimpleName(), toolCall);
                     // 调用MCP服务
                     String toolResult = toolProcesser.callTool(toolCall);
+                    log.info("[Agent] 工具返回结果, sessionId={}, resultLength={}", sessionId, toolResult.length());
 
                     // 构建工具调用结果提示
                     String toolResultPrompt = toolProcesser.buildResultPrompt(toolCall, toolResult);
@@ -178,6 +184,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
 
             // 没有工具调用，返回最终结果
             finalResponse = chatResponse.getContent();
+            log.info("[Agent] 生成最终响应, sessionId={}, responseLength={}", sessionId, finalResponse.length());
         }
 
         // 处理最终结果
@@ -242,6 +249,9 @@ public class AgentCopilotServiceImpl implements CopilotService {
         String apiKey = AccountExtUtils.getAiApiKey(account);
         String model = AccountExtUtils.getAiApiModel(account);
         double temperature = Double.parseDouble(AccountExtUtils.getAiApiTemperature(account));
+        
+        log.info("[Agent] 请求大模型, baseUrl={}, model={}, temperature={}, messages={}", 
+            baseUrl, model, temperature, messages.size());
 
         try {
             CompletableFuture<ChatClient.ChatResponse> future = ChatClient.sendStreamChatRequest(
@@ -285,6 +295,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
             Message message,
             Function<Message, Void> callback,
             Function<Message, Void> failCallback) {
+        log.info("[Agent] 继续会话, owner={}, sessionId={}", owner, sessionId);
 
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         if (account == null) {

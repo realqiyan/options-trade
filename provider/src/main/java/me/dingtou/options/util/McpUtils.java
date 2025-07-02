@@ -34,6 +34,7 @@ public class McpUtils {
      * @return
      */
     public static Map<String, McpSyncClient> getOwnerMcpClient(String owner) {
+        log.info("获取用户[{}]的Mcp客户端集合", owner);
         return OWNER_MCP_SERVERS.get(owner);
     }
 
@@ -45,11 +46,16 @@ public class McpUtils {
      * @return
      */
     public static McpSyncClient getMcpClient(String owner, String serverName) {
+        log.info("获取用户[{}]的服务[{}]的Mcp客户端", owner, serverName);
         Map<String, McpSyncClient> mcpServers = OWNER_MCP_SERVERS.get(owner);
         if (null == mcpServers) {
+            log.warn("用户[{}]未配置任何Mcp服务", owner);
             return null;
         }
         McpSyncClient mcpSyncClient = mcpServers.get(serverName);
+        if (mcpSyncClient == null) {
+            log.warn("用户[{}]的服务[{}]不存在", owner, serverName);
+        }
         return mcpSyncClient;
     }
 
@@ -60,20 +66,39 @@ public class McpUtils {
      * @param mcpSettings mcp设置
      */
     public static void initMcpClient(String owner, String mcpSettings) {
-        log.warn("初始化mcp客户端: {}", mcpSettings);
-        // 初始化mcp服务器
-        JSONObject mcpServers = JSON.parseObject(mcpSettings).getJSONObject("mcpServers");
-        if (null == mcpServers) {
-            log.warn("mcpServers is null");
+        if (owner == null || owner.isEmpty()) {
+            log.error("初始化McpClient失败: 用户名为空");
             return;
         }
-        for (String serverName : mcpServers.keySet()) {
-            log.warn("初始化mcp服务器: {}", serverName);
-            JSONObject server = mcpServers.getJSONObject(serverName);
-            String url = server.getString("url");
-            Map<String, String> headers = server.getObject("headers", new TypeReference<Map<String, String>>() {
-            });
-            initMcpSseClient(owner, serverName, url, headers);
+        if (mcpSettings == null || mcpSettings.isEmpty()) {
+            log.error("用户[{}]初始化McpClient失败: mcpSettings为空", owner);
+            return;
+        }
+        
+        log.info("开始初始化用户[{}]的Mcp客户端, 配置: {}", owner, mcpSettings);
+        try {
+            // 初始化mcp服务器
+            JSONObject mcpServers = JSON.parseObject(mcpSettings).getJSONObject("mcpServers");
+            if (null == mcpServers) {
+                log.error("用户[{}]初始化McpClient失败: mcpServers配置为空", owner);
+                return;
+            }
+            
+            log.info("发现{}个Mcp服务需要初始化", mcpServers.size());
+            for (String serverName : mcpServers.keySet()) {
+                JSONObject server = mcpServers.getJSONObject(serverName);
+                String url = server.getString("url");
+                if (url == null || url.isEmpty()) {
+                    log.error("服务[{}]初始化失败: URL为空", serverName);
+                    continue;
+                }
+                Map<String, String> headers = server.getObject("headers", new TypeReference<Map<String, String>>() {});
+                log.info("正在初始化Mcp服务: {} -> {}", serverName, url);
+                initMcpSseClient(owner, serverName, url, headers);
+            }
+            log.info("用户[{}]的Mcp客户端初始化完成", owner);
+        } catch (Exception e) {
+            log.error("初始化McpClient时发生异常, 用户: " + owner, e);
         }
     }
 
@@ -125,10 +150,18 @@ public class McpUtils {
                         .build())
                 .build();
         // Initialize connection
-        client.initialize();
+        try {
+            long startTime = System.currentTimeMillis();
+            client.initialize();
+            long cost = System.currentTimeMillis() - startTime;
+            log.info("McpClient初始化成功, serverName: {}, 耗时: {}ms", serverName, cost);
+        } catch (Exception e) {
+            log.error("McpClient初始化失败, serverName: " + serverName, e);
+            return null;
+        }
 
         mcpServers.put(serverName, client);
-        log.info("McpClient init success, serverName: {}", serverName);
+        log.info("Mcp服务[{}]已注册到用户[{}]", serverName, owner);
 
         return client;
     }
