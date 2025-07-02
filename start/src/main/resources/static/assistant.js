@@ -134,14 +134,6 @@ layui.use(['layer', 'form', 'util'], function() {
             // 重置AI设置
             this.elements.resetSettingsBtn.addEventListener('click', () => this.resetSettings());
             
-            // 按Enter键发送消息
-            this.elements.chatInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    this.sendMessage();
-                }
-            });
-            
             // 标题输入框变化时显示保存按钮
             this.elements.chatTitle.addEventListener('input', () => {
                 if (this.currentSessionId) {
