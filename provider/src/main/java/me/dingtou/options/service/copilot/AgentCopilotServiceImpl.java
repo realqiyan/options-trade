@@ -196,14 +196,15 @@ public class AgentCopilotServiceImpl implements CopilotService {
     private void initMcpServer(OwnerAccount ownerAccount) {
         log.info("[mcp] initMcpServer, owner={}", ownerAccount.getOwner());
         String mcpSettings = ownerAccount.getExtValue(AccountExt.AI_MCP_SETTINGS, "");
-        if (StringUtils.isBlank(mcpSettings)) {
-            log.info("[mcp] initMcpServer mcpSettings is null, owner={}", ownerAccount.getOwner());
-            Map<String, Object> params = new HashMap<>();
-            Date expireDate = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 365 * 1000L);
-            params.put("jwt", authService.jwt(ownerAccount.getOwner(), expireDate));
-            mcpSettings = TemplateRenderer.render("config_default_mcp_settings.ftl", params);
+        if (StringUtils.isNotBlank(mcpSettings)) {
+            log.info("[mcp] initMcpServer, owner={} mcpSettings={}", ownerAccount.getOwner(), mcpSettings);
+            McpUtils.initMcpClient(ownerAccount.getOwner(), mcpSettings);
         }
-        log.info("[mcp] initMcpServer, owner={} mcpSettings={}", ownerAccount.getOwner(), mcpSettings);
+        // 默认配置初始化
+        Map<String, Object> params = new HashMap<>();
+        Date expireDate = new Date(System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000L);
+        params.put("jwt", authService.jwt(ownerAccount.getOwner(), expireDate));
+        mcpSettings = TemplateRenderer.render("config_default_mcp_settings.ftl", params);
         McpUtils.initMcpClient(ownerAccount.getOwner(), mcpSettings);
     }
 
