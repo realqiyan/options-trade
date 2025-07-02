@@ -149,8 +149,8 @@ public class AgentCopilotServiceImpl implements CopilotService {
             if (null != toolProcesser) {
                 ToolCallRequest toolCall = toolProcesser.parseToolRequest(owner, chatResponse.getContent());
                 if (toolCall != null) {
-                    log.info("[Agent] 调用工具, sessionId={}, tool={}, request={}", 
-                        sessionId, toolProcesser.getClass().getSimpleName(), toolCall);
+                    log.info("[Agent] 调用工具, sessionId={}, tool={}, request={}",
+                            sessionId, toolProcesser.getClass().getSimpleName(), toolCall);
                     // 调用MCP服务
                     String toolResult = toolProcesser.callTool(toolCall);
                     log.info("[Agent] 工具返回结果, sessionId={}, resultLength={}", sessionId, toolResult.length());
@@ -194,14 +194,17 @@ public class AgentCopilotServiceImpl implements CopilotService {
     }
 
     private void initMcpServer(OwnerAccount ownerAccount) {
+        log.info("[mcp] initMcpServer, owner={}", ownerAccount.getOwner());
         String mcpSettings = ownerAccount.getExtValue(AccountExt.AI_MCP_SETTINGS, "");
         if (StringUtils.isBlank(mcpSettings)) {
+            log.info("[mcp] initMcpServer mcpSettings is null, owner={}", ownerAccount.getOwner());
             Map<String, Object> params = new HashMap<>();
             Date expireDate = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 365 * 1000L);
             params.put("jwt", authService.jwt(ownerAccount.getOwner(), expireDate));
             mcpSettings = TemplateRenderer.render("config_default_mcp_settings.ftl", params);
-            McpUtils.initMcpClient(ownerAccount.getOwner(), mcpSettings);
         }
+        log.info("[mcp] initMcpServer, owner={} mcpSettings={}", ownerAccount.getOwner(), mcpSettings);
+        McpUtils.initMcpClient(ownerAccount.getOwner(), mcpSettings);
     }
 
     private String buildPrompt(String owner, String ownerCode, String content) {
@@ -249,9 +252,9 @@ public class AgentCopilotServiceImpl implements CopilotService {
         String apiKey = AccountExtUtils.getAiApiKey(account);
         String model = AccountExtUtils.getAiApiModel(account);
         double temperature = Double.parseDouble(AccountExtUtils.getAiApiTemperature(account));
-        
-        log.info("[Agent] 请求大模型, baseUrl={}, model={}, temperature={}, messages={}", 
-            baseUrl, model, temperature, messages.size());
+
+        log.info("[Agent] 请求大模型, baseUrl={}, model={}, temperature={}, messages={}",
+                baseUrl, model, temperature, messages.size());
 
         try {
             CompletableFuture<ChatClient.ChatResponse> future = ChatClient.sendStreamChatRequest(
