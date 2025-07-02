@@ -126,7 +126,7 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
     @Tool(description = "查询指股票代码的当前价格，根据股票代码、市场代码查询当前股票价格。")
     @Override
     public String queryStockRealPrice(@ToolParam(required = true, description = "用户Token") String ownerCode,
-            @ToolParam(required = true, description = "期权代码") String code,
+            @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
         String owner = authService.decodeOwner(ownerCode);
         if (null == owner) {
