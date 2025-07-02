@@ -6,7 +6,7 @@ PID=$(pgrep -f options-trade.jar)
 if [ -n "$PID" ]; then
     echo "进程已存在，PID: $PID，正在关闭..."
     kill $PID
-    sleep 3  # 等待进程关闭
+    sleep 6  # 等待进程关闭
 fi
 
 # 重新打包应用
