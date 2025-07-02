@@ -48,13 +48,12 @@ public class McpToolProcesser implements ToolProcesser {
                 String toolName = matcher.group(2).trim();
                 String argsContent = matcher.group(3).trim();
                 toolCall = new McpToolCallRequest(owner, serverName, toolName, argsContent);
+                log.info("Find Tool {} -> {}", serverName, toolName);
                 return toolCall;
             }
         } catch (Exception xmlException) {
             log.error("Failed to parse use_mcp_tool from XML: {}", xmlException.getMessage());
         }
-
-        // 继续解析其他工具调用
 
         // 默认返回null
         log.error("Unrecognized tool call format: {}", content);
