@@ -68,3 +68,5 @@ db.properties
 options-trade.jar
 nohup.out
 options-trade.pid
+
+application.log*

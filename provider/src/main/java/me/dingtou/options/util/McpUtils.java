@@ -1,5 +1,6 @@
 package me.dingtou.options.util;
 
+import java.net.URL;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.Builder;
 import java.time.Duration;
@@ -74,7 +75,7 @@ public class McpUtils {
             log.error("用户[{}]初始化McpClient失败: mcpSettings为空", owner);
             return;
         }
-        
+
         log.info("开始初始化用户[{}]的Mcp客户端, 配置: {}", owner, mcpSettings);
         try {
             // 初始化mcp服务器
@@ -83,7 +84,7 @@ public class McpUtils {
                 log.error("用户[{}]初始化McpClient失败: mcpServers配置为空", owner);
                 return;
             }
-            
+
             log.info("发现{}个Mcp服务需要初始化", mcpServers.size());
             for (String serverName : mcpServers.keySet()) {
                 JSONObject server = mcpServers.getJSONObject(serverName);
@@ -92,7 +93,8 @@ public class McpUtils {
                     log.error("服务[{}]初始化失败: URL为空", serverName);
                     continue;
                 }
-                Map<String, String> headers = server.getObject("headers", new TypeReference<Map<String, String>>() {});
+                Map<String, String> headers = server.getObject("headers", new TypeReference<Map<String, String>>() {
+                });
                 log.info("正在初始化Mcp服务: {} -> {}", serverName, url);
                 initMcpSseClient(owner, serverName, url, headers);
             }
@@ -117,14 +119,12 @@ public class McpUtils {
             String url,
             Map<String, String> headers) {
 
-        Map<String, McpSyncClient> mcpServers = OWNER_MCP_SERVERS.get(owner);
-        if (null == mcpServers) {
-            mcpServers = new ConcurrentHashMap<>();
-            OWNER_MCP_SERVERS.put(owner, mcpServers);
-        }
+        Map<String, McpSyncClient> mcpServers = OWNER_MCP_SERVERS
+                .computeIfAbsent(owner, k -> new ConcurrentHashMap<>());
 
         McpSyncClient mcpSyncClient = mcpServers.get(serverName);
         if (null != mcpSyncClient) {
+            log.info("McpClient 已缓存: {} -> {}", serverName, url);
             return mcpSyncClient;
         }
 
@@ -138,9 +138,18 @@ public class McpUtils {
             }
         }
 
-        HttpClientSseClientTransport transport = HttpClientSseClientTransport.builder(url)
-                .requestBuilder(requestBuilder)
-                .build();
+        HttpClientSseClientTransport transport;
+        try {
+            URL serverUrl = new URL(url);
+            String endpoint = serverUrl.getPath() + (null != serverUrl.getQuery() ? "?" + serverUrl.getQuery() : "");
+            transport = HttpClientSseClientTransport.builder(url)
+                    .sseEndpoint(endpoint)
+                    .requestBuilder(requestBuilder)
+                    .build();
+        } catch (Exception e) {
+            log.error("McpClient初始化失败, url:{}", url, e);
+            throw new RuntimeException(e);
+        }
         // Create a sync client with custom configuration
         McpSyncClient client = McpClient.sync(transport)
                 .requestTimeout(Duration.ofSeconds(30))

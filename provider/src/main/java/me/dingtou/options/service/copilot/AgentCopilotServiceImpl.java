@@ -2,7 +2,6 @@ package me.dingtou.options.service.copilot;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,6 +31,7 @@ import me.dingtou.options.service.AssistantService;
 import me.dingtou.options.service.AuthService;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.ChatClient;
+import me.dingtou.options.util.DateUtils;
 import me.dingtou.options.util.McpUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
@@ -111,9 +111,19 @@ public class AgentCopilotServiceImpl implements CopilotService {
 
         final List<Message> messages = new ArrayList<>();
         messages.addAll(historyMessages);
-        messages.add(newMessage);
 
         String owner = account.getOwner();
+        // 保存用户消息
+        OwnerChatRecord userRecord = new OwnerChatRecord(owner,
+                sessionId,
+                String.valueOf(System.currentTimeMillis()),
+                title,
+                newMessage.getRole(),
+                newMessage.getContent(),
+                null);
+        assistantService.addChatRecord(owner, sessionId, userRecord);
+        messages.add(newMessage);
+
         while (iteration++ < maxIterations && finalResponse == null) {
             log.info("[Agent] 迭代处理, sessionId={}, 当前迭代={}/{}", sessionId, iteration, maxIterations);
             // 请求大模型
@@ -123,15 +133,6 @@ public class AgentCopilotServiceImpl implements CopilotService {
                 failCallback.apply(new Message(null, sessionId, "assistant", "模型请求失败", null));
                 break;
             }
-            // 保存用户消息(模型返回后在记录用户消息，方便重试)
-            OwnerChatRecord userRecord = new OwnerChatRecord(owner,
-                    sessionId,
-                    String.valueOf(System.currentTimeMillis()),
-                    title,
-                    newMessage.getRole(),
-                    newMessage.getContent(),
-                    null);
-            assistantService.addChatRecord(owner, sessionId, userRecord);
 
             // 保存模型回复
             OwnerChatRecord assistantRecord = new OwnerChatRecord(
@@ -165,7 +166,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
                             "user",
                             toolResultPrompt,
                             null);
-                    messages.add(toolMessage);
+
                     // 保存用户消息
                     OwnerChatRecord toolResultRecord = new OwnerChatRecord(owner,
                             sessionId,
@@ -175,6 +176,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
                             toolMessage.getContent(),
                             null);
                     assistantService.addChatRecord(owner, sessionId, toolResultRecord);
+                    messages.add(toolMessage);
                     callback.apply(toolMessage);
 
                     // 将MCP结果提交给大模型继续处理
@@ -212,7 +214,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
         Map<String, Object> data = new HashMap<>();
         data.put("task", content);
         data.put("ownerCode", ownerCode);
-        data.put("time", LocalDateTime.now().toString());
+        data.put("time", DateUtils.currentTime());
 
         // 获取所有MCP服务
         Map<String, McpSyncClient> ownerMcpClient = McpUtils.getOwnerMcpClient(owner);
