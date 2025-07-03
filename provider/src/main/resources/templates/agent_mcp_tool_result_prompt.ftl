@@ -1,7 +1,5 @@
 [use_mcp_tool for '${toolRequest.serverName}.${toolRequest.toolName}'] Result:
-```
 ${toolResult}
-```
 
 <environment_details>
 

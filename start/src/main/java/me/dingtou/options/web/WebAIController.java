@@ -5,6 +5,7 @@ import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.service.AssistantService;
 import me.dingtou.options.service.copilot.CopilotService;
+import me.dingtou.options.util.EscapeUtils;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
 
@@ -92,7 +93,7 @@ public class WebAIController {
                     try {
                         copilotServiceMap.get(mode).start(owner, title, chatMessage, msg -> {
                             try {
-                                msg.escapeHtml4();
+                                msg.escapeHtml();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -100,7 +101,7 @@ public class WebAIController {
                             return null;
                         }, msg -> {
                             try {
-                                msg.escapeHtml4();
+                                msg.escapeHtml();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -146,7 +147,7 @@ public class WebAIController {
                         Message newMessage = new Message(null, sessionId, "user", message, null);
                         copilotServiceMap.get(mode).continuing(owner, sessionId, newMessage, msg -> {
                             try {
-                                msg.escapeHtml4();
+                                msg.escapeHtml();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -154,7 +155,7 @@ public class WebAIController {
                             return null;
                         }, msg -> {
                             try {
-                                msg.escapeHtml4();
+                                msg.escapeHtml();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -203,8 +204,8 @@ public class WebAIController {
             String owner = SessionUtils.getCurrentOwner();
             List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
             records.forEach(record -> {
-                record.setContent(StringEscapeUtils.escapeHtml4(record.getContent()));
-                record.setReasoningContent(StringEscapeUtils.escapeHtml4(record.getReasoningContent()));
+                record.setContent(EscapeUtils.escapeHtml(record.getContent()));
+                record.setReasoningContent(EscapeUtils.escapeHtml(record.getReasoningContent()));
             });
             return WebResult.success(records);
         } catch (Exception e) {
@@ -255,7 +256,7 @@ public class WebAIController {
      * 更新AI设置
      *
      * @param mcpSettings MCP服务器配置
-     * @param temperature  温度参数
+     * @param temperature 温度参数
      * @return WebResult
      */
     /**

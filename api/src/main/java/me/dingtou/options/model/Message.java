@@ -3,6 +3,7 @@ package me.dingtou.options.model;
 import org.apache.commons.text.StringEscapeUtils;
 
 import lombok.Data;
+import me.dingtou.options.util.EscapeUtils;
 
 /**
  * 消息
@@ -54,9 +55,9 @@ public class Message {
         this.reasoningContent = reasoningContent;
     }
 
-    public void escapeHtml4() {
-        this.content = StringEscapeUtils.escapeHtml4(this.content);
-        this.reasoningContent = StringEscapeUtils.escapeHtml4(this.reasoningContent);
+    public void escapeHtml() {
+        this.content = EscapeUtils.escapeHtml(this.content);
+        this.reasoningContent = EscapeUtils.escapeHtml(this.reasoningContent);
     }
 
     public void escapeJson() {
