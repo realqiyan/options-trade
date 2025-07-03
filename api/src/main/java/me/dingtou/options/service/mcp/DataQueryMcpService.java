@@ -49,6 +49,13 @@ public interface DataQueryMcpService {
                         String strikeDate);
 
         /**
+         * 查询恐慌指数和标普500指数
+         * 
+         * @return 恐慌指数和标普500指数
+         */
+        String queryVixIndicator();
+
+        /**
          * 查询股票指标
          *
          * @param ownerCode 用户加密编码

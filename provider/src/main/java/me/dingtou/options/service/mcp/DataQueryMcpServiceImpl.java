@@ -104,6 +104,16 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
         return TemplateRenderer.render("mcp_stock_indicator.ftl", data);
     }
 
+    @Tool(description = "查询VIX恐慌指数指标，包含当前VIX和标普500的值以及近期走势。")
+    @Override
+    public String queryVixIndicator() {
+        VixIndicator vixIndicator = indicatorManager.queryCurrentVix();
+        Map<String, Object> data = new HashMap<>();
+        data.put("vixIndicator", vixIndicator);
+        // 渲染模板
+        return TemplateRenderer.render("mcp_vix_indicator.ftl", data);
+    }
+
     @Tool(description = "查询指定期权代码的报价，根据期权代码、市场代码查询当前期权买卖报价。")
     @Override
     public String queryOrderBook(@ToolParam(required = true, description = "用户Token") String ownerCode,
