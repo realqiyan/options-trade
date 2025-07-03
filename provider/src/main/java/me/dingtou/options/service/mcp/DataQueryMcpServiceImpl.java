@@ -108,10 +108,14 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
     @Override
     public String queryVixIndicator() {
         VixIndicator vixIndicator = indicatorManager.queryCurrentVix();
+        if(null == vixIndicator){
+            return "查询VIX恐慌指数指标失败，请稍后再试。";
+        }
         Map<String, Object> data = new HashMap<>();
         data.put("vixIndicator", vixIndicator);
         // 渲染模板
-        return TemplateRenderer.render("mcp_vix_indicator.ftl", data);
+        String result = TemplateRenderer.render("mcp_vix_indicator.ftl", data);
+        return result;
     }
 
     @Tool(description = "查询指定期权代码的报价，根据期权代码、市场代码查询当前期权买卖报价。")

@@ -1,5 +1,6 @@
 package me.dingtou.options.util;
 
+import freemarker.core.PlainTextOutputFormat;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
@@ -12,6 +13,8 @@ public class TemplateRenderer {
     static {
         cfg.setClassLoaderForTemplateLoading(TemplateRenderer.class.getClassLoader(), "templates");
         cfg.setDefaultEncoding("UTF-8");
+        cfg.setAutoEscapingPolicy(Configuration.DISABLE_AUTO_ESCAPING_POLICY);
+        cfg.setOutputFormat(PlainTextOutputFormat.INSTANCE);
     }
     
     /**
