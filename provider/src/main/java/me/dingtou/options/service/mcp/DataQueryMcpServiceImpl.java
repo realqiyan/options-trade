@@ -95,10 +95,8 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
         Security security = Security.of(code, market);
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security);
-        VixIndicator vixIndicator = indicatorManager.queryCurrentVix();
         Map<String, Object> data = new HashMap<>();
         data.put("security", security);
-        data.put("vixIndicator", vixIndicator);
         data.put("stockIndicator", stockIndicator);
         // 渲染模板
         return TemplateRenderer.render("mcp_stock_indicator.ftl", data);

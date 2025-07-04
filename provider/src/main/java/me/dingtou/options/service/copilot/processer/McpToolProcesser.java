@@ -1,11 +1,15 @@
 package me.dingtou.options.service.copilot.processer;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
@@ -78,7 +82,16 @@ public class McpToolProcesser implements ToolProcesser {
             CallToolResult result = client.callTool(new CallToolRequest(mcpToolCallRequest.getToolName(), params));
             TextContent content = (TextContent) result.content().get(0);
 
-            return content.text();
+            String jsonText = content.text();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(jsonText);
+            if (node.isNumber()) {
+                return new BigDecimal(jsonText).toPlainString();
+            } else if (node.isObject() || node.isArray() || node.isBoolean()) {
+                return jsonText;
+            } else {
+                return node.asText();
+            }
         } catch (Exception e) {
             log.error("Failed to call server: {} tool: {} error: {}",
                     mcpToolCallRequest.getServerName(),
