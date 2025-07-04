@@ -44,7 +44,6 @@ public class LoginFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         httpResponse.setCharacterEncoding("UTF-8");
         String apiKey = httpRequest.getHeader("apiKey");
-        log.info("Request URI:{} apiKey:{}", httpRequest.getRequestURI(), apiKey);
 
         // header auth
         LoginInfo loginInfo = jwtLogin(apiKey);

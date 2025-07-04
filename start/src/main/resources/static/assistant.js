@@ -548,7 +548,7 @@ layui.use(['layer', 'form', 'util'], function() {
             }
             
             // 滚动到底部
-            this.scrollToBottom();
+            // this.scrollToBottom();
         }
         
         /**

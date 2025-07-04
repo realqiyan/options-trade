@@ -13,6 +13,7 @@ import me.dingtou.options.manager.IndicatorManager;
 import me.dingtou.options.manager.OptionsManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
+import me.dingtou.options.model.IndicatorDataFrame;
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.OwnerAccount;
@@ -21,6 +22,7 @@ import me.dingtou.options.model.SecurityOrderBook;
 import me.dingtou.options.model.StockIndicator;
 import me.dingtou.options.model.VixIndicator;
 import me.dingtou.options.service.AuthService;
+import me.dingtou.options.util.IndicatorDataFrameUtil;
 import me.dingtou.options.util.TemplateRenderer;
 
 @Service
@@ -83,7 +85,7 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
         return TemplateRenderer.render("mcp_options_chain.ftl", data);
     }
 
-    @Tool(description = "查询股票技术指标，根据股票代码、市场代码查询股票技术指标（K线、EMA、BOLL、MACD、RSI）。")
+    @Tool(description = "查询股票技术指标，根据股票代码、市场代码查询股票技术指标（近70个交易日的K线，近20个交易日的EMA、BOLL、MACD、RSI）。")
     @Override
     public String queryStockIndicator(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
@@ -95,9 +97,11 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
         Security security = Security.of(code, market);
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security);
+        IndicatorDataFrame stockIndicatorDataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, 20);
         Map<String, Object> data = new HashMap<>();
         data.put("security", security);
         data.put("stockIndicator", stockIndicator);
+        data.put("stockIndicatorDataFrame", stockIndicatorDataFrame);
         // 渲染模板
         return TemplateRenderer.render("mcp_stock_indicator.ftl", data);
     }
@@ -106,7 +110,7 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
     @Override
     public String queryVixIndicator() {
         VixIndicator vixIndicator = indicatorManager.queryCurrentVix();
-        if(null == vixIndicator){
+        if (null == vixIndicator) {
             return "查询VIX恐慌指数指标失败，请稍后再试。";
         }
         Map<String, Object> data = new HashMap<>();
