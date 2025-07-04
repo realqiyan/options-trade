@@ -26,7 +26,7 @@ import me.dingtou.options.util.IndicatorDataFrameUtil;
 import me.dingtou.options.util.TemplateRenderer;
 
 @Service
-public class DataQueryMcpServiceImpl implements DataQueryMcpService {
+public class DataQueryMcpService {
 
     @Autowired
     private AuthService authService;
@@ -44,7 +44,6 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
     private IndicatorManager indicatorManager;
 
     @Tool(description = "查询期权到期日，根据股票代码和市场代码查询股票对应的期权到期日。")
-    @Override
     public String queryOptionsExpDate(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
@@ -62,7 +61,6 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
     }
 
     @Tool(description = "查询指定日期期权链，根据股票代码、市场代码、到期日查询股票对应的期权数据（价格、成交、Delta、Delta、Gamma、Theta）。")
-    @Override
     public String queryOptionsChain(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
@@ -86,7 +84,6 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
     }
 
     @Tool(description = "查询股票技术指标，根据股票代码、市场代码查询股票技术指标（近70个交易日的K线，近20个交易日的EMA、BOLL、MACD、RSI）。")
-    @Override
     public String queryStockIndicator(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
@@ -107,7 +104,6 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
     }
 
     @Tool(description = "查询VIX恐慌指数指标，包含当前VIX和标普500的值以及近期走势。")
-    @Override
     public String queryVixIndicator() {
         VixIndicator vixIndicator = indicatorManager.queryCurrentVix();
         if (null == vixIndicator) {
@@ -121,7 +117,6 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
     }
 
     @Tool(description = "查询指定期权代码的报价，根据期权代码、市场代码查询当前期权买卖报价。")
-    @Override
     public String queryOrderBook(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "期权代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
@@ -140,7 +135,6 @@ public class DataQueryMcpServiceImpl implements DataQueryMcpService {
     }
 
     @Tool(description = "查询指股票代码的当前价格，根据股票代码、市场代码查询当前股票价格。")
-    @Override
     public String queryStockRealPrice(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
