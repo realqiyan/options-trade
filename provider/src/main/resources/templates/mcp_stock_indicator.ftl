@@ -1,4 +1,5 @@
 # ${security.code}(${security.market})技术指标
+
 <#if stockIndicator??>
 ## 标的行情
 | 指标 | 值 |

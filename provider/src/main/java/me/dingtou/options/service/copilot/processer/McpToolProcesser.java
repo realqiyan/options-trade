@@ -93,9 +93,10 @@ public class McpToolProcesser implements ToolProcesser {
                 return node.asText();
             }
         } catch (Exception e) {
-            log.error("Failed to call server: {} tool: {} error: {}",
+            log.error("Failed to call server: {} tool: {} arguments: {} error: {}",
                     mcpToolCallRequest.getServerName(),
                     mcpToolCallRequest.getTool(),
+                    mcpToolCallRequest.getArguments(),
                     e.getMessage(), e);
             return "调用工具失败:" + e.getMessage();
         }

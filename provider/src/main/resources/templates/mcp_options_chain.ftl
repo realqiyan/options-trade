@@ -1,20 +1,7 @@
 # ${security.code}(${security.market})到期日为${strikeTime}的期权链
 
-## ${strikeTime}期权列表
+| 代码 | 期权类型 | 行权价 | 当前价格 | 隐含波动率 | Delta | Theta | Gamma | 未平仓合约数 | 当天交易量 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 <#list optionsList as option>
-### ${option.basic.name}
-| 指标 | 值 |
-| ---- | ---- |
-| 标的代码 | ${option.basic.security.code} |
-| 类型 | <#if option.optionExData.type == 1>认购<#else>认沽</#if> |
-| 行权价 | ${option.optionExData.strikePrice} |
-| 最新价 | ${option.realtimeData.curPrice} |
-| 持仓量 | ${option.realtimeData.openInterest} |
-| 成交量 | ${option.realtimeData.volume} |
-| 隐含波动率 | ${option.realtimeData.impliedVolatility}% |
-| Delta | ${option.realtimeData.delta} |
-| Gamma | ${option.realtimeData.gamma} |
-| Theta | ${option.realtimeData.theta} |
-| Vega | ${option.realtimeData.vega} |
-| Rho | ${option.realtimeData.rho} |
+| ${option.basic.security.code} | ${(option.optionExData.type==1)?string("Call","Put")} | ${option.optionExData.strikePrice} | ${option.realtimeData.curPrice} | ${option.realtimeData.impliedVolatility} | ${option.realtimeData.delta} | ${option.realtimeData.theta} | ${option.realtimeData.gamma} | ${option.realtimeData.openInterest} | ${option.realtimeData.volume} |
 </#list>

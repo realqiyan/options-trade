@@ -21,8 +21,8 @@
 <tool_name>queryStockRealPrice</tool_name>
 <arguments>
 {
-  \"code\": \"BABA\",
-  \"market\": 11
+  "code": "BABA",
+  "market": 11
 }
 </arguments>
 </use_mcp_tool>
@@ -43,8 +43,8 @@
 <tool_name>工具名称</tool_name>
 <arguments>
 {
-\"param1\": \"value1\",
-\"param2\": \"value2\"
+"param1": "value1",
+"param2": "value2"
 }
 </arguments>
 </use_mcp_tool>
@@ -58,8 +58,8 @@
 <tool_name>get_forecast</tool_name>
 <arguments>
 {
-  \"city\": \"San Francisco\",
-  \"days\": 5
+  "city": "San Francisco",
+  "days": 5
 }
 </arguments>
 </use_mcp_tool>

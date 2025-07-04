@@ -191,7 +191,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
 
         // 处理最终结果
         if (finalResponse == null) {
-            failCallback.apply(new Message(null, sessionId, "assistant", "问题未解决", null));
+            failCallback.apply(new Message(null, sessionId, "assistant", "达到单次迭代上限，是否继续？", null));
         }
     }
 
