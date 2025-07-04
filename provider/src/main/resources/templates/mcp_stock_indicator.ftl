@@ -13,7 +13,7 @@
 | 日期 | 开盘 | 收盘 | 最高 | 最低 | 成交量 | 成交额 |
 | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
 <#list stockIndicator.candlesticks as candlestick>
-| ${candlestick.timestamp?replace(",", "")?number?long?number_to_datetime?string("yyyy-MM-dd")} | ${candlestick.open} | ${candlestick.close} | ${candlestick.high} | ${candlestick.low} | ${candlestick.volume} | ${candlestick.turnover} |
+| ${(candlestick.timestamp?replace(",", "")?number?long * 1000)?number_to_datetime?string("yyyy-MM-dd")} | ${candlestick.open} | ${candlestick.close} | ${candlestick.high} | ${candlestick.low} | ${candlestick.volume} | ${candlestick.turnover} |
 </#list>
 </#if>
 
