@@ -16,22 +16,30 @@ public interface OwnerChatRecordDAO extends BaseMapper<OwnerChatRecord> {
 
     @Select("""
             SELECT 
-                owner,
-                session_id,
-                MAX(title) AS title,
-                MAX(create_time) AS create_time,
-                MAX(update_time) AS update_time,
-                MAX(LEFT(content, 80)) AS content
-            FROM
-                `owner_chat_record`
+                o.owner,
+                o.session_id,
+                o.title,
+                o.create_time,
+                o.update_time,
+                LEFT(o.content, 80) AS content
+            FROM 
+                `owner_chat_record` o
+            JOIN (
+                SELECT 
+                    session_id, 
+                    MAX(update_time) AS max_update_time
+                FROM 
+                    `owner_chat_record`
+                WHERE 
+                    owner = #{owner}
+                GROUP BY 
+                    session_id
+            ) latest 
+            ON o.session_id = latest.session_id AND o.update_time = latest.max_update_time
             WHERE 
-                OWNER = #{owner}
-            GROUP BY 
-                owner,
-                session_id
+                o.owner = #{owner}
             ORDER BY
-                MAX(update_time)
-            DESC
+                o.update_time DESC
             LIMIT #{limit}
             """)
     List<OwnerChatRecord> summaryChatRecord(String owner, int limit);
