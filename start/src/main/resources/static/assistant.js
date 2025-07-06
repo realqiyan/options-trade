@@ -55,7 +55,8 @@ layui.use(['layer', 'form', 'util'], function() {
             this.initSlider();
             this.bindEvents();
             this.loadPrompt();
-            
+            this.initChatModeFromUrl();
+
             // 监听窗口大小变化，确保滚动正常工作
             window.addEventListener('resize', () => {
                 // 重新检查聊天历史滚动条
@@ -112,6 +113,26 @@ layui.use(['layer', 'form', 'util'], function() {
         /**
          * 绑定事件处理
          */
+        /**
+         * 从URL参数初始化聊天模式
+         */
+        initChatModeFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode') || 'agent'; // 默认agent模式
+            const modeSelect = document.getElementById('chat-mode');
+            
+            if (['ask', 'agent'].includes(mode.toLowerCase())) {
+                modeSelect.value = mode.toLowerCase();
+            } else {
+                modeSelect.value = 'agent'; // 无效值默认agent模式
+            }
+            
+            // 重新渲染layui的select组件，确保显示更新
+            if (window.layui && window.layui.form) {
+                window.layui.form.render('select');
+            }
+        }
+
         bindEvents() {
             // 发送消息
             this.elements.sendBtn.addEventListener('click', () => this.sendMessage());

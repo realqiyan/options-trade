@@ -24,7 +24,7 @@ function assistant(prompt, title) {
     localStorage.setItem("title", title || "期权订单分析");
     localStorage.setItem("prompt", prompt);
     if(!assistantWindow || assistantWindow.closed){
-        assistantWindow = window.open("assistant.html", "assistant");
+        assistantWindow = window.open("assistant.html?mode=ask", "_blank");
     }else{
         assistantWindow.focus();
     }
