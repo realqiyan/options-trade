@@ -202,10 +202,28 @@ public class WebAIController {
         try {
             String owner = SessionUtils.getCurrentOwner();
             List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
-            records.forEach(record -> {
+
+            // 如果是agent模式的第一条助手消息，提取task标签内容
+            boolean isFirstUserMessage = true;
+            for (OwnerChatRecord record : records) {
+                // 检查是否是agent模式的第一条助手消息
+                if ("user".equals(record.getRole()) && isFirstUserMessage) {
+                    isFirstUserMessage = false;
+                    if (record.getContent().contains("<task>")) {
+                        // 提取task标签内容
+                        String content = record.getContent();
+                        int start = content.indexOf("<task>") + 6;
+                        int end = content.lastIndexOf("</task>");
+                        if (start >= 0 && end > start) {
+                            String taskContent = content.substring(start, end).trim();
+                            record.setContent(taskContent);
+                        }
+                    }
+                }
                 record.setContent(EscapeUtils.escapeHtml(record.getContent()));
                 record.setReasoningContent(EscapeUtils.escapeHtml(record.getReasoningContent()));
-            });
+            }
+
             return WebResult.success(records);
         } catch (Exception e) {
             log.error("获取沟通记录失败", e);
