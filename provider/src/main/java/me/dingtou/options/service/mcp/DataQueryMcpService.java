@@ -43,7 +43,7 @@ public class DataQueryMcpService {
     @Autowired
     private IndicatorManager indicatorManager;
 
-    @Tool(description = "查询期权到期日，根据股票代码和市场代码查询股票对应的期权到期日。")
+    @Tool(description = "查询期权到期日，根据股票代码和市场代码查询股票对应的期权到期日。返回结果包括股票代码、市场代码和到期日列表。")
     public String queryOptionsExpDate(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
@@ -60,7 +60,7 @@ public class DataQueryMcpService {
         return TemplateRenderer.render("mcp_options_exp_date.ftl", data);
     }
 
-    @Tool(description = "查询指定日期期权链，根据股票代码、市场代码、到期日查询股票对应的期权数据（价格、成交、Delta、Delta、Gamma、Theta）。")
+    @Tool(description = "查询指定日期期权链，根据股票代码、市场代码、到期日查询股票对应的期权数据。返回结果包括期权代码、类型(Call/Put)、行权价、当前价格、隐含波动率、Delta、Theta、Gamma、未平仓合约数、当天交易量等信息。")
     public String queryOptionsChain(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
@@ -83,7 +83,7 @@ public class DataQueryMcpService {
         return TemplateRenderer.render("mcp_options_chain.ftl", data);
     }
 
-    @Tool(description = "查询股票技术指标，根据股票代码、市场代码查询股票技术指标（近70个交易日的K线，近20个交易日的EMA、BOLL、MACD、RSI）。")
+    @Tool(description = "查询股票技术指标，根据股票代码、市场代码查询股票技术指标。返回结果包括标的行情（最新价、周波动幅度、月波动幅度）、近70个交易日的K线数据（日期、开盘价、收盘价、最高价、最低价、成交量、成交额）以及近20个交易日的技术指标（EMA、BOLL、MACD、RSI）。")
     public String queryStockIndicator(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
@@ -103,7 +103,7 @@ public class DataQueryMcpService {
         return TemplateRenderer.render("mcp_stock_indicator.ftl", data);
     }
 
-    @Tool(description = "查询VIX恐慌指数指标，包含当前VIX和标普500的值以及近期走势。")
+    @Tool(description = "查询VIX恐慌指数指标，包含当前VIX和标普500的值以及近期走势。返回结果包括当前VIX值、日期、日变动，以及标普500的值和日期。")
     public String queryVixIndicator() {
         VixIndicator vixIndicator = indicatorManager.queryCurrentVix();
         if (null == vixIndicator) {
@@ -116,7 +116,7 @@ public class DataQueryMcpService {
         return result;
     }
 
-    @Tool(description = "查询指定期权代码的报价，根据期权代码、市场代码查询当前期权买卖报价。")
+    @Tool(description = "查询指定期权代码的报价，根据期权代码、市场代码查询当前期权买卖报价。返回结果包括期权代码和买卖盘价格列表。")
     public String queryOrderBook(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "期权代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
