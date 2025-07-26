@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 最大等待时间(秒)
-MAX_WAIT=30
+MAX_WAIT=60
 
 # 查找并停止进程
 echo "正在停止options-trade应用..."
@@ -9,11 +9,17 @@ pkill -f options-trade.jar
 
 # 等待进程退出
 WAIT_TIME=0
+echo "等待进程退出，最多等待${MAX_WAIT}秒..."
 while pgrep -f options-trade.jar >/dev/null; do
     if [ $WAIT_TIME -ge $MAX_WAIT ]; then
         echo "警告: 进程未在${MAX_WAIT}秒内退出，尝试强制终止..."
         pkill -9 -f options-trade.jar
         break
+    fi
+    
+    # 每5秒输出一次等待信息
+    if [ $((WAIT_TIME % 5)) -eq 0 ]; then
+        echo "已等待${WAIT_TIME}秒..."
     fi
     
     sleep 1
