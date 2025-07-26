@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 最大等待时间(秒)
-MAX_WAIT=10
+MAX_WAIT=30
 
 # 查找并停止进程
 echo "正在停止options-trade应用..."
