@@ -1,8 +1,6 @@
 package me.dingtou.options.service.mcp;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.tool.annotation.Tool;
@@ -13,9 +11,12 @@ import org.springframework.stereotype.Service;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerPosition;
 import me.dingtou.options.model.OwnerSecurity;
+import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.model.OwnerSummary;
+import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.service.AuthService;
 import me.dingtou.options.service.SummaryService;
 import me.dingtou.options.util.TemplateRenderer;
@@ -68,6 +69,30 @@ public class OwnerQueryMcpService {
 
         // 渲染模板
         return TemplateRenderer.render("mcp_owner_position.ftl", data);
+    }
+
+    @Tool(description = "查询用户指定策略的所有订单。返回结果包括订单明细（策略ID、订单ID、底层标的、期权代码、方向、数量、行权价、价格、状态、交易时间等）。")
+    public String queryOwnerStrategyOrders(@ToolParam(required = true, description = "用户Token") String ownerCode,
+                                           @ToolParam(required = true, description = "策略ID") String strategyId) {
+        String owner = authService.decodeOwner(ownerCode);
+        if (null == owner) {
+            return "用户编码信息不正确或已经过期";
+        }
+        
+        StrategySummary strategySummary = summaryService.queryStrategySummary(owner, strategyId);
+        
+        if (null == strategySummary) {
+            return "未找到指定策略";
+        }
+        
+        // 准备模板数据
+        Map<String, Object> data = new HashMap<>();
+        data.put("strategy", strategySummary.getStrategy());
+        data.put("orders", strategySummary.getStrategyOrders());
+        data.put("strategySummary", strategySummary); // 添加完整的StrategySummary对象
+
+        // 渲染模板
+        return TemplateRenderer.render("mcp_owner_strategy_orders.ftl", data);
     }
 
 }
