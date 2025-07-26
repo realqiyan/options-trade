@@ -20,7 +20,7 @@
 | 标的代码 | 证券代码 | 类型 | 价格 | 数量 | 订单收益 | 订单费用 | 行权时间 | 交易时间 | 状态 | 订单号 | 是否平仓 |
 |---------|---------|------|------|------|---------|---------|---------|---------|------|--------|---------|
 <#list orders as order>
-| ${order.underlyingCode!''} | ${order.code!''} | ${order.side!''} | ${order.price!''} | ${order.quantity!0} | ${order.ext.totalIncome!''} | ${order.orderFee!''} | ${(order.strikeTime?string('yyyy-MM-dd'))!''} | ${(order.tradeTime?string('yyyy-MM-dd HH:mm:ss'))!''} | ${order.status!''} | ${order.platformOrderId!''} | ${order.ext.isClose!'false'} |
+| ${order.underlyingCode!''} | ${order.code!''} | <#assign sideMap = {"1":"买", "2":"卖", "3":"卖空", "4":"买回"}>${sideMap[order.side?string]!"未知"} | ${order.price!''} | ${order.quantity!0} | ${order.ext.totalIncome!''} | ${order.orderFee!''} | ${(order.strikeTime?string('yyyy-MM-dd'))!''} | ${(order.tradeTime?string('yyyy-MM-dd HH:mm:ss'))!''} | <#assign statusMap = {"-1":"未知", "1":"待提交", "2":"提交中", "5":"已提交", "10":"部分成交", "11":"全部成交", "14":"部分撤单", "15":"已撤单", "21":"下单失败", "22":"已失效", "23":"已删除", "24":"成交撤销", "25":"提前指派"}>${statusMap[order.status?string]!"未知"} | ${order.platformOrderId!''} | ${order.ext.isClose!'false'} |
 </#list>
 <#else>
 暂无订单
