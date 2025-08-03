@@ -1,7 +1,7 @@
 package me.dingtou.options.model;
 
-
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Date;
 
@@ -11,69 +11,58 @@ import java.util.Date;
  * @author qiyan
  */
 @Data
-public class OwnerChatRecord {
+@EqualsAndHashCode(callSuper = true)
+public class OwnerChatRecord extends Message {
     /**
      * 记录ID
      */
     private Long id;
-    
-    /**
-     * 所有者
-     */
-    private String owner;
-    
+
     /**
      * 会话ID
      */
     private String sessionId;
-    
+
     /**
-     * 消息ID
+     * 所有者
      */
-    private String messageId;
-    
-    /**
-     * 消息类型（user: 用户消息, assistant: 助手消息）
-     */
-    private String role;
-    
-    /**
-     * 消息内容
-     */
-    private String content;
-    
-    /**
-     * 推理内容
-     */
-    private String reasoningContent;
-    
+    private String owner;
+
     /**
      * 标题
      */
     private String title;
-    
+
     /**
      * 创建时间
      */
     private Date createTime;
-    
+
     /**
      * 更新时间
      */
     private Date updateTime;
-    
+
     public OwnerChatRecord() {
     }
-    
-    public OwnerChatRecord(String owner, String sessionId, String messageId, String title, String role, String content, String reasoningContent) {
-        this.owner = owner;
-        this.sessionId = sessionId;
-        this.messageId = messageId;
-        this.role = role;
-        this.content = content;
-        this.reasoningContent = reasoningContent;
-        this.title = title;
-        this.createTime = new Date();
-        this.updateTime = new Date();
+
+    public OwnerChatRecord(String owner,
+            String sessionId,
+            String title,
+            String role,
+            String content,
+            String reasoningContent) {
+        super(role, content);
+        Date date = new Date();
+        this.setOwner(owner);
+        this.setSessionId(sessionId);
+        this.setTitle(title);
+        this.setCreateTime(date);
+        this.setUpdateTime(date);
+        // 消息ID为空时，设置默认消息ID
+        if (null == this.getMessageId()) {
+            this.setMessageId(role + date.getTime());
+        }
+        this.setReasoningContent(reasoningContent);
     }
-} 
+}

@@ -84,13 +84,13 @@ public class WebAIController {
         String sessionId = UUID.randomUUID().toString();
         // 使用线程池提交
         SseEmitter connect = SessionUtils.getConnect(owner, requestId);
-        Message chatMessage = new Message(null, sessionId, "user", message, null);
+        Message chatMessage = new Message("user", message);
         try {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        copilotServiceMap.get(mode).start(owner, title, chatMessage, msg -> {
+                        copilotServiceMap.get(mode).start(owner, sessionId, title, chatMessage, msg -> {
                             try {
                                 msg.escapeHtml();
                                 connect.send(msg);
@@ -143,7 +143,7 @@ public class WebAIController {
                 @Override
                 public void run() {
                     try {
-                        Message newMessage = new Message(null, sessionId, "user", message, null);
+                        Message newMessage = new Message("user", message);
                         copilotServiceMap.get(mode).continuing(owner, sessionId, newMessage, msg -> {
                             try {
                                 msg.escapeHtml();

@@ -452,7 +452,7 @@ layui.use(['layer', 'form', 'util'], function() {
             // 显示聊天记录
             records.forEach(record => {
                 const message = {
-                    id: record.messageId || new Date().getTime(),
+                    messageId: record.messageId || new Date().getTime(),
                     role: record.role,
                     content: record.content,
                     reasoningContent: record.reasoningContent,
@@ -492,7 +492,7 @@ layui.use(['layer', 'form', 'util'], function() {
          */
         appendMessage(message) {
             const historyDiv = this.elements.chatHistory;
-            const messageId = message.id?message.id:new Date().getTime();
+            const messageId = message.messageId?message.messageId:new Date().getTime();
             const reasoningId = `${message.role}-reasoning-${messageId}`;
             const contentId = `${message.role}-content-${messageId}`;
 
@@ -652,7 +652,7 @@ layui.use(['layer', 'form', 'util'], function() {
             
             // 添加用户消息到聊天界面
             const userMessage = {
-                id: new Date().getTime(),
+                messageId: new Date().getTime(),
                 role: 'user',
                 content: message,
                 time: new Date()

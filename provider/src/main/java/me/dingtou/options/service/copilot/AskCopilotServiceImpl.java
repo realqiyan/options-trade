@@ -40,11 +40,11 @@ public class AskCopilotServiceImpl implements CopilotService {
 
     @Override
     public String start(String owner,
+            String sessionId,
             String title,
             Message message,
             Function<Message, Void> callback,
             Function<Message, Void> failCallback) {
-        String sessionId = message.getSessionId();
         List<Message> messages = new ArrayList<>();
         messages.add(new Message("system", SYSTEM_PROMPT));
         messages.add(message);
@@ -62,23 +62,16 @@ public class AskCopilotServiceImpl implements CopilotService {
         // 获取历史消息(user & assistant)
         List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
         if (records == null || records.isEmpty()) {
-            failCallback.apply(new Message(null, sessionId, "assistant", "无法找到历史对话记录", null));
+            failCallback.apply(new Message("assistant", "无法找到历史对话记录"));
             return;
         }
 
         // 转换历史消息为Message对象
         List<Message> messages = new ArrayList<>();
-        for (OwnerChatRecord record : records) {
-            Message chatMessage = new Message(record.getMessageId(),
-                    record.getSessionId(),
-                    record.getRole(),
-                    record.getContent(),
-                    record.getReasoningContent());
-            messages.add(chatMessage);
-        }
+        messages.addAll(records);
 
         // 添加新消息
-        Message newMessage = new Message(null, sessionId, "user", message.getContent(), null);
+        Message newMessage = new Message("user", message.getContent());
         messages.add(newMessage);
 
         // 获取会话标题
@@ -113,9 +106,9 @@ public class AskCopilotServiceImpl implements CopilotService {
 
         // 检查消息列表中是否有已存在的消息ID
         for (Message message : messages) {
-            if (message.getId() != null) {
+            if (message.getMessageId() != null) {
                 // 查询这条消息的会话ID
-                OwnerChatRecord record = assistantService.getRecordByMessageId(owner, message.getId());
+                OwnerChatRecord record = assistantService.getRecordByMessageId(owner, message.getMessageId());
                 if (record != null) {
                     sessionId = record.getSessionId();
                     break;
@@ -125,11 +118,10 @@ public class AskCopilotServiceImpl implements CopilotService {
 
         // 保存用户新消息
         final String finalSessionId = sessionId;
-        messages.stream().filter(message -> "user".equals(message.getRole()) && null == message.getId())
+        messages.stream().filter(message -> "user".equals(message.getRole()) && null == message.getMessageId())
                 .forEach(message -> {
                     OwnerChatRecord userRecord = new OwnerChatRecord(owner,
                             finalSessionId,
-                            String.valueOf(System.currentTimeMillis()),
                             title,
                             "user",
                             message.getContent(),
@@ -145,11 +137,11 @@ public class AskCopilotServiceImpl implements CopilotService {
             OwnerChatRecord assistantRecord = new OwnerChatRecord(
                     owner,
                     finalSessionId,
-                    result.getMessageId(),
                     title,
                     "assistant",
                     result.getContent(),
                     result.getReasoningContent());
+            assistantRecord.setMessageId(result.getMessageId());
             assistantService.addChatRecord(owner, finalSessionId, assistantRecord);
         }
     }
@@ -182,7 +174,6 @@ public class AskCopilotServiceImpl implements CopilotService {
         ChatResponse chatResponse;
         try {
             // chatResponse = ChatClient.sendChatRequest(account, mcpSettings, messages);
-            String sessionId = messages.get(0).getSessionId();
             chatResponse = ChatClient.sendStreamChatRequest(baseUrl,
                     apiKey,
                     model,
@@ -193,18 +184,13 @@ public class AskCopilotServiceImpl implements CopilotService {
                         public void accept(ChatClient.ChatResponse chatResp) {
                             // 收集AI助手的回复
                             if (chatResp.isChunk() && chatResp.getContent() != null) {
-                                callback.apply(new Message(chatResp.getId(),
-                                        sessionId,
-                                        "assistant",
-                                        chatResp.getContent(),
-                                        null));
+                                callback.apply(new Message(chatResp.getId(), "assistant", chatResp.getContent()));
                                 finalContent.append(chatResp.getContent());
                             } else if (chatResp.isChunk() && chatResp.getReasoningContent() != null) {
-                                Message reasoning = new Message(chatResp.getId(),
-                                        sessionId,
-                                        "assistant",
-                                        null,
-                                        chatResp.getReasoningContent());
+                                Message reasoning = new Message();
+                                reasoning.setMessageId(chatResp.getId());
+                                reasoning.setRole("assistant");
+                                reasoning.setReasoningContent(chatResp.getReasoningContent());
                                 callback.apply(reasoning);
                                 reasoningContent.append(chatResp.getReasoningContent());
                             }

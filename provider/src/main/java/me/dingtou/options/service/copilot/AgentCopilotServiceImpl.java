@@ -14,7 +14,7 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson2.JSON;
 
@@ -35,8 +35,11 @@ import me.dingtou.options.util.DateUtils;
 import me.dingtou.options.util.McpUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
+/**
+ * Agent模式，支持思考内容输出
+ */
 @Slf4j
-// @Component
+@Component
 public class AgentCopilotServiceImpl implements CopilotService {
 
     @Autowired
@@ -58,17 +61,17 @@ public class AgentCopilotServiceImpl implements CopilotService {
 
     @Override
     public String start(String owner,
+            String sessionId,
             String title,
             Message message,
             Function<Message, Void> callback,
             Function<Message, Void> failCallback) {
-        String sessionId = message.getSessionId();
         log.info("[Agent] 开始新会话, owner={}, sessionId={}, title={}", owner, sessionId, title);
 
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         if (account == null) {
             log.error("[Agent] 账号不存在, owner={}", owner);
-            failCallback.apply(new Message(null, sessionId, "assistant", "账号不存在", null));
+            failCallback.apply(new Message("assistant", "账号不存在"));
             return sessionId;
         }
 
@@ -79,8 +82,8 @@ public class AgentCopilotServiceImpl implements CopilotService {
         initMcpServer(account);
 
         // 构建包含MCP工具描述的系统提示词
-        String firstMessage = buildPrompt(owner, ownerCode, message.getContent());
-        Message agentMessage = new Message(sessionId, "user", firstMessage);
+        String mcpSettings = buildPrompt(owner, ownerCode, message.getContent());
+        Message agentMessage = new Message(sessionId, "user", mcpSettings);
 
         agentWork(account, title, agentMessage, callback, failCallback, sessionId, new ArrayList<>());
 
@@ -116,7 +119,6 @@ public class AgentCopilotServiceImpl implements CopilotService {
         // 保存用户消息
         OwnerChatRecord userRecord = new OwnerChatRecord(owner,
                 sessionId,
-                String.valueOf(System.currentTimeMillis()),
                 title,
                 newMessage.getRole(),
                 newMessage.getContent(),
@@ -127,10 +129,10 @@ public class AgentCopilotServiceImpl implements CopilotService {
         while (iteration++ < maxIterations && finalResponse == null) {
             log.info("[Agent] 迭代处理, sessionId={}, 当前迭代={}/{}", sessionId, iteration, maxIterations);
             // 请求大模型
-            ChatClient.ChatResponse chatResponse = sendChatRequest(account, messages, callback);
+            ChatClient.ChatResponse chatResponse = sendChatRequest(sessionId, account, messages, callback);
 
             if (chatResponse == null || chatResponse.getContent() == null) {
-                failCallback.apply(new Message(null, sessionId, "assistant", "模型请求失败", null));
+                failCallback.apply(new Message("assistant", "模型请求失败"));
                 break;
             }
 
@@ -138,12 +140,13 @@ public class AgentCopilotServiceImpl implements CopilotService {
             OwnerChatRecord assistantRecord = new OwnerChatRecord(
                     owner,
                     sessionId,
-                    chatResponse.getId(),
                     title,
                     "assistant",
                     chatResponse.getContent(),
                     chatResponse.getReasoningContent());
+            assistantRecord.setMessageId(chatResponse.getId());
             assistantService.addChatRecord(owner, sessionId, assistantRecord);
+            messages.add(new Message("assistant", chatResponse.getContent()));
 
             // 提取工具调用信息
             ToolProcesser toolProcesser = findToolProcesser(chatResponse.getContent());
@@ -160,23 +163,18 @@ public class AgentCopilotServiceImpl implements CopilotService {
                     String toolResultPrompt = toolProcesser.buildResultPrompt(toolCall, toolResult);
 
                     // 添加工具响应消息
-                    Message toolMessage = new Message(
-                            null,
-                            sessionId,
-                            "user",
-                            toolResultPrompt,
-                            null);
+                    Message toolMessage = new Message("user", toolResultPrompt);
+                    messages.add(toolMessage);
 
                     // 保存用户消息
                     OwnerChatRecord toolResultRecord = new OwnerChatRecord(owner,
                             sessionId,
-                            String.valueOf(System.currentTimeMillis()),
                             title,
                             toolMessage.getRole(),
                             toolMessage.getContent(),
                             null);
                     assistantService.addChatRecord(owner, sessionId, toolResultRecord);
-                    messages.add(toolMessage);
+
                     callback.apply(toolMessage);
 
                     // 将MCP结果提交给大模型继续处理
@@ -191,7 +189,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
 
         // 处理最终结果
         if (finalResponse == null) {
-            failCallback.apply(new Message(null, sessionId, "assistant", "达到单次迭代上限，是否继续？", null));
+            failCallback.apply(new Message("assistant", "达到单次迭代上限，是否继续？"));
         }
     }
 
@@ -248,7 +246,8 @@ public class AgentCopilotServiceImpl implements CopilotService {
     /**
      * 发送聊天请求（流式）
      */
-    private ChatClient.ChatResponse sendChatRequest(OwnerAccount account,
+    private ChatClient.ChatResponse sendChatRequest(String sessionId,
+            OwnerAccount account,
             List<Message> messages,
             Function<Message, Void> callback) {
         String baseUrl = AccountExtUtils.getAiBaseUrl(account);
@@ -268,10 +267,9 @@ public class AgentCopilotServiceImpl implements CopilotService {
                             if (chunk.isChunk()) {
                                 Message msg = new Message(
                                         chunk.getId(),
-                                        messages.get(0).getSessionId(),
                                         "assistant",
-                                        chunk.getContent(),
-                                        chunk.getReasoningContent());
+                                        chunk.getContent());
+                                msg.setReasoningContent(chunk.getReasoningContent());
                                 callback.apply(msg);
                             }
                         }
@@ -305,33 +303,26 @@ public class AgentCopilotServiceImpl implements CopilotService {
 
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         if (account == null) {
-            failCallback.apply(new Message(null, sessionId, "assistant", "账号不存在", null));
+            failCallback.apply(new Message("assistant", "账号不存在"));
             return;
         }
 
         // 获取历史消息(user & assistant)
         List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
         if (records == null || records.isEmpty()) {
-            failCallback.apply(new Message(null, sessionId, "assistant", "无法找到历史对话记录", null));
+            failCallback.apply(new Message("assistant", "无法找到历史对话记录"));
             return;
         }
 
         // 转换历史消息为Message对象
         List<Message> messages = new ArrayList<>();
-        for (OwnerChatRecord record : records) {
-            Message chatMessage = new Message(record.getMessageId(),
-                    record.getSessionId(),
-                    record.getRole(),
-                    record.getContent(),
-                    record.getReasoningContent());
-            messages.add(chatMessage);
-        }
+        messages.addAll(records);
 
         // 获取会话标题
         String title = records.get(0).getTitle();
 
         // 添加新消息
-        Message newMessage = new Message(null, sessionId, "user", message.getContent(), null);
+        Message newMessage = new Message("user", message.getContent());
 
         agentWork(account, title, newMessage, callback, failCallback, sessionId, messages);
 
