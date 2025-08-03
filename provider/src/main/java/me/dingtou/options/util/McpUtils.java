@@ -4,12 +4,15 @@ import java.net.URL;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.Builder;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.google.adk.tools.mcp.SseServerParameters;
 
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
@@ -71,18 +74,34 @@ public class McpUtils {
             log.error("初始化McpClient失败: 用户名为空");
             return;
         }
-        if (mcpSettings == null || mcpSettings.isEmpty()) {
-            log.error("用户[{}]初始化McpClient失败: mcpSettings为空", owner);
-            return;
+        Map<String, SseServerParameters> sseServerParameters = getSseServerParameters(mcpSettings);
+        for (Map.Entry<String, SseServerParameters> entry : sseServerParameters.entrySet()) {
+            String serverName = entry.getKey();
+            SseServerParameters sseServerParameter = entry.getValue();
+            initMcpSseClient(owner, serverName, sseServerParameter.url(), sseServerParameter.headers());
         }
+        log.info("用户[{}]的Mcp客户端初始化完成", owner);
 
-        log.info("开始初始化用户[{}]的Mcp客户端, 配置: {}", owner, mcpSettings);
+    }
+
+    /**
+     * 转换参数
+     * 
+     * @param mcpSettings mcp设置
+     * @return 转换后的参数
+     */
+    public static Map<String, SseServerParameters> getSseServerParameters(String mcpSettings) {
+        if (mcpSettings == null || mcpSettings.isEmpty()) {
+            log.error("初始化McpClient失败: mcpSettings为空");
+            return Collections.emptyMap();
+        }
+        Map<String, SseServerParameters> result = new HashMap<>();
         try {
             // 初始化mcp服务器
             JSONObject mcpServers = JSON.parseObject(mcpSettings).getJSONObject("mcpServers");
             if (null == mcpServers) {
-                log.error("用户[{}]初始化McpClient失败: mcpServers配置为空", owner);
-                return;
+                log.error("初始化McpClient失败: mcpServers配置为空");
+                return Collections.emptyMap();
             }
 
             log.info("发现{}个Mcp服务需要初始化", mcpServers.size());
@@ -93,15 +112,20 @@ public class McpUtils {
                     log.error("服务[{}]初始化失败: URL为空", serverName);
                     continue;
                 }
-                Map<String, String> headers = server.getObject("headers", new TypeReference<Map<String, String>>() {
+                Map<String, Object> headers = server.getObject("headers", new TypeReference<Map<String, Object>>() {
                 });
                 log.info("正在初始化Mcp服务: {} -> {}", serverName, url);
-                initMcpSseClient(owner, serverName, url, headers);
+                SseServerParameters sseServerParameters = SseServerParameters.builder()
+                        .url(url)
+                        .headers(headers)
+                        .build();
+                result.put(serverName, sseServerParameters);
             }
-            log.info("用户[{}]的Mcp客户端初始化完成", owner);
+            log.info("Mcp客户端初始化完成");
         } catch (Exception e) {
-            log.error("初始化McpClient时发生异常, 用户: " + owner, e);
+            log.error("初始化McpClient时发生异常", e);
         }
+        return result;
     }
 
     /**
@@ -117,7 +141,7 @@ public class McpUtils {
     public synchronized static McpSyncClient initMcpSseClient(String owner,
             String serverName,
             String url,
-            Map<String, String> headers) {
+            Map<String, Object> headers) {
 
         Map<String, McpSyncClient> mcpServers = OWNER_MCP_SERVERS
                 .computeIfAbsent(owner, k -> new ConcurrentHashMap<>());
@@ -133,8 +157,8 @@ public class McpUtils {
                 .header("Content-Type", "application/json");
 
         if (null != headers && !headers.isEmpty()) {
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                requestBuilder.header(entry.getKey(), entry.getValue());
+            for (Map.Entry<String, Object> entry : headers.entrySet()) {
+                requestBuilder.header(entry.getKey(), entry.getValue().toString());
             }
         }
 

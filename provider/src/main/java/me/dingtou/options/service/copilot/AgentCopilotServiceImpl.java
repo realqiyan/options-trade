@@ -14,7 +14,7 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+// import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson2.JSON;
 
@@ -36,7 +36,7 @@ import me.dingtou.options.util.McpUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
 @Slf4j
-@Component
+// @Component
 public class AgentCopilotServiceImpl implements CopilotService {
 
     @Autowired
@@ -79,8 +79,8 @@ public class AgentCopilotServiceImpl implements CopilotService {
         initMcpServer(account);
 
         // 构建包含MCP工具描述的系统提示词
-        String mcpSettings = buildPrompt(owner, ownerCode, message.getContent());
-        Message agentMessage = new Message(sessionId, "user", mcpSettings);
+        String firstMessage = buildPrompt(owner, ownerCode, message.getContent());
+        Message agentMessage = new Message(sessionId, "user", firstMessage);
 
         agentWork(account, title, agentMessage, callback, failCallback, sessionId, new ArrayList<>());
 

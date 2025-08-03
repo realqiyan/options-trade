@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.3</version>
+        <version>3.5.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>me.dingtou.options</groupId>
@@ -22,6 +22,25 @@
 
     <properties>
         <java.version>17</java.version>
+        <spring-boot.version>3.5.4</spring-boot.version>
+        <spring-ai.version>1.0.1</spring-ai.version>
+        <mybatis-plus.version>3.5.9</mybatis-plus.version>
+        <lombok.version>1.18.30</lombok.version>
+        <mysql-connector.version>8.4.0</mysql-connector.version>
+        <futu-api.version>9.0.5008</futu-api.version>
+        <openapi-sdk.version>3.0.5</openapi-sdk.version>
+        <servlet-api.version>6.1.0</servlet-api.version>
+        <otp-java.version>2.1.0</otp-java.version>
+        <guava.version>33.4.0-jre</guava.version>
+        <ta4j-core.version>0.17</ta4j-core.version>
+        <jjwt.version>0.12.6</jjwt.version>
+        <okhttp.version>4.12.0</okhttp.version>
+        <jobrunr.version>7.4.1</jobrunr.version>
+        <jackson-databind.version>2.16.1</jackson-databind.version>
+        <commons-text.version>1.10.0</commons-text.version>
+        <reactor-core.version>3.7.7</reactor-core.version>
+        <langchain4j.version>1.2.0</langchain4j.version>
+        <google-adk.version>0.2.0</google-adk.version>
     </properties>
 
     <dependencyManagement>
@@ -29,14 +48,14 @@
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
-                <version>1.0.0</version>
+                <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-freemarker</artifactId>
-                <version>3.5.3</version>
+                <version>${spring-boot.version}</version>
             </dependency>
             <dependency>
                 <groupId>me.dingtou.options</groupId>
@@ -51,105 +70,141 @@
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-                <version>3.5.9</version>
+                <version>${mybatis-plus.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-core</artifactId>
-                <version>3.5.9</version>
+                <version>${mybatis-plus.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.30</version>
+                <version>${lombok.version}</version>
             </dependency>
             <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
             <dependency>
                 <groupId>com.mysql</groupId>
                 <artifactId>mysql-connector-j</artifactId>
-                <version>8.4.0</version>
+                <version>${mysql-connector.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.futunn.openapi</groupId>
                 <artifactId>futu-api</artifactId>
-                <version>9.0.5008</version>
+                <version>${futu-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.longportapp</groupId>
                 <artifactId>openapi-sdk</artifactId>
-                <version>3.0.5</version>
+                <version>${openapi-sdk.version}</version>
             </dependency>
             <dependency>
                 <groupId>jakarta.servlet</groupId>
                 <artifactId>jakarta.servlet-api</artifactId>
-                <version>6.1.0</version>
+                <version>${servlet-api.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.github.bastiaanjansen</groupId>
                 <artifactId>otp-java</artifactId>
-                <version>2.1.0</version>
+                <version>${otp-java.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>33.4.0-jre</version>
+                <version>${guava.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.ta4j</groupId>
                 <artifactId>ta4j-core</artifactId>
-                <version>0.17</version>
+                <version>${ta4j-core.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-api</artifactId>
-                <version>0.12.6</version>
+                <version>${jjwt.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-impl</artifactId>
-                <version>0.12.6</version>
+                <version>${jjwt.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
-                <version>0.12.6</version>
+                <version>${jjwt.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
-                <version>4.12.0</version>
+                <version>${okhttp.version}</version>
             </dependency>
 
             <dependency> 
                 <groupId>org.jobrunr</groupId> 
                 <artifactId>jobrunr</artifactId> 
-                <version>7.4.1</version> 
+                <version>${jobrunr.version}</version> 
             </dependency>
             <dependency> 
                 <groupId>org.jobrunr</groupId> 
                 <artifactId>jobrunr-spring-boot-3-starter</artifactId>
-                <version>7.4.1</version> 
+                <version>${jobrunr.version}</version> 
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>2.16.1</version>
+                <version>${jackson-databind.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
-                <version>1.10.0</version>
+                <version>${commons-text.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.projectreactor</groupId>
                 <artifactId>reactor-core</artifactId>
-                <version>3.7.7</version>
+                <version>${reactor-core.version}</version>
             </dependency>
+
+            <!-- langchain4j -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-open-ai</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-ollama</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+
+            <!-- google-adk -->
+            <dependency>
+                <groupId>com.google.adk</groupId>
+                <artifactId>google-adk</artifactId>
+                <version>${google-adk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.adk</groupId>
+                <artifactId>google-adk-contrib-langchain4j</artifactId>
+                <version>${google-adk.version}</version>
+            </dependency>
+            <!-- Dev UI -->
+            <dependency>
+                <groupId>com.google.adk</groupId>
+                <artifactId>google-adk-dev</artifactId>
+                <version>${google-adk.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

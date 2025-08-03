@@ -42,6 +42,14 @@ public class LoginFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        // 检查是否为排除的路径
+        String requestURI = httpRequest.getRequestURI();
+        if (requestURI.equals("/sse") || requestURI.equals("/mcp/message")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         httpResponse.setCharacterEncoding("UTF-8");
         String apiKey = httpRequest.getHeader("apiKey");
 
