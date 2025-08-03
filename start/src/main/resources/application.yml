@@ -1,5 +1,8 @@
 server:
   port: 8888
+  servlet:
+    encoding:
+      charset: UTF-8
 # 数据源配置
 spring:
   datasource:
