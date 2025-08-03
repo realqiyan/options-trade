@@ -44,7 +44,7 @@ import me.dingtou.options.util.TemplateRenderer;
  * Agent模式，langchain4j不支持思考内容输出
  */
 @Slf4j
-@Component
+// @Component
 public class AgentCopilotServiceV2Impl implements CopilotService {
 
     @Autowired
