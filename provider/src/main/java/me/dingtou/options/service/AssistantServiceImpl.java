@@ -40,6 +40,16 @@ public class AssistantServiceImpl implements AssistantService {
     @Autowired
     private OwnerChatRecordDAO ownerChatRecordDAO;
 
+    private static final String SESSION_TITLE_DESC = "生成会话标题";
+    private static final String SESSION_TITLE_INSTRUCTION = """
+            你的任务是根据用户消息生成会话标题。
+
+            要求：
+            * 标题必须控制在20个字以内。
+            * 标题尽可能的包含关键信息，例如：标的、交易日期。
+            * 直接返回标题，不允许附加任何其他信息和符号。
+            """;
+
     @Override
     public Map<String, Object> getSettings(String owner) {
         // 查询用户账号
@@ -152,22 +162,15 @@ public class AssistantServiceImpl implements AssistantService {
             return "";
         }
 
-        String name = "generateSessionTitle";
+        String name = "generate_title";
         ChatModel chatModel = buildChatModel(ownerAccount);
 
         // 构建流式ChatModel
         LlmAgent titleAgent = LlmAgent.builder()
                 .name(name)
-                .description("生成会话标题")
+                .description(SESSION_TITLE_DESC)
                 .model(new LangChain4j(chatModel))
-                .instruction("""
-                        你的任务是根据用户消息生成会话标题。
-
-                        要求：
-                        * 标题必须控制在20个字以内。
-                        * 标题尽可能的包含关键信息，例如：标的、交易日期。
-                        * 直接返回标题，不允许附加任何其他信息和符号。
-                        """)
+                .instruction(SESSION_TITLE_INSTRUCTION)
                 .build();
 
         InMemoryRunner runner = new InMemoryRunner(titleAgent);
