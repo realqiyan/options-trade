@@ -12,6 +12,7 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson2.JSON;
 
@@ -39,8 +40,11 @@ import me.dingtou.options.util.DateUtils;
 import me.dingtou.options.util.McpUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
+/**
+ * Agent模式，langchain4j不支持思考内容输出
+ */
 @Slf4j
-// @Component
+@Component
 public class AgentCopilotServiceV2Impl implements CopilotService {
 
     @Autowired
@@ -168,19 +172,18 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
 
                             // 构建工具调用结果提示
                             String toolResultPrompt = toolProcesser.buildResultPrompt(toolCall, toolResult);
-                            Message toolMessage = new Message("user", toolResultPrompt);
 
                             // 保存用户消息
                             OwnerChatRecord toolResultRecord = new OwnerChatRecord(owner,
                                     sessionId,
                                     title,
-                                    toolMessage.getRole(),
-                                    toolMessage.getContent(),
+                                    "user",
+                                    toolResultPrompt,
                                     null);
                             assistantService.addChatRecord(owner, sessionId, toolResultRecord);
                             chatMessages.add(new UserMessage(toolResultPrompt));
                             // 添加工具响应消息
-                            callback.apply(toolMessage);
+                            callback.apply(toolResultRecord);
                             // 将MCP结果提交给大模型继续处理
                             latch[0].countDown();
                             return;

@@ -14,8 +14,6 @@ import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.alibaba.fastjson2.JSON;
 
 import io.modelcontextprotocol.client.McpSyncClient;
@@ -39,7 +37,7 @@ import me.dingtou.options.util.TemplateRenderer;
  * Agent模式，支持思考内容输出
  */
 @Slf4j
-@Component
+// @Component
 public class AgentCopilotServiceImpl implements CopilotService {
 
     @Autowired
