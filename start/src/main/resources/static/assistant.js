@@ -668,7 +668,7 @@ layui.use(['layer', 'form', 'util'], function() {
             // 构建请求参数
             const params = new URLSearchParams({
                 requestId: this.currentClientId,
-                title: title || '未命名会话',
+                title: title || '',
                 message: message,
                 mode: mode  // 添加模式参数
             });

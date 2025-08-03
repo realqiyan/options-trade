@@ -84,4 +84,13 @@ public interface AssistantService {
      * @return 是否成功
      */
     boolean updateSettings(String owner, String mcpSettings, Double temperature);
+
+    /**
+     * 生成会话标题
+     * 
+     * @param owner   所有者
+     * @param message 用户消息
+     * @return 会话标题
+     */
+    String generateSessionTitle(String owner, String message);
 }

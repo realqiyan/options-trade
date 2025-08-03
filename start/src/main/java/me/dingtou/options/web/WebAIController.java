@@ -9,6 +9,7 @@ import me.dingtou.options.util.EscapeUtils;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -85,12 +86,18 @@ public class WebAIController {
         // 使用线程池提交
         SseEmitter connect = SessionUtils.getConnect(owner, requestId);
         Message chatMessage = new Message("user", message);
+        final String sessionTitle;
+        if (StringUtils.isBlank(title)) {
+            sessionTitle = assistantService.generateSessionTitle(owner, message);
+        } else {
+            sessionTitle = title;
+        }
         try {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        copilotServiceMap.get(mode).start(owner, sessionId, title, chatMessage, msg -> {
+                        copilotServiceMap.get(mode).start(owner, sessionId, sessionTitle, chatMessage, msg -> {
                             try {
                                 msg.escapeHtml();
                                 connect.send(msg);

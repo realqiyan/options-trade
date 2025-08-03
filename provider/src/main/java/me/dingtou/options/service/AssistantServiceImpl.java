@@ -3,11 +3,23 @@ package me.dingtou.options.service;
 import java.util.List;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.google.adk.agents.LlmAgent;
+import com.google.adk.events.Event;
+import com.google.adk.models.langchain4j.LangChain4j;
+import com.google.adk.runner.InMemoryRunner;
+import com.google.adk.sessions.Session;
+import com.google.genai.types.Content;
+import com.google.genai.types.Part;
+
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import io.reactivex.rxjava3.core.Flowable;
 import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.dao.OwnerChatRecordDAO;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
+import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
 import java.util.Date;
@@ -131,5 +143,62 @@ public class AssistantServiceImpl implements AssistantService {
         queryWrapper.eq(OwnerChatRecord::getOwner, owner)
                 .eq(OwnerChatRecord::getMessageId, messageId);
         return ownerChatRecordDAO.selectOne(queryWrapper);
+    }
+
+    @Override
+    public String generateSessionTitle(String owner, String message) {
+        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
+        if (ownerAccount == null) {
+            return "";
+        }
+
+        String name = "generateSessionTitle";
+        ChatModel chatModel = buildChatModel(ownerAccount);
+
+        // 构建流式ChatModel
+        LlmAgent titleAgent = LlmAgent.builder()
+                .name(name)
+                .description("生成会话标题")
+                .model(new LangChain4j(chatModel))
+                .instruction("""
+                        你的任务是根据用户消息生成会话标题。
+
+                        要求：
+                        * 标题必须控制在20个字以内。
+                        * 标题尽可能的包含关键信息，例如：标的、交易日期。
+                        * 直接返回标题，不允许附加任何其他信息和符号。
+                        """)
+                .build();
+
+        InMemoryRunner runner = new InMemoryRunner(titleAgent);
+        Session session = runner
+                .sessionService()
+                .createSession(name, owner)
+                .blockingGet();
+        Content userMsg = Content.fromParts(Part.fromText(message));
+        Flowable<Event> events = runner.runAsync(owner, session.id(), userMsg);
+        return events.blockingFirst().stringifyContent();
+    }
+
+    /**
+     * 构建流式ChatModel
+     * 
+     * @param account 账户信息
+     * @return 大模型对象
+     */
+    private ChatModel buildChatModel(OwnerAccount account) {
+        String baseUrl = AccountExtUtils.getAiBaseUrl(account);
+        String model = AccountExtUtils.getAiApiModel(account);
+        String apiKey = AccountExtUtils.getAiApiKey(account);
+        Double temperature = Double.parseDouble(AccountExtUtils.getAiApiTemperature(account));
+
+        return OpenAiChatModel.builder()
+                .baseUrl(baseUrl)
+                .apiKey(apiKey)
+                .modelName(model)
+                .temperature(temperature)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
     }
 }
