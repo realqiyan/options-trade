@@ -265,6 +265,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                 .baseUrl(baseUrl)
                 .apiKey(apiKey)
                 .modelName(model)
+                .customHeaders(Map.of("Content-Type", "application/json;charset=UTF-8"))
                 .temperature(temperature)
                 .logRequests(true)
                 .logResponses(true)
