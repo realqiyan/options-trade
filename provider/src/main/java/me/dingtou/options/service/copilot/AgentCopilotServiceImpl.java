@@ -82,8 +82,8 @@ public class AgentCopilotServiceImpl implements CopilotService {
         initMcpServer(account);
 
         // 构建包含MCP工具描述的系统提示词
-        String mcpSettings = buildPrompt(owner, ownerCode, message.getContent());
-        Message agentMessage = new Message(sessionId, "user", mcpSettings);
+        String firstMessage = buildPrompt(owner, ownerCode, message.getContent());
+        Message agentMessage = new Message(sessionId, "user", firstMessage);
 
         agentWork(account, title, agentMessage, callback, failCallback, sessionId, new ArrayList<>());
 
@@ -228,7 +228,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
                     Map<String, Object> toolInfo = new HashMap<>();
                     toolInfo.put("name", tool.name());
                     toolInfo.put("description", tool.description());
-                    toolInfo.put("inputSchema", JSON.toJSONString(tool.inputSchema()));
+                    toolInfo.put("inputSchema", tool.inputSchema());
                     toolList.add(toolInfo);
                 }
                 Map<String, Object> serverInfo = new HashMap<>();

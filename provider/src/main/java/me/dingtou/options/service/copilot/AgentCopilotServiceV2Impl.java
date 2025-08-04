@@ -307,7 +307,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                     Map<String, Object> toolInfo = new HashMap<>();
                     toolInfo.put("name", tool.name());
                     toolInfo.put("description", tool.description());
-                    toolInfo.put("inputSchema", JSON.toJSONString(tool.inputSchema()));
+                    toolInfo.put("inputSchema", tool.inputSchema());
                     toolList.add(toolInfo);
                 }
                 Map<String, Object> serverInfo = new HashMap<>();
