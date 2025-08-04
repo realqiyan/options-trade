@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 export LANG=zh_CN.UTF-8
-export LC_ALL=zh_CN.UTF-8
 
 # 最大等待时间(秒)
 MAX_WAIT=60
