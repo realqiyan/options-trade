@@ -194,6 +194,21 @@ public class IndicatorManager {
     }
 
     /**
+     * 获取K线数据
+     * 
+     * @param ownerAccount 账户
+     * @param security     股票
+     * @param period       周期
+     * @param count        数量
+     * @return K线数据
+     */
+    public SecurityCandlestick getCandlesticks(OwnerAccount ownerAccount, Security security, CandlestickPeriod period,
+            Integer count) {
+        return candlestickGateway.getCandlesticks(ownerAccount, security, period, count,
+                CandlestickAdjustType.FORWARD_ADJUST);
+    }
+
+    /**
      * 计算最低价支撑位
      * 
      * @param barSeries K线数据

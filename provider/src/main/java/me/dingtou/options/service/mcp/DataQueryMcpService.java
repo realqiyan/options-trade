@@ -146,4 +146,27 @@ public class DataQueryMcpService {
         return indicatorManager.queryStockPrice(account, Security.of(code, market)).toPlainString();
     }
 
+    @Tool(description = "查询股票K线数据（日K、周K、月K），根据股票代码、市场代码、K线类型、K线数量查询股票对应K线数据。返回结果包括日期、开盘价、收盘价、最高价、最低价、成交量、成交额。")
+    public String queryStockCandlesticks(@ToolParam(required = true, description = "用户Token") String ownerCode,
+            @ToolParam(required = true, description = "股票代码") String code,
+            @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
+            @ToolParam(required = true, description = "K线类型 1000:日K 2000:周K 3000:月K") Integer periodCode,
+            @ToolParam(required = true, description = "K线数量") Integer count) {
+        String owner = authService.decodeOwner(ownerCode);
+        if (null == owner) {
+            return "用户编码信息不正确或已经过期";
+        }
+        Security security = Security.of(code, market);
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+        me.dingtou.options.constant.CandlestickPeriod period = me.dingtou.options.constant.CandlestickPeriod.of(periodCode);
+        me.dingtou.options.model.SecurityCandlestick candlesticks = indicatorManager.getCandlesticks(account, security, period, count);
+        Map<String, Object> data = new HashMap<>();
+        data.put("security", security);
+        data.put("periodName", period.getName());
+        data.put("count", count);
+        data.put("candlesticks", candlesticks.getCandlesticks());
+        // 渲染模板
+        return TemplateRenderer.render("mcp_stock_candlesticks.ftl", data);
+    }
+
 }
