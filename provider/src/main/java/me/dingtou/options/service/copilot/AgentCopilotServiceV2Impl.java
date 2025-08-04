@@ -61,7 +61,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
 
     @Override
     public String mode() {
-        return "agent";
+        return "agent_v2";
     }
 
     @Override

@@ -21,7 +21,9 @@ import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityOrderBook;
 import me.dingtou.options.model.StockIndicator;
 import me.dingtou.options.model.VixIndicator;
+import me.dingtou.options.model.EarningsCalendar;
 import me.dingtou.options.service.AuthService;
+import me.dingtou.options.service.EarningsCalendarService;
 import me.dingtou.options.util.IndicatorDataFrameUtil;
 import me.dingtou.options.util.TemplateRenderer;
 
@@ -42,6 +44,9 @@ public class DataQueryMcpService {
 
     @Autowired
     private IndicatorManager indicatorManager;
+
+    @Autowired
+    private EarningsCalendarService earningsCalendarService;
 
     @Tool(description = "查询期权到期日，根据股票代码和市场代码查询股票对应的期权到期日。返回结果包括股票代码、市场代码和到期日列表。")
     public String queryOptionsExpDate(@ToolParam(required = true, description = "用户Token") String ownerCode,
@@ -167,6 +172,17 @@ public class DataQueryMcpService {
         data.put("candlesticks", candlesticks.getCandlesticks());
         // 渲染模板
         return TemplateRenderer.render("mcp_stock_candlesticks.ftl", data);
+    }
+
+    @Tool(description = "查询股票财报日历，根据股票代码查询股票的财报发布信息。返回结果包括股票代码、公司名称、财报日期、预期每股收益等信息。")
+    public String queryEarningsCalendar(@ToolParam(required = true, description = "股票代码，例如：BABA") String symbol) {
+        List<EarningsCalendar> earningsCalendars = earningsCalendarService.getEarningsCalendarBySymbol(symbol);
+        // 准备模板数据
+        Map<String, Object> data = new HashMap<>();
+        data.put("symbol", symbol);
+        data.put("earningsCalendars", earningsCalendars);
+        // 渲染模板
+        return TemplateRenderer.render("mcp_earnings_calendar.ftl", data);
     }
 
 }
