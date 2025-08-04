@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+export LANG=zh_CN.UTF-8
+export LC_ALL=zh_CN.UTF-8
 
 # 最大等待时间(秒)
 MAX_WAIT=60
@@ -38,7 +40,7 @@ echo "正在重新打包应用..."
 
 # 启动应用
 echo "正在启动应用..."
-nohup java -jar options-trade.jar > nohup.out 2>&1 &
+nohup java -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -jar options-trade.jar > nohup.out 2>&1 &
 echo $! > options-trade.pid
 
 echo "应用已启动，PID: $(cat options-trade.pid)"
