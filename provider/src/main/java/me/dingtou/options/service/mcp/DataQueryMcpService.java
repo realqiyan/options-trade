@@ -4,11 +4,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.manager.IndicatorManager;
 import me.dingtou.options.manager.OptionsManager;
 import me.dingtou.options.manager.OwnerManager;
@@ -18,6 +20,7 @@ import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.Security;
+import me.dingtou.options.model.SecurityCandlestick;
 import me.dingtou.options.model.SecurityOrderBook;
 import me.dingtou.options.model.StockIndicator;
 import me.dingtou.options.model.VixIndicator;
@@ -163,8 +166,8 @@ public class DataQueryMcpService {
         }
         Security security = Security.of(code, market);
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        me.dingtou.options.constant.CandlestickPeriod period = me.dingtou.options.constant.CandlestickPeriod.of(periodCode);
-        me.dingtou.options.model.SecurityCandlestick candlesticks = indicatorManager.getCandlesticks(account, security, period, count);
+        CandlestickPeriod period = CandlestickPeriod.of(periodCode);
+        SecurityCandlestick candlesticks = indicatorManager.getCandlesticks(account, security, period, count);
         Map<String, Object> data = new HashMap<>();
         data.put("security", security);
         data.put("periodName", period.getName());
@@ -175,11 +178,14 @@ public class DataQueryMcpService {
     }
 
     @Tool(description = "查询股票财报日历，根据股票代码查询股票的财报发布信息。返回结果包括股票代码、公司名称、财报日期、预期每股收益等信息。")
-    public String queryEarningsCalendar(@ToolParam(required = true, description = "股票代码，例如：BABA") String symbol) {
-        List<EarningsCalendar> earningsCalendars = earningsCalendarService.getEarningsCalendarBySymbol(symbol);
+    public String queryEarningsCalendar(@ToolParam(required = true, description = "股票代码，例如：BABA") String code) {
+        List<EarningsCalendar> earningsCalendars = earningsCalendarService.getEarningsCalendarBySymbol(code);
+        if (StringUtils.isBlank(code)) {
+            return "股票代码不能为空";
+        }
         // 准备模板数据
         Map<String, Object> data = new HashMap<>();
-        data.put("symbol", symbol);
+        data.put("symbol", code);
         data.put("earningsCalendars", earningsCalendars);
         // 渲染模板
         return TemplateRenderer.render("mcp_earnings_calendar.ftl", data);
