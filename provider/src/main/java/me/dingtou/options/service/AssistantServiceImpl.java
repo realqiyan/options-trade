@@ -14,6 +14,7 @@ import com.google.genai.types.Part;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import io.reactivex.rxjava3.core.Flowable;
+import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.dao.OwnerChatRecordDAO;
 import me.dingtou.options.manager.OwnerManager;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class AssistantServiceImpl implements AssistantService {
 
     @Autowired
@@ -162,25 +164,30 @@ public class AssistantServiceImpl implements AssistantService {
             return "";
         }
 
-        String name = "generate_title";
-        ChatModel chatModel = buildChatModel(ownerAccount);
+        try {
+            String name = "generate_title";
+            ChatModel chatModel = buildChatModel(ownerAccount);
 
-        // 构建流式ChatModel
-        LlmAgent titleAgent = LlmAgent.builder()
-                .name(name)
-                .description(SESSION_TITLE_DESC)
-                .model(new LangChain4j(chatModel))
-                .instruction(SESSION_TITLE_INSTRUCTION)
-                .build();
+            // 构建流式ChatModel
+            LlmAgent titleAgent = LlmAgent.builder()
+                    .name(name)
+                    .description(SESSION_TITLE_DESC)
+                    .model(new LangChain4j(chatModel))
+                    .instruction(SESSION_TITLE_INSTRUCTION)
+                    .build();
 
-        InMemoryRunner runner = new InMemoryRunner(titleAgent);
-        Session session = runner
-                .sessionService()
-                .createSession(name, owner)
-                .blockingGet();
-        Content userMsg = Content.fromParts(Part.fromText(message));
-        Flowable<Event> events = runner.runAsync(owner, session.id(), userMsg);
-        return events.blockingFirst().stringifyContent();
+            InMemoryRunner runner = new InMemoryRunner(titleAgent);
+            Session session = runner
+                    .sessionService()
+                    .createSession(name, owner)
+                    .blockingGet();
+            Content userMsg = Content.fromParts(Part.fromText(message));
+            Flowable<Event> events = runner.runAsync(owner, session.id(), userMsg);
+            return events.blockingFirst().stringifyContent();
+        } catch (Exception e) {
+            log.error("生成会话标题失败 message:{}", e.getMessage(), e);
+            return "";
+        }
     }
 
     /**
