@@ -114,7 +114,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             List<Message> historyMessages) {
 
         // 最大循环次数防止无限循环
-        int maxIterations = 10;
+        int maxIterations = 15;
         int iteration = 0;
 
         List<ChatMessage> chatMessages = convertMessage(historyMessages);

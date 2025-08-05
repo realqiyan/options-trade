@@ -118,13 +118,13 @@ layui.use(['layer', 'form', 'util'], function() {
          */
         initChatModeFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
-            const mode = urlParams.get('mode') || 'agent'; // 默认agent模式
+            const mode = urlParams.get('mode') || 'agent_v2'; // 默认agent模式
             const modeSelect = document.getElementById('chat-mode');
             
-            if (['ask', 'agent'].includes(mode.toLowerCase())) {
+            if (['ask', 'agent', 'agent_v2'].includes(mode.toLowerCase())) {
                 modeSelect.value = mode.toLowerCase();
             } else {
-                modeSelect.value = 'agent'; // 无效值默认agent模式
+                modeSelect.value = 'agent_v2'; // 无效值默认agent模式
             }
             
             // 重新渲染layui的select组件，确保显示更新
