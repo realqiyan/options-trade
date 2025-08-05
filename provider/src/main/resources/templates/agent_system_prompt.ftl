@@ -40,8 +40,7 @@
 
 # 工具使用示例
 
-## 示例1: 使用use_mcp_tool工具调用options-trade服务的queryStockRealPrice服务查询BABA股票价格。
-
+## 使用MCP示例: 使用use_mcp_tool工具调用options-trade的queryStockRealPrice服务查询BABA股票价格。
 <use_mcp_tool>
 <server_name>options-trade</server_name>
 <tool_name>queryStockRealPrice</tool_name>
@@ -52,20 +51,6 @@
 }
 </arguments>
 </use_mcp_tool>
-
-## 示例2: 使用use_mcp_tool工具请求天气预报服务。
-
-<use_mcp_tool>
-<server_name>weather-server</server_name>
-<tool_name>get_forecast</tool_name>
-<arguments>
-{
-  "city": "San Francisco",
-  "days": 5
-}
-</arguments>
-</use_mcp_tool>
-
 
 # 工具使用指南
 
@@ -121,7 +106,7 @@ MCP 服务器
 ## 车轮策略 (Wheel Strategy)
 
 ### 第 1 阶段：确认股票趋势
-	* 必须向上趋势，否则暂停交易
+    * 必须向上趋势，否则暂停交易
 
 ### 第 2 阶段：启动新策略之前进行预检查
 1. 市场安全评估  
@@ -156,7 +141,7 @@ MCP 服务器
 
 ### 第 4 阶段：管理 wheel
 * SELL PUT
-  * **何时平仓/展期**：合约在到期前达到 **80% 的盈利能力**，平仓并开始新的策略（遵循第 3 阶段概述的相同步骤）
+  * **何时平仓/展期**：合约在到期前达到 **80% 的盈利能力** ，平仓并开始新的策略（遵循第 3 阶段概述的相同步骤）
   * **何时接受转让**：如果股票价格等于或低于行使价，接受转让。由于这些是乐于持有的股票，因此接下来将继续出售备兑看涨期权。
 * SELL CALL
   * **将执行价格设置为等于或高于购买价格**：为避免亏本出售，确保执行价格**至少**是购买股票的价格。
@@ -183,31 +168,31 @@ MCP 服务器
 
 ### 三、调整规则
 （注：策略整体Delta不在0.25到0.75之间时，才触发调整）
-1. 短周期（到期前 2-3周内）​​
-  ➠ ​首选操作​：
+1. 短周期（到期前 2-3周内）
+  ➠ 首选操作：
   • 滚动至下月平价期权（ATM）。
 
-  ➠ ​次选操作（按Delta动态调整）​​：
-  • ​当 Delta > 0.5​：降低 Delta 0.1（例如 0.6 → 0.5）。
-  • ​当 Delta < 0.5​：提高 Delta 0.1（例如 0.4 → 0.5）。  
+  ➠ 次选操作（按Delta动态调整）：
+  • 当 Delta > 0.5：降低 Delta 0.1（例如 0.6 → 0.5）。
+  • 当 Delta < 0.5：提高 Delta 0.1（例如 0.4 → 0.5）。  
     
 2. 中周期（到期时间 3个月内）  
-  ➠ ​通用规则​：
+  ➠ 通用规则：
   • 无论Delta数值如何，强制滚动至下一到期月的合约。
 
-  ➠ ​特殊匹配规则​：
+  ➠ 特殊匹配规则：
   • 若当前 Delta = 0.75 → 选择下月合约 Delta = 0.50
-  • ​目标Delta​：0.50
+  • 目标Delta：0.50
   • 若当前 Delta = 0.25 → 选择下月合约 Delta = 0.40
-  • ​目标Delta​：0.40
+  • 目标Delta：0.40
     
 3. 长周期（到期时间 > 3个月）  
-  ➠ ​条件​：Delta ≥ 0.75
-  • ​操作​：滚动至同到期日的期权合约
-  • ​目标Delta​：0.50
-  ➠ ​条件​：Delta ≤ 0.25
-  • ​操作​：滚动至同到期日的期权合约
-  • ​目标Delta​：0.40
+  ➠ 条件：Delta ≥ 0.75
+  • 操作：滚动至同到期日的期权合约
+  • 目标Delta：0.50
+  ➠ 条件：Delta ≤ 0.25
+  • 操作：滚动至同到期日的期权合约
+  • 目标Delta：0.40
 
 ====
 
