@@ -1,6 +1,4 @@
 <#if optionsRealtimeDataList?? && (optionsRealtimeDataList?size > 0)>
-<options>
-
 # Roll备选期权列表
 | 期权代码 | 期权类型 | 行权价 | 当前价格 | Delta | Gamma | Theta | Vega | 隐含波动率 | 溢价 | 未平仓数量 | 成交量 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -24,6 +22,5 @@
 | ${data.security.code} | ${optionType} | ${strikePrice} | ${data.curPrice!'-'} | ${data.delta!'-'} | ${data.gamma!'-'} | ${data.theta!'-'} | ${data.vega!'-'} | ${(data.impliedVolatility!'-')?string + '%'} | ${(data.premium!'-')?string + '%'} | ${data.openInterest!'-'} | ${data.volume!'-'} |
 </#if>
 </#list>
-
-</options>
 </#if>
+

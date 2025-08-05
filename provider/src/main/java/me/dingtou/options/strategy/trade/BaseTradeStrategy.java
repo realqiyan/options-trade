@@ -137,12 +137,6 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
      */
     private StringBuilder dataPrompt(OptionsChain optionsChain, StrategySummary summary) {
         StringBuilder prompt = new StringBuilder();
-        // 策略说明
-        if (summary != null && summary.getStrategy() != null) {
-            String strategyTemplate = String.format("strategy_%s.ftl", summary.getStrategy().getStrategyCode());
-            String strategyPrompt = TemplateRenderer.render(strategyTemplate, new HashMap<>());
-            prompt.append(strategyPrompt).append("\n");
-        }
 
         StockIndicator stockIndicator = optionsChain.getStockIndicator();
         CandlestickPeriod period = stockIndicator.getPeriod();

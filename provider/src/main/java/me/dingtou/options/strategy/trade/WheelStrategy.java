@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Comparator;
 
 @Slf4j
 @Component
@@ -137,7 +138,7 @@ public class WheelStrategy extends BaseTradeStrategy {
         data.put("securityPrice", optionsChain.getStockIndicator().getSecurityQuote().getLastDone());
         data.put("vixIndicator", optionsChain.getVixIndicator());
         data.put("currentDate", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
-        
+
         // 添加WheelStrategy特有的变量
         Integer holdStockNum = summary.getHoldStockNum();
         // 使用局部变量避免类型转换问题
@@ -145,12 +146,15 @@ public class WheelStrategy extends BaseTradeStrategy {
         boolean isCoveredCallStage = !isSellPutStage;
         data.put("isSellPutStage", isSellPutStage);
         data.put("isCoveredCallStage", isCoveredCallStage);
-        
+
         // 如果是cc阶段，需要找到最近的指派订单
         OwnerOrder currentUnderlyingOrder = null;
         if (isCoveredCallStage) {
             Optional<OwnerOrder> optionalOwnerOrder = summary.getStrategyOrders().stream()
-                    .filter(order -> order.getCode().equals(order.getUnderlyingCode())).findFirst();
+                    .sorted(Comparator.comparing(OwnerOrder::getTradeTime).reversed())
+                    .filter(OwnerOrder::isTraded)
+                    .filter(OwnerOrder::isStockOrder)
+                    .findFirst();
             if (optionalOwnerOrder.isPresent()) {
                 currentUnderlyingOrder = optionalOwnerOrder.get();
             }
@@ -172,7 +176,7 @@ public class WheelStrategy extends BaseTradeStrategy {
             }
         }
         data.put("finalSellPutAcceptableStrikePrice", sellPutAcceptableStrikePrice);
-        
+
         String promptStr = TemplateRenderer.render("trade_wheel_strategy.ftl", data);
         return new StringBuilder(promptStr);
     }
