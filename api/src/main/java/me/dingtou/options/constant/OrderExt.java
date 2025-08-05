@@ -2,7 +2,7 @@ package me.dingtou.options.constant;
 
 import java.util.List;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import lombok.Getter;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OwnerOrder;

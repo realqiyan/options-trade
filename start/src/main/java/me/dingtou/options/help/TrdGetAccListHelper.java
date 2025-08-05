@@ -1,6 +1,6 @@
 package me.dingtou.options.help;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.futu.openapi.*;
 import com.futu.openapi.pb.TrdCommon;
 import com.futu.openapi.pb.TrdGetAccList;

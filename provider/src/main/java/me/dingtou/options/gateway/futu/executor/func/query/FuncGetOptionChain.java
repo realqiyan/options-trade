@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionChain;
 import com.futu.openapi.pb.QotGetOptionChain.C2S.Builder;
+import com.futu.openapi.pb.QotGetOptionChain.OptionItem;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
@@ -84,13 +85,14 @@ public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
     }
 
     private List<Options> convert(QotGetOptionChain.OptionChain resp) {
-        if (resp == null) {
+        if (resp == null || null == resp.getOptionList()) {
             return Collections.emptyList();
         }
         List<Options> optionsList = new ArrayList<>();
-        String jsonString = JSON.toJSONString(resp.getOptionList());
-        List<OptionsTuple> optionsTuples = JSON.parseArray(jsonString, OptionsTuple.class);
-        for (OptionsTuple optionsTuple : optionsTuples) {
+
+        for (QotGetOptionChain.OptionItem optionItem : resp.getOptionList()) {
+            OptionsTuple optionsTuple = convert(optionItem);
+
             Options call = optionsTuple.getCall();
             if (null != call && null != call.getBasic() && !"0".equals(call.getBasic().getId())) {
                 optionsList.add(call);
@@ -102,6 +104,18 @@ public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
             }
         }
         return optionsList;
+    }
+
+    /**
+     * 对象转换
+     * 
+     * @param optionItem API数据结构
+     * @return OptionsTuple
+     */
+    private OptionsTuple convert(OptionItem optionItem) {
+        String jsonString = JSON.toJSONString(optionItem);
+        OptionsTuple convertValue = JSON.parseObject(jsonString, OptionsTuple.class);
+        return convertValue;
     }
 
 }

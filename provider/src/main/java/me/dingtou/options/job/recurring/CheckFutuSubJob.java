@@ -2,6 +2,7 @@ package me.dingtou.options.job.recurring;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -12,7 +13,6 @@ import me.dingtou.options.gateway.futu.executor.func.query.FuncGetSubInfo;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncUnsubAll;
 import me.dingtou.options.job.Job;
 import me.dingtou.options.job.JobArgs;
-import me.dingtou.options.job.JobClient;
 import me.dingtou.options.job.JobContext;
 
 /**
@@ -22,10 +22,9 @@ import me.dingtou.options.job.JobContext;
 @Component
 public class CheckFutuSubJob implements Job {
 
-    private long startTime;
+    private boolean first = true;
 
     public CheckFutuSubJob() {
-        this.startTime = System.currentTimeMillis();
     }
 
     @Override
@@ -35,18 +34,21 @@ public class CheckFutuSubJob implements Job {
 
     @Override
     public <P extends JobArgs> void execute(JobContext<P> ctx) {
-        
-        // 使用简单任务代替JobClient 删除老的任务
-        JobClient.deleteRecurringJob(id());
-
-        //checkSubInfo();
+        // 任务过于频繁 直接使用Spring的@Scheduled
+        // checkSubInfo();
     }
+
     /**
-     * 每10分钟执行一次检查订阅信息
+     * 每30分钟执行一次检查订阅信息
      */
-    @Scheduled(fixedRate = 600000)
+    @Scheduled(fixedRate = 30, timeUnit = TimeUnit.MINUTES)
     public void checkSubInfo() {
         try {
+            if (first) {
+                first = false;
+                log.warn("CheckFutuSubJob 应用启动首次执行直接跳过");
+                return;
+            }
             FuncGetSubInfo.SubInfo subInfo = QueryExecutor.query(new FuncGetSubInfo());
             if (null == subInfo) {
                 log.warn("FuncGetSubInfo 返回结果为空");
@@ -62,8 +64,6 @@ public class CheckFutuSubJob implements Job {
                     QueryExecutor.getSubSecurity().clear();
                 }
             }
-            long endTime = System.currentTimeMillis();
-            log.info("CheckFutuSubJob持续时间: {}s", (endTime - startTime)/1000);
         } catch (Exception e) {
             log.error("checkSubInfo -> error", e);
         }

@@ -1,6 +1,6 @@
 package me.dingtou.options.web;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderAction;
 import me.dingtou.options.constant.OrderStatus;

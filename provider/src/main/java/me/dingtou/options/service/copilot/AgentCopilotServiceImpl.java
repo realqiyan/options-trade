@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema.ListToolsResult;
@@ -228,7 +228,7 @@ public class AgentCopilotServiceImpl implements CopilotService {
                     Map<String, Object> toolInfo = new HashMap<>();
                     toolInfo.put("name", tool.name());
                     toolInfo.put("description", tool.description());
-                    toolInfo.put("inputSchema", tool.inputSchema());
+                    toolInfo.put("inputSchema", JSON.toJSONString(tool.inputSchema()));
                     toolList.add(toolInfo);
                 }
                 Map<String, Object> serverInfo = new HashMap<>();

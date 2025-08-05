@@ -6,7 +6,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -81,8 +81,13 @@ public class McpToolProcesser implements ToolProcesser {
 
             CallToolResult result = client.callTool(new CallToolRequest(mcpToolCallRequest.getToolName(), params));
             TextContent content = (TextContent) result.content().get(0);
-
             String jsonText = content.text();
+
+            log.info("callTool {}.{} -> result: {}",
+                    mcpToolCallRequest.getServerName(),
+                    mcpToolCallRequest.getTool(),
+                    jsonText);
+
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(jsonText);
             if (node.isNumber()) {

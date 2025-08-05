@@ -1,6 +1,6 @@
 package me.dingtou.options.gateway.futu.executor.func.query;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.futu.openapi.pb.QotCommon;
 import com.futu.openapi.pb.QotGetOptionExpirationDate;
 import com.google.protobuf.GeneratedMessageV3;
