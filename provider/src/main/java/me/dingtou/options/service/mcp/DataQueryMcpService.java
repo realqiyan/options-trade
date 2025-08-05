@@ -10,6 +10,7 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.manager.IndicatorManager;
 import me.dingtou.options.manager.OptionsManager;
@@ -31,6 +32,7 @@ import me.dingtou.options.util.IndicatorDataFrameUtil;
 import me.dingtou.options.util.TemplateRenderer;
 
 @Service
+@Slf4j
 public class DataQueryMcpService {
 
     @Autowired
@@ -59,13 +61,17 @@ public class DataQueryMcpService {
         if (null == encodeOwner) {
             return "用户编码信息不正确或已经过期";
         }
-        List<OptionsStrikeDate> expDates = optionsManager.queryOptionsExpDate(code, market);
-        // 准备模板数据
-        Map<String, Object> data = new HashMap<>();
-        data.put("security", Security.of(code, market));
-        data.put("expDates", expDates);
-        // 渲染模板
-        return TemplateRenderer.render("mcp_options_exp_date.ftl", data);
+        try {
+            List<OptionsStrikeDate> expDates = optionsManager.queryOptionsExpDate(code, market);
+            // 准备模板数据
+            Map<String, Object> data = new HashMap<>();
+            data.put("security", Security.of(code, market));
+            data.put("expDates", expDates);
+            // 渲染模板
+            return TemplateRenderer.render("mcp_options_exp_date.ftl", data);
+        } catch (Exception e) {
+            return "查询期权到期日失败，请稍后再试。";
+        }
     }
 
     @Tool(description = "查询指定日期期权链，根据股票代码、市场代码、到期日查询股票对应的期权数据。返回结果包括期权代码、类型(Call/Put)、行权价、当前价格、隐含波动率、Delta、Theta、Gamma、未平仓合约数、当天交易量等信息。")
@@ -77,18 +83,22 @@ public class DataQueryMcpService {
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
         }
-        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        OptionsChain optionsChain = optionsManager.queryOptionsChain(account, Security.of(code, market), strikeDate,
-                false);
+        try {
+            OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+            OptionsChain optionsChain = optionsManager.queryOptionsChain(account, Security.of(code, market), strikeDate,
+                    false);
 
-        // 准备模板数据
-        Map<String, Object> data = new HashMap<>();
-        data.put("security", optionsChain.getSecurity());
-        data.put("strikeTime", optionsChain.getStrikeTime());
-        data.put("optionsList", optionsChain.getOptionsList());
+            // 准备模板数据
+            Map<String, Object> data = new HashMap<>();
+            data.put("security", optionsChain.getSecurity());
+            data.put("strikeTime", optionsChain.getStrikeTime());
+            data.put("optionsList", optionsChain.getOptionsList());
 
-        // 渲染模板
-        return TemplateRenderer.render("mcp_options_chain.ftl", data);
+            // 渲染模板
+            return TemplateRenderer.render("mcp_options_chain.ftl", data);
+        } catch (Exception e) {
+            return "查询期权链失败，请稍后再试。";
+        }
     }
 
     @Tool(description = "查询股票技术指标，根据股票代码、市场代码查询股票技术指标。返回结果包括标的行情（最新价、周波动幅度、月波动幅度）、近70个交易日的K线数据（日期、开盘价、收盘价、最高价、最低价、成交量、成交额）以及近20个交易日的技术指标（EMA、BOLL、MACD、RSI）。")
@@ -99,16 +109,21 @@ public class DataQueryMcpService {
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
         }
-        Security security = Security.of(code, market);
-        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security);
-        IndicatorDataFrame stockIndicatorDataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, 20);
-        Map<String, Object> data = new HashMap<>();
-        data.put("security", security);
-        data.put("stockIndicator", stockIndicator);
-        data.put("stockIndicatorDataFrame", stockIndicatorDataFrame);
-        // 渲染模板
-        return TemplateRenderer.render("mcp_stock_indicator.ftl", data);
+
+        try {
+            Security security = Security.of(code, market);
+            OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+            StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security);
+            IndicatorDataFrame stockIndicatorDataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, 20);
+            Map<String, Object> data = new HashMap<>();
+            data.put("security", security);
+            data.put("stockIndicator", stockIndicator);
+            data.put("stockIndicatorDataFrame", stockIndicatorDataFrame);
+            // 渲染模板
+            return TemplateRenderer.render("mcp_stock_indicator.ftl", data);
+        } catch (Exception e) {
+            return "查询技术指标失败，请稍后再试。";
+        }
     }
 
     @Tool(description = "查询VIX恐慌指数指标，包含当前VIX和标普500的值以及近期走势。返回结果包括当前VIX值、日期、日变动，以及标普500的值和日期。")
@@ -133,13 +148,17 @@ public class DataQueryMcpService {
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
         }
-        SecurityOrderBook orderBook = tradeManager.querySecurityOrderBook(code, market);
-        // 准备模板数据
-        Map<String, Object> data = new HashMap<>();
-        data.put("security", Security.of(code, market));
-        data.put("orderBook", orderBook);
-        // 渲染模板
-        return TemplateRenderer.render("mcp_order_book.ftl", data);
+        try {
+            SecurityOrderBook orderBook = tradeManager.querySecurityOrderBook(code, market);
+            // 准备模板数据
+            Map<String, Object> data = new HashMap<>();
+            data.put("security", Security.of(code, market));
+            data.put("orderBook", orderBook);
+            // 渲染模板
+            return TemplateRenderer.render("mcp_order_book.ftl", data);
+        } catch (Exception e) {
+            return "查询期权报价失败，请稍后再试。";
+        }
     }
 
     @Tool(description = "查询指股票代码的当前价格，根据股票代码、市场代码查询当前股票价格。")
@@ -164,31 +183,41 @@ public class DataQueryMcpService {
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
         }
-        Security security = Security.of(code, market);
-        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        CandlestickPeriod period = CandlestickPeriod.of(periodCode);
-        SecurityCandlestick candlesticks = indicatorManager.getCandlesticks(account, security, period, count);
-        Map<String, Object> data = new HashMap<>();
-        data.put("security", security);
-        data.put("periodName", period.getName());
-        data.put("count", count);
-        data.put("candlesticks", candlesticks.getCandlesticks());
-        // 渲染模板
-        return TemplateRenderer.render("mcp_stock_candlesticks.ftl", data);
+        try {
+            Security security = Security.of(code, market);
+            OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+            CandlestickPeriod period = CandlestickPeriod.of(periodCode);
+            SecurityCandlestick candlesticks = indicatorManager.getCandlesticks(account, security, period, count);
+            Map<String, Object> data = new HashMap<>();
+            data.put("security", security);
+            data.put("periodName", period.getName());
+            data.put("count", count);
+            data.put("candlesticks", candlesticks.getCandlesticks());
+            // 渲染模板
+            return TemplateRenderer.render("mcp_stock_candlesticks.ftl", data);
+        } catch (Exception e) {
+            return "查询股票K线数据失败，请稍后再试。";
+        }
     }
 
     @Tool(description = "查询股票财报日历，根据股票代码查询股票的财报发布信息。返回结果包括股票代码、公司名称、财报日期、预期每股收益等信息。")
     public String queryEarningsCalendar(@ToolParam(required = true, description = "股票代码，例如：BABA") String code) {
-        List<EarningsCalendar> earningsCalendars = earningsCalendarService.getEarningsCalendarBySymbol(code);
         if (StringUtils.isBlank(code)) {
             return "股票代码不能为空";
         }
-        // 准备模板数据
-        Map<String, Object> data = new HashMap<>();
-        data.put("symbol", code);
-        data.put("earningsCalendars", earningsCalendars);
-        // 渲染模板
-        return TemplateRenderer.render("mcp_earnings_calendar.ftl", data);
+
+        try {
+            List<EarningsCalendar> earningsCalendars = earningsCalendarService.getEarningsCalendarBySymbol(code);
+
+            // 准备模板数据
+            Map<String, Object> data = new HashMap<>();
+            data.put("symbol", code);
+            data.put("earningsCalendars", earningsCalendars);
+            // 渲染模板
+            return TemplateRenderer.render("mcp_earnings_calendar.ftl", data);
+        } catch (Exception e) {
+            return "查询财报日历失败，请稍后再试。";
+        }
     }
 
 }
