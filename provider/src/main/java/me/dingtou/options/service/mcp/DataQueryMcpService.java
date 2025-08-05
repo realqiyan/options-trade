@@ -70,6 +70,7 @@ public class DataQueryMcpService {
             // 渲染模板
             return TemplateRenderer.render("mcp_options_exp_date.ftl", data);
         } catch (Exception e) {
+            log.error("查询期权到期日失败，code={}, market={}", code, market, e);
             return "查询期权到期日失败，请稍后再试。";
         }
     }
@@ -97,6 +98,7 @@ public class DataQueryMcpService {
             // 渲染模板
             return TemplateRenderer.render("mcp_options_chain.ftl", data);
         } catch (Exception e) {
+            log.error("查询期权链失败，code={}, market={}, strikeDate={}", code, market, strikeDate, e);
             return "查询期权链失败，请稍后再试。";
         }
     }
@@ -122,6 +124,7 @@ public class DataQueryMcpService {
             // 渲染模板
             return TemplateRenderer.render("mcp_stock_indicator.ftl", data);
         } catch (Exception e) {
+            log.error("查询技术指标失败，code={}, market={}", code, market, e);
             return "查询技术指标失败，请稍后再试。";
         }
     }
@@ -130,6 +133,7 @@ public class DataQueryMcpService {
     public String queryVixIndicator() {
         VixIndicator vixIndicator = indicatorManager.queryCurrentVix();
         if (null == vixIndicator) {
+            log.error("查询VIX恐慌指数指标失败");
             return "查询VIX恐慌指数指标失败，请稍后再试。";
         }
         Map<String, Object> data = new HashMap<>();
@@ -157,6 +161,7 @@ public class DataQueryMcpService {
             // 渲染模板
             return TemplateRenderer.render("mcp_order_book.ftl", data);
         } catch (Exception e) {
+            log.error("查询期权报价失败，code={}, market={}", code, market, e);
             return "查询期权报价失败，请稍后再试。";
         }
     }
@@ -169,8 +174,13 @@ public class DataQueryMcpService {
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
         }
-        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        return indicatorManager.queryStockPrice(account, Security.of(code, market)).toPlainString();
+        try {
+            OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+            return indicatorManager.queryStockPrice(account, Security.of(code, market)).toPlainString();
+        } catch (Exception e) {
+            log.error("查询股票当前价格失败，code={}, market={}", code, market, e);
+            return "查询股票当前价格失败，请稍后再试。";
+        }
     }
 
     @Tool(description = "查询股票K线数据（日K、周K、月K），根据股票代码、市场代码、K线类型、K线数量查询股票对应K线数据。返回结果包括日期、开盘价、收盘价、最高价、最低价、成交量、成交额。")
@@ -196,6 +206,7 @@ public class DataQueryMcpService {
             // 渲染模板
             return TemplateRenderer.render("mcp_stock_candlesticks.ftl", data);
         } catch (Exception e) {
+            log.error("查询股票K线数据失败，code={}, market={}, periodCode={}, count={}", code, market, periodCode, count, e);
             return "查询股票K线数据失败，请稍后再试。";
         }
     }
@@ -216,6 +227,7 @@ public class DataQueryMcpService {
             // 渲染模板
             return TemplateRenderer.render("mcp_earnings_calendar.ftl", data);
         } catch (Exception e) {
+            log.error("查询财报日历失败，code={}", code, e);
             return "查询财报日历失败，请稍后再试。";
         }
     }
