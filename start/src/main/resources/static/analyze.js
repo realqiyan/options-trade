@@ -258,6 +258,18 @@ function loadOptionsChain(strikeTime){
         var result = response.data;
         currentPrompt = result.prompt;
         result.currentCode=currentCode;
+        
+        // 加载财报日历数据并合并到结果中
+        if (window.earningsCalendarData && window.earningsCalendarData[currentCode]) {
+            result.earningsCalendars = window.earningsCalendarData[currentCode];
+        } else {
+            result.earningsCalendars = [];
+            loadEarningsCalendar(currentCode);
+        }
+        
+        // 缓存股票数据供财报日历使用
+        window.currentStockData = result;
+        
         var view = document.getElementById('title');
         laytpl(commonInfo.innerHTML).render(result, function(html){
           view.innerHTML = html;
@@ -832,4 +844,158 @@ function closeSse() {
     httpRequest.open('GET', '/close?requestId=' + clientId, true);
     httpRequest.send();
     console.log("close");
+}
+
+// 加载财报日历信息
+function loadEarningsCalendar(code) {
+    if (!code) return;
+    
+    $.ajax({
+        url: "/api/earnings-calendar/symbol",
+        data: {
+            symbol: code,
+            time: new Date().getTime()
+        },
+        success: function(response) {
+            if (response.success && response.data) {
+                // 存储财报日历数据到全局变量
+                if (!window.earningsCalendarData) {
+                    window.earningsCalendarData = {};
+                }
+                window.earningsCalendarData[code] = response.data;
+                
+                // 如果当前显示的是这个标的，更新显示
+                if (currentCode === code) {
+                    updateEarningsCalendarDisplay(response.data);
+                }
+            }
+        },
+        error: function() {
+            console.error('加载财报日历失败:', code);
+        }
+    });
+}
+
+// 加载财报日历数据
+function loadEarningsCalendar(symbol) {
+    if (!symbol) return;
+    
+    // 检查缓存
+    if (window.earningsCalendarData && window.earningsCalendarData[symbol]) {
+        updateEarningsCalendarDisplay(symbol, window.earningsCalendarData[symbol]);
+        return;
+    }
+    
+    $.ajax({
+        url: "/api/earnings-calendar/symbol",
+        data: {
+            symbol: symbol,
+            time: new Date().getTime()
+        },
+        success: function(response) {
+            if (response.success && response.data) {
+                // 缓存数据
+                if (!window.earningsCalendarData) {
+                    window.earningsCalendarData = {};
+                }
+                window.earningsCalendarData[symbol] = response.data;
+                
+                updateEarningsCalendarDisplay(symbol, response.data);
+            } else {
+                console.log('加载财报日历数据失败:', response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('加载财报日历数据出错:', error);
+        }
+    });
+}
+
+// 更新财报日历显示
+function updateEarningsCalendarDisplay(symbol, data) {
+    if (!data || data.length === 0) return;
+    
+    // 获取当前展示的数据
+    var currentResult = {
+        currentCode: symbol,
+        earningsCalendars: data,
+        stockIndicator: window.currentStockData ? window.currentStockData.stockIndicator : {}
+    };
+    
+    // 更新commonInfo区域
+    var view = document.getElementById('title');
+    laytpl(commonInfo.innerHTML).render(currentResult, function(html){
+        view.innerHTML = html;
+    });
+}
+
+// 显示财报日历详情弹窗
+function showEarningsCalendar(symbol) {
+    if (!symbol) return;
+    
+    // 获取数据
+    var data = window.earningsCalendarData ? window.earningsCalendarData[symbol] : [];
+    if (!data || data.length === 0) {
+        // 如果缓存中没有数据，重新加载
+        loadEarningsCalendar(symbol);
+        data = window.earningsCalendarData ? window.earningsCalendarData[symbol] : [];
+        if (!data || data.length === 0) {
+            layer.msg('暂无财报日历信息');
+            return;
+        }
+    }
+    
+    renderEarningsCalendarModal(symbol, data);
+}
+
+// 渲染财报日历弹窗
+function renderEarningsCalendarModal(symbol, data) {
+    var html = `
+        <div class="layui-card">
+            <div class="layui-card-header">
+                <h3>${symbol} 财报日历</h3>
+            </div>
+            <div class="layui-card-body">
+                <table class="layui-table" lay-even>
+                    <thead>
+                        <tr>
+                            <th>公司名称</th>
+                            <th>财报日期</th>
+                            <th>发布时间</th>
+                            <th>预期EPS</th>
+                            <th>去年EPS</th>
+                            <th>市值</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+    
+    data.forEach(function(item) {
+        html += `
+            <tr>
+                <td>${item.name || symbol}</td>
+                <td>${layui.util.toDateString(new Date(item.earningsDate), 'yyyy-MM-dd')}</td>
+                <td>${item.time || 'TAS'}</td>
+                <td>${item.epsForecast || '-'}</td>
+                <td>${item.lastYearEps || '-'}</td>
+                <td>${item.marketCap ? (item.marketCap / 1000000000).toFixed(2) + 'B' : '-'}</td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    layer.open({
+        type: 1,
+        title: symbol + ' 财报日历详情',
+        area: ['800px', '600px'],
+        content: html,
+        shadeClose: true,
+        btn: ['关闭']
+    });
 }

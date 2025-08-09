@@ -314,6 +314,28 @@
             </a>
         </b>
     </span>
+    <br/>
+    <!-- 添加财报日历信息 -->
+    <span class="layui-badge">
+        <b class="layui-font-16">
+            <a href="javascript:;" onclick="showEarningsCalendar('{{= d.currentCode }}')">
+               <i class="layui-icon layui-icon-date"></i>财报日历
+            </a>
+        </b>
+    </span>
+    {{# if(d.earningsCalendars && d.earningsCalendars.length > 0) { }}
+        {{# layui.each(d.earningsCalendars, function(index, calendar){ }}
+            <span class="layui-badge layui-bg-blue">
+                {{= layui.util.toDateString(new Date(calendar.earningsDate), 'MM-dd') }} 
+                {{= calendar.time || 'TAS' }}
+                {{# if(calendar.epsForecast && calendar.lastYearEps) { }}
+                    EPS: {{= calendar.lastYearEps }}→{{= calendar.epsForecast }}
+                {{# } }}
+            </span>
+        {{# }); }}
+    {{# } else { }}
+        <span class="layui-badge layui-bg-gray">暂无财报信息</span>
+    {{# } }}
 </script>
 <script id="currentStrategy" type="text/html">
     <select id="strategyId" name="strategyId" lay-filter="strategyId">
