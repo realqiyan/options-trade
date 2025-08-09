@@ -13,7 +13,7 @@ import java.util.List;
  * 财报日历管理器实现
  */
 @Component
-public class EarningsCalendarManager {
+public class EarningsManager {
 
     @Autowired
     private EarningsCalendarDAO earningsCalendarDAO;

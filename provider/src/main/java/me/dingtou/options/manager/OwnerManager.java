@@ -1,6 +1,8 @@
 package me.dingtou.options.manager;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.Status;
@@ -13,8 +15,10 @@ import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncGetOptionsRealtimeData;
 import me.dingtou.options.model.*;
 import me.dingtou.options.util.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -81,14 +85,14 @@ public class OwnerManager {
 
         // 过滤出到期未行权的订单
         List<OwnerOrder> unexercisedOrders = ownerOrderList.stream()
-                .filter(order -> !order.getCode().equals(order.getUnderlyingCode())) // 是期权订单
-                .filter(order -> !OwnerOrder.isClose(order)) // 未平仓
-                .filter(order -> OwnerOrder.dte(order) > 0) // 已到期
-                .collect(Collectors.toList());
+            .filter(order -> !order.getCode().equals(order.getUnderlyingCode())) // 是期权订单
+            .filter(order -> !OwnerOrder.isClose(order)) // 未平仓
+            .filter(order -> OwnerOrder.dte(order) > 0) // 已到期
+            .toList();
 
         // 按标的股票代码分组
         Map<String, List<OwnerOrder>> groupedOrders = unexercisedOrders.stream()
-                .collect(Collectors.groupingBy(OwnerOrder::getUnderlyingCode));
+            .collect(Collectors.groupingBy(OwnerOrder::getUnderlyingCode));
 
         // 将分组后的订单设置到对应的OwnerSecurity中
         List<OwnerSecurity> securityList = ownerObj.getSecurityList();
@@ -205,7 +209,7 @@ public class OwnerManager {
      */
     public List<OwnerOrder> queryStrategyOrder(OwnerStrategy strategy) {
         List<OwnerOrder> ownerOrders = ownerOrderDAO.queryOwnerStrategyOrder(strategy.getOwner(),
-                strategy.getStrategyId());
+            strategy.getStrategyId());
         // 初始化订单扩展字段
         for (OwnerOrder ownerOrder : ownerOrders) {
             if (null == ownerOrder.getExt()) {
@@ -231,7 +235,7 @@ public class OwnerManager {
 
         // 计算提交的交易单是否已经平仓用
         Map<String, List<OwnerOrder>> codeOrdersMap = ownerOrders.stream()
-                .collect(Collectors.groupingBy(OwnerOrder::logicCode));
+            .collect(Collectors.groupingBy(OwnerOrder::logicCode));
         Map<String, Boolean> orderClose = new HashMap<>();
         for (Map.Entry<String, List<OwnerOrder>> codeOrders : codeOrdersMap.entrySet()) {
             String code = codeOrders.getKey();
@@ -242,9 +246,9 @@ public class OwnerManager {
                 continue;
             }
             BigDecimal totalQuantity = successOrders.stream()
-                    .map(order -> new BigDecimal(order.getQuantity())
-                            .multiply(new BigDecimal(TradeSide.of(order.getSide()).getSign())))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(order -> new BigDecimal(order.getQuantity())
+                    .multiply(new BigDecimal(TradeSide.of(order.getSide()).getSign())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
             if (BigDecimal.ZERO.equals(totalQuantity)) {
                 orderClose.put(code, true);
             }
@@ -323,7 +327,7 @@ public class OwnerManager {
         for (OwnerOrder ownerOrder : ownerOrders) {
             Security security = Security.of(ownerOrder.getCode(), ownerOrder.getMarket());
             Optional<OptionsRealtimeData> any = optionsBasicInfo.stream()
-                    .filter(options -> options.getSecurity().equals(security)).findAny();
+                .filter(options -> options.getSecurity().equals(security)).findAny();
             if (any.isEmpty()) {
                 continue;
             }
@@ -331,10 +335,180 @@ public class OwnerManager {
             ownerOrder.getExt().put(OrderExt.CUR_PRICE.getKey(), curPrice.toPlainString());
             if (OwnerOrder.isSell(ownerOrder)) {
                 BigDecimal profitRatio = ownerOrder.getPrice().subtract(curPrice)
-                        .divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
+                    .divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
                 profitRatio = NumberUtils.scale(profitRatio);
                 ownerOrder.getExt().put(OrderExt.PROFIT_RATIO.getKey(), profitRatio.toPlainString());
             }
         }
+    }
+
+
+    /**
+     * 查询用户的期权标的
+     *
+     * @param owner 用户
+     * @return 期权标的列表
+     */
+    public List<OwnerSecurity> listSecurities(String owner) {
+        LambdaQueryWrapper<OwnerSecurity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(StringUtils.isNotBlank(owner), OwnerSecurity::getOwner, owner);
+        queryWrapper.orderByDesc(OwnerSecurity::getCreateTime);
+        List<OwnerSecurity> securities = ownerSecurityDAO.selectList(queryWrapper);
+        return securities;
+    }
+
+    /**
+     * 保存用户的期权标的
+     *
+     * @param security 期权标的
+     * @return 期权标的
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public OwnerSecurity saveSecurity(OwnerSecurity security) {
+        if (security.getId() == null) {
+            // 新增
+            security.setCreateTime(new Date());
+            if (security.getStatus() == null) {
+                security.setStatus(1);
+            }
+            ownerSecurityDAO.insert(security);
+        } else {
+            // 更新
+            ownerSecurityDAO.updateById(security);
+        }
+        return security;
+    }
+
+    /**
+     * 更新用户的期权标的状态
+     *
+     * @param id     期权标的ID
+     * @param status 状态
+     * @return 是否更新成功
+     */
+    public boolean updateSecurityStatus(Long id, Integer status) {
+        LambdaUpdateWrapper<OwnerSecurity> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(OwnerSecurity::getId, id);
+        updateWrapper.set(OwnerSecurity::getStatus, status);
+        return ownerSecurityDAO.update(null, updateWrapper) > 0;
+    }
+
+    /**
+     * 查询用户的有效策略
+     *
+     * @param owner 用户
+     * @return 策略列表
+     */
+    public List<OwnerStrategy> listStrategies(String owner) {
+        return ownerStrategyDAO.queryOwnerStrategies(owner);
+    }
+
+    /**
+     * 查询用户的所有策略
+     *
+     * @param owner 用户
+     * @return 策略列表
+     */
+    public List<OwnerStrategy> listAllStrategies(String owner) {
+        return ownerStrategyDAO.queryAllOwnerStrategies(owner);
+    }
+
+    /**
+     * 保存用户的策略
+     *
+     * @param strategy 策略
+     * @return 策略
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public OwnerStrategy saveStrategy(OwnerStrategy strategy) {
+        if (strategy.getId() == null) {
+            // 新增
+            if (StringUtils.isBlank(strategy.getStrategyId())) {
+                strategy.setStrategyId(UUID.randomUUID().toString().replace("-", ""));
+            }
+            if (strategy.getStartTime() == null) {
+                strategy.setStartTime(new Date());
+            }
+            if (strategy.getStatus() == null) {
+                strategy.setStatus(1);
+            }
+            if (strategy.getLotSize() == null) {
+                strategy.setLotSize(100);
+            }
+            ownerStrategyDAO.insert(strategy);
+        } else {
+            // 更新
+            ownerStrategyDAO.updateById(strategy);
+        }
+        // 返回更新后的策略，确保ext字段被正确处理
+        return ownerStrategyDAO.queryStrategyById(strategy.getId());
+    }
+
+    /**
+     * 更新用户的策略状态
+     *
+     * @param id     策略ID
+     * @param status 状态
+     * @return 是否更新成功
+     */
+    public boolean updateStrategyStatus(Long id, Integer status) {
+        LambdaUpdateWrapper<OwnerStrategy> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(OwnerStrategy::getId, id);
+        updateWrapper.set(OwnerStrategy::getStatus, status);
+        return ownerStrategyDAO.update(null, updateWrapper) > 0;
+    }
+
+    /**
+     * 查询用户的账户
+     *
+     * @param owner 用户
+     * @return 账户列表
+     */
+    public List<OwnerAccount> listAccounts(String owner) {
+        List<OwnerAccount> result = new ArrayList<>();
+        OwnerAccount ownerAccount = ownerAccountDAO.queryOwner(owner);
+        if (null != ownerAccount) {
+            result.add(ownerAccount);
+        }
+        return result;
+    }
+
+    /**
+     * 保存用户的账户
+     *
+     * @param account 账户
+     * @return 账户
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public OwnerAccount saveAccount(OwnerAccount account) {
+        if (account.getId() == null) {
+            // 新增
+            account.setCreateTime(new Date());
+            // 确保ext字段不为null
+            if (account.getExt() == null) {
+                account.setExt(new HashMap<>());
+            }
+            ownerAccountDAO.insert(account);
+        } else {
+            // 更新
+            // 确保ext字段不为null
+            if (account.getExt() == null) {
+                account.setExt(new HashMap<>());
+            }
+            ownerAccountDAO.updateById(account);
+        }
+        return account;
+    }
+
+    /**
+     * 更新用户的账户状态
+     *
+     * @param id     账户ID
+     * @param status 状态
+     * @return 是否更新成功
+     */
+    public boolean updateAccountStatus(Long id, Integer status) {
+        // 由于OwnerAccount没有status字段，我们直接通过id删除账户
+        return ownerAccountDAO.deleteById(id) > 0;
     }
 }

@@ -22,7 +22,7 @@ import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.manager.IndicatorManager;
-import me.dingtou.options.manager.OptionsManager;
+import me.dingtou.options.manager.OptionsQueryManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.Options;
@@ -57,7 +57,7 @@ public class SummaryServiceImpl implements SummaryService {
     private TradeManager tradeManager;
 
     @Autowired
-    private OptionsManager optionsManager;
+    private OptionsQueryManager optionsQueryManager;
 
     @Autowired
     private IndicatorManager indicatorManager;
@@ -506,7 +506,7 @@ public class SummaryServiceImpl implements SummaryService {
         List<Security> allOpenOptionsSecurity = allOpenOptionsOrder.stream()
                 .map(order -> Security.of(order.getCode(), order.getMarket()))
                 .toList();
-        List<OptionsRealtimeData> allOpenOptionsRealtimeData = optionsManager
+        List<OptionsRealtimeData> allOpenOptionsRealtimeData = optionsQueryManager
                 .queryOptionsRealtimeData(allOpenOptionsSecurity);
         // 计算Delta
         Map<Security, OptionsRealtimeData> securityDeltaMap = new HashMap<>();
@@ -604,7 +604,7 @@ public class SummaryServiceImpl implements SummaryService {
             // 查询未平仓订单可以Roll的期权实时数据
             // 查询股票期权到期日
             Security currentSecurity = Security.of(order.getUnderlyingCode(), order.getMarket());
-            List<OptionsStrikeDate> optionsStrikeDates = optionsManager.queryOptionsExpDate(order.getUnderlyingCode(),
+            List<OptionsStrikeDate> optionsStrikeDates = optionsQueryManager.queryOptionsExpDate(order.getUnderlyingCode(),
                     order.getMarket());
             List<Options> allExistsOptions = new ArrayList<>();
             List<Security> optionsSecurityList = new ArrayList<>();
@@ -613,18 +613,18 @@ public class SummaryServiceImpl implements SummaryService {
             if (null != weekStrikeDate) {
                 List<Security> weekOptionsSecurityList = getRollOptionsSecurity(order, weekStrikeDate);
                 optionsSecurityList.addAll(weekOptionsSecurityList);
-                allExistsOptions.addAll(optionsManager.queryAllOptions(currentSecurity, weekStrikeDate.toString()));
+                allExistsOptions.addAll(optionsQueryManager.queryAllOptions(currentSecurity, weekStrikeDate.toString()));
             }
             LocalDate monthStrikeDate = getNextMonthOptionsStrikeDate(optionsStrikeDates, order);
             if (null != monthStrikeDate) {
                 List<Security> monthOptionsSecurityList = getRollOptionsSecurity(order, monthStrikeDate);
                 optionsSecurityList.addAll(monthOptionsSecurityList);
-                allExistsOptions.addAll(optionsManager.queryAllOptions(currentSecurity, monthStrikeDate.toString()));
+                allExistsOptions.addAll(optionsQueryManager.queryAllOptions(currentSecurity, monthStrikeDate.toString()));
             }
             // 过滤存在的期权
             optionsSecurityList = filterExistsOptions(optionsSecurityList, allExistsOptions);
 
-            List<OptionsRealtimeData> optionsRealtimeDataList = optionsManager
+            List<OptionsRealtimeData> optionsRealtimeDataList = optionsQueryManager
                     .queryOptionsRealtimeData(optionsSecurityList);
             order.setExtValue(OrderExt.ROLL_OPTIONS, optionsRealtimeDataList);
 

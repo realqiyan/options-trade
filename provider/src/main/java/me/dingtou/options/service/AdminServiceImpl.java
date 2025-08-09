@@ -1,12 +1,13 @@
 package me.dingtou.options.service;
 
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.manager.OwnerConfigManager;
+import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 /**
@@ -19,50 +20,50 @@ import java.util.List;
 public class AdminServiceImpl implements AdminService {
 
     @Autowired
-    private OwnerConfigManager ownerConfigManager;
+    private OwnerManager ownerManager;
 
     @Override
     public List<OwnerSecurity> listSecurities(String owner) {
-        return ownerConfigManager.listSecurities(owner);
+        return ownerManager.listSecurities(owner);
     }
 
     @Override
     public OwnerSecurity saveSecurity(OwnerSecurity security) {
-        return ownerConfigManager.saveSecurity(security);
+        return ownerManager.saveSecurity(security);
     }
 
     @Override
     public boolean updateSecurityStatus(Long id, Integer status) {
-        return ownerConfigManager.updateSecurityStatus(id, status);
+        return ownerManager.updateSecurityStatus(id, status);
     }
 
     @Override
     public List<OwnerStrategy> listStrategies(String owner) {
-        return ownerConfigManager.listAllStrategies(owner);
+        return ownerManager.listAllStrategies(owner);
     }
 
     @Override
     public OwnerStrategy saveStrategy(OwnerStrategy strategy) {
-        return ownerConfigManager.saveStrategy(strategy);
+        return ownerManager.saveStrategy(strategy);
     }
 
     @Override
     public boolean updateStrategyStatus(Long id, Integer status) {
-        return ownerConfigManager.updateStrategyStatus(id, status);
+        return ownerManager.updateStrategyStatus(id, status);
     }
 
     @Override
     public List<OwnerAccount> listAccounts(String owner) {
-        return ownerConfigManager.listAccounts(owner);
+        return ownerManager.listAccounts(owner);
     }
 
     @Override
     public OwnerAccount saveAccount(OwnerAccount account) {
-        return ownerConfigManager.saveAccount(account);
+        return ownerManager.saveAccount(account);
     }
 
     @Override
     public boolean updateAccountStatus(Long id, Integer status) {
-        return ownerConfigManager.updateAccountStatus(id, status);
+        return ownerManager.updateAccountStatus(id, status);
     }
 }

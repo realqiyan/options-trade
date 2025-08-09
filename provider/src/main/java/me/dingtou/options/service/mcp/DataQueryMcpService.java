@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.manager.IndicatorManager;
-import me.dingtou.options.manager.OptionsManager;
+import me.dingtou.options.manager.OptionsQueryManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.IndicatorDataFrame;
@@ -39,7 +39,7 @@ public class DataQueryMcpService {
     private AuthService authService;
 
     @Autowired
-    private OptionsManager optionsManager;
+    private OptionsQueryManager optionsQueryManager;
 
     @Autowired
     private TradeManager tradeManager;
@@ -62,7 +62,7 @@ public class DataQueryMcpService {
             return "用户编码信息不正确或已经过期";
         }
         try {
-            List<OptionsStrikeDate> expDates = optionsManager.queryOptionsExpDate(code, market);
+            List<OptionsStrikeDate> expDates = optionsQueryManager.queryOptionsExpDate(code, market);
             // 准备模板数据
             Map<String, Object> data = new HashMap<>();
             data.put("security", Security.of(code, market));
@@ -86,7 +86,7 @@ public class DataQueryMcpService {
         }
         try {
             OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-            OptionsChain optionsChain = optionsManager.queryOptionsChain(account, Security.of(code, market), strikeDate,
+            OptionsChain optionsChain = optionsQueryManager.queryOptionsChain(account, Security.of(code, market), strikeDate,
                     false);
 
             // 准备模板数据

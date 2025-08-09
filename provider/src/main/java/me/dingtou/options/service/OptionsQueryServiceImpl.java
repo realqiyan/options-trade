@@ -1,7 +1,7 @@
 package me.dingtou.options.service;
 
 import lombok.extern.slf4j.Slf4j;
-import me.dingtou.options.manager.OptionsManager;
+import me.dingtou.options.manager.OptionsQueryManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.*;
@@ -24,7 +24,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
     private List<OptionsTradeStrategy> allOptionsStrategy;
 
     @Autowired
-    private OptionsManager optionsManager;
+    private OptionsQueryManager optionsQueryManager;
 
     @Autowired
     private OwnerManager ownerManager;
@@ -52,7 +52,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
 
     @Override
     public List<OptionsStrikeDate> queryOptionsExpDate(Security security) {
-        return optionsManager.queryOptionsExpDate(security.getCode(), security.getMarket());
+        return optionsQueryManager.queryOptionsExpDate(security.getCode(), security.getMarket());
     }
 
     @Override
@@ -66,7 +66,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
             String strikeDate,
             OwnerStrategy strategy) {
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        OptionsChain optionsChain = optionsManager.queryOptionsChain(account, security, strikeDate, true);
+        OptionsChain optionsChain = optionsQueryManager.queryOptionsChain(account, security, strikeDate, true);
 
         if (null == allOptionsStrategy || allOptionsStrategy.isEmpty()) {
             return optionsChain;

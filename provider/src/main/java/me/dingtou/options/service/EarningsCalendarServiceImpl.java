@@ -1,6 +1,6 @@
 package me.dingtou.options.service;
 
-import me.dingtou.options.manager.EarningsCalendarManager;
+import me.dingtou.options.manager.EarningsManager;
 import me.dingtou.options.model.EarningsCalendar;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,7 @@ import java.util.List;
 public class EarningsCalendarServiceImpl implements EarningsCalendarService {
     
     @Autowired
-    private EarningsCalendarManager earningsCalendarManager;
+    private EarningsManager earningsManager;
     
     /**
      * 同步未来30天的财报日历
@@ -30,7 +30,7 @@ public class EarningsCalendarServiceImpl implements EarningsCalendarService {
         for (int i = 0; i < 30; i++) {
             Date currentDate = calendar.getTime();
             // 同步指定日期的财报日历
-            earningsCalendarManager.syncEarningsCalendarForDate(currentDate);
+            earningsManager.syncEarningsCalendarForDate(currentDate);
             // 日期加1天
             calendar.add(Calendar.DAY_OF_MONTH, 1);
         }
@@ -44,7 +44,7 @@ public class EarningsCalendarServiceImpl implements EarningsCalendarService {
      */
     @Override
     public List<EarningsCalendar> getEarningsCalendarBySymbol(String symbol) {
-        return earningsCalendarManager.getEarningsCalendarBySymbol(symbol);
+        return earningsManager.getEarningsCalendarBySymbol(symbol);
     }
     
     /**
@@ -55,6 +55,6 @@ public class EarningsCalendarServiceImpl implements EarningsCalendarService {
      */
     @Override
     public List<EarningsCalendar> getEarningsCalendarByDate(Date date) {
-        return earningsCalendarManager.getEarningsCalendarByDate(date);
+        return earningsManager.getEarningsCalendarByDate(date);
     }
 }
