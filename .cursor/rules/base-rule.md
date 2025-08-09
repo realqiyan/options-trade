@@ -13,9 +13,17 @@
 
 该项目采用多模块结构，遵循以下依赖关系：
 
-- api模块：定义接口和模型，不依赖其他模块
-- provider模块：依赖api模块，实现api模块定义的服务接口
-- start模块：依赖api和provider模块，包含应用入口和控制器
+- api模块：定义对外的Service接口和Model，不依赖其他模块
+- provider模块：依赖api模块，实现api模块定义的服务接口，内部分层：Service、Manager、DAO、Gateway
+- start模块：依赖api和provider模块，包含应用入口和控制器Controller
+
+### 架构分层
+
+- Controller：Web控制器层，负责组合一个或多个Service完成用户请求，只能依赖 Service。
+- Service：服务层，负责完成特定任务，一般依赖一个或多个Manager，只能依赖 Manager。
+- Manager：业务管理层，负责具体逻辑的处理，只能依赖 DAO和Gateway。
+- DAO：数据访问层，负责数据库查询和更新操作，只能依赖数据库。
+- Gateway：网关层，负责与外部服务交互，只能依赖外部服务。
 
 ### 编码规范
 
@@ -35,9 +43,17 @@
       - 使用`@Component`注解将服务注册到Spring容器
    - DAO实现类应位于 @provider/src/main/java/me/dingtou/options/dao 目录
       - 需要继承`com.baomidou.mybatisplus.core.mapper.BaseMapper`，仅需要定义接口，并以`DAO`结尾，框架会自动生成实现类
+   - Gateway接口和实现类应位于 @provider/src/main/java/me/dingtou/options/gateway 目录
+      - 接口名应与实现类名对应，并以`Gateway`结尾
+      - 使用`@Component`注解将服务注册到Spring容器
+   - Job类应位于 @provider/src/main/java/me/dingtou/options/job 目录
+      - 类名应与接口名对应，并以`Job`结尾
+      - 使用`@Component`注解将服务注册到Spring容器
 
 3. start模块中的控制器：
    - 控制器位于 @start/src/main/java/me/dingtou/options/web 目录
+   - 控制器类名应与接口名对应，并以`Controller`结尾
+   - 使用`@RestController`注解将类注册为RESTful控制器
    - 遵循RESTful API设计原则
    - 接口路径应具有明确的语义
 
