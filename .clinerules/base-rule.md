@@ -86,16 +86,17 @@
    - 每个表应有创建时间和更新时间字段
    - 主键使用自增ID或UUID
    - 必要时添加适当的索引提高查询性能
+   - 新增升级sql脚本位于 @start/src/main/resources/db/upgrade 目录，文件名格式为：{日期}_{描述}.sql
 
 ## 前端开发规则
 
 ### 前端技术栈
 
-该项目前端主要使用以下技术：
+该项目前端使用以下技术栈：
 
-- Layui v2.11.2 作为UI框架
-- Chart.js 用于图表展示
-- Marked.js 用于Markdown渲染
+- Layui v2.11.2 作为UI框架，所有页面都使用Layui的组件和样式。
+- Chart.js 用于图表展示。
+- Marked.js 用于Markdown渲染。
 
 ### 页面结构
 
