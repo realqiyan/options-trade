@@ -420,6 +420,18 @@ function getStrategyNameById(strategyId) {
     return strategy ? strategy.strategyName : "未知策略";
 }
 
+// 策略分析功能
+function strategyAnalysis(strategyId, strategyName) {
+    if (!strategyId) {
+        layer.msg('策略ID不能为空');
+        return;
+    }
+    var prompt = `请帮我对策略:"${strategyName}"进行综合分析，策略ID："${strategyId}"，评估当前应该如何操作。`;
+    // 打开AI助手进行分析
+    assistant(prompt, strategyName + "策略分析");
+}
+
+
 function loadStrategyOrder(strategyId){
     // 更新当前策略ID并更新URL
     currentStrategyId = strategyId;
