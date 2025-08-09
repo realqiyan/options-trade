@@ -233,6 +233,16 @@
                         <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.putMarginOccupied }}</span>
                     </div>
                     <div class="layui-colla-content">
+                        <div class="layui-row">
+                            <div class="layui-col-md12">
+                                <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" onclick="strategyAnalysis('{{ item.strategy.strategyId }}', '{{ item.strategy.strategyName }}')">
+                                    <i class="layui-icon layui-icon-form"></i> 当前策略分析
+                                </button>
+                                <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" onclick="goToStrategyOrders('{{ item.strategy.strategyId }}')">
+                                    <i class="layui-icon layui-icon-form"></i> 查看订单详情
+                                </button>
+                            </div>
+                        </div>
                         <div class="layui-row layui-col-space15">
                             <div class="layui-col-md6">
                                 <div class="strategy-item">
@@ -250,13 +260,6 @@
                                     <div><span style="font-weight: bold;">平均成本:</span> ${{ item.averageStockCost }}</div>
                                     <div><span style="font-weight: bold;">持股盈亏:</span> ${{ item.holdStockProfit }}</div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="layui-row">
-                            <div class="layui-col-md12">
-                                <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" onclick="goToStrategyOrders('{{ item.strategy.strategyId }}')">
-                                    <i class="layui-icon layui-icon-form"></i> 查看订单详情
-                                </button>
                             </div>
                         </div>
                     </div>

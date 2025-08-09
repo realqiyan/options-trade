@@ -30,6 +30,17 @@ function assistant(prompt, title) {
     }
 }
 
+// 策略分析功能
+function strategyAnalysis(strategyId, strategyName) {
+    if (!strategyId) {
+        layer.msg('策略ID不能为空');
+        return;
+    }
+    var prompt = `请帮我对策略:"${strategyName}"进行综合分析，策略ID："${strategyId}"，评估当前应该如何操作。`;
+    // 打开AI助手进行分析
+    assistant(prompt, strategyName + "策略分析");
+}
+
 function renderPositionTable(positions){
     if(!positions){
         return;
@@ -148,9 +159,10 @@ function renderOrderTable(orderList){
       var inst = table.render({
         elem: '#orderTable',
         cols: [[
-          {title: '操作', width: 60, templet: function(d) {
+          {title: '操作', width: 160, templet: function(d) {
               if(d.prompt) {
-                  return '<a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="assistant"><i class="layui-icon layui-icon-chat"></i>AI</a>';
+                  return '<a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="orderAnalysis">订单分析</a>'+
+                  '<a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="strategyAnalysis">策略分析</a>';
               }
               return '';
           }},
@@ -234,9 +246,15 @@ function renderOrderTable(orderList){
       // 监听工具条事件
       table.on('tool(orderTable)', function(obj) {
         var data = obj.data;
-        if (obj.event === 'assistant') {
+        if (obj.event === 'orderAnalysis') {
             if(data.ext && data.ext.prompt) {
                 assistant(data.ext.prompt, data.code + " 期权订单分析");
+            } else {
+                layer.msg('没有可分析的数据');
+            }
+        } else if (obj.event === 'strategyAnalysis') {
+            if(data.ext && data.ext.strategyId) {
+                strategyAnalysis(data.ext.strategyId, data.ext.strategyName);
             } else {
                 layer.msg('没有可分析的数据');
             }
