@@ -20,14 +20,21 @@
 ### 编码规范
 
 1. api模块中的接口：
-   - 服务接口位于 @api/src/main/java/me/dingtou/options/service 目录
-   - 每个接口方法应该有清晰的JavaDoc注释说明功能
-   - 方法命名应遵循`动词+名词`的方式
+   - Model层接口位于 @api/src/main/java/me/dingtou/options/model 目录
+      - 每个Model应该有清晰的JavaDoc注释说明功能
+   - Service服务接口位于 @api/src/main/java/me/dingtou/options/service 目录
+      - 每个接口方法应该有清晰的JavaDoc注释说明功能
+      - 方法命名应遵循`动词+名词`的方式
 
 2. provider模块中的实现：
-   - 实现类应位于 @provider/src/main/java/me/dingtou/options/service/impl 目录
-   - 实现类名应与接口名对应，并以`Impl`结尾
-   - 使用`@Service`注解将服务注册到Spring容器
+   - Service实现类应位于 @provider/src/main/java/me/dingtou/options/service/impl 目录
+      - 实现类名应与接口名对应，并以`Impl`结尾
+      - 使用`@Service`注解将服务注册到Spring容器
+   - Manager实现类应位于 @provider/src/main/java/me/dingtou/options/manager 目录
+      - 无需定义接口，并以`Manager`结尾
+      - 使用`@Component`注解将服务注册到Spring容器
+   - DAO实现类应位于 @provider/src/main/java/me/dingtou/options/dao 目录
+      - 需要继承`com.baomidou.mybatisplus.core.mapper.BaseMapper`，仅需要定义接口，并以`DAO`结尾，框架会自动生成实现类
 
 3. start模块中的控制器：
    - 控制器位于 @start/src/main/java/me/dingtou/options/web 目录
@@ -54,9 +61,9 @@
 
 ### 数据持久化
 
-1. MyBatis映射：
-   - XML映射文件位于 @provider/src/main/resources/mapper 目录
-   - Mapper接口位于 @provider/src/main/java/me/dingtou/options/mapper 目录
+1. 使用mybatis-plus框架（Mybatis-Plus 在 Mybatis 的基础上进行扩展）
+   - Mapper接口位于 @provider/src/main/java/me/dingtou/options/dao 目录
+   - 命名要求：XXXDAO.java
 
 2. 数据库设计：
    - 表名应使用下划线命名法
@@ -85,3 +92,7 @@
    - @assistant.html：AI助手页面
    - @admin.html：后台管理页面
    - @sync.html：同步订单页面
+
+## 其他要求
+
+1. 除非用户明确要求，否则无需启动应用调试，仅完成代码编写即可。
