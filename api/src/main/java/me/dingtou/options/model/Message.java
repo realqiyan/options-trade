@@ -1,9 +1,6 @@
 package me.dingtou.options.model;
 
-import org.apache.commons.text.StringEscapeUtils;
-
 import lombok.Data;
-import me.dingtou.options.util.EscapeUtils;
 
 /**
  * 消息
@@ -43,16 +40,6 @@ public class Message {
         this.messageId = messageId;
         this.role = role;
         this.content = content;
-    }
-
-    public void escapeHtml() {
-        this.content = EscapeUtils.escapeHtml(this.content);
-        this.reasoningContent = EscapeUtils.escapeHtml(this.reasoningContent);
-    }
-
-    public void escapeJson() {
-        this.content = StringEscapeUtils.escapeJson(this.content);
-        this.reasoningContent = StringEscapeUtils.escapeJson(this.reasoningContent);
     }
 
     @Override

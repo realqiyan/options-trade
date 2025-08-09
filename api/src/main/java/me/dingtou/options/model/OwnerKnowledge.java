@@ -68,15 +68,15 @@ public class OwnerKnowledge implements Serializable {
         OPTIONS_STRATEGY(1, "期权策略知识"),
         RULES(2, "规则知识");
 
-        private final int code;
+        private final Integer code;
         private final String description;
 
-        KnowledgeType(int code, String description) {
+        KnowledgeType(Integer code, String description) {
             this.code = code;
             this.description = description;
         }
 
-        public int getCode() {
+        public Integer getCode() {
             return code;
         }
 
@@ -90,15 +90,15 @@ public class OwnerKnowledge implements Serializable {
         DISABLED(0, "禁用"),
         ENABLED(1, "启用");
 
-        private final int code;
+        private final Integer code;
         private final String description;
 
-        KnowledgeStatus(int code, String description) {
+        KnowledgeStatus(Integer code, String description) {
             this.code = code;
             this.description = description;
         }
 
-        public int getCode() {
+        public Integer getCode() {
             return code;
         }
 

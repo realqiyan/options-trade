@@ -99,7 +99,6 @@ public class WebAIController {
                     try {
                         copilotServiceMap.get(mode).start(owner, sessionId, sessionTitle, chatMessage, msg -> {
                             try {
-                                msg.escapeHtml();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -107,7 +106,6 @@ public class WebAIController {
                             return null;
                         }, msg -> {
                             try {
-                                msg.escapeHtml();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -153,7 +151,6 @@ public class WebAIController {
                         Message newMessage = new Message("user", message);
                         copilotServiceMap.get(mode).continuing(owner, sessionId, newMessage, msg -> {
                             try {
-                                msg.escapeHtml();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -161,7 +158,6 @@ public class WebAIController {
                             return null;
                         }, msg -> {
                             try {
-                                msg.escapeHtml();
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -227,8 +223,6 @@ public class WebAIController {
                         }
                     }
                 }
-                record.setContent(EscapeUtils.escapeHtml(record.getContent()));
-                record.setReasoningContent(EscapeUtils.escapeHtml(record.getReasoningContent()));
             }
 
             return WebResult.success(records);

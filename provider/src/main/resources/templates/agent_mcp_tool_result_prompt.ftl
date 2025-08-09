@@ -1,8 +1,12 @@
 [use_mcp_tool for '${toolRequest.serverName}.${toolRequest.toolName}'] Result:
 ${toolResult}
 
-<environment_details>
-
-当前时间:${time}
-
-</environment_details>
+```xml
+<environments>
+  <environment>
+    <key>time</key>
+    <value>${time}</value>
+    <description>当前时间</description>
+  </environment>
+</environments>
+```

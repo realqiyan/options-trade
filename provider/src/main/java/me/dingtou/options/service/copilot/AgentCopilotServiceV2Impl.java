@@ -28,15 +28,18 @@ import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema.ListToolsResult;
 import io.modelcontextprotocol.spec.McpSchema.Tool;
 import me.dingtou.options.constant.AccountExt;
+import me.dingtou.options.manager.KnowledgeManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
+import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.copilot.ToolCallRequest;
 import me.dingtou.options.service.AssistantService;
 import me.dingtou.options.service.AuthService;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.DateUtils;
+import me.dingtou.options.util.EscapeUtils;
 import me.dingtou.options.util.McpUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
@@ -58,6 +61,9 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
 
     @Autowired
     private OwnerManager ownerManager;
+
+    @Autowired
+    private KnowledgeManager knowledgeManager;
 
     @Override
     public String mode() {
@@ -316,6 +322,30 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                 servers.add(serverInfo);
             }
             data.put("servers", servers);
+        }
+
+        List<OwnerKnowledge> knowledges = knowledgeManager.listKnowledges(owner);
+        if (null != knowledges && !knowledges.isEmpty()) {
+            knowledges.forEach(e -> {
+                e.setContent(EscapeUtils.escapeXml(e.getContent()));
+            });
+            // 扩展策略
+            List<OwnerKnowledge> strategys = knowledges.stream()
+                    .filter(e -> OwnerKnowledge.KnowledgeStatus.ENABLED.getCode().equals(e.getStatus()))
+                    .filter(e -> OwnerKnowledge.KnowledgeType.OPTIONS_STRATEGY.getCode().equals(e.getType()))
+                    .toList();
+            if (null != strategys && !strategys.isEmpty()) {
+                data.put("strategys", strategys);
+            }
+
+            // 用户自定义规则
+            List<OwnerKnowledge> rules = knowledges.stream()
+                    .filter(e -> OwnerKnowledge.KnowledgeStatus.ENABLED.getCode().equals(e.getStatus()))
+                    .filter(e -> OwnerKnowledge.KnowledgeType.RULES.getCode().equals(e.getType()))
+                    .toList();
+            if (null != rules && !rules.isEmpty()) {
+                data.put("rules", rules);
+            }
         }
 
         // 渲染模板
