@@ -1,8 +1,10 @@
 package me.dingtou.options.service;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.manager.KnowledgeManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     private OwnerManager ownerManager;
+
+    @Autowired
+    private KnowledgeManager knowledgeManager;
 
     @Override
     public List<OwnerSecurity> listSecurities(String owner) {
@@ -65,5 +70,20 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public boolean updateAccountStatus(Long id, Integer status) {
         return ownerManager.updateAccountStatus(id, status);
+    }
+    
+    @Override
+    public List<OwnerKnowledge> listKnowledges(String owner) {
+        return knowledgeManager.listKnowledges(owner);
+    }
+    
+    @Override
+    public OwnerKnowledge saveKnowledge(OwnerKnowledge knowledge) {
+        return knowledgeManager.saveKnowledge(knowledge);
+    }
+    
+    @Override
+    public boolean updateKnowledgeStatus(Long id, Integer status) {
+        return knowledgeManager.updateKnowledgeStatus(id, status);
     }
 }

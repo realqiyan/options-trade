@@ -2,6 +2,7 @@ package me.dingtou.options.web;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.service.AdminService;
@@ -140,4 +141,43 @@ public class WebAdminController {
         boolean result = adminService.updateAccountStatus(id, 0);
         return WebResult.success(result);
     }
-} 
+    
+    /**
+     * 获取所有知识库
+     *
+     * @return 知识库列表
+     */
+    @RequestMapping(value = "/knowledge/list", method = RequestMethod.GET)
+    public WebResult<List<OwnerKnowledge>> listKnowledges() {
+        String owner = SessionUtils.getCurrentOwner();
+        List<OwnerKnowledge> knowledges = adminService.listKnowledges(owner);
+        return WebResult.success(knowledges);
+    }
+    
+    /**
+     * 保存知识库
+     *
+     * @param knowledge 知识库
+     * @return 保存后的知识库
+     */
+    @RequestMapping(value = "/knowledge/save", method = RequestMethod.POST)
+    public WebResult<OwnerKnowledge> saveKnowledge(@RequestBody OwnerKnowledge knowledge) {
+        String owner = SessionUtils.getCurrentOwner();
+        knowledge.setOwner(owner);
+        OwnerKnowledge savedKnowledge = adminService.saveKnowledge(knowledge);
+        return WebResult.success(savedKnowledge);
+    }
+    
+    /**
+     * 更新知识库状态
+     *
+     * @param id     知识库ID
+     * @param status 状态
+     * @return 是否更新成功
+     */
+    @RequestMapping(value = "/knowledge/status", method = RequestMethod.POST)
+    public WebResult<Boolean> updateKnowledgeStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status) {
+        boolean result = adminService.updateKnowledgeStatus(id, status);
+        return WebResult.success(result);
+    }
+}

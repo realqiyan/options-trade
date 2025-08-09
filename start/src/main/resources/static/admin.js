@@ -935,4 +935,196 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             layer.close(index);
         });
     });
-}); 
+    
+    // 知识库表格
+    const knowledgeTable = table.render({
+        elem: '#knowledgeTable',
+        url: '/admin/knowledge/list',
+        cols: [[
+            {type: 'checkbox', fixed: 'left'},
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'title', title: '标题', width: 200},
+            {field: 'type', title: '类型', width: 150, templet: function(d) {
+                return d.type === 'OPTION_STRATEGY' ? '期权策略知识' : '规则知识';
+            }},
+            {field: 'description', title: '描述', width: 300},
+            {field: 'status', title: '状态', width: 100, templet: function(d) {
+                return d.status === 1 ? '<span style="color: green;">启用</span>' : '<span style="color: red;">禁用</span>';
+            }},
+            {field: 'createTime', title: '创建时间', width: 180},
+            {fixed: 'right', title: '操作', toolbar: '#knowledgeTableBar', width: 150}
+        ]],
+        page: true,
+        limit: 10,
+        limits: [10, 20, 50],
+        request: {
+            pageName: 'page',
+            limitName: 'size'
+        },
+        response: {
+            statusCode: 0
+        },
+        parseData: function(res) {
+            return {
+                "code": res.success ? 0 : 1,
+                "msg": res.message,
+                "count": res.data ? res.data.length : 0,
+                "data": res.data
+            };
+        }
+    });
+    
+    // 知识库表格工具条事件
+    table.on('tool(knowledgeTable)', function (obj) {
+        const data = obj.data;
+        if (obj.event === 'edit') {
+            // 编辑
+            layer.open({
+                type: 1,
+                title: '编辑知识库',
+                area: ['800px', '600px'],
+                content: $('#knowledgeFormTpl').html(),
+                success: function (layero, index) {
+                    // 设置表单值
+                    form.val('knowledgeForm', data);
+                    form.render();
+                    
+                    // 监听表单提交事件
+                    form.on('submit(knowledgeSubmit)', function (formData) {
+                        $.ajax({
+                            url: '/admin/knowledge/save',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(formData.field),
+                            success: function (res) {
+                                if (res.success) {
+                                    layer.close(index);
+                                    layer.msg('保存成功');
+                                    knowledgeTable.reload();
+                                } else {
+                                    layer.msg('保存失败：' + res.message);
+                                }
+                            }
+                        });
+                        return false;
+                    });
+                }
+            });
+        } else if (obj.event === 'delete') {
+            // 删除
+            layer.confirm('确定要删除该知识库吗？', function (index) {
+                $.ajax({
+                    url: '/admin/knowledge/status',
+                    type: 'POST',
+                    data: {
+                        id: data.id,
+                        status: 0
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            layer.msg('删除成功');
+                            knowledgeTable.reload();
+                        } else {
+                            layer.msg('删除失败：' + res.message);
+                        }
+                    }
+                });
+                layer.close(index);
+            });
+        } else if (obj.event === 'toggle') {
+            // 切换状态
+            const newStatus = data.status === 1 ? 0 : 1;
+            const statusText = newStatus === 1 ? '启用' : '禁用';
+            $.ajax({
+                url: '/admin/knowledge/status',
+                type: 'POST',
+                data: {
+                    id: data.id,
+                    status: newStatus
+                },
+                success: function (res) {
+                    if (res.success) {
+                        layer.msg(statusText + '成功');
+                        knowledgeTable.reload();
+                    } else {
+                        layer.msg(statusText + '失败：' + res.message);
+                    }
+                }
+            });
+        }
+    });
+    
+    // 添加知识库按钮事件
+    $('#addKnowledgeBtn').click(function () {
+        layer.open({
+            type: 1,
+            title: '添加知识库',
+            area: ['800px', '600px'],
+            content: $('#knowledgeFormTpl').html(),
+            success: function (layero, index) {
+                form.render();
+                
+                // 监听表单提交事件
+                form.on('submit(knowledgeSubmit)', function (data) {
+                    $.ajax({
+                        url: '/admin/knowledge/save',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(data.field),
+                        success: function (res) {
+                            if (res.success) {
+                                layer.close(index);
+                                layer.msg('保存成功');
+                                knowledgeTable.reload();
+                            } else {
+                                layer.msg('保存失败：' + res.message);
+                            }
+                        }
+                    });
+                    return false;
+                });
+            }
+        });
+    });
+    
+    // 刷新知识库表格按钮事件
+    $('#refreshKnowledgeBtn').click(function () {
+        knowledgeTable.reload();
+    });
+    
+    // 批量删除知识库按钮事件
+    $('#deleteKnowledgeBtn').click(function () {
+        const checkStatus = table.checkStatus('knowledgeTable');
+        const data = checkStatus.data;
+        if (data.length === 0) {
+            layer.msg('请选择要删除的知识库');
+            return;
+        }
+        layer.confirm('确定要删除选中的' + data.length + '个知识库吗？', function (index) {
+            let count = 0;
+            let success = 0;
+            data.forEach(function (item) {
+                $.ajax({
+                    url: '/admin/knowledge/status',
+                    type: 'POST',
+                    async: false,
+                    data: {
+                        id: item.id,
+                        status: 0
+                    },
+                    success: function (res) {
+                        count++;
+                        if (res.success) {
+                            success++;
+                        }
+                        if (count === data.length) {
+                            layer.msg('成功删除' + success + '个知识库');
+                            knowledgeTable.reload();
+                        }
+                    }
+                });
+            });
+            layer.close(index);
+        });
+    });
+});

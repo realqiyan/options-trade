@@ -48,6 +48,7 @@
                         <li class="layui-this">期权标的管理</li>
                         <li>期权策略管理</li>
                         <li>账户管理</li>
+                        <li>知识库管理</li>
                     </ul>
                     <div class="layui-tab-content">
                         <!-- 期权标的管理 -->
@@ -112,6 +113,27 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- 知识库管理 -->
+                        <div class="layui-tab-item">
+                            <div class="layui-card">
+                                <div class="layui-card-header">知识库管理</div>
+                                <div class="layui-card-body">
+                                    <div class="layui-btn-group">
+                                        <button type="button" class="layui-btn layui-btn-sm" id="addKnowledgeBtn">
+                                            <i class="layui-icon">&#xe654;</i> 添加知识
+                                        </button>
+                                        <button type="button" class="layui-btn layui-btn-sm layui-btn-danger" id="deleteKnowledgeBtn">
+                                            <i class="layui-icon">&#xe640;</i> 删除
+                                        </button>
+                                        <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="refreshKnowledgeBtn">
+                                            <i class="layui-icon">&#xe669;</i> 刷新
+                                        </button>
+                                    </div>
+                                    <table id="knowledgeTable" lay-filter="knowledgeTable"></table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -136,6 +158,13 @@
     <script type="text/html" id="accountTableBar">
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
         <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+    </script>
+    
+    <!-- 知识库表格操作按钮 -->
+    <script type="text/html" id="knowledgeTableBar">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+        <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="toggle">{{d.status === 1 ? '禁用' : '启用'}}</a>
     </script>
 
     <!-- 期权标的编辑表单 -->
@@ -174,10 +203,58 @@
                 </div>
             </div>
         </form>
-    </script>
+            </script>
 
-    <!-- 期权策略编辑表单 -->
-    <script type="text/html" id="strategyFormTpl">
+            <!-- 知识库编辑表单 -->
+            <script type="text/html" id="knowledgeFormTpl">
+                <form class="layui-form" id="knowledgeForm" lay-filter="knowledgeForm" style="padding: 20px;">
+                    <input type="hidden" name="id">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">标题</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="title" required lay-verify="required" placeholder="请输入标题" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">类型</label>
+                        <div class="layui-input-block">
+                            <select name="type" lay-verify="required">
+                                <option value="">请选择类型</option>
+                                <option value="1">期权策略知识</option>
+                                <option value="2">规则知识</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">描述</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="description" placeholder="请输入描述" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">内容</label>
+                        <div class="layui-input-block">
+                            <textarea name="content" placeholder="请输入内容（支持Markdown）" class="layui-textarea" style="height: 200px;"></textarea>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">状态</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="status" value="1" title="启用" checked>
+                            <input type="radio" name="status" value="0" title="禁用">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn" lay-submit lay-filter="knowledgeSubmit">立即提交</button>
+                            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                        </div>
+                    </div>
+                </form>
+            </script>
+
+            <!-- 期权策略编辑表单 -->
+            <script type="text/html" id="strategyFormTpl">
         <form class="layui-form" id="strategyForm" lay-filter="strategyForm" style="padding: 20px;">
             <input type="hidden" name="id">
             <input type="hidden" name="ext" value="{}">
@@ -408,4 +485,4 @@
     <script src="common.js"></script>
     <script src="admin.js"></script>
 </body>
-</html> 
+</html>

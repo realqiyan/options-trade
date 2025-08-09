@@ -1,6 +1,7 @@
 package me.dingtou.options.service;
 
 import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
 
@@ -87,4 +88,29 @@ public interface AdminService {
      * @return 是否更新成功
      */
     boolean updateAccountStatus(Long id, Integer status);
-} 
+    
+    /**
+     * 获取所有知识库
+     *
+     * @param owner 所有者
+     * @return 知识库列表
+     */
+    List<OwnerKnowledge> listKnowledges(String owner);
+    
+    /**
+     * 保存知识库
+     *
+     * @param knowledge 知识库
+     * @return 保存后的知识库
+     */
+    OwnerKnowledge saveKnowledge(OwnerKnowledge knowledge);
+    
+    /**
+     * 更新知识库状态
+     *
+     * @param id     知识库ID
+     * @param status 状态
+     * @return 是否更新成功
+     */
+    boolean updateKnowledgeStatus(Long id, Integer status);
+}
