@@ -17,8 +17,8 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
         defaultToolbar: ['filter', 'exports', 'print'],
         cols: [[
             {type: 'checkbox'},
-            {field: 'id', title: 'ID', sort: true, width: 80},
-            {field: 'name', title: '标的名称', width: 120},
+            {field: 'id', title: 'ID', sort: true, width: 200},
+            {field: 'name', title: '标的名称', width: 200},
             {field: 'code', title: '标的代码', width: 100},
             {field: 'market', title: '市场', width: 80},
             {
@@ -74,7 +74,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             defaultToolbar: ['filter', 'exports', 'print'],
             cols: [[
                 {type: 'checkbox'},
-                {field: 'id', title: 'ID', sort: true, width: 50},
+                {field: 'id', title: 'ID', sort: true, width: 200},
                 {field: 'strategyName', title: '策略名称', width: 200},
                 {field: 'strategyCode', title: '策略代码', width: 160},
                 {field: 'stage', title: '策略阶段', width: 100},
@@ -137,7 +137,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             defaultToolbar: ['filter', 'exports', 'print'],
             cols: [[
                 {type: 'checkbox'},
-                {field: 'id', title: 'ID', sort: true, width: 80},
+                {field: 'id', title: 'ID', sort: true, width: 200},
                 {field: 'platform', title: '平台', width: 100},
                 {field: 'market', title: '市场', width: 80},
                 {field: 'accountId', title: '账号', width: 200},
@@ -942,7 +942,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
         url: '/admin/knowledge/list',
         cols: [[
             {type: 'checkbox', fixed: 'left'},
-            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'id', title: 'ID', width: 200, sort: true},
             {field: 'title', title: '标题', width: 200},
             {field: 'type', title: '类型', width: 150, templet: function(d) {
                 return d.type === 'OPTION_STRATEGY' ? '期权策略知识' : '规则知识';
@@ -952,7 +952,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                 return d.status === 1 ? '<span style="color: green;">启用</span>' : '<span style="color: red;">禁用</span>';
             }},
             {field: 'createTime', title: '创建时间', width: 180},
-            {fixed: 'right', title: '操作', toolbar: '#knowledgeTableBar', width: 150}
+            {fixed: 'right', title: '操作', toolbar: '#knowledgeTableBar', width: 200}
         ]],
         page: true,
         limit: 10,
