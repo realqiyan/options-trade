@@ -57,7 +57,7 @@ public class FuncGetOrderBook implements QueryFunctionCall<SecurityOrderBook> {
                 .build();
         QotGetOrderBook.Request req = QotGetOrderBook.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.getOrderBook(req);
-        log.warn("Send QotGetOrderBook: {}", seqNo);
+        log.debug("Send QotGetOrderBook: {}", seqNo);
         if (seqNo == 0) {
             throw new RuntimeException("QotGetOrderBook error");
         }

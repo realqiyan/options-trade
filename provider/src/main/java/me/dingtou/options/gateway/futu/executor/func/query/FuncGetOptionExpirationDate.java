@@ -39,7 +39,7 @@ public class FuncGetOptionExpirationDate implements QueryFunctionCall<List<Optio
                 .build();
         QotGetOptionExpirationDate.Request req = QotGetOptionExpirationDate.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.getOptionExpirationDate(req);
-        log.warn("Send QotGetOptionExpirationDate: {}", seqNo);
+        log.debug("Send QotGetOptionExpirationDate: {}", seqNo);
         if (seqNo == 0) {
             throw new RuntimeException("QotGetOptionExpirationDate error");
         }

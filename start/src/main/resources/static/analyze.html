@@ -205,6 +205,7 @@
     <span class="layui-badge layui-bg-blue">周价格波动:<b class="layui-font-16">{{= d.stockIndicator.weekPriceRange}}</b></span>
     <span class="layui-badge layui-bg-blue">月价格波动:<b class="layui-font-16">{{= d.stockIndicator.monthPriceRange}}</b></span>
     <br/>
+    {{# if(d.vixIndicator){ }}    
     <span class="layui-badge">
         <b class="layui-font-16">
             <a href="javascript:;" onclick="showChart('VIX',{{= JSON.stringify(d.vixIndicator.vixHistory) }},'line')">
@@ -219,6 +220,7 @@
             </a>
         </b>
     </span>
+    {{# } }}   
     <span class="layui-badge">
         <b class="layui-font-16">
             <a href="javascript:;" onclick="showChart('RSI',{{= JSON.stringify(d.stockIndicator.indicatorMap.rsi) }},'line')">

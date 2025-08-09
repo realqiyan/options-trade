@@ -178,7 +178,7 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
                 int seqNo = client.sub(req);
                 // 记录上下文
                 CONTEXT.put(seqNo, ctx);
-                log.warn("Send QotSub: {}", seqNo);
+                log.debug("Send QotSub: {}", seqNo);
             }
 
             return (R) ctx.callback.result(ctx.future.get());
@@ -233,7 +233,7 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
 
     @Override
     public void onReply_Sub(FTAPI_Conn conn, int nSerialNo, QotSub.Response rsp) {
-        log.warn("onReply_Sub: QotSub={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
+        log.debug("onReply_Sub: QotSub={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
 
         QueryExecutor client = (QueryExecutor) conn;
         QueryContext ctx = CONTEXT.remove(nSerialNo);
@@ -270,39 +270,39 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
     void handleQotOnReply(int nSerialNo, GeneratedMessageV3 rsp) {
         QueryContext ctx = CONTEXT.remove(nSerialNo);
         if (ctx != null) {
-            log.warn("handleQotOnReply: nSerialNo={}", nSerialNo);
+            log.debug("handleQotOnReply: nSerialNo={}", nSerialNo);
             ctx.future.complete(rsp);
         }
     }
 
     @Override
     public void onReply_GetSubInfo(FTAPI_Conn client, int nSerialNo, QotGetSubInfo.Response rsp) {
-        log.warn("onReply_GetSubInfo: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
+        log.debug("onReply_GetSubInfo: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
         handleQotOnReply(nSerialNo, rsp);
     }
 
     @Override
     public void onReply_GetBasicQot(FTAPI_Conn client, int nSerialNo, QotGetBasicQot.Response rsp) {
-        log.warn("onReply_GetBasicQot: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
+        log.debug("onReply_GetBasicQot: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
         handleQotOnReply(nSerialNo, rsp);
     }
 
     @Override
     public void onReply_GetOptionChain(FTAPI_Conn client, int nSerialNo, QotGetOptionChain.Response rsp) {
-        log.warn("onReply_GetOptionChain: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
+        log.debug("onReply_GetOptionChain: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
         handleQotOnReply(nSerialNo, rsp);
     }
 
     @Override
     public void onReply_GetOptionExpirationDate(FTAPI_Conn client, int nSerialNo,
             QotGetOptionExpirationDate.Response rsp) {
-        log.warn("onReply_GetOptionExpirationDate: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
+        log.debug("onReply_GetOptionExpirationDate: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
         handleQotOnReply(nSerialNo, rsp);
     }
 
     @Override
     public void onReply_GetOrderBook(FTAPI_Conn client, int nSerialNo, QotGetOrderBook.Response rsp) {
-        log.warn("onReply_GetOrderBook: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
+        log.debug("onReply_GetOrderBook: nSerialNo={} RetType={} RetMsg={}", nSerialNo, rsp.getRetType(), rsp.getRetMsg());
         handleQotOnReply(nSerialNo, rsp);
     }
 

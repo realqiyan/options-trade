@@ -50,7 +50,7 @@ public class FuncGetOptionsRealtimeData implements QueryFunctionCall<List<Option
         QotGetBasicQot.C2S c2s = builder.build();
         QotGetBasicQot.Request req = QotGetBasicQot.Request.newBuilder().setC2S(c2s).build();
         int seqNo = ((QueryExecutor) client).getBasicQot(req);
-        log.warn("Send QotGetBasicQot: {}", seqNo);
+        log.debug("Send QotGetBasicQot: {}", seqNo);
         if (seqNo == 0) {
             throw new RuntimeException("QotGetBasicQot error");
         }

@@ -65,7 +65,7 @@ public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
 
         QotGetOptionChain.Request req = QotGetOptionChain.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.getOptionChain(req);
-        log.warn("Send QotGetOptionChain: {}", seqNo);
+        log.debug("Send QotGetOptionChain: {}", seqNo);
         if (seqNo == 0) {
             throw new RuntimeException("QotGetOptionChain error");
         }

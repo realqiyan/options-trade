@@ -24,14 +24,14 @@ public class FuncUnsubAll implements QueryFunctionCall<Boolean> {
                 .build();
         QotSub.Request req = QotSub.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.sub(req);
-        log.warn("Send QotSub: {}", seqNo);
+        log.debug("Send QotSub: {}", seqNo);
         return seqNo;
     }
 
     @Override
     public Boolean result(GeneratedMessageV3 response) {
         QotSub.Response resp = (QotSub.Response) response;
-        log.warn("FuncUnsubAll ErrCode:{} RetMsg:{}", resp.getErrCode(), resp.getRetMsg());
+        log.debug("FuncUnsubAll ErrCode:{} RetMsg:{}", resp.getErrCode(), resp.getRetMsg());
         return resp.getErrCode() == 0;
     }
 

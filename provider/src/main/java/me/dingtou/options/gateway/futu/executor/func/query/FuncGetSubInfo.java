@@ -22,7 +22,7 @@ public class FuncGetSubInfo implements QueryFunctionCall<FuncGetSubInfo.SubInfo>
         QotGetSubInfo.C2S c2s = QotGetSubInfo.C2S.newBuilder().build();
         QotGetSubInfo.Request req = QotGetSubInfo.Request.newBuilder().setC2S(c2s).build();
         int seqNo = client.getSubInfo(req);
-        log.warn("Send QotGetSubInfo: {}", seqNo);
+        log.debug("Send QotGetSubInfo: {}", seqNo);
         return seqNo;
     }
 
@@ -33,7 +33,7 @@ public class FuncGetSubInfo implements QueryFunctionCall<FuncGetSubInfo.SubInfo>
         QotGetSubInfo.Response resp = (QotGetSubInfo.Response) response;
 
         QotGetSubInfo.S2C s2c = resp.getS2C();
-        log.warn("FuncGetSubInfo -> RemainQuota: {} TotalUsedQuota: {}", s2c.getRemainQuota(), s2c.getTotalUsedQuota());
+        log.debug("FuncGetSubInfo -> RemainQuota: {} TotalUsedQuota: {}", s2c.getRemainQuota(), s2c.getTotalUsedQuota());
 
         List<ConnSubInfo> connSubInfoList = s2c.getConnSubInfoListList();
         for (ConnSubInfo connSubInfo : connSubInfoList) {
