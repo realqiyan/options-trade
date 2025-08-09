@@ -945,7 +945,12 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             {field: 'id', title: 'ID', width: 200, sort: true},
             {field: 'title', title: '标题', width: 200},
             {field: 'type', title: '类型', width: 150, templet: function(d) {
-                return d.type === 'OPTION_STRATEGY' ? '期权策略知识' : '规则知识';
+                if (d.type === 'OPTION_STRATEGY' || d.type === 1) {
+                    return '期权策略知识';
+                } else if (d.type === 'RULE' || d.type === 2) {
+                    return '规则知识';
+                }
+                return d.type;
             }},
             {field: 'description', title: '描述', width: 300},
             {field: 'status', title: '状态', width: 100, templet: function(d) {
