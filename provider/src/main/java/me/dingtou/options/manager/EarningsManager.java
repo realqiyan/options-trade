@@ -1,6 +1,6 @@
 package me.dingtou.options.manager;
 
-import me.dingtou.options.client.NasdaqClient;
+import me.dingtou.options.gateway.EarningsCalendarGateway;
 import me.dingtou.options.dao.EarningsCalendarDAO;
 import me.dingtou.options.model.EarningsCalendar;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class EarningsManager {
     private EarningsCalendarDAO earningsCalendarDAO;
 
     @Autowired
-    private NasdaqClient nasdaqClient;
+    private EarningsCalendarGateway earningsCalendarGateway;
 
     /**
      * 同步指定日期的财报日历数据
@@ -27,8 +27,8 @@ public class EarningsManager {
      * @param date 指定日期
      */
     public void syncEarningsCalendarForDate(Date date) {
-        // 调用NASDAQ API获取指定日期的财报数据
-        List<EarningsCalendar> earningsCalendars = nasdaqClient.getEarningsCalendarByDate(date);
+        // 调用财报日历网关获取指定日期的财报数据
+        List<EarningsCalendar> earningsCalendars = earningsCalendarGateway.getEarningsCalendarByDate(date);
         // 保存数据
         batchSaveEarningsCalendar(earningsCalendars);
     }

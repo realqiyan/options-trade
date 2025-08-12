@@ -1,10 +1,11 @@
-package me.dingtou.options.client;
+package me.dingtou.options.gateway.http;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.gateway.EarningsCalendarGateway;
 import me.dingtou.options.model.EarningsCalendar;
 
 import org.apache.commons.lang3.StringUtils;
@@ -23,11 +24,11 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * NASDAQ API客户端实现
+ * 财报日历网关实现类
  */
 @Component
 @Slf4j
-public class NasdaqClientImpl implements NasdaqClient {
+public class EarningsCalendarGatewayImpl implements EarningsCalendarGateway {
 
     // NASDAQ财报日历API URL模板
     private static final String EARNINGS_CALENDAR_URL = "https://api.nasdaq.com/api/calendar/earnings?date=%s";

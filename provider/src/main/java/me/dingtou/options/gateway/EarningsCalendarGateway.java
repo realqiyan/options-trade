@@ -1,4 +1,4 @@
-package me.dingtou.options.client;
+package me.dingtou.options.gateway;
 
 import me.dingtou.options.model.EarningsCalendar;
 
@@ -6,9 +6,9 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * NASDAQ API客户端
+ * 财报日历网关接口
  */
-public interface NasdaqClient {
+public interface EarningsCalendarGateway {
     
     /**
      * 根据日期获取财报日历数据
