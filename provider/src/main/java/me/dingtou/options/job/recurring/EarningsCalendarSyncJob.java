@@ -2,10 +2,7 @@ package me.dingtou.options.job.recurring;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +36,6 @@ public class EarningsCalendarSyncJob implements Job {
         syncEarningsCalendar();
     }
 
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.DAYS)
     public void syncEarningsCalendar() {
         try {
             // 应用启动时不执行

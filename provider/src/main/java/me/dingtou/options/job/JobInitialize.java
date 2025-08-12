@@ -1,10 +1,14 @@
 package me.dingtou.options.job;
 
+import java.time.Duration;
+
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.job.recurring.EarningsCalendarSyncJob;
+import me.dingtou.options.job.recurring.EarningsCalendarSyncJob.EarningsCalendarSyncJobArgs;
 
 @Slf4j
 @Component
@@ -20,10 +24,18 @@ public class JobInitialize implements ApplicationListener<ContextRefreshedEvent>
     }
 
     private void initRecurringJobs() {
+
+        // 财报日历拉取服务
+        {
+            JobContext<EarningsCalendarSyncJobArgs> ctx = JobContext.of(new EarningsCalendarSyncJobArgs());
+            JobClient.submit(new EarningsCalendarSyncJob(), ctx, Duration.ofHours(24));
+        }
+
         // 检查富途OpenAPI订阅信息
         {
             // 使用简单任务代替JobClient
-            // JobContext<CheckFutuSubJobArgs> ctx = JobContext.of(new CheckFutuSubJobArgs());
+            // JobContext<CheckFutuSubJobArgs> ctx = JobContext.of(new
+            // CheckFutuSubJobArgs());
             // JobClient.submit(new CheckFutuSubJob(), ctx, Duration.ofMinutes(15));
         }
 
