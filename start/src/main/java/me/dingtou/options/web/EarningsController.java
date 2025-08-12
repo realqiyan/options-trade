@@ -17,7 +17,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/earnings-calendar")
-public class EarningsCalendarController {
+public class EarningsController {
 
     @Autowired
     private EarningsCalendarService earningsCalendarService;

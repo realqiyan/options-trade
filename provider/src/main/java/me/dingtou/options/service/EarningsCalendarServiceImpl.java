@@ -19,15 +19,17 @@ public class EarningsCalendarServiceImpl implements EarningsCalendarService {
     private EarningsManager earningsManager;
     
     /**
-     * 同步未来30天的财报日历
+     * 同步前30天和后60天的财报日历
      * 该方法由定时任务自动触发
      */
     @Override
     public void syncEarningsCalendar() {
-        // 计算未来30天的日期
+        // 计算前30天的日期
         Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, -30);
         
-        for (int i = 0; i < 30; i++) {
+        // 同步前30天到后60天的财报日历，总共91天
+        for (int i = 0; i < 91; i++) {
             Date currentDate = calendar.getTime();
             // 同步指定日期的财报日历
             earningsManager.syncEarningsCalendarForDate(currentDate);
