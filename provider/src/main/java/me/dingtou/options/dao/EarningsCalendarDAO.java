@@ -5,6 +5,7 @@ import me.dingtou.options.model.EarningsCalendar;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Delete;
 
 import java.util.Date;
 import java.util.List;
@@ -41,6 +42,16 @@ public interface EarningsCalendarDAO extends BaseMapper<EarningsCalendar> {
      */
     @Select("SELECT * FROM earnings_calendar WHERE earnings_date >= #{startDate} AND earnings_date <= #{endDate}")
     List<EarningsCalendar> selectByDateRange(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+    /**
+     * 根据股票代码和财报日期范围删除财报日历
+     * 
+     * @param symbol 股票代码
+     * @param earningsDate 财报日期
+     * @return 影响行数
+     */
+    @Delete("DELETE FROM earnings_calendar WHERE symbol = #{symbol} AND earnings_date >= DATE_SUB(#{earningsDate}, INTERVAL 1 MONTH) AND earnings_date <= DATE_ADD(#{earningsDate}, INTERVAL 1 MONTH)")
+    int deleteBySymbolAndEarningsDateRange(@Param("symbol") String symbol, @Param("earningsDate") Date earningsDate);
 
     /**
      * 插入或替换财报日历

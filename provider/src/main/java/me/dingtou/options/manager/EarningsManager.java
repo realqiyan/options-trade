@@ -29,12 +29,6 @@ public class EarningsManager {
     public void syncEarningsCalendarForDate(Date date) {
         // 调用NASDAQ API获取指定日期的财报数据
         List<EarningsCalendar> earningsCalendars = nasdaqClient.getEarningsCalendarByDate(date);
-
-        // 设置财报日期
-        for (EarningsCalendar calendar : earningsCalendars) {
-            calendar.setEarningsDate(date);
-        }
-
         // 保存数据
         batchSaveEarningsCalendar(earningsCalendars);
     }
@@ -48,6 +42,9 @@ public class EarningsManager {
         if (earningsCalendars != null && !earningsCalendars.isEmpty()) {
             Date now = new Date();
             for (EarningsCalendar earningsCalendar : earningsCalendars) {
+                // 删除旧数据（删除条件：symbol相等，earningsDate前后一个月以内的数据）
+                earningsCalendarDAO.deleteBySymbolAndEarningsDateRange(earningsCalendar.getSymbol(), earningsCalendar.getEarningsDate());
+
                 // 设置创建时间和更新时间
                 earningsCalendar.setCreatedTime(now);
                 earningsCalendar.setUpdatedTime(now);
