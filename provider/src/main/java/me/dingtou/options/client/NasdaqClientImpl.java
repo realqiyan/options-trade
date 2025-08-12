@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * NASDAQ API客户端实现
@@ -34,6 +35,9 @@ public class NasdaqClientImpl implements NasdaqClient {
     // 日期格式化器
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
+    // 例如：Thu, Sep 4, 2025、Tue, Aug 12, 2025
+    private static final SimpleDateFormat AS_OF_DATE_FORMAT = new SimpleDateFormat("EEE, MMM d, yyyy", Locale.ENGLISH);
+
     /**
      * 根据日期获取财报日历数据
      * 
@@ -44,9 +48,10 @@ public class NasdaqClientImpl implements NasdaqClient {
     public List<EarningsCalendar> getEarningsCalendarByDate(Date date) {
         try {
             // 构造API URL
-            String urlStr = String.format(EARNINGS_CALENDAR_URL, DATE_FORMAT.format(date));
+            String dateStr = DATE_FORMAT.format(date);
+            String urlStr = String.format(EARNINGS_CALENDAR_URL, dateStr);
 
-            log.info("开始获取NASDAQ财报日历数据, 日期: {}", DATE_FORMAT.format(date));
+            log.info("开始获取NASDAQ财报日历数据, 日期: {}", dateStr);
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
@@ -77,13 +82,23 @@ public class NasdaqClientImpl implements NasdaqClient {
 
             String body = response.body();
 
-            log.info("成功接收NASDAQ API响应, 响应长度: {}", body.length());
+            log.info("成功接收NASDAQ API响应, date:{} body: {}", dateStr, body);
 
             // 解析JSON响应
             JSONObject jsonResponse = JSON.parseObject(body);
             JSONObject data = jsonResponse.getJSONObject("data");
-            Date earningsDate = DATE_FORMAT.parse(DATE_FORMAT.format(date));
             if (data != null) {
+
+                // Thu, Sep 4, 2025
+                String asOf = data.getString("asOf");
+                Date earningsDate = AS_OF_DATE_FORMAT.parse(asOf);
+
+                if (!dateStr.equals(DATE_FORMAT.format(earningsDate))) {
+                    log.warn("财报日期与请求日期不一致, 以财报日期为准, earningsDate: {}, requestDate: {}",
+                            DATE_FORMAT.format(earningsDate),
+                            dateStr);
+                }
+
                 List<EarningsCalendar> earningsCalendars = new ArrayList<>();
 
                 JSONArray jsonArray = data.getJSONArray("rows");
