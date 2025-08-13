@@ -201,9 +201,27 @@
         {{= d.currentCode}}:{{= d.stockIndicator.securityQuote.lastDone }}
         (<b id="stock_{{=d.stockIndicator.securityQuote.security.market}}_{{=d.stockIndicator.securityQuote.security.code}}" class="layui-font-16">{{= d.stockIndicator.securityQuote.lastDone }}</b>)
     </span>
-    <span class="layui-badge layui-bg-blue">到期日:<b class="layui-font-16">{{= d.strikeTime}}({{= d.optionExpiryDateDistance}})</b></span>
-    <span class="layui-badge layui-bg-blue">周价格波动:<b class="layui-font-16">{{= d.stockIndicator.weekPriceRange}}</b></span>
-    <span class="layui-badge layui-bg-blue">月价格波动:<b class="layui-font-16">{{= d.stockIndicator.monthPriceRange}}</b></span>
+    <!-- 添加财报日历信息 -->
+    <span class="layui-badge">
+        <b class="layui-font-16">
+            <a href="javascript:;" onclick="showEarningsCalendar('{{= d.currentCode }}')">
+               <i class="layui-icon layui-icon-date"></i>财报日历
+            </a>
+        </b>
+    </span>
+    {{# if(d.earningsCalendars && d.earningsCalendars.length > 0) { }}
+        {{# layui.each(d.earningsCalendars, function(index, calendar){ }}
+            <span class="layui-badge layui-bg-blue">
+                {{= layui.util.toDateString(new Date(calendar.earningsDate), 'MM-dd') }} 
+                {{= calendar.time || 'TAS' }}
+                {{# if(calendar.epsForecast && calendar.lastYearEps) { }}
+                    EPS: {{= calendar.lastYearEps }}→{{= calendar.epsForecast }}
+                {{# } }}
+            </span>
+        {{# }); }}
+    {{# } else { }}
+        <span class="layui-badge layui-bg-gray">暂无财报信息</span>
+    {{# } }}
     <br/>
     {{# if(d.vixIndicator){ }}    
     <span class="layui-badge">
@@ -314,28 +332,6 @@
             </a>
         </b>
     </span>
-    <br/>
-    <!-- 添加财报日历信息 -->
-    <span class="layui-badge">
-        <b class="layui-font-16">
-            <a href="javascript:;" onclick="showEarningsCalendar('{{= d.currentCode }}')">
-               <i class="layui-icon layui-icon-date"></i>财报日历
-            </a>
-        </b>
-    </span>
-    {{# if(d.earningsCalendars && d.earningsCalendars.length > 0) { }}
-        {{# layui.each(d.earningsCalendars, function(index, calendar){ }}
-            <span class="layui-badge layui-bg-blue">
-                {{= layui.util.toDateString(new Date(calendar.earningsDate), 'MM-dd') }} 
-                {{= calendar.time || 'TAS' }}
-                {{# if(calendar.epsForecast && calendar.lastYearEps) { }}
-                    EPS: {{= calendar.lastYearEps }}→{{= calendar.epsForecast }}
-                {{# } }}
-            </span>
-        {{# }); }}
-    {{# } else { }}
-        <span class="layui-badge layui-bg-gray">暂无财报信息</span>
-    {{# } }}
 </script>
 <script id="currentStrategy" type="text/html">
     <select id="strategyId" name="strategyId" lay-filter="strategyId">

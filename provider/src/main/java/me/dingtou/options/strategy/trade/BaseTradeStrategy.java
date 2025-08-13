@@ -83,25 +83,6 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
                 boolean annualYieldRecommend = sellCallAnnualYield.compareTo(SELL_ANNUAL_YIELD) > 0;
                 if (deltaRecommend && annualYieldRecommend) {
                     level++;
-                    // 当前价+价格波幅 行权价大于这个值 level++
-                    // 周价格波幅
-                    // 计算股票价格加减一周波幅的范围
-                    BigDecimal maxWeekPriceRange = securityPrice.add(stockIndicator.getWeekPriceRange());
-                    BigDecimal minWeekPriceRange = securityPrice.subtract(stockIndicator.getWeekPriceRange());
-                    // 如果期权行权价在一周波幅范围之外,说明行权价偏离当前价格较远,风险较小,level加1
-                    if (maxWeekPriceRange.compareTo(options.getOptionExData().getStrikePrice()) < 0
-                            || minWeekPriceRange.compareTo(options.getOptionExData().getStrikePrice()) > 0) {
-                        level++;
-                    }
-                    // 月价格波幅
-                    // 计算股票价格加减一月波幅的范围
-                    BigDecimal maxMonthPriceRange = securityPrice.add(stockIndicator.getMonthPriceRange());
-                    BigDecimal minMonthPriceRange = securityPrice.subtract(stockIndicator.getMonthPriceRange());
-                    // 如果期权行权价在一月波幅范围之外,说明行权价偏离当前价格较远,风险较小,level加1
-                    if (maxMonthPriceRange.compareTo(options.getOptionExData().getStrikePrice()) < 0
-                            || minMonthPriceRange.compareTo(options.getOptionExData().getStrikePrice()) > 0) {
-                        level++;
-                    }
                 }
 
                 strategyData.setRecommendLevel(level);
@@ -143,33 +124,33 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
         if (null == period) {
             period = CandlestickPeriod.DAY;
         }
-        // 最近K线
+
         List<Candlestick> candlesticks = stockIndicator.getCandlesticks();
         if (null != candlesticks && !candlesticks.isEmpty()) {
-            int subListSize = Math.min(candlesticks.size(), 30);
-            List<Candlestick> recentCandlesticks = candlesticks.subList(candlesticks.size() - subListSize,
-                    candlesticks.size());
+            // 最近K线
+            int kSize = candlesticks.size();
+            int dataSize = Math.min(kSize, 30);
+            List<Candlestick> recentCandlesticks = candlesticks.subList(kSize - dataSize, kSize);
 
             Map<String, Object> data = new HashMap<>();
             data.put("candlesticks", Lists.reverse(new ArrayList<>(recentCandlesticks)));
-            data.put("period", subListSize);
+            data.put("period", dataSize);
             data.put("periodName", period.getName());
             data.put("securityQuote", stockIndicator.getSecurityQuote());
 
             String table = TemplateRenderer.render("data_candlesticks.ftl", data);
             prompt.append(table).append("\n");
-        }
 
-        int dataSize = 20;
-        // 使用模板渲染技术指标表格
-        IndicatorDataFrame dataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, dataSize);
-        Map<String, Object> indicatorsData = new HashMap<>();
-        indicatorsData.put("dataFrame", dataFrame);
-        indicatorsData.put("period", dataSize);
-        indicatorsData.put("periodName", period.getName());
-        indicatorsData.put("securityQuote", stockIndicator.getSecurityQuote());
-        String indicatorsTable = TemplateRenderer.render("data_indicators.ftl", indicatorsData);
-        prompt.append(indicatorsTable).append("\n");
+            // 最近技术指标表格
+            IndicatorDataFrame dataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, dataSize);
+            Map<String, Object> indicatorsData = new HashMap<>();
+            indicatorsData.put("dataFrame", dataFrame);
+            indicatorsData.put("period", dataSize);
+            indicatorsData.put("periodName", period.getName());
+            indicatorsData.put("securityQuote", stockIndicator.getSecurityQuote());
+            String indicatorsTable = TemplateRenderer.render("data_indicators.ftl", indicatorsData);
+            prompt.append(indicatorsTable).append("\n");
+        }
 
         // 过滤出推荐的数据
         List<Options> recommendedOptions = optionsChain.getOptionsList().stream()

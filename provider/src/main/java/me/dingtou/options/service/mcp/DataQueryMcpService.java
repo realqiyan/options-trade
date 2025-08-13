@@ -86,7 +86,8 @@ public class DataQueryMcpService {
         }
         try {
             OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-            OptionsChain optionsChain = optionsQueryManager.queryOptionsChain(account, Security.of(code, market), strikeDate,
+            OptionsChain optionsChain = optionsQueryManager.queryOptionsChain(account, Security.of(code, market),
+                    strikeDate,
                     false);
 
             // 准备模板数据
@@ -103,10 +104,40 @@ public class DataQueryMcpService {
         }
     }
 
-    @Tool(description = "查询股票技术指标，根据股票代码、市场代码查询股票技术指标。返回结果包括标的行情（最新价、周波动幅度、月波动幅度）、近70个交易日的K线数据（日期、开盘价、收盘价、最高价、最低价、成交量、成交额）以及近20个交易日的技术指标（EMA、BOLL、MACD、RSI）。")
+    @Tool(description = "查询股票K线数据（日K或周K），根据股票代码code、市场代码market、K线类型(日K或周K)periodCode、K线数量count，查询股票对应K线数据。返回结果包括{count}条K线数据，数据内容：日期、开盘价、收盘价、最高价、最低价、成交量、成交额。")
+    public String queryStockCandlesticks(@ToolParam(required = true, description = "用户Token") String ownerCode,
+            @ToolParam(required = true, description = "股票代码") String code,
+            @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
+            @ToolParam(required = true, description = "K线类型 1000:日K 2000:周K") Integer periodCode,
+            @ToolParam(required = true, description = "K线数量") Integer count) {
+        String owner = authService.decodeOwner(ownerCode);
+        if (null == owner) {
+            return "用户编码信息不正确或已经过期";
+        }
+        try {
+            Security security = Security.of(code, market);
+            OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+            CandlestickPeriod period = CandlestickPeriod.of(periodCode);
+            SecurityCandlestick candlesticks = indicatorManager.getCandlesticks(account, security, period, count);
+            Map<String, Object> data = new HashMap<>();
+            data.put("security", security);
+            data.put("periodName", period.getName());
+            data.put("count", count);
+            data.put("candlesticks", candlesticks.getCandlesticks());
+            // 渲染模板
+            return TemplateRenderer.render("mcp_stock_candlesticks.ftl", data);
+        } catch (Exception e) {
+            log.error("查询股票K线数据失败，code={}, market={}, periodCode={}, count={}", code, market, periodCode, count, e);
+            return "查询股票K线数据失败，请稍后再试。";
+        }
+    }
+
+    @Tool(description = "查询股票的MA、BOLL、MACD、RSI技术指标，根据股票代码code、市场代码market、K线类型periodCode(日K或周K)、数量count，查询股票技术指标。返回结果近{count}条数据，内容包括：date、boll lower、boll middle、boll upper、ema20、ema5、ema50、macd、macd dea、macd dif、rsi。")
     public String queryStockIndicator(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
-            @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
+            @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
+            @ToolParam(required = true, description = "指标周期 1000:日 2000:周") Integer periodCode,
+            @ToolParam(required = true, description = "指标数量") Integer count) {
         String owner = authService.decodeOwner(ownerCode);
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
@@ -115,10 +146,13 @@ public class DataQueryMcpService {
         try {
             Security security = Security.of(code, market);
             OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-            StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security);
-            IndicatorDataFrame stockIndicatorDataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, 20);
+            CandlestickPeriod period = CandlestickPeriod.of(periodCode);
+            StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security, period, count);
+            IndicatorDataFrame stockIndicatorDataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, count);
             Map<String, Object> data = new HashMap<>();
             data.put("security", security);
+            data.put("periodName", period.getName());
+            data.put("count", count);
             data.put("stockIndicator", stockIndicator);
             data.put("stockIndicatorDataFrame", stockIndicatorDataFrame);
             // 渲染模板
@@ -180,34 +214,6 @@ public class DataQueryMcpService {
         } catch (Exception e) {
             log.error("查询股票当前价格失败，code={}, market={}", code, market, e);
             return "查询股票当前价格失败，请稍后再试。";
-        }
-    }
-
-    @Tool(description = "查询股票K线数据（日K、周K、月K），根据股票代码、市场代码、K线类型、K线数量查询股票对应K线数据。返回结果包括日期、开盘价、收盘价、最高价、最低价、成交量、成交额。")
-    public String queryStockCandlesticks(@ToolParam(required = true, description = "用户Token") String ownerCode,
-            @ToolParam(required = true, description = "股票代码") String code,
-            @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
-            @ToolParam(required = true, description = "K线类型 1000:日K 2000:周K 3000:月K") Integer periodCode,
-            @ToolParam(required = true, description = "K线数量") Integer count) {
-        String owner = authService.decodeOwner(ownerCode);
-        if (null == owner) {
-            return "用户编码信息不正确或已经过期";
-        }
-        try {
-            Security security = Security.of(code, market);
-            OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-            CandlestickPeriod period = CandlestickPeriod.of(periodCode);
-            SecurityCandlestick candlesticks = indicatorManager.getCandlesticks(account, security, period, count);
-            Map<String, Object> data = new HashMap<>();
-            data.put("security", security);
-            data.put("periodName", period.getName());
-            data.put("count", count);
-            data.put("candlesticks", candlesticks.getCandlesticks());
-            // 渲染模板
-            return TemplateRenderer.render("mcp_stock_candlesticks.ftl", data);
-        } catch (Exception e) {
-            log.error("查询股票K线数据失败，code={}, market={}, periodCode={}, count={}", code, market, periodCode, count, e);
-            return "查询股票K线数据失败，请稍后再试。";
         }
     }
 

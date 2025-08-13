@@ -3,7 +3,6 @@ package me.dingtou.options.model;
 import lombok.Data;
 import me.dingtou.options.constant.CandlestickPeriod;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -20,26 +19,6 @@ public class StockIndicator {
      * 期权标的行情
      */
     private SecurityQuote securityQuote;
-
-    /**
-     * 周价格幅度
-     */
-    private BigDecimal weekPriceRange;
-
-    /**
-     * 月价格幅度
-     */
-    private BigDecimal monthPriceRange;
-
-    /**
-     * 周K线
-     */
-    private Candlestick weekCandlestick;
-
-    /**
-     * 月K线
-     */
-    private Candlestick monthCandlestick;
 
     /**
      * 近期K线类型

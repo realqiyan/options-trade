@@ -6,7 +6,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -51,7 +50,6 @@ import me.dingtou.options.model.StockIndicator;
 import me.dingtou.options.model.StockIndicatorItem;
 import me.dingtou.options.model.SupportPriceIndicator;
 import me.dingtou.options.model.VixIndicator;
-import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.ExceptionUtils;
 import me.dingtou.options.util.NumberUtils;
 
@@ -64,7 +62,7 @@ public class IndicatorManager {
      */
     private static final Cache<String, StockIndicator> INDICATOR_CACHE = CacheBuilder.newBuilder()
             .maximumSize(500)
-            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
             .build();
 
     @Autowired
@@ -102,47 +100,31 @@ public class IndicatorManager {
      * 
      * @param ownerAccount 账户
      * @param security     股票
+     * @param period       周期
+     * @param count        数量
      * @return 股票指标
      */
-    public StockIndicator calculateStockIndicator(OwnerAccount ownerAccount, Security security) {
+    public StockIndicator calculateStockIndicator(OwnerAccount ownerAccount,
+            Security security,
+            CandlestickPeriod klinePeriod,
+            int count) {
         try {
             return INDICATOR_CACHE.get(security.toString(), () -> {
                 // 根据账户配置获取K线周期
                 // 根据账户配置获取K线周期
-                CandlestickPeriod klinePeriod = AccountExtUtils.getKlinePeriod(ownerAccount);
                 StockIndicator stockIndicator = new StockIndicator();
                 // 期权标的价格
                 SecurityQuote securityQuote = securityQuoteGateway.quote(ownerAccount, security);
                 stockIndicator.setSecurityQuote(securityQuote);
-                // 获取K线数据
+                // 获取K线数据 50日均线需要多取50条数据计算
+                int kCount = count + 50;
                 SecurityCandlestick candlesticks = candlestickGateway.getCandlesticks(ownerAccount,
                         security,
                         klinePeriod,
-                        70,
+                        kCount,
                         CandlestickAdjustType.FORWARD_ADJUST);
                 if (null == candlesticks || CollectionUtils.isEmpty(candlesticks.getCandlesticks())) {
                     return stockIndicator;
-                }
-                stockIndicator.setCandlesticks(candlesticks.getCandlesticks());
-                stockIndicator.setPeriod(klinePeriod);
-                int weekSize = CandlestickPeriod.WEEK.equals(klinePeriod) ? 2 : 5;
-                int monthSize = CandlestickPeriod.WEEK.equals(klinePeriod) ? 5 : 20;
-                SecurityCandlestick weekCandlesticks = summarySecurityCandlestick(candlesticks, weekSize);
-                SecurityCandlestick monthCandlesticks = summarySecurityCandlestick(candlesticks, monthSize);
-
-                if (null != weekCandlesticks && !CollectionUtils.isEmpty(weekCandlesticks.getCandlesticks())) {
-                    Candlestick candlestick = weekCandlesticks.getCandlesticks().get(0);
-                    // 获取K线波动幅度
-                    BigDecimal priceRange = candlestick.getHigh().subtract(candlestick.getLow());
-                    stockIndicator.setWeekPriceRange(priceRange);
-                    stockIndicator.setWeekCandlestick(candlestick);
-                }
-                if (null != monthCandlesticks && !CollectionUtils.isEmpty(monthCandlesticks.getCandlesticks())) {
-                    Candlestick candlestick = monthCandlesticks.getCandlesticks().get(0);
-                    // 获取K线波动幅度
-                    BigDecimal priceRange = candlestick.getHigh().subtract(candlestick.getLow());
-                    stockIndicator.setMonthPriceRange(priceRange);
-                    stockIndicator.setMonthCandlestick(candlestick);
                 }
 
                 // 技术指标
@@ -163,13 +145,13 @@ public class IndicatorManager {
                 stockIndicator.addIndicator(IndicatorKey.MACD_DEA.getKey(), getValue(signalLine, 26));
 
                 // EMA
-                stockIndicator.addIndicator(IndicatorKey.EMA5.getKey(), getValue(new EMAIndicator(closePrice, 5), 20));
-                stockIndicator.addIndicator(IndicatorKey.EMA20.getKey(), getValue(new EMAIndicator(closePrice, 20), 5));
+                stockIndicator.addIndicator(IndicatorKey.EMA5.getKey(), getValue(new EMAIndicator(closePrice, 5), 0));
+                stockIndicator.addIndicator(IndicatorKey.EMA20.getKey(), getValue(new EMAIndicator(closePrice, 20), 0));
                 stockIndicator.addIndicator(IndicatorKey.EMA50.getKey(), getValue(new EMAIndicator(closePrice, 50), 0));
 
                 // BOLL
-                BollingerBandsMiddleIndicator bollMiddle = new BollingerBandsMiddleIndicator(
-                        new SMAIndicator(closePrice, 20));
+                SMAIndicator sma20 = new SMAIndicator(closePrice, 20);
+                BollingerBandsMiddleIndicator bollMiddle = new BollingerBandsMiddleIndicator(sma20);
                 Indicator<Num> deviation = new StandardDeviationIndicator(closePrice, 20);
                 Num k = DecimalNum.valueOf(2);
                 // 上轨通常是中轨加上2倍标准差
@@ -183,6 +165,18 @@ public class IndicatorManager {
                 SupportPriceIndicator supportPriceIndicator = new SupportPriceIndicator();
                 supportPriceIndicator.setLowestSupportPrice(calculateLowSupport(barSeries));
                 stockIndicator.setSupportPriceIndicator(supportPriceIndicator);
+
+                for (String key : stockIndicator.getIndicatorMap().keySet()) {
+                    List<StockIndicatorItem> dataList = stockIndicator.getIndicatorMap().get(key);
+                    if (null != dataList && dataList.size() > count) {
+                        stockIndicator.getIndicatorMap().put(key, dataList.subList(0, count));
+                    }
+                }
+
+                int kSize = candlesticks.getCandlesticks().size();
+                List<Candlestick> subCandlesticks = candlesticks.getCandlesticks().subList(kSize - count, kSize);
+                stockIndicator.setCandlesticks(subCandlesticks);
+                stockIndicator.setPeriod(klinePeriod);
 
                 return stockIndicator;
             });
@@ -202,7 +196,9 @@ public class IndicatorManager {
      * @param count        数量
      * @return K线数据
      */
-    public SecurityCandlestick getCandlesticks(OwnerAccount ownerAccount, Security security, CandlestickPeriod period,
+    public SecurityCandlestick getCandlesticks(OwnerAccount ownerAccount,
+            Security security,
+            CandlestickPeriod period,
             Integer count) {
         return candlestickGateway.getCandlesticks(ownerAccount, security, period, count,
                 CandlestickAdjustType.FORWARD_ADJUST);
@@ -227,15 +223,15 @@ public class IndicatorManager {
      * 获取指标值列表
      * 
      * @param indicator 指标
-     * @param offset    偏移量
+     * @param skip      偏移量
      * @return 指标值列表
      */
-    private List<StockIndicatorItem> getValue(CachedIndicator<Num> indicator, int offset) {
+    private List<StockIndicatorItem> getValue(CachedIndicator<Num> indicator, int skip) {
         int endIndex = indicator.getBarSeries().getEndIndex();
         List<StockIndicatorItem> result = new ArrayList<>();
         DateTimeFormatter dateTimeFormatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd").toFormatter();
         // 排除掉 unstableBars 和 最早3天的数据
-        for (int i = endIndex; i >= indicator.getUnstableBars() + offset; i--) {
+        for (int i = endIndex; i >= indicator.getUnstableBars() + skip; i--) {
             Num value = indicator.getValue(i);
             Bar bar = indicator.getBarSeries().getBar(i);
             // 保留3位小数后直接截断
@@ -260,68 +256,6 @@ public class IndicatorManager {
                     candlestick.getLow(), candlestick.getClose(), candlestick.getVolume(), candlestick.getTurnover());
         }
         return series;
-    }
-
-    /**
-     * 汇总蜡烛图数据
-     * 
-     * @param dayCandlesticks 蜡烛图数据
-     * @param size            蜡烛图数量
-     * @return 汇总后的蜡烛图数据
-     */
-    private SecurityCandlestick summarySecurityCandlestick(SecurityCandlestick dayCandlesticks, int size) {
-        List<Candlestick> candlesticks = dayCandlesticks.getCandlesticks();
-        if (candlesticks.size() < size) {
-            return null;
-        }
-        // timestamp日期由远到近排序
-        candlesticks.sort(Comparator.comparing(Candlestick::getTimestamp));
-        int endIndex = candlesticks.size();
-        List<Candlestick> subList = candlesticks.subList(endIndex - size, endIndex);
-        BigDecimal close = BigDecimal.ZERO;
-        BigDecimal open = BigDecimal.ZERO;
-        BigDecimal low = BigDecimal.ZERO;
-        BigDecimal high = BigDecimal.ZERO;
-        Long volume = 0L;
-        BigDecimal turnover = BigDecimal.ZERO;
-        Long timestamp = 0L;
-        for (int i = 0; i < subList.size(); i++) {
-            Candlestick candlestick = subList.get(i);
-            if (i == 0) {
-                open = candlestick.getOpen();
-                low = candlestick.getLow();
-                high = candlestick.getHigh();
-            }
-
-            if (low.compareTo(candlestick.getLow()) > 0) {
-                low = candlestick.getLow();
-            }
-
-            if (high.compareTo(candlestick.getHigh()) < 0) {
-                high = candlestick.getHigh();
-            }
-            volume += candlestick.getVolume();
-            turnover = turnover.add(candlestick.getTurnover());
-            if (i == subList.size() - 1) {
-                close = candlestick.getClose();
-                timestamp = candlestick.getTimestamp();
-            }
-        }
-
-        SecurityCandlestick summary = new SecurityCandlestick();
-        summary.setSecurity(dayCandlesticks.getSecurity());
-        List<Candlestick> summaryCandlesticks = new ArrayList<>();
-        Candlestick summaryCandlestick = new Candlestick();
-        summaryCandlestick.setHigh(high);
-        summaryCandlestick.setLow(low);
-        summaryCandlestick.setOpen(open);
-        summaryCandlestick.setClose(close);
-        summaryCandlestick.setVolume(volume);
-        summaryCandlestick.setTurnover(turnover);
-        summaryCandlestick.setTimestamp(timestamp);
-        summaryCandlesticks.add(summaryCandlestick);
-        summary.setCandlesticks(summaryCandlesticks);
-        return summary;
     }
 
 }

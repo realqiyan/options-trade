@@ -5,7 +5,6 @@ import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.service.AssistantService;
 import me.dingtou.options.service.copilot.CopilotService;
-import me.dingtou.options.util.EscapeUtils;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
 

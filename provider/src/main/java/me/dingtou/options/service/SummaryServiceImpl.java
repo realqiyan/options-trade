@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import me.dingtou.options.constant.AccountExt;
+import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
@@ -627,8 +628,8 @@ public class SummaryServiceImpl implements SummaryService {
             List<OptionsRealtimeData> optionsRealtimeDataList = optionsQueryManager
                     .queryOptionsRealtimeData(optionsSecurityList);
             order.setExtValue(OrderExt.ROLL_OPTIONS, optionsRealtimeDataList);
-
-            StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security);
+            CandlestickPeriod klinePeriod = me.dingtou.options.util.AccountExtUtils.getKlinePeriod(account);
+            StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security, klinePeriod, 30);
             defaultOrderTradeStrategy.calculate(account, order, stockIndicator);
         }
 
