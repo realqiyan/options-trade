@@ -5,6 +5,7 @@ import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.service.AssistantService;
 import me.dingtou.options.service.copilot.CopilotService;
+import me.dingtou.options.util.EscapeUtils;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
 
@@ -20,6 +21,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Map;
 
 /**
@@ -33,6 +36,9 @@ public class WebAIController {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(10,
             new ThreadFactoryBuilder().setNameFormat("ai-chat-%d").build());
+
+    private static final Pattern TASK = Pattern.compile("<task>([\\s\\S]*?)</task>", Pattern.DOTALL);
+    private static final Pattern QUERY = Pattern.compile("<query>([\\s\\S]*?)</query>", Pattern.DOTALL);
 
     /**
      * 助手服务
@@ -80,14 +86,16 @@ public class WebAIController {
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "message", required = true) String message,
             @RequestParam(value = "mode", required = true) String mode) {
+
+        String userMsg = EscapeUtils.escapeHtml(message);
         String owner = SessionUtils.getCurrentOwner();
         String sessionId = UUID.randomUUID().toString();
         // 使用线程池提交
         SseEmitter connect = SessionUtils.getConnect(owner, requestId);
-        Message chatMessage = new Message("user", message);
+        Message chatMessage = new Message("user", userMsg);
         final String sessionTitle;
         if (StringUtils.isBlank(title)) {
-            sessionTitle = assistantService.generateSessionTitle(owner, message);
+            sessionTitle = assistantService.generateSessionTitle(owner, userMsg);
         } else {
             sessionTitle = title;
         }
@@ -98,6 +106,7 @@ public class WebAIController {
                     try {
                         copilotServiceMap.get(mode).start(owner, sessionId, sessionTitle, chatMessage, msg -> {
                             try {
+                                escapeHtml(msg);
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -105,6 +114,7 @@ public class WebAIController {
                             return null;
                         }, msg -> {
                             try {
+                                escapeHtml(msg);
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -118,7 +128,7 @@ public class WebAIController {
                 }
             });
         } catch (Exception e) {
-            log.error("chat error, requestId: {}, message: {}", requestId, message, e);
+            log.error("chat error, requestId: {}, message: {}", requestId, userMsg, e);
         }
 
         return WebResult.success(sessionId);
@@ -138,6 +148,8 @@ public class WebAIController {
             @RequestParam(value = "sessionId", required = true) String sessionId,
             @RequestParam(value = "message", required = true) String message,
             @RequestParam(value = "mode", required = true) String mode) {
+
+        String userMsg = EscapeUtils.escapeHtml(message);
         String owner = SessionUtils.getCurrentOwner();
 
         // 使用线程池提交
@@ -147,9 +159,10 @@ public class WebAIController {
                 @Override
                 public void run() {
                     try {
-                        Message newMessage = new Message("user", message);
+                        Message newMessage = new Message("user", userMsg);
                         copilotServiceMap.get(mode).continuing(owner, sessionId, newMessage, msg -> {
                             try {
+                                escapeHtml(msg);
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -157,6 +170,7 @@ public class WebAIController {
                             return null;
                         }, msg -> {
                             try {
+                                escapeHtml(msg);
                                 connect.send(msg);
                             } catch (IOException e) {
                                 log.error("send message error", e);
@@ -169,7 +183,7 @@ public class WebAIController {
                 }
             });
         } catch (Exception e) {
-            log.error("continue chat error, requestId: {}, sessionId: {}, message: {}", requestId, sessionId, message,
+            log.error("continue chat error, requestId: {}, sessionId: {}, message: {}", requestId, sessionId, userMsg,
                     e);
         }
 
@@ -211,17 +225,20 @@ public class WebAIController {
                 // 检查是否是agent模式的第一条助手消息
                 if ("user".equals(record.getRole()) && isFirstUserMessage) {
                     isFirstUserMessage = false;
-                    if (record.getContent().contains("<task>")) {
-                        // 提取task标签内容
-                        String content = record.getContent();
-                        int start = content.indexOf("<task>") + 6;
-                        int end = content.lastIndexOf("</task>");
-                        if (start >= 0 && end > start) {
-                            String taskContent = content.substring(start, end).trim();
-                            record.setContent(taskContent);
-                        }
+                    Matcher taskMatcher = TASK.matcher(record.getContent());
+                    while (taskMatcher.find()) {
+                        // 找到最后一个
+                        record.setContent(taskMatcher.group(1));
                     }
+                    Matcher queryMatcher = QUERY.matcher(record.getContent());
+                    while (queryMatcher.find()) {
+                        // 找到最后一个
+                        record.setContent(queryMatcher.group(1));
+                    }
+                    escapeHtml(record);
+                    continue;
                 }
+                escapeHtml(record);
             }
 
             return WebResult.success(records);
@@ -319,6 +336,19 @@ public class WebAIController {
             log.error("更新AI设置失败", e);
             return WebResult.failure("更新AI设置失败: " + e.getMessage());
         }
+    }
+
+    /**
+     * 转义HTML特殊字符
+     * 
+     * @param message 消息
+     */
+    private void escapeHtml(Message message) {
+        if (null == message) {
+            return;
+        }
+        message.setContent(EscapeUtils.escapeHtml(message.getContent()));
+        message.setReasoningContent(EscapeUtils.escapeHtml(message.getReasoningContent()));
     }
 
 }

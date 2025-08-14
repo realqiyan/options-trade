@@ -121,7 +121,7 @@ layui.use(['layer', 'form', 'util'], function() {
             const mode = urlParams.get('mode') || 'agent_v2'; // 默认agent模式
             const modeSelect = document.getElementById('chat-mode');
             
-            if (['ask', 'agent', 'agent_v2'].includes(mode.toLowerCase())) {
+            if (['ask', 'agent_v2'].includes(mode.toLowerCase())) {
                 modeSelect.value = mode.toLowerCase();
             } else {
                 modeSelect.value = 'agent_v2'; // 无效值默认agent模式

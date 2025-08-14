@@ -1,5 +1,7 @@
 package me.dingtou.options.service.copilot;
 
+import java.util.List;
+
 import me.dingtou.options.model.copilot.ToolCallRequest;
 
 /**
@@ -23,7 +25,7 @@ public interface ToolProcesser {
      * 
      * @return 工具调用信息
      */
-    ToolCallRequest parseToolRequest(String owner, String content);
+    List<ToolCallRequest> parseToolRequest(String owner, String content);
 
     /**
      * 执行工具调用

@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -31,33 +32,36 @@ import me.dingtou.options.util.TemplateRenderer;
  */
 @Component
 @Slf4j
-public class McpToolProcesser implements ToolProcesser {
+public class ToolCallProcesser implements ToolProcesser {
 
-    private static final Pattern pattern = Pattern.compile(
-            "<use_mcp_tool>[\\s\\S]*?<server_name>(.*?)</server_name>[\\s\\S]*?<tool_name>(.*?)</tool_name>[\\s\\S]*?<arguments>(.*?)</arguments>[\\s\\S]*?</use_mcp_tool>",
-            Pattern.DOTALL);
+    private static final Pattern pattern = Pattern.compile("<tool_call>([\\s\\S]*?)</tool_call>", Pattern.DOTALL);
 
     @Override
     public boolean support(String content) {
         if (StringUtils.isBlank(content)) {
             return false;
         }
-        return content.contains("<use_mcp_tool>");
+        return content.contains("<tool_call>");
     }
 
     @Override
     public List<ToolCallRequest> parseToolRequest(String owner, String content) {
-        // 尝试解析use_mcp_tool
         List<ToolCallRequest> toolCalls = new ArrayList<>();
         try {
             ToolCallRequest toolCall = null;
-            // 提取整个XML结构中的参数
             java.util.regex.Matcher matcher = pattern.matcher(content);
             while (matcher.find()) {
-                String serverName = matcher.group(1).trim();
-                String toolName = matcher.group(2).trim();
-                String argsContent = matcher.group(3).trim();
-                toolCall = new McpToolCallRequest(owner, serverName, toolName, argsContent);
+                String callFunc = matcher.group(1).trim();
+                // {"name": <function-name>, "arguments": <args-json-object>}
+                JSONObject jsonObject = JSON.parseObject(callFunc);
+                String name = jsonObject.getString("name");
+                String arguments = jsonObject.getString("arguments");
+
+                int index = name.indexOf(".");
+                String serverName = name.substring(0, index);
+                String toolName = name.substring(index + 1);
+
+                toolCall = new McpToolCallRequest(owner, serverName, toolName, arguments);
                 log.info("Find Tool {} -> {}", serverName, toolName);
                 toolCalls.add(toolCall);
             }
