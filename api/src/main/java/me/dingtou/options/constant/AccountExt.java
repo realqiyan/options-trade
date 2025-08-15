@@ -13,11 +13,17 @@ public enum AccountExt {
     LONGPORT_ACCESS_TOKEN("longport_access_token", "长桥平台Access Token", "text", 120),
     
     // AI配置
-    AI_BASE_URL("ai_base_url", "AI接口Base URL", "text", 200),
-    AI_API_MODEL("ai_api_model", "AI模型名称", "text", 210),
-    AI_API_KEY("ai_api_key", "AI接口Key", "text", 220),
-    AI_API_TEMPERATURE("ai_api_temperature", "AI温度参数", "text", 230),
-    AI_MCP_SETTINGS("ai_mcp_settings", "MCP服务器配置", "textarea", 240),
+    AI_BASE_URL("ai_base_url", "AI接口BaseURL", "text", 200),
+    AI_API_MODEL("ai_api_model", "AI模型名称", "text", 201),
+    AI_API_KEY("ai_api_key", "AI接口Key", "text", 202),
+    AI_API_TEMPERATURE("ai_api_temperature", "AI温度参数", "text", 220),
+    AI_MCP_SETTINGS("ai_mcp_settings", "MCP服务器配置", "textarea", 221),
+
+    AI_SUMMARY_BASE_URL("ai_summary_base_url", "AI BaseUrl（总结）", "text", 230),
+    AI_SUMMARY_API_MODEL("ai_summary_api_model", "AI模型名称（总结）", "text", 231),
+    AI_SUMMARY_API_KEY("ai_summary_api_key", "AI接口Key（总结）", "text", 232),
+    AI_SUMMARY_API_TEMPERATURE("ai_summary_api_temperature", "AI温度参数（总结）", "text", 233),
+
     
     // 分析配置
     KLINE_PERIOD("kline_period", "K线周期DAY/WEEK", "text", 300),
