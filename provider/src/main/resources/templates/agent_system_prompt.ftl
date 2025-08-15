@@ -32,7 +32,7 @@ You are provided with function signatures within <tools></tools> XML tags:
     "type": "function",
     "function": {
         "name": "common.summary",
-        "description": "申请基于当前已经掌握的信息，对任务进行阶段性总结。用户反馈：Yes 后开始进行总结。",
+        "description": "申请对任务当前已经掌握的信息，进行阶段性检查和总结。用户反馈：Yes 后开始进行。",
         "parameters": {"properties":{},"required":[],"type":"object"}
     }
 }

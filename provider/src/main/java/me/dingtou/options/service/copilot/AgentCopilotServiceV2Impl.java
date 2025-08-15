@@ -81,10 +81,9 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             Function<Message, Void> failCallback) {
         log.info("[Agent] 开始新会话, owner={}, sessionId={}, title={}", owner, sessionId, title);
 
-        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+        // 验证账户
+        OwnerAccount account = validateAccount(owner, failCallback);
         if (account == null) {
-            log.error("[Agent] 账号不存在, owner={}", owner);
-            failCallback.apply(new Message("assistant", "账号不存在"));
             return sessionId;
         }
 
@@ -111,9 +110,9 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             Function<Message, Void> failCallback) {
         log.info("[Agent] 继续会话, owner={}, sessionId={}", owner, sessionId);
 
-        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+        // 验证账户
+        OwnerAccount account = validateAccount(owner, failCallback);
         if (account == null) {
-            failCallback.apply(new Message("assistant", "账号不存在"));
             return;
         }
 
@@ -125,8 +124,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         }
 
         // 转换历史消息为Message对象
-        List<Message> messages = new ArrayList<>();
-        messages.addAll(records);
+        List<Message> messages = new ArrayList<>(records);
 
         // 获取会话标题
         String title = records.get(0).getTitle();
@@ -144,18 +142,35 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         Message newMessage = new Message("user", continueMessage);
 
         agentWork(account, title, newMessage, callback, failCallback, sessionId, messages);
-
     }
 
     /**
-     * agentWork
+     * 验证账户是否存在
      * 
-     * @param account         account
-     * @param title           title
-     * @param callback        callback
-     * @param failCallback    failCallback
-     * @param sessionId       sessionId
-     * @param historyMessages historyMessages
+     * @param owner        账户所有者
+     * @param failCallback 失败回调
+     * @return 账户信息，如果不存在则返回null
+     */
+    private OwnerAccount validateAccount(String owner, Function<Message, Void> failCallback) {
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+        if (account == null) {
+            log.error("[Agent] 账号不存在, owner={}", owner);
+            failCallback.apply(new Message("assistant", "账号不存在"));
+            return null;
+        }
+        return account;
+    }
+
+    /**
+     * Agent Work
+     * 
+     * @param account         账户信息
+     * @param title           会话标题
+     * @param newMessage      新消息
+     * @param callback        回调函数
+     * @param failCallback    失败回调函数
+     * @param sessionId       会话ID
+     * @param historyMessages 历史消息列表
      */
     private void agentWork(OwnerAccount account,
             String title,
@@ -173,17 +188,11 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
 
         String owner = account.getOwner();
         // 保存用户消息
-        OwnerChatRecord userRecord = new OwnerChatRecord(owner,
-                sessionId,
-                title,
-                newMessage.getRole(),
-                newMessage.getContent(),
-                null);
-        assistantService.addChatRecord(owner, sessionId, userRecord);
+        saveChatRecord(owner, sessionId, title, newMessage);
         chatMessages.add(convertMessage(newMessage));
 
-        StreamingChatModel chatModel = buildChatModel(account);
-        StreamingChatModel summaryModel = buildSummaryModel(account);
+        StreamingChatModel chatModel = buildChatModel(account, false);
+        StreamingChatModel summaryModel = buildChatModel(account, true);
         final StringBuffer finalResponse = new StringBuffer();
         final CountDownLatch[] latch = new CountDownLatch[1];
         // 是否需要切换summary模型
@@ -213,57 +222,52 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
                     // 保存模型回复
-                    OwnerChatRecord assistantRecord = new OwnerChatRecord(
-                            owner,
-                            sessionId,
-                            title,
-                            "assistant",
-                            returnMessage.toString(),
-                            "");
-                    assistantRecord.setMessageId(messageId);
-                    assistantService.addChatRecord(owner, sessionId, assistantRecord);
-                    chatMessages.add(new AiMessage(returnMessage.toString()));
+                    final String finalMsg = returnMessage.toString();
+                    Message assistantMessage = new Message("assistant", finalMsg);
+                    assistantMessage.setMessageId(messageId);
+                    saveChatRecord(owner, sessionId, title, assistantMessage);
+                    chatMessages.add(new AiMessage(finalMsg));
 
                     // 提取工具调用信息
-                    ToolProcesser toolProcesser = findToolProcesser(returnMessage.toString());
-                    if (null != toolProcesser) {
-                        List<ToolCallRequest> toolCalls = toolProcesser.parseToolRequest(owner,
-                                returnMessage.toString());
-                        if (toolCalls != null && !toolCalls.isEmpty()) {
-                            StringBuffer toolResultPrompt = new StringBuffer();
-                            for (ToolCallRequest toolCall : toolCalls) {
-                                String toolResult = null;
-                                if (toolCall.isSummary()) {
-                                    needSummary.set(true);
-                                    toolResult = "Yes";
-                                } else {
-                                    // 调用MCP服务
-                                    toolResult = toolProcesser.callTool(toolCall);
-                                }
-                                // 构建工具调用结果提示
-                                toolResultPrompt.append(toolProcesser.buildResultPrompt(toolCall, toolResult));
-                            }
-
-                            // 保存用户消息
-                            OwnerChatRecord toolResultRecord = new OwnerChatRecord(owner,
-                                    sessionId,
-                                    title,
-                                    "user",
-                                    toolResultPrompt.toString(),
-                                    null);
-                            assistantService.addChatRecord(owner, sessionId, toolResultRecord);
-                            chatMessages.add(new UserMessage(toolResultPrompt.toString()));
-                            // 添加工具响应消息
-                            callback.apply(toolResultRecord);
-                            // 将MCP结果提交给大模型继续处理
-                            latch[0].countDown();
-                            return;
-                        }
+                    ToolProcesser toolProcesser = findToolProcesser(finalMsg);
+                    if (null == toolProcesser) {
+                        // 没有工具调用，返回最终结果
+                        finalResponse.append(finalMsg);
+                        latch[0].countDown();
+                        return;
+                    }
+                    List<ToolCallRequest> toolCalls = toolProcesser.parseToolRequest(owner, finalMsg);
+                    if (toolCalls == null || toolCalls.isEmpty()) {
+                        // 没有工具调用，也返回最终结果
+                        finalResponse.append(finalMsg);
+                        latch[0].countDown();
+                        return;
                     }
 
-                    // 没有工具调用，返回最终结果
-                    finalResponse.append(returnMessage);
+                    // 调用工具
+                    StringBuffer toolResultPrompt = new StringBuffer();
+                    for (ToolCallRequest toolCall : toolCalls) {
+                        String toolResult = null;
+                        if (toolCall.isSummary()) {
+                            needSummary.set(true);
+                            toolResult = "Yes";
+                        } else {
+                            // 调用MCP服务
+                            toolResult = toolProcesser.callTool(toolCall);
+                        }
+                        // 构建工具调用结果提示
+                        toolResultPrompt.append(toolProcesser.buildResultPrompt(toolCall, toolResult));
+                    }
+
+                    // 保存工具调用结果
+                    Message toolResultMessage = new Message("user", toolResultPrompt.toString());
+                    saveChatRecord(owner, sessionId, title, toolResultMessage);
+                    chatMessages.add(new UserMessage(toolResultPrompt.toString()));
+                    // 添加工具响应消息
+                    callback.apply(toolResultMessage);
+                    // 将MCP结果提交给大模型继续处理
                     latch[0].countDown();
+                    return;
                 }
 
                 @Override
@@ -285,6 +289,26 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         if (finalResponse.isEmpty()) {
             failCallback.apply(new Message("assistant", "达到单次迭代上限，是否继续？"));
         }
+    }
+
+    /**
+     * 保存聊天记录
+     * 
+     * @param owner     账户所有者
+     * @param sessionId 会话ID
+     * @param title     会话标题
+     * @param message   消息
+     */
+    private void saveChatRecord(String owner, String sessionId, String title, Message message) {
+        OwnerChatRecord record = new OwnerChatRecord(
+                owner,
+                sessionId,
+                title,
+                message.getRole(),
+                message.getContent(),
+                "");
+        record.setMessageId(message.getMessageId());
+        assistantService.addChatRecord(owner, sessionId, record);
     }
 
     /**
@@ -324,14 +348,17 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
     /**
      * 构建流式ChatModel
      * 
-     * @param account 账户信息
+     * @param account   账户信息
+     * @param isSummary 是否是总结模型
      * @return 大模型对象
      */
-    private StreamingChatModel buildChatModel(OwnerAccount account) {
-        String baseUrl = AccountExtUtils.getAiBaseUrl(account);
-        String model = AccountExtUtils.getAiApiModel(account);
-        String apiKey = AccountExtUtils.getAiApiKey(account);
-        Double temperature = Double.parseDouble(AccountExtUtils.getAiApiTemperature(account));
+    private StreamingChatModel buildChatModel(OwnerAccount account, boolean isSummary) {
+        String baseUrl = isSummary ? AccountExtUtils.getSummaryBaseUrl(account) : AccountExtUtils.getAiBaseUrl(account);
+        String model = isSummary ? AccountExtUtils.getSummaryApiModel(account) : AccountExtUtils.getAiApiModel(account);
+        String apiKey = isSummary ? AccountExtUtils.getSummaryApiKey(account) : AccountExtUtils.getAiApiKey(account);
+        String temperatureVal = isSummary ? AccountExtUtils.getSummaryApiTemperature(account)
+                : AccountExtUtils.getAiApiTemperature(account);
+        Double temperature = Double.parseDouble(temperatureVal);
 
         return OpenAiStreamingChatModel.builder()
                 .baseUrl(baseUrl)
@@ -346,29 +373,10 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
     }
 
     /**
-     * 构建流式总结用的ChatModel
+     * 初始化MCP服务
      * 
-     * @param account 账户信息
-     * @return 大模型对象
+     * @param ownerAccount 账户信息
      */
-    private StreamingChatModel buildSummaryModel(OwnerAccount account) {
-        String baseUrl = AccountExtUtils.getSummaryBaseUrl(account);
-        String model = AccountExtUtils.getSummaryApiModel(account);
-        String apiKey = AccountExtUtils.getSummaryApiKey(account);
-        Double temperature = Double.parseDouble(AccountExtUtils.getSummaryApiTemperature(account));
-
-        return OpenAiStreamingChatModel.builder()
-                .baseUrl(baseUrl)
-                .apiKey(apiKey)
-                .modelName(model)
-                .customHeaders(Map.of("Content-Type", "application/json;charset=UTF-8"))
-                .temperature(temperature)
-                .logRequests(true)
-                .logResponses(true)
-                .returnThinking(true)
-                .build();
-    }
-
     private void initMcpServer(OwnerAccount ownerAccount) {
         log.info("[mcp] initMcpServer, owner={}", ownerAccount.getOwner());
         String mcpSettings = ownerAccount.getExtValue(AccountExt.AI_MCP_SETTINGS, "");
@@ -384,6 +392,14 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         McpUtils.initMcpClient(ownerAccount.getOwner(), mcpSettings);
     }
 
+    /**
+     * 构建系统Prompt
+     * 
+     * @param owner     账户
+     * @param ownerCode 账户编码
+     * @param content   内容
+     * @return 系统Prompt
+     */
     private String buildSystemPrompt(String owner, String ownerCode, String content) {
         Map<String, Object> data = new HashMap<>();
         data.put("task", content);
@@ -443,6 +459,14 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         return TemplateRenderer.render("agent_system_prompt.ftl", data);
     }
 
+    /**
+     * 构建继续对话的Prompt
+     * 
+     * @param owner     账户
+     * @param ownerCode 账户编码
+     * @param content   内容
+     * @return 继续对话的Prompt
+     */
     private String buildContinuePrompt(String owner, String ownerCode, String content) {
         Map<String, Object> data = new HashMap<>();
         data.put("task", content);
@@ -466,5 +490,4 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         }
         return null;
     }
-
 }
