@@ -6,6 +6,11 @@ import lombok.Data;
 public abstract class ToolCallRequest {
 
     /**
+     * 内置的总结工具
+     */
+    String SUMMARY_TOOL = "common.summary";
+
+    /**
      * owner
      */
     private String owner;
@@ -18,5 +23,9 @@ public abstract class ToolCallRequest {
     public ToolCallRequest(String owner, String tool) {
         this.owner = owner;
         this.tool = tool;
+    }
+
+    public boolean isSummary() {
+        return SUMMARY_TOOL.equals(this.tool);
     }
 }

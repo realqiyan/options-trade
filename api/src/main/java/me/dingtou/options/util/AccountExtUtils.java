@@ -10,7 +10,7 @@ import me.dingtou.options.model.OwnerAccount;
  * @author qiyan
  */
 public class AccountExtUtils {
-    
+
     /**
      * 获取长桥平台App Key
      *
@@ -49,7 +49,7 @@ public class AccountExtUtils {
         }
         return account.getExtValue(AccountExt.LONGPORT_ACCESS_TOKEN, null);
     }
-    
+
     /**
      * 获取AI接口Base URL
      *
@@ -60,9 +60,9 @@ public class AccountExtUtils {
         if (account == null) {
             return "https://dashscope.aliyuncs.com/compatible-mode/v1";
         }
-        return account.getExtValue(AccountExt.AI_BASE_URL,"https://dashscope.aliyuncs.com/compatible-mode/v1");
+        return account.getExtValue(AccountExt.AI_BASE_URL, "https://dashscope.aliyuncs.com/compatible-mode/v1");
     }
-    
+
     /**
      * 获取AI模型名称
      *
@@ -75,7 +75,7 @@ public class AccountExtUtils {
         }
         return account.getExtValue(AccountExt.AI_API_MODEL, "deepseek-r1");
     }
-    
+
     /**
      * 获取AI接口Key
      *
@@ -88,7 +88,7 @@ public class AccountExtUtils {
         }
         return account.getExtValue(AccountExt.AI_API_KEY, null);
     }
-    
+
     /**
      * 获取AI温度参数
      *
@@ -101,7 +101,59 @@ public class AccountExtUtils {
         }
         return account.getExtValue(AccountExt.AI_API_TEMPERATURE, "1.0");
     }
-    
+
+    /**
+     * 获取AI接口Base URL
+     *
+     * @param account 账户对象
+     * @return AI接口Base URL
+     */
+    public static String getSummaryBaseUrl(OwnerAccount account) {
+        if (account == null) {
+            return "https://dashscope.aliyuncs.com/compatible-mode/v1";
+        }
+        return account.getExtValue(AccountExt.AI_SUMMARY_BASE_URL, "https://dashscope.aliyuncs.com/compatible-mode/v1");
+    }
+
+    /**
+     * 获取AI模型名称
+     *
+     * @param account 账户对象
+     * @return AI模型名称
+     */
+    public static String getSummaryApiModel(OwnerAccount account) {
+        if (account == null) {
+            return "deepseek-r1";
+        }
+        return account.getExtValue(AccountExt.AI_SUMMARY_API_MODEL, "deepseek-r1");
+    }
+
+    /**
+     * 获取AI接口Key
+     *
+     * @param account 账户对象
+     * @return AI接口Key
+     */
+    public static String getSummaryApiKey(OwnerAccount account) {
+        if (account == null) {
+            return null;
+        }
+        return account.getExtValue(AccountExt.AI_SUMMARY_API_KEY, null);
+    }
+
+    /**
+     * 获取AI温度参数
+     *
+     * @param account 账户对象
+     * @return AI温度参数
+     */
+    public static String getSummaryApiTemperature(OwnerAccount account) {
+        if (account == null) {
+            return "1.0";
+        }
+        return account.getExtValue(AccountExt.AI_SUMMARY_API_TEMPERATURE, "1.0");
+    }
+
     /**
      * 获取MCP服务器配置
      *
@@ -114,7 +166,7 @@ public class AccountExtUtils {
         }
         return account.getExtValue(AccountExt.AI_MCP_SETTINGS, null);
     }
-    
+
     /**
      * 获取K线周期
      *
@@ -132,4 +184,4 @@ public class AccountExtUtils {
             return CandlestickPeriod.WEEK;
         }
     }
-} 
+}
