@@ -193,13 +193,12 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         StreamingChatModel chatModel = LlmUtils.buildChatModel(account, false);
         StreamingChatModel summaryModel = LlmUtils.buildChatModel(account, true);
         final StringBuffer finalResponse = new StringBuffer();
-        final CountDownLatch[] latch = new CountDownLatch[1];
         // 是否需要切换summary模型
         final AtomicBoolean needSummary = new AtomicBoolean(false);
         while (iteration++ < maxIterations && finalResponse.isEmpty()) {
             final StringBuffer returnMessage = new StringBuffer();
             String messageId = "assistant" + System.currentTimeMillis();
-            latch[0] = new CountDownLatch(1);
+            final CountDownLatch latch = new CountDownLatch(1);
             // 切换模型
             StreamingChatModel model = needSummary.get() && null != summaryModel ? summaryModel : chatModel;
             model.chat(chatMessages, new StreamingChatResponseHandler() {
@@ -232,14 +231,14 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                     if (null == toolProcesser) {
                         // 没有工具调用，返回最终结果
                         finalResponse.append(finalMsg);
-                        latch[0].countDown();
+                        latch.countDown();
                         return;
                     }
                     List<ToolCallRequest> toolCalls = toolProcesser.parseToolRequest(owner, finalMsg);
                     if (toolCalls == null || toolCalls.isEmpty()) {
                         // 没有工具调用，也返回最终结果
                         finalResponse.append(finalMsg);
-                        latch[0].countDown();
+                        latch.countDown();
                         return;
                     }
 
@@ -265,20 +264,20 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                     // 添加工具响应消息
                     callback.apply(toolResultMessage);
                     // 将MCP结果提交给大模型继续处理
-                    latch[0].countDown();
+                    latch.countDown();
                     return;
                 }
 
                 @Override
                 public void onError(Throwable error) {
                     failCallback.apply(new Message("assistant", "模型请求失败:" + error.getMessage()));
-                    latch[0].countDown();
+                    latch.countDown();
                 }
             });
             // 使用过一次summary后切换成false
             needSummary.set(false);
             try {
-                latch[0].await();
+                latch.await();
             } catch (InterruptedException e) {
                 log.error("[Agent] 模型请求中断, sessionId={}", sessionId);
             }
@@ -386,7 +385,6 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             if (null != strategies && !strategies.isEmpty()) {
                 data.put("strategies", strategies);
             }
-
             // 用户自定义规则
             List<OwnerKnowledge> rules = knowledges.stream()
                     .filter(e -> OwnerKnowledge.KnowledgeStatus.ENABLED.getCode().equals(e.getStatus()))
