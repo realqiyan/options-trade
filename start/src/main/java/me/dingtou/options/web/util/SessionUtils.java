@@ -2,16 +2,20 @@ package me.dingtou.options.web.util;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.web.model.LoginInfo;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
  * @author qiyan
  */
 @Slf4j
+@Component
 public class SessionUtils {
     private static final Map<String, LoginInfo> SESSION_OWNER = new ConcurrentHashMap<>();
     private static final ThreadLocal<String> CURRENT_OWNER = new ThreadLocal<>();
@@ -126,6 +130,27 @@ public class SessionUtils {
             log.info("onError, owner:{} requestId:{}", owner, requestId);
             close(owner, requestId);
         };
+    }
+
+    /**
+     * ping客户端 定时清理已关闭的SseEmitter连接
+     */
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
+    public void ping() {
+        SSE_EMITTER_MAP.entrySet().removeIf(entry -> {
+            SseEmitter emitter = entry.getValue();
+            if (emitter != null) {
+                // 检查连接是否已经关闭
+                try {
+                    emitter.send(SseEmitter.event().comment("ping"));
+                    return false; // 连接仍然有效
+                } catch (Exception e) {
+                    log.info("发现已关闭的连接: {}", entry.getKey());
+                    return true; // 连接已关闭，需要移除
+                }
+            }
+            return true; // emitter为null，需要移除
+        });
     }
 
 }

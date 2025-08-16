@@ -121,7 +121,6 @@ public class WebAIController {
                             }
                             return null;
                         });
-                        connect.complete();
                     } catch (Throwable e) {
                         log.error("Error: ", e);
                     }
