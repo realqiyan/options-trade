@@ -19,13 +19,11 @@ import com.alibaba.fastjson2.JSON;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.PartialThinking;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
-import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema.ListToolsResult;
 import io.modelcontextprotocol.spec.McpSchema.Tool;
@@ -42,11 +40,12 @@ import me.dingtou.options.service.AuthService;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.DateUtils;
 import me.dingtou.options.util.EscapeUtils;
+import me.dingtou.options.util.LlmUtils;
 import me.dingtou.options.util.McpUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
 /**
- * Agent模式，langchain4j不支持思考内容输出
+ * Agent模式
  */
 @Slf4j
 @Component
@@ -97,7 +96,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         String firstMessage = buildSystemPrompt(account, ownerCode, message.getContent());
         Message agentMessage = new Message("user", firstMessage);
 
-        agentWork(account, title, agentMessage, callback, failCallback, sessionId, new ArrayList<>());
+        work(account, title, agentMessage, callback, failCallback, sessionId, new ArrayList<>());
 
         return sessionId;
     }
@@ -141,7 +140,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         // 添加新消息
         Message newMessage = new Message("user", continueMessage);
 
-        agentWork(account, title, newMessage, callback, failCallback, sessionId, messages);
+        work(account, title, newMessage, callback, failCallback, sessionId, messages);
     }
 
     /**
@@ -172,7 +171,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
      * @param sessionId       会话ID
      * @param historyMessages 历史消息列表
      */
-    private void agentWork(OwnerAccount account,
+    private void work(OwnerAccount account,
             String title,
             Message newMessage,
             Function<Message, Void> callback,
@@ -184,15 +183,15 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         int maxIterations = 10;
         int iteration = 0;
 
-        List<ChatMessage> chatMessages = convertMessage(historyMessages);
+        List<ChatMessage> chatMessages = LlmUtils.convertMessage(historyMessages);
 
         String owner = account.getOwner();
         // 保存用户消息
         saveChatRecord(owner, sessionId, title, newMessage);
-        chatMessages.add(convertMessage(newMessage));
+        chatMessages.add(LlmUtils.convertMessage(newMessage));
 
-        StreamingChatModel chatModel = buildChatModel(account, false);
-        StreamingChatModel summaryModel = buildChatModel(account, true);
+        StreamingChatModel chatModel = LlmUtils.buildChatModel(account, false);
+        StreamingChatModel summaryModel = LlmUtils.buildChatModel(account, true);
         final StringBuffer finalResponse = new StringBuffer();
         final CountDownLatch[] latch = new CountDownLatch[1];
         // 是否需要切换summary模型
@@ -309,67 +308,6 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                 "");
         record.setMessageId(message.getMessageId());
         assistantService.addChatRecord(owner, sessionId, record);
-    }
-
-    /**
-     * 转换Message列表为ChatMessage列表
-     * 
-     * @param historyMessages 历史消息列表
-     * @return ChatMessage列表
-     */
-    private List<ChatMessage> convertMessage(List<Message> historyMessages) {
-        List<ChatMessage> chatMessages = new ArrayList<>();
-        if (historyMessages != null) {
-            for (Message message : historyMessages) {
-                chatMessages.add(convertMessage(message));
-            }
-        }
-        return chatMessages;
-    }
-
-    /**
-     * 转换Message为ChatMessage
-     * 
-     * @param message 消息
-     * @return ChatMessage
-     */
-    private ChatMessage convertMessage(Message message) {
-        ChatMessage chatMessage = null;
-        if ("user".equals(message.getRole())) {
-            chatMessage = new UserMessage(message.getContent());
-        } else if ("assistant".equals(message.getRole())) {
-            chatMessage = new AiMessage(message.getContent());
-        } else if ("system".equals(message.getRole())) {
-            chatMessage = new SystemMessage(message.getContent());
-        }
-        return chatMessage;
-    }
-
-    /**
-     * 构建流式ChatModel
-     * 
-     * @param account   账户信息
-     * @param isSummary 是否是总结模型
-     * @return 大模型对象
-     */
-    private StreamingChatModel buildChatModel(OwnerAccount account, boolean isSummary) {
-        String baseUrl = isSummary ? AccountExtUtils.getSummaryBaseUrl(account) : AccountExtUtils.getAiBaseUrl(account);
-        String model = isSummary ? AccountExtUtils.getSummaryApiModel(account) : AccountExtUtils.getAiApiModel(account);
-        String apiKey = isSummary ? AccountExtUtils.getSummaryApiKey(account) : AccountExtUtils.getAiApiKey(account);
-        String temperatureVal = isSummary ? AccountExtUtils.getSummaryApiTemperature(account)
-                : AccountExtUtils.getAiApiTemperature(account);
-        Double temperature = Double.parseDouble(temperatureVal);
-
-        return OpenAiStreamingChatModel.builder()
-                .baseUrl(baseUrl)
-                .apiKey(apiKey)
-                .modelName(model)
-                .customHeaders(Map.of("Content-Type", "application/json;charset=UTF-8"))
-                .temperature(temperature)
-                .returnThinking(true)
-                .logRequests(true)
-                .logResponses(true)
-                .build();
     }
 
     /**

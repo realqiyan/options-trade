@@ -1,31 +1,32 @@
 package me.dingtou.options.service.copilot;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.PartialThinking;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.service.AssistantService;
-import me.dingtou.options.util.AccountExtUtils;
-import me.dingtou.options.util.ChatClient;
-import me.dingtou.options.util.ChatClient.ChatResponse;
+import me.dingtou.options.util.LlmUtils;
 
+/**
+ * Ask模式
+ */
 @Slf4j
 @Component
 public class AskCopilotServiceImpl implements CopilotService {
-
-    private final String SYSTEM_PROMPT = "You are a helpful assistant.";
 
     @Autowired
     private AssistantService assistantService;
@@ -45,12 +46,17 @@ public class AskCopilotServiceImpl implements CopilotService {
             Message message,
             Function<Message, Void> callback,
             Function<Message, Void> failCallback) {
-        List<Message> messages = new ArrayList<>();
-        messages.add(new Message("system", SYSTEM_PROMPT));
-        messages.add(message);
-        ask(owner, sessionId, title, messages, callback);
-        return sessionId;
+        log.info("[Ask] 开始新会话, owner={}, sessionId={}, title={}", owner, sessionId, title);
 
+        // 验证账户
+        OwnerAccount account = validateAccount(owner, failCallback);
+        if (account == null) {
+            return sessionId;
+        }
+
+        work(account, title, message, callback, failCallback, sessionId, new ArrayList<>());
+
+        return sessionId;
     }
 
     @Override
@@ -59,6 +65,14 @@ public class AskCopilotServiceImpl implements CopilotService {
             Message message,
             Function<Message, Void> callback,
             Function<Message, Void> failCallback) {
+        log.info("[Ask] 继续会话, owner={}, sessionId={}", owner, sessionId);
+
+        // 验证账户
+        OwnerAccount account = validateAccount(owner, failCallback);
+        if (account == null) {
+            return;
+        }
+
         // 获取历史消息(user & assistant)
         List<OwnerChatRecord> records = assistantService.listRecordsBySessionId(owner, sessionId);
         if (records == null || records.isEmpty()) {
@@ -67,158 +81,110 @@ public class AskCopilotServiceImpl implements CopilotService {
         }
 
         // 转换历史消息为Message对象
-        List<Message> messages = new ArrayList<>();
-        messages.addAll(records);
-
-        // 添加新消息
-        Message newMessage = new Message("user", message.getContent());
-        messages.add(newMessage);
+        List<Message> messages = new ArrayList<>(records);
 
         // 获取会话标题
         String title = records.get(0).getTitle();
 
-        // 继续
-        ask(owner, sessionId, title, messages, callback);
-
+        work(account, title, message, callback, failCallback, sessionId, messages);
     }
 
     /**
-     * Ask 模式
+     * 验证账户是否存在
      * 
-     * @param owner
-     * @param sessionId
-     * @param title
-     * @param messages
-     * @param callback
+     * @param owner        账户所有者
+     * @param failCallback 失败回调
+     * @return 账户信息，如果不存在则返回null
      */
-    public void ask(String owner,
-            String sessionId,
+    private OwnerAccount validateAccount(String owner, Function<Message, Void> failCallback) {
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+        if (account == null) {
+            log.error("[Ask] 账号不存在, owner={}", owner);
+            failCallback.apply(new Message("assistant", "账号不存在"));
+            return null;
+        }
+        return account;
+    }
+
+    /**
+     * Agent Work
+     * 
+     * @param account         账户信息
+     * @param title           会话标题
+     * @param newMessage      新消息
+     * @param callback        回调函数
+     * @param failCallback    失败回调函数
+     * @param sessionId       会话ID
+     * @param historyMessages 历史消息列表
+     */
+    private void work(OwnerAccount account,
             String title,
-            List<Message> messages,
-            Function<Message, Void> callback) {
-        OwnerAccount ownerAccount = ownerManager.queryOwnerAccount(owner);
-        if (null == messages
-                || messages.isEmpty()
-                || null == ownerAccount
-                || null == AccountExtUtils.getAiApiKey(ownerAccount)) {
-            return;
-        }
+            Message newMessage,
+            Function<Message, Void> callback,
+            Function<Message, Void> failCallback,
+            String sessionId,
+            List<Message> historyMessages) {
 
-        // 检查消息列表中是否有已存在的消息ID
-        for (Message message : messages) {
-            if (message.getMessageId() != null) {
-                // 查询这条消息的会话ID
-                OwnerChatRecord record = assistantService.getRecordByMessageId(owner, message.getMessageId());
-                if (record != null) {
-                    sessionId = record.getSessionId();
-                    break;
-                }
+        List<ChatMessage> chatMessages = LlmUtils.convertMessage(historyMessages);
+
+        String owner = account.getOwner();
+        // 保存用户消息
+        saveChatRecord(owner, sessionId, title, newMessage);
+        chatMessages.add(LlmUtils.convertMessage(newMessage));
+
+        StreamingChatModel chatModel = LlmUtils.buildChatModel(account, false);
+
+        String messageId = "assistant" + System.currentTimeMillis();
+
+        chatModel.chat(chatMessages, new StreamingChatResponseHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse) {
+                callback.apply(new Message(messageId, "assistant", partialResponse));
             }
-        }
 
-        // 保存用户新消息
-        final String finalSessionId = sessionId;
-        messages.stream().filter(message -> "user".equals(message.getRole()) && null == message.getMessageId())
-                .forEach(message -> {
-                    OwnerChatRecord userRecord = new OwnerChatRecord(owner,
-                            finalSessionId,
-                            title,
-                            "user",
-                            message.getContent(),
-                            null);
-                    assistantService.addChatRecord(owner, finalSessionId, userRecord);
-                });
+            @Override
+            public void onPartialThinking(PartialThinking partialThinking) {
+                Message thinkingMessage = new Message();
+                thinkingMessage.setMessageId(messageId);
+                thinkingMessage.setRole("assistant");
+                thinkingMessage.setReasoningContent(partialThinking.text());
+                callback.apply(thinkingMessage);
+            }
 
-        // 发送消息并获取响应
-        ChatResult result = sendChatMessage(ownerAccount, messages, callback);
+            @Override
+            public void onCompleteResponse(ChatResponse completeResponse) {
+                // 保存模型回复
+                Message assistantMessage = new Message("assistant", completeResponse.aiMessage().text());
+                assistantMessage.setReasoningContent(completeResponse.aiMessage().thinking());
+                assistantMessage.setMessageId(messageId);
+                saveChatRecord(owner, sessionId, title, assistantMessage);
+            }
 
-        // 保存AI助手的完整回复
-        if (!result.getContent().isEmpty()) {
-            OwnerChatRecord assistantRecord = new OwnerChatRecord(
-                    owner,
-                    finalSessionId,
-                    title,
-                    "assistant",
-                    result.getContent(),
-                    result.getReasoningContent());
-            assistantRecord.setMessageId(result.getMessageId());
-            assistantService.addChatRecord(owner, finalSessionId, assistantRecord);
-        }
+            @Override
+            public void onError(Throwable error) {
+                failCallback.apply(new Message("assistant", "模型请求失败:" + error.getMessage()));
+            }
+        });
     }
 
     /**
-     * 发送聊天消息并处理流式响应
-     *
-     * @param account  账号
-     * @param messages 用户消息列表
-     * @param callback 回调函数，用于处理流式响应
-     * @return 返回AI助手的完整响应和消息ID
+     * 保存聊天记录
+     * 
+     * @param owner     账户所有者
+     * @param sessionId 会话ID
+     * @param title     会话标题
+     * @param message   消息
      */
-    private ChatResult sendChatMessage(OwnerAccount account, List<Message> messages, Function<Message, Void> callback) {
-        // 创建一个StringBuilder来收集AI助手的完整回复
-        StringBuilder reasoningContent = new StringBuilder();
-        StringBuilder finalContent = new StringBuilder();
-
-        // 系统提示词
-        String mcpSettings = AccountExtUtils.getSystemPrompt(account);
-        // 添加系统消息
-        if (StringUtils.isNotBlank(mcpSettings)) {
-            messages.add(0, new Message("system", mcpSettings));
-        }
-
-        String baseUrl = AccountExtUtils.getAiBaseUrl(account);
-        String apiKey = AccountExtUtils.getAiApiKey(account);
-        String model = AccountExtUtils.getAiApiModel(account);
-        double temperature = Double.parseDouble(AccountExtUtils.getAiApiTemperature(account));
-
-        ChatResponse chatResponse;
-        try {
-            // chatResponse = ChatClient.sendChatRequest(account, mcpSettings, messages);
-            chatResponse = ChatClient.sendStreamChatRequest(baseUrl,
-                    apiKey,
-                    model,
-                    temperature,
-                    messages,
-                    new Consumer<ChatClient.ChatResponse>() {
-                        @Override
-                        public void accept(ChatClient.ChatResponse chatResp) {
-                            // 收集AI助手的回复
-                            if (chatResp.isChunk() && chatResp.getContent() != null) {
-                                callback.apply(new Message(chatResp.getId(), "assistant", chatResp.getContent()));
-                                finalContent.append(chatResp.getContent());
-                            } else if (chatResp.isChunk() && chatResp.getReasoningContent() != null) {
-                                Message reasoning = new Message();
-                                reasoning.setMessageId(chatResp.getId());
-                                reasoning.setRole("assistant");
-                                reasoning.setReasoningContent(chatResp.getReasoningContent());
-                                callback.apply(reasoning);
-                                reasoningContent.append(chatResp.getReasoningContent());
-                            }
-                        }
-                    }).get(300, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            log.error("发送聊天消息失败: {}", e.getMessage(), e);
-            return new ChatResult(null, e.getMessage(), null);
-        }
-
-        return new ChatResult(chatResponse.getId(), chatResponse.getContent(), chatResponse.getReasoningContent());
+    private void saveChatRecord(String owner, String sessionId, String title, Message message) {
+        OwnerChatRecord record = new OwnerChatRecord(
+                owner,
+                sessionId,
+                title,
+                message.getRole(),
+                message.getContent(),
+                "");
+        record.setMessageId(message.getMessageId());
+        assistantService.addChatRecord(owner, sessionId, record);
     }
-
-    /**
-     * 聊天结果
-     */
-    @Getter
-    public static class ChatResult {
-        private final String messageId;
-        private final String content;
-        private final String reasoningContent;
-
-        public ChatResult(String messageId, String content, String reasoningContent) {
-            this.messageId = messageId;
-            this.content = content;
-            this.reasoningContent = reasoningContent;
-        }
-
-    }
-
+    
 }
