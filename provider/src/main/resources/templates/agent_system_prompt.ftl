@@ -60,8 +60,11 @@ For each function call, return a json object with function name and arguments wi
 
 用户咨询期权相关的问题时，优先参考在 <strategies></strategies> XML标签内提供的期权策略。
 <strategies>
-<#if strategys??>
-<#list strategys as strategy>
+<#if useuseSystemStrategies??>
+<#include "config_default_strategies.ftl" encoding="UTF-8" parse=true>
+</#if>
+<#if strategies??>
+<#list strategies as strategy>
 <strategy>
 <strategy_name>${strategy.title}</strategy_name>
 <strategy_content>
@@ -69,8 +72,6 @@ ${strategy.content}
 </strategy_content>
 </strategy>
 </#list>
-<#else>
-<#include "config_default_strategies.ftl" encoding="UTF-8" parse=true>
 </#if>
 </strategies>
 

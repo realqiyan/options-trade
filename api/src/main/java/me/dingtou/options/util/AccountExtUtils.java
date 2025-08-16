@@ -168,6 +168,19 @@ public class AccountExtUtils {
     }
 
     /**
+     * 获取是否使用系统策略
+     *
+     * @param account 账户对象
+     * @return 是否使用系统策略
+     */
+    public static boolean getUseSystemStrategies(OwnerAccount account) {
+        if (account == null) {
+            return false;
+        }
+        return "Y".equals(account.getExtValue(AccountExt.AI_USE_SYSTEM_STRATEGIES, "Y"));
+    }
+
+    /**
      * 获取K线周期
      *
      * @param account 账户对象

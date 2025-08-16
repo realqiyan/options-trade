@@ -94,7 +94,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         initMcpServer(account);
 
         // 构建包含MCP工具描述的系统提示词
-        String firstMessage = buildSystemPrompt(owner, ownerCode, message.getContent());
+        String firstMessage = buildSystemPrompt(account, ownerCode, message.getContent());
         Message agentMessage = new Message("user", firstMessage);
 
         agentWork(account, title, agentMessage, callback, failCallback, sessionId, new ArrayList<>());
@@ -395,17 +395,18 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
     /**
      * 构建系统Prompt
      * 
-     * @param owner     账户
+     * @param account   账户
      * @param ownerCode 账户编码
      * @param content   内容
      * @return 系统Prompt
      */
-    private String buildSystemPrompt(String owner, String ownerCode, String content) {
+    private String buildSystemPrompt(OwnerAccount account, String ownerCode, String content) {
         Map<String, Object> data = new HashMap<>();
         data.put("task", content);
         data.put("ownerCode", ownerCode);
         data.put("time", DateUtils.currentTime());
 
+        String owner = account.getOwner();
         // 获取所有MCP服务
         Map<String, McpSyncClient> ownerMcpClient = McpUtils.getOwnerMcpClient(owner);
         if (null != ownerMcpClient) {
@@ -431,18 +432,21 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             data.put("servers", servers);
         }
 
+        // 是否使用系统策略
+        data.put("useSystemStrategies", AccountExtUtils.getUseSystemStrategies(account));
+
         List<OwnerKnowledge> knowledges = knowledgeManager.listKnowledges(owner);
         if (null != knowledges && !knowledges.isEmpty()) {
             knowledges.forEach(e -> {
                 e.setContent(EscapeUtils.escapeXml(e.getContent()));
             });
             // 扩展策略
-            List<OwnerKnowledge> strategys = knowledges.stream()
+            List<OwnerKnowledge> strategies = knowledges.stream()
                     .filter(e -> OwnerKnowledge.KnowledgeStatus.ENABLED.getCode().equals(e.getStatus()))
                     .filter(e -> OwnerKnowledge.KnowledgeType.OPTIONS_STRATEGY.getCode().equals(e.getType()))
                     .toList();
-            if (null != strategys && !strategys.isEmpty()) {
-                data.put("strategys", strategys);
+            if (null != strategies && !strategies.isEmpty()) {
+                data.put("strategies", strategies);
             }
 
             // 用户自定义规则
