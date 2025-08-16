@@ -21,13 +21,9 @@ import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.util.AccountExtUtils;
-import me.dingtou.options.util.TemplateRenderer;
-
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,12 +61,6 @@ public class AssistantServiceImpl implements AssistantService {
         }
 
         String mcpSettings = ownerAccount.getExtValue(AccountExt.AI_MCP_SETTINGS, "");
-        if (StringUtils.isBlank(mcpSettings)) {
-            Map<String, Object> params = new HashMap<>();
-            Date expireDate = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 365 * 1000L);
-            params.put("jwt", authService.jwt(ownerAccount.getOwner(), expireDate));
-            mcpSettings = TemplateRenderer.render("config_default_mcp_settings.ftl", params);
-        }
 
         // 从账号扩展字段中获取设置
         Map<String, Object> settings = new HashMap<>();

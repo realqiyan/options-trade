@@ -3,7 +3,6 @@ package me.dingtou.options.service.copilot;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -323,8 +322,6 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         }
         // 默认配置初始化
         Map<String, Object> params = new HashMap<>();
-        Date expireDate = new Date(System.currentTimeMillis() + 365 * 24 * 60 * 60 * 1000L);
-        params.put("jwt", authService.jwt(ownerAccount.getOwner(), expireDate));
         mcpSettings = TemplateRenderer.render("config_default_mcp_settings.ftl", params);
         McpUtils.initMcpClient(ownerAccount.getOwner(), mcpSettings);
     }
