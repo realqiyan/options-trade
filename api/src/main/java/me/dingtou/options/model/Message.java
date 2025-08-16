@@ -30,6 +30,7 @@ public class Message {
     }
 
     public Message(String role, String content) {
+        this.messageId = role + System.currentTimeMillis();
         this.role = role;
         this.content = content;
     }

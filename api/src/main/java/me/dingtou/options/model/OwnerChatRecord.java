@@ -59,10 +59,6 @@ public class OwnerChatRecord extends Message {
         this.setTitle(title);
         this.setCreateTime(date);
         this.setUpdateTime(date);
-        // 消息ID为空时，设置默认消息ID
-        if (null == this.getMessageId()) {
-            this.setMessageId(role + date.getTime());
-        }
         this.setReasoningContent(reasoningContent);
     }
 }

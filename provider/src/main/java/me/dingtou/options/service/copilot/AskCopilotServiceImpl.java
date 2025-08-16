@@ -54,7 +54,10 @@ public class AskCopilotServiceImpl implements CopilotService {
             return sessionId;
         }
 
-        work(account, title, message, callback, failCallback, sessionId, new ArrayList<>());
+        // 默认系统提示词也保存
+        Message sysMsg = new Message("system", "You are a helpful assistant.");
+        saveChatRecord(owner, sessionId, title, sysMsg);
+        work(account, title, message, callback, failCallback, sessionId, List.of(sysMsg));
 
         return sessionId;
     }
@@ -186,5 +189,5 @@ public class AskCopilotServiceImpl implements CopilotService {
         record.setMessageId(message.getMessageId());
         assistantService.addChatRecord(owner, sessionId, record);
     }
-    
+
 }
