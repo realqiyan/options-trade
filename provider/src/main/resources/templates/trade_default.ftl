@@ -1,1 +1,3 @@
-我准备卖出${securityQuote.security.toString()}距离到期日${optionsChain.dte()}天的期权<#if summary??>，策略ID:${summary.strategy.strategyId}</#if>，当前股票价格是${securityPrice}<#if vixIndicator?? && vixIndicator.currentVix??>，当前VIX指数是${vixIndicator.currentVix.value}</#if>，当前日期是${currentDate}，分析《交易期权标的》里的标的，给我交易建议。
+当前日期${currentDate}。<#if summary??>期权策略ID:${summary.strategy.strategyId}。</#if>当前${securityQuote.security.toString()}股票价格是${securityPrice}。<#if vixIndicator?? && vixIndicator.currentVix??>，当前VIX指数是${vixIndicator.currentVix.value}。</#if>
+我打算卖`交易期权标的`里的期权标的赚取期权权利金，并且我只卖单腿期权，可以是Sell Put或Sell Call。
+备选的期权距离到期日${optionsChain.dte()}天，请分析`交易期权标的`里的标的，基于这些期权标的和必要信息给我交易建议。

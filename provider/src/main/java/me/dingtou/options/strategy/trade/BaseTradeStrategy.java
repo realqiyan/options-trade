@@ -1,21 +1,16 @@
 package me.dingtou.options.strategy.trade;
 
-import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.model.*;
 import me.dingtou.options.strategy.OptionsTradeStrategy;
-import me.dingtou.options.util.IndicatorDataFrameUtil;
 import me.dingtou.options.util.NumberUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.google.common.collect.Lists;
 
 /**
  * 基础策略
@@ -119,38 +114,38 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
     private StringBuilder dataPrompt(OptionsChain optionsChain, StrategySummary summary) {
         StringBuilder prompt = new StringBuilder();
 
-        StockIndicator stockIndicator = optionsChain.getStockIndicator();
-        CandlestickPeriod period = stockIndicator.getPeriod();
-        if (null == period) {
-            period = CandlestickPeriod.DAY;
-        }
+        // StockIndicator stockIndicator = optionsChain.getStockIndicator();
+        // CandlestickPeriod period = stockIndicator.getPeriod();
+        // if (null == period) {
+        //     period = CandlestickPeriod.DAY;
+        // }
 
-        List<Candlestick> candlesticks = stockIndicator.getCandlesticks();
-        if (null != candlesticks && !candlesticks.isEmpty()) {
-            // 最近K线
-            int kSize = candlesticks.size();
-            int dataSize = Math.min(kSize, 30);
-            List<Candlestick> recentCandlesticks = candlesticks.subList(kSize - dataSize, kSize);
+        // List<Candlestick> candlesticks = stockIndicator.getCandlesticks();
+        // if (null != candlesticks && !candlesticks.isEmpty()) {
+        //     // 最近K线
+        //     int kSize = candlesticks.size();
+        //     int dataSize = Math.min(kSize, 30);
+        //     List<Candlestick> recentCandlesticks = candlesticks.subList(kSize - dataSize, kSize);
 
-            Map<String, Object> data = new HashMap<>();
-            data.put("candlesticks", Lists.reverse(new ArrayList<>(recentCandlesticks)));
-            data.put("period", dataSize);
-            data.put("periodName", period.getName());
-            data.put("securityQuote", stockIndicator.getSecurityQuote());
+        //     Map<String, Object> data = new HashMap<>();
+        //     data.put("candlesticks", Lists.reverse(new ArrayList<>(recentCandlesticks)));
+        //     data.put("period", dataSize);
+        //     data.put("periodName", period.getName());
+        //     data.put("securityQuote", stockIndicator.getSecurityQuote());
 
-            String table = TemplateRenderer.render("data_candlesticks.ftl", data);
-            prompt.append(table).append("\n");
+        //     String table = TemplateRenderer.render("data_candlesticks.ftl", data);
+        //     prompt.append(table).append("\n");
 
-            // 最近技术指标表格
-            IndicatorDataFrame dataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, dataSize);
-            Map<String, Object> indicatorsData = new HashMap<>();
-            indicatorsData.put("dataFrame", dataFrame);
-            indicatorsData.put("period", dataSize);
-            indicatorsData.put("periodName", period.getName());
-            indicatorsData.put("securityQuote", stockIndicator.getSecurityQuote());
-            String indicatorsTable = TemplateRenderer.render("data_indicators.ftl", indicatorsData);
-            prompt.append(indicatorsTable).append("\n");
-        }
+        //     // 最近技术指标表格
+        //     IndicatorDataFrame dataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, dataSize);
+        //     Map<String, Object> indicatorsData = new HashMap<>();
+        //     indicatorsData.put("dataFrame", dataFrame);
+        //     indicatorsData.put("period", dataSize);
+        //     indicatorsData.put("periodName", period.getName());
+        //     indicatorsData.put("securityQuote", stockIndicator.getSecurityQuote());
+        //     String indicatorsTable = TemplateRenderer.render("data_indicators.ftl", indicatorsData);
+        //     prompt.append(indicatorsTable).append("\n");
+        // }
 
         // 过滤出推荐的数据
         List<Options> recommendedOptions = optionsChain.getOptionsList().stream()
