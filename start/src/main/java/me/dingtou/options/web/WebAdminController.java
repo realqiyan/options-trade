@@ -180,4 +180,16 @@ public class WebAdminController {
         boolean result = adminService.updateKnowledgeStatus(id, status);
         return WebResult.success(result);
     }
+    
+    /**
+     * 物理删除知识库
+     *
+     * @param id 知识库ID
+     * @return 是否删除成功
+     */
+    @RequestMapping(value = "/knowledge/delete", method = RequestMethod.POST)
+    public WebResult<Boolean> deleteKnowledge(@RequestParam("id") Long id) {
+        boolean result = adminService.deleteKnowledge(id);
+        return WebResult.success(result);
+    }
 }

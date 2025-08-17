@@ -86,4 +86,9 @@ public class AdminServiceImpl implements AdminService {
     public boolean updateKnowledgeStatus(Long id, Integer status) {
         return knowledgeManager.updateKnowledgeStatus(id, status);
     }
+    
+    @Override
+    public boolean deleteKnowledge(Long id) {
+        return knowledgeManager.deleteKnowledge(id);
+    }
 }

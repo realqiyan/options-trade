@@ -1018,11 +1018,10 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             // 删除
             layer.confirm('确定要删除该知识库吗？', function (index) {
                 $.ajax({
-                    url: '/admin/knowledge/status',
+                    url: '/admin/knowledge/delete',
                     type: 'POST',
                     data: {
-                        id: data.id,
-                        status: 0
+                        id: data.id
                     },
                     success: function (res) {
                         if (res.success) {
@@ -1109,12 +1108,11 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             let success = 0;
             data.forEach(function (item) {
                 $.ajax({
-                    url: '/admin/knowledge/status',
+                    url: '/admin/knowledge/delete',
                     type: 'POST',
                     async: false,
                     data: {
-                        id: item.id,
-                        status: 0
+                        id: item.id
                     },
                     success: function (res) {
                         count++;

@@ -113,4 +113,12 @@ public interface AdminService {
      * @return 是否更新成功
      */
     boolean updateKnowledgeStatus(Long id, Integer status);
+    
+    /**
+     * 物理删除知识库
+     *
+     * @param id 知识库ID
+     * @return 是否删除成功
+     */
+    boolean deleteKnowledge(Long id);
 }

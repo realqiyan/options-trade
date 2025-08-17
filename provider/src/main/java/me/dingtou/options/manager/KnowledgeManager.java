@@ -78,4 +78,14 @@ public class KnowledgeManager {
         return ownerKnowledgeDAO.update(null, updateWrapper) > 0;
     }
 
+    /**
+     * 物理删除知识库
+     *
+     * @param id ID
+     * @return 是否删除成功
+     */
+    public boolean deleteKnowledge(Long id) {
+        return ownerKnowledgeDAO.deleteById(id) > 0;
+    }
+
 }
