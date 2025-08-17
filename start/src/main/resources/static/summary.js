@@ -36,7 +36,7 @@ function strategyAnalysis(strategyId, strategyName) {
         layer.msg('策略ID不能为空');
         return;
     }
-    var prompt = `请帮我对策略:"${strategyName}"进行综合分析，策略ID："${strategyId}"，评估当前应该如何操作。`;
+    var prompt = `请帮我对策略:"${strategyName}"进行综合分析，策略ID："${strategyId}"，评估当前应该如何操作，帮我寻找交易机会。`;
     // 打开AI助手进行分析
     assistant(prompt, strategyName + "策略分析");
 }
