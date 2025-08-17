@@ -45,7 +45,7 @@ public class StrategySummary {
     private BigDecimal openOptionsQuantity;
 
     /**
-     * 平均Delta
+     * 策略平均每股Delta
      */
     private BigDecimal avgDelta;
 

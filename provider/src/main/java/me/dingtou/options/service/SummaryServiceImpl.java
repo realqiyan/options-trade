@@ -565,7 +565,7 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal strategyDelta = stockDelta.add(optionsDelta.multiply(lotSize));
         summary.setStrategyDelta(strategyDelta);
 
-        // avgDelta 未持股直接取期权整体Delta 否则取策略总Delta/持股数
+        // 策略平均每股Delta avgDelta 未持股直接取期权整体Delta 否则取策略总Delta/持股数
         BigDecimal avgDelta = BigDecimal.ZERO;
         if (holdStockNum != 0) {
             BigDecimal holdStockNumBigDecimal = BigDecimal.valueOf(holdStockNum);
