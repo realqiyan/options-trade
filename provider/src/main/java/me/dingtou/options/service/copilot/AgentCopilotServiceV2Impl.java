@@ -201,6 +201,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             final CountDownLatch latch = new CountDownLatch(1);
             // 切换模型
             StreamingChatModel model = needSummary.get() && null != summaryModel ? summaryModel : chatModel;
+            log.info("Title: {}  current iteration: {}  chatMessages size: {}", title, iteration, chatMessages.size());
             model.chat(chatMessages, new StreamingChatResponseHandler() {
                 @Override
                 public void onPartialResponse(String partialResponse) {
@@ -284,7 +285,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             // 使用过一次summary后切换成false
             needSummary.set(false);
             try {
-                latch.await(60, TimeUnit.SECONDS);
+                latch.await();
             } catch (InterruptedException e) {
                 log.error("[Agent] 模型请求中断, sessionId={}", sessionId);
             }
