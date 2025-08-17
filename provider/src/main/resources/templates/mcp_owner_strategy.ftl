@@ -5,7 +5,7 @@
 <#list ownerSummary.strategySummaries as item>
 ### ${ item.strategy.strategyName }
 - 策略ID: ${ item.strategy.strategyId }
-- 策略代码: ${ item.strategy.strategyCode }
+- 期权策略: ${ item.strategy.getOptionsStrategy().getName() }
 - 策略标的: ${ item.strategy.code }
 - 当前股价: $${ item.currentStockPrice }
 

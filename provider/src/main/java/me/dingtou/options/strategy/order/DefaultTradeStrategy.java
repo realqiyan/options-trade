@@ -43,17 +43,17 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
 
         String sideName = TradeSide.of(order.getSide()).getName();
 
-        OptionsStrategy strategy = OptionsStrategy.of(summary.getStrategy().getStrategyCode());
+        OptionsStrategy strategy = summary.getStrategy().getOptionsStrategy();
 
         prompt.append("我在").append(dateTimeFormat.format(order.getTradeTime())).append(sideName).append(order.getCode())
-                .append("，行权日期为").append(dateFormat.format(order.getStrikeTime()))
-                .append("，行权价为").append(OwnerOrder.strikePrice(order))
-                .append("，").append(sideName).append("价格为").append(order.getPrice())
-                .append("，").append(sideName).append("数量为").append(order.getQuantity())
-                .append("，当前价格为").append(order.getExtValue(OrderExt.CUR_PRICE))
-                .append("，当前股票价格为").append(stockIndicator.getSecurityQuote().getLastDone())
-                .append("，现在时间是").append(dateTimeFormat.format(new Date()))
-                .append("，当前使用的策略是").append(strategy.getName())
+                .append("，行权日期为：").append(dateFormat.format(order.getStrikeTime()))
+                .append("，行权价为：").append(OwnerOrder.strikePrice(order))
+                .append("，").append(sideName).append("价格为：").append(order.getPrice())
+                .append("，").append(sideName).append("数量为：").append(order.getQuantity())
+                .append("，当前价格为：").append(order.getExtValue(OrderExt.CUR_PRICE))
+                .append("，当前股票价格为：").append(stockIndicator.getSecurityQuote().getLastDone())
+                .append("，现在时间是：").append(dateTimeFormat.format(new Date()))
+                .append("，当前使用的期权策略是：").append(strategy.getName())
                 .append("，策略ID：").append(summary.getStrategy().getStrategyId())
                 .append("，策略Delta：").append(summary.getStrategyDelta())
                 .append("，请给我一些交易建议。");

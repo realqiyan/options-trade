@@ -2,8 +2,9 @@
 
 ## 策略信息
 - 策略ID: ${strategySummary.strategy.strategyId!''}
+- 期权策略: ${strategySummary.strategy.getOptionsStrategy().getName() }
 - 策略名称: ${strategySummary.strategy.strategyName!''}
-- 策略Delta: ${strategySummary.strategyDelta!''} (看多比例:${strategySummary.avgDelta!''})
+- 策略Delta: ${strategySummary.strategyDelta!''} (策略整体单位Delta:${strategySummary.avgDelta!''})
 - 策略盈利: $${strategySummary.allIncome!''}
 - 期权盈利: $${strategySummary.allOptionsIncome!''}
 - 持有股票: ${strategySummary.holdStockNum!''}

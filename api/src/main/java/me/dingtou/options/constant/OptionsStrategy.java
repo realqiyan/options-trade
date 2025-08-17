@@ -5,11 +5,11 @@ import lombok.Getter;
 @Getter
 public enum OptionsStrategy {
 
-    CC_STRATEGY("cc_strategy", "Covered Call Strategy"),
+    CC_STRATEGY("cc_strategy", "备兑看涨策略(Covered Call Strategy)"),
 
     WHEEL_STRATEGY("wheel_strategy", "车轮策略(Wheel Strategy)"),
 
-    DEFAULT("default", "卖期权策略");
+    DEFAULT("default", "默认卖期权策略(Default Strategy)");
 
     private String code;
     private String name;
@@ -26,7 +26,7 @@ public enum OptionsStrategy {
                 return val;
             }
         }
-        throw new IllegalArgumentException(code + " not found.");
+        return DEFAULT;
     }
 
 }
