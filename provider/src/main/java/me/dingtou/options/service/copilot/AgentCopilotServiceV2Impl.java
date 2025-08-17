@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
@@ -233,27 +234,34 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                         latch.countDown();
                         return;
                     }
-                    List<ToolCallRequest> toolCalls = toolProcesser.parseToolRequest(owner, finalMsg);
-                    if (toolCalls == null || toolCalls.isEmpty()) {
-                        // 没有工具调用，也返回最终结果
-                        finalResponse.append(finalMsg);
-                        latch.countDown();
-                        return;
-                    }
 
                     // 调用工具
                     StringBuffer toolResultPrompt = new StringBuffer();
-                    for (ToolCallRequest toolCall : toolCalls) {
-                        String toolResult = null;
-                        if (toolCall.isSummary()) {
-                            needSummary.set(true);
-                            toolResult = "Yes";
-                        } else {
-                            // 调用MCP服务
-                            toolResult = toolProcesser.callTool(toolCall);
+                    try {
+                        List<ToolCallRequest> toolCalls = toolProcesser.parseToolRequest(owner, finalMsg);
+                        if (toolCalls == null || toolCalls.isEmpty()) {
+                            // 没有工具调用，也返回最终结果
+                            finalResponse.append(finalMsg);
+                            latch.countDown();
+                            return;
                         }
-                        // 构建工具调用结果提示
-                        toolResultPrompt.append(toolProcesser.buildResultPrompt(toolCall, toolResult));
+
+                        for (ToolCallRequest toolCall : toolCalls) {
+                            String toolResult = null;
+                            if (toolCall.isSummary()) {
+                                needSummary.set(true);
+                                toolResult = "Yes";
+                            } else {
+                                // 调用MCP服务
+                                toolResult = toolProcesser.callTool(toolCall);
+                            }
+                            // 构建工具调用结果提示
+                            toolResultPrompt.append(toolProcesser.buildResultPrompt(toolCall, toolResult));
+                        }
+                    } catch (Exception e) {
+                        log.error("ToolProcesser error: {}", e.getMessage(), e);
+                        // 工具调用异常也反馈给模型
+                        toolResultPrompt.append(e.getMessage());
                     }
 
                     // 保存工具调用结果
@@ -276,7 +284,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             // 使用过一次summary后切换成false
             needSummary.set(false);
             try {
-                latch.await();
+                latch.await(60, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.error("[Agent] 模型请求中断, sessionId={}", sessionId);
             }

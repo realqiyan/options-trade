@@ -66,7 +66,7 @@ public class ToolCallProcesser implements ToolProcesser {
                 toolCalls.add(toolCall);
             }
         } catch (Exception xmlException) {
-            log.error("Failed to parse use_mcp_tool from XML: {}", xmlException.getMessage());
+            throw new IllegalArgumentException("Failed to parse tool_call: " + xmlException.getMessage());
         }
         return toolCalls;
     }
