@@ -1,5 +1,6 @@
 // JS
 var currentStrategyId;
+var currentStrategySummary;
 var assistantWindow;
 var strategyList = []; // 存储策略列表
 
@@ -421,12 +422,14 @@ function getStrategyNameById(strategyId) {
 }
 
 // 策略分析功能
-function strategyAnalysis(strategyId, strategyName) {
-    if (!strategyId) {
-        layer.msg('策略ID不能为空');
+function currentStrategyAnalysis() {
+    if (!currentStrategySummary) {
+        layer.msg('策略不能为空');
         return;
     }
-    var prompt = `请帮我对策略:"${strategyName}"进行综合分析，策略ID："${strategyId}"，评估当前应该如何操作，帮我寻找交易机会。`;
+    var strategyName = currentStrategySummary.strategy.strategyName;
+    var prompt = currentStrategySummary.strategyPrompt;
+
     // 打开AI助手进行分析
     assistant(prompt, strategyName + "策略分析");
 }
@@ -457,18 +460,18 @@ function loadStrategyOrder(strategyId){
             strategyId: strategyId
           },
           success: function( response ) {
-            var result = response.data;
-            if (!result) {
+            currentStrategySummary = response.data;
+            if (!currentStrategySummary) {
                 layer.msg('获取策略数据失败');
                 return;
             }
             
             // 使用laytpl渲染模板
-            layui.laytpl(document.getElementById('summary').innerHTML).render(result, function(html){
+            layui.laytpl(document.getElementById('summary').innerHTML).render(currentStrategySummary, function(html){
                 document.getElementById('title').innerHTML = html;
             });
             
-            renderTable(result);
+            renderTable(currentStrategySummary);
           },
           error: function() {
             layer.msg('获取策略数据失败');

@@ -119,4 +119,8 @@ public class StrategySummary {
      */
     private Map<String, OwnerOrderGroup> orderGroups;
 
+    /**
+     * 策略分析提示词
+     */
+    private String strategyPrompt;
 }

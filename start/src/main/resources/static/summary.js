@@ -31,12 +31,11 @@ function assistant(prompt, title) {
 }
 
 // 策略分析功能
-function strategyAnalysis(strategyId, strategyName) {
-    if (!strategyId) {
-        layer.msg('策略ID不能为空');
+function strategyAnalysis(strategyName, prompt) {
+    if (!strategyName) {
+        layer.msg('策略不能为空');
         return;
     }
-    var prompt = `请帮我对策略:"${strategyName}"进行综合分析，策略ID："${strategyId}"，评估当前应该如何操作，帮我寻找交易机会。`;
     // 打开AI助手进行分析
     assistant(prompt, strategyName + "策略分析");
 }
@@ -254,7 +253,7 @@ function renderOrderTable(orderList){
             }
         } else if (obj.event === 'strategyAnalysis') {
             if(data.ext && data.ext.strategyId) {
-                strategyAnalysis(data.ext.strategyId, data.ext.strategyName);
+                strategyAnalysis(data.ext.strategyName, data.ext.strategyPrompt);
             } else {
                 layer.msg('没有可分析的数据');
             }

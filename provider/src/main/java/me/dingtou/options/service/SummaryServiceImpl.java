@@ -107,6 +107,7 @@ public class SummaryServiceImpl implements SummaryService {
                     .forEach(order -> {
                         order.setExtValue(OrderExt.STRATEGY_ID, strategySummary.getStrategy().getStrategyId());
                         order.setExtValue(OrderExt.STRATEGY_NAME, strategySummary.getStrategy().getStrategyName());
+                        order.setExtValue(OrderExt.STRATEGY_PROMPT, strategySummary.getStrategyPrompt());
                         unrealizedOrders.add(order);
                     });
 
@@ -605,7 +606,8 @@ public class SummaryServiceImpl implements SummaryService {
             // 查询未平仓订单可以Roll的期权实时数据
             // 查询股票期权到期日
             Security currentSecurity = Security.of(order.getUnderlyingCode(), order.getMarket());
-            List<OptionsStrikeDate> optionsStrikeDates = optionsQueryManager.queryOptionsExpDate(order.getUnderlyingCode(),
+            List<OptionsStrikeDate> optionsStrikeDates = optionsQueryManager.queryOptionsExpDate(
+                    order.getUnderlyingCode(),
                     order.getMarket());
             List<Options> allExistsOptions = new ArrayList<>();
             List<Security> optionsSecurityList = new ArrayList<>();
@@ -614,13 +616,15 @@ public class SummaryServiceImpl implements SummaryService {
             if (null != weekStrikeDate) {
                 List<Security> weekOptionsSecurityList = getRollOptionsSecurity(order, weekStrikeDate);
                 optionsSecurityList.addAll(weekOptionsSecurityList);
-                allExistsOptions.addAll(optionsQueryManager.queryAllOptions(currentSecurity, weekStrikeDate.toString()));
+                allExistsOptions
+                        .addAll(optionsQueryManager.queryAllOptions(currentSecurity, weekStrikeDate.toString()));
             }
             LocalDate monthStrikeDate = getNextMonthOptionsStrikeDate(optionsStrikeDates, order);
             if (null != monthStrikeDate) {
                 List<Security> monthOptionsSecurityList = getRollOptionsSecurity(order, monthStrikeDate);
                 optionsSecurityList.addAll(monthOptionsSecurityList);
-                allExistsOptions.addAll(optionsQueryManager.queryAllOptions(currentSecurity, monthStrikeDate.toString()));
+                allExistsOptions
+                        .addAll(optionsQueryManager.queryAllOptions(currentSecurity, monthStrikeDate.toString()));
             }
             // 过滤存在的期权
             optionsSecurityList = filterExistsOptions(optionsSecurityList, allExistsOptions);
@@ -629,9 +633,21 @@ public class SummaryServiceImpl implements SummaryService {
                     .queryOptionsRealtimeData(optionsSecurityList);
             order.setExtValue(OrderExt.ROLL_OPTIONS, optionsRealtimeDataList);
             CandlestickPeriod klinePeriod = me.dingtou.options.util.AccountExtUtils.getKlinePeriod(account);
-            StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security, klinePeriod, 30);
+            StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security, klinePeriod,
+                    30);
             defaultOrderTradeStrategy.calculate(account, order, stockIndicator);
         }
+
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("请帮我对策略：").append(ownerStrategy.getStrategyName()).append(" 进行综合分析。\n")
+                .append("策略ID：").append(ownerStrategy.getStrategyId())
+                .append("，期权策略：").append(ownerStrategy.getOptionsStrategy().getName())
+                .append("，策略整体Delta：").append(summary.getStrategyDelta())
+                .append("，策略平均每股Delta：").append(summary.getAvgDelta())
+                .append("，请结合期权策略、期权策略订单等信息，给我一些交易建议。");
+
+        // 生成策略分析提示词
+        summary.setStrategyPrompt(prompt.toString());
 
         return summary;
     }

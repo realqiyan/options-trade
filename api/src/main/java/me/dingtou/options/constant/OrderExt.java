@@ -59,6 +59,11 @@ public enum OrderExt {
     STRATEGY_NAME("strategyName", String.class),
 
     /**
+     * 策略分析提示词
+     */
+    STRATEGY_PROMPT("strategyPrompt", String.class),
+
+    /**
      * 可以Roll的期权实时数据
      */
     ROLL_OPTIONS("rollOptions", List.class),
