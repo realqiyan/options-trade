@@ -50,7 +50,7 @@ public class OwnerQueryMcpService {
         return TemplateRenderer.render("mcp_owner_strategy.ftl", data);
     }
 
-    @Tool(description = "查询用户所有持仓明细，包含用户所持有的股票和期权信息。返回结果包括证券代码、证券名称、持仓数量、可卖数量、成本价、当前价。对于期权持仓，数量为负数时表示卖出期权合约。")
+    @Tool(description = "查询用户账户所有持仓明细，包含用户账户下所有策略所持有的股票和期权信息汇总。返回结果包括证券代码、证券名称、持仓数量、可卖数量、成本价、当前价。对于期权持仓，数量为负数时表示卖出期权合约。")
     public String queryPosition(@ToolParam(required = true, description = "用户Token") String ownerCode) {
         String owner = authService.decodeOwner(ownerCode);
         if (null == owner) {

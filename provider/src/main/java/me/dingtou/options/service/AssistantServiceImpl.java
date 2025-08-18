@@ -32,8 +32,6 @@ import org.springframework.stereotype.Service;
 public class AssistantServiceImpl implements AssistantService {
 
     @Autowired
-    private AuthService authService;
-    @Autowired
     private OwnerManager ownerManager;
     @Autowired
     private OwnerChatRecordDAO ownerChatRecordDAO;

@@ -92,10 +92,14 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         initMcpServer(account);
 
         // 构建包含MCP工具描述的系统提示词
-        String firstMessage = buildSystemPrompt(account, ownerCode, message.getContent());
-        Message agentMessage = new Message("user", firstMessage);
+        String sysMsg = buildSystemPrompt(account, ownerCode);
+        Message systemMessage = new Message("system", sysMsg);
+        saveChatRecord(owner, sessionId, title, systemMessage);
 
-        work(account, title, agentMessage, callback, failCallback, sessionId, new ArrayList<>());
+        String userMsg = buildContinuePrompt(owner, ownerCode, message.getContent());
+        Message userMessage = new Message("user", userMsg);
+
+        work(account, title, userMessage, callback, failCallback, sessionId, List.of(systemMessage));
 
         return sessionId;
     }
@@ -179,7 +183,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             List<Message> historyMessages) {
 
         // 最大循环次数防止无限循环
-        int maxIterations = 10;
+        int maxIterations = 15;
         int iteration = 0;
 
         List<ChatMessage> chatMessages = LlmUtils.convertMessage(historyMessages);
@@ -339,12 +343,10 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
      * 
      * @param account   账户
      * @param ownerCode 账户编码
-     * @param content   内容
      * @return 系统Prompt
      */
-    private String buildSystemPrompt(OwnerAccount account, String ownerCode, String content) {
+    private String buildSystemPrompt(OwnerAccount account, String ownerCode) {
         Map<String, Object> data = new HashMap<>();
-        data.put("task", content);
         data.put("ownerCode", ownerCode);
         data.put("time", DateUtils.currentTime());
 
