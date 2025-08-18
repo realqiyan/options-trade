@@ -110,7 +110,7 @@ public class WebAIController {
                                 escapeHtml(msg);
                                 connect.send(msg);
                             } catch (IOException e) {
-                                log.error("send message error", e);
+                                log.error("send message error:", e.getMessage());
                             }
                             return null;
                         }, msg -> {
@@ -118,7 +118,7 @@ public class WebAIController {
                                 escapeHtml(msg);
                                 connect.send(msg);
                             } catch (IOException e) {
-                                log.error("send message error", e);
+                                log.error("send message error:", e.getMessage());
                             }
                             return null;
                         });
@@ -165,7 +165,7 @@ public class WebAIController {
                                 escapeHtml(msg);
                                 connect.send(msg);
                             } catch (IOException e) {
-                                log.error("send message error", e);
+                                log.error("send message error:", e.getMessage());
                             }
                             return null;
                         }, msg -> {
@@ -173,7 +173,7 @@ public class WebAIController {
                                 escapeHtml(msg);
                                 connect.send(msg);
                             } catch (IOException e) {
-                                log.error("send message error", e);
+                                log.error("send message error:", e.getMessage());
                             }
                             return null;
                         });
