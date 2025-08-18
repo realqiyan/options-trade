@@ -67,6 +67,7 @@ For each function call, return a json object with function name and arguments wi
 <#list strategies as strategy>
 <strategy>
 <strategy_name>${strategy.title}</strategy_name>
+<strategy_description>${strategy.description}</strategy_description>
 <strategy_content>
 ${strategy.content}
 </strategy_content>
