@@ -121,4 +121,13 @@ public interface AdminService {
      * @return 是否删除成功
      */
     boolean deleteKnowledge(Long id);
+    
+    /**
+     * 根据类型查询知识库
+     *
+     * @param owner 所有者
+     * @param type  类型
+     * @return 知识库列表
+     */
+    List<OwnerKnowledge> listKnowledgesByType(String owner, Integer type);
 }

@@ -192,4 +192,17 @@ public class WebAdminController {
         boolean result = adminService.deleteKnowledge(id);
         return WebResult.success(result);
     }
+    
+    /**
+     * 根据类型查询知识库
+     *
+     * @param type 类型
+     * @return 知识库列表
+     */
+    @RequestMapping(value = "/knowledge/listByType", method = RequestMethod.GET)
+    public WebResult<List<OwnerKnowledge>> listKnowledgesByType(@RequestParam("type") Integer type) {
+        String owner = SessionUtils.getCurrentOwner();
+        List<OwnerKnowledge> knowledges = adminService.listKnowledgesByType(owner, type);
+        return WebResult.success(knowledges);
+    }
 }

@@ -326,6 +326,30 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                         }
                     });
 
+                    // 加载策略代码列表
+                    $.ajax({
+                        url: '/admin/knowledge/listByType?type=1',
+                        type: 'GET',
+                        success: function (res) {
+                            if (res.success) {
+                                var strategyList = res.data;
+                                var strategySelect = $('select[name="strategyCode"]');
+                                strategySelect.empty();
+                                strategySelect.append('<option value="">请选择策略代码</option>');
+                                $.each(strategyList, function (index, item) {
+                                    strategySelect.append('<option value="' + item.code + '">' + item.title + '</option>');
+                                });
+                                form.render('select');
+                            } else {
+                                layer.msg('加载策略代码列表失败：' + res.message, {icon: 2});
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('加载策略代码列表请求失败：', error);
+                            layer.msg('加载策略代码列表请求失败，请检查网络连接', {icon: 2});
+                        }
+                    });
+
                     // 监听策略代码选择变化
                     form.on('select(strategyCode)', function(data){
                         toggleStrategyConfig(data.value);

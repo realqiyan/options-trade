@@ -91,4 +91,9 @@ public class AdminServiceImpl implements AdminService {
     public boolean deleteKnowledge(Long id) {
         return knowledgeManager.deleteKnowledge(id);
     }
+    
+    @Override
+    public List<OwnerKnowledge> listKnowledgesByType(String owner, Integer type) {
+        return knowledgeManager.listKnowledgesByType(owner, type);
+    }
 }
