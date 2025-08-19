@@ -23,6 +23,7 @@ import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
 import me.dingtou.options.manager.IndicatorManager;
+import me.dingtou.options.manager.KnowledgeManager;
 import me.dingtou.options.manager.OptionsQueryManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
@@ -30,6 +31,7 @@ import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerOrderGroup;
 import me.dingtou.options.model.OwnerPosition;
@@ -62,6 +64,9 @@ public class SummaryServiceImpl implements SummaryService {
 
     @Autowired
     private IndicatorManager indicatorManager;
+
+    @Autowired
+    private KnowledgeManager knowledgeManager;
 
     @Autowired
     private SecurityQuoteGateway securityQuoteGateway;
@@ -329,6 +334,10 @@ public class SummaryServiceImpl implements SummaryService {
         StrategySummary summary = new StrategySummary();
 
         summary.setStrategy(ownerStrategy);
+
+        OwnerKnowledge optionsStrategy = knowledgeManager.getKnowledgeByOwnerAndCode(owner,
+                ownerStrategy.getStrategyCode());
+        summary.setOptionsStrategy(optionsStrategy);
 
         // 订单列表
         List<OwnerOrder> ownerOrders = ownerManager.queryStrategyOrder(ownerStrategy);
@@ -641,7 +650,7 @@ public class SummaryServiceImpl implements SummaryService {
         StringBuilder prompt = new StringBuilder();
         prompt.append("请帮我对策略：").append(ownerStrategy.getStrategyName()).append(" 进行综合分析。\n")
                 .append("策略ID：").append(ownerStrategy.getStrategyId())
-                .append("，期权策略：").append(ownerStrategy.getOptionsStrategy().getName())
+                .append("，期权策略：").append(optionsStrategy.getTitle())
                 .append("，策略整体Delta：").append(summary.getStrategyDelta())
                 .append("，策略平均每股Delta：").append(summary.getAvgDelta())
                 .append("，请结合期权策略、期权策略订单等信息，给我一些交易建议。");

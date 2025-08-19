@@ -2,7 +2,6 @@ package me.dingtou.options.strategy.order;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import me.dingtou.options.constant.OptionsStrategy;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.model.OwnerAccount;
@@ -53,7 +52,7 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
                 .append("，当前股票价格为：").append(stockIndicator.getSecurityQuote().getLastDone())
                 .append("，现在时间是：").append(dateTimeFormat.format(new Date()))
                 .append("，策略ID：").append(summary.getStrategy().getStrategyId())
-                .append("，期权策略：").append(summary.getStrategy().getOptionsStrategy().getName())
+                .append("，期权策略：").append(summary.getOptionsStrategy().getTitle())
                 .append("，策略整体Delta：").append(summary.getStrategyDelta())
                 .append("，策略平均每股Delta：").append(summary.getAvgDelta())
                 .append("。请结合期权策略、股票趋势等信息，帮我分析当前订单如何处理。订单是继续持有，还是进行Roll，或是平仓，给我一些指导。");

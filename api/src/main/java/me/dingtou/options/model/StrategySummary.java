@@ -20,6 +20,11 @@ public class StrategySummary {
     private OwnerStrategy strategy;
 
     /**
+     * 期权策略知识
+     */
+    private OwnerKnowledge optionsStrategy;
+
+    /**
      * 策略总体Delta
      */
     private BigDecimal strategyDelta;

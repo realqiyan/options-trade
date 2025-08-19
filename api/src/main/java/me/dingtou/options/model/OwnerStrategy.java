@@ -3,7 +3,6 @@ package me.dingtou.options.model;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
-import me.dingtou.options.constant.OptionsStrategy;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -90,7 +89,4 @@ public class OwnerStrategy {
         ext.put(extKey.getKey(), value);
     }
 
-    public OptionsStrategy getOptionsStrategy() {
-        return OptionsStrategy.of(strategyCode);
-    }
 }
