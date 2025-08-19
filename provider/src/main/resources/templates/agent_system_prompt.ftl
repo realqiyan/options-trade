@@ -56,26 +56,11 @@ For each function call, return a json object with function name and arguments wi
 
 通过每次使用工具后等待并仔细考虑用户的回应，你能够做出相应反应，并就如何继续任务做出明智决策。这种迭代过程有助于确保工作的整体成功和准确性。
 
-# 期权策略
+# 期权策略要求
 
-用户咨询期权相关的问题时，优先参考在 <strategies></strategies> XML标签内提供的期权策略。
-**注意：不同期权策略之间的要求和指标不要混淆！**
-<strategies>
-<#if useSystemStrategies??>
-<#include "config_default_strategies.ftl" encoding="UTF-8" parse=true>
-</#if>
-<#if strategies??>
-<#list strategies as strategy>
-<strategy>
-<strategy_name>${strategy.title}</strategy_name>
-<strategy_description>${strategy.description}</strategy_description>
-<strategy_content>
-${strategy.content}
-</strategy_content>
-</strategy>
-</#list>
-</#if>
-</strategies>
+1. 用户咨询期权相关的问题时，优先查询用户使用的期权策略规则。
+2. 优先从用户的咨询中获取期权策略Code，如果没有明确指定，请查询用户所有期权策略规则。
+
 
 <#if rules??>
 # 附加规则

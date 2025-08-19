@@ -1,6 +1,7 @@
 package me.dingtou.options.config;
 
 import me.dingtou.options.service.mcp.DataQueryMcpService;
+import me.dingtou.options.service.mcp.KnowledgeMcpService;
 import me.dingtou.options.service.mcp.OwnerQueryMcpService;
 
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -21,6 +22,13 @@ public class McpConfiguration {
 	public ToolCallbackProvider ownerQueryTools(OwnerQueryMcpService ownerQueryMcpService) {
 		return MethodToolCallbackProvider.builder()
 				.toolObjects(ownerQueryMcpService)
+				.build();
+	}
+
+	@Bean
+	public ToolCallbackProvider knowledgeTools(KnowledgeMcpService knowledgeMcpService) {
+		return MethodToolCallbackProvider.builder()
+				.toolObjects(knowledgeMcpService)
 				.build();
 	}
 

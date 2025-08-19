@@ -1,0 +1,45 @@
+package me.dingtou.options.service.mcp;
+
+import java.util.*;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import me.dingtou.options.manager.KnowledgeManager;
+import me.dingtou.options.model.OwnerKnowledge;
+import me.dingtou.options.model.OwnerKnowledge.KnowledgeType;
+import me.dingtou.options.service.AuthService;
+import me.dingtou.options.util.TemplateRenderer;
+
+@Service
+public class KnowledgeMcpService {
+
+    @Autowired
+    private AuthService authService;
+
+    @Autowired
+    private KnowledgeManager knowledgeManager;
+
+    @Tool(description = "查询用户期权策略规则，指定期权策略编码时查询指定的期权策略规则详情，不指定时查询所有。")
+    public String queryAllStrategy(@ToolParam(required = true, description = "用户Token") String ownerCode,
+            @ToolParam(required = false, description = "期权策略编码") String strategyCode) {
+        String owner = authService.decodeOwner(ownerCode);
+        if (null == owner) {
+            return "用户编码信息不正确或已经过期";
+        }
+        List<OwnerKnowledge> knowledges = knowledgeManager.listKnowledgesByType(ownerCode,
+                KnowledgeType.OPTIONS_STRATEGY.getCode());
+        if (StringUtils.isNotBlank(strategyCode)) {
+            knowledges = knowledges.stream().filter(e -> strategyCode.equals(e.getCode())).toList();
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("knowledges", knowledges);
+        // 渲染模板
+        return TemplateRenderer.render("mcp_strategy_rule.ftl", data);
+    }
+
+}

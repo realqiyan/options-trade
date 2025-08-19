@@ -650,6 +650,7 @@ public class SummaryServiceImpl implements SummaryService {
         StringBuilder prompt = new StringBuilder();
         prompt.append("请帮我对策略：").append(ownerStrategy.getStrategyName()).append(" 进行综合分析。\n")
                 .append("策略ID：").append(ownerStrategy.getStrategyId())
+                .append("期权策略Code：").append(ownerStrategy.getStrategyCode())
                 .append("，期权策略：").append(optionsStrategy.getTitle())
                 .append("，策略整体Delta：").append(summary.getStrategyDelta())
                 .append("，策略平均每股Delta：").append(summary.getAvgDelta())

@@ -52,6 +52,7 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
                 .append("，当前股票价格为：").append(stockIndicator.getSecurityQuote().getLastDone())
                 .append("，现在时间是：").append(dateTimeFormat.format(new Date()))
                 .append("，策略ID：").append(summary.getStrategy().getStrategyId())
+                .append("，期权策略Code：").append(summary.getStrategy().getStrategyCode())
                 .append("，期权策略：").append(summary.getOptionsStrategy().getTitle())
                 .append("，策略整体Delta：").append(summary.getStrategyDelta())
                 .append("，策略平均每股Delta：").append(summary.getAvgDelta())
