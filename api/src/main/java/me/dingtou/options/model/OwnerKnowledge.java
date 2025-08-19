@@ -25,6 +25,11 @@ public class OwnerKnowledge implements Serializable {
     private String owner;
 
     /**
+     * 编码
+     */
+    private String code;
+
+    /**
      * 标题
      */
     private String title;

@@ -33,4 +33,14 @@ public interface OwnerKnowledgeDAO extends BaseMapper<OwnerKnowledge> {
     @Select("SELECT * FROM owner_knowledge WHERE owner = #{owner} AND type = #{type}")
     List<OwnerKnowledge> queryByOwnerAndType(@Param("owner") String owner, @Param("type") Integer type);
 
+    /**
+     * 根据所有者和编码查询知识库
+     *
+     * @param owner 所有者
+     * @param code  编码
+     * @return 知识库
+     */
+    @Select("SELECT * FROM owner_knowledge WHERE owner = #{owner} AND code = #{code}")
+    OwnerKnowledge queryByOwnerAndCode(@Param("owner") String owner, @Param("code") String code);
+
 }

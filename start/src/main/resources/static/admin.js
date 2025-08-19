@@ -941,8 +941,8 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
         url: '/admin/knowledge/list',
         cols: [[
             {type: 'checkbox', fixed: 'left'},
-            {field: 'id', title: 'ID', width: 200, sort: true},
-            {field: 'title', title: '标题', width: 200},
+            {field: 'code', title: '编码', width: 160},
+            {field: 'title', title: '标题', width: 260},
             {field: 'type', title: '类型', width: 150, templet: function(d) {
                 if (d.type === 'OPTION_STRATEGY' || d.type === 1) {
                     return '期权策略知识';
@@ -951,11 +951,11 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                 }
                 return d.type;
             }},
-            {field: 'description', title: '描述', width: 300},
+            {field: 'description', title: '描述', width: 380},
             {field: 'status', title: '状态', width: 100, templet: function(d) {
                 return d.status === 1 ? '<span style="color: green;">启用</span>' : '<span style="color: red;">禁用</span>';
             }},
-            {field: 'createTime', title: '创建时间', width: 180},
+            {field: 'createTime', title: '创建时间', width: 180, sort: true},
             {fixed: 'right', title: '操作', toolbar: '#knowledgeTableBar', width: 200}
         ]],
         page: true,
