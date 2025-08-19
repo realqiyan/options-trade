@@ -2,7 +2,8 @@
 
 ## 策略信息
 - 策略ID: ${strategySummary.strategy.strategyId!''}
-- 期权策略: ${strategySummary.strategy.getOptionsStrategy().getName() }
+- 期权策略Code: ${ strategySummary.strategy.strategyCode!'' }
+- 期权策略: ${strategySummary.getOptionsStrategy().getTitle() }
 - 策略名称: ${strategySummary.strategy.strategyName!''}
 - 策略整体Delta: ${strategySummary.strategyDelta!''}
 - 策略平均每股Delta: ${strategySummary.avgDelta!''}

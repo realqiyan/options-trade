@@ -69,7 +69,7 @@ public class OwnerQueryMcpService {
         return TemplateRenderer.render("mcp_owner_position.ftl", data);
     }
 
-    @Tool(description = "查询用户指定策略详细信息和策略的所有订单。返回结果包括策略信息（策略ID、策略名称、策略Delta、策略盈利、期权盈利、持有股票数量、当前股价、股票支出、持股盈亏、希腊字母等）和订单明细（标的代码、证券代码、类型、价格、数量、订单收益、订单费用、行权时间、交易时间、状态、订单号、是否平仓等）。")
+    @Tool(description = "查询用户指定策略ID详细和策略的所有订单。返回结果包括：策略ID、策略名称、策略Delta、策略盈利、期权盈利、持有股票数量、当前股价、股票支出、持股盈亏、希腊字母。以及所有订单明细：标的代码、证券代码、类型、价格、数量、订单收益、订单费用、行权时间、交易时间、状态、订单号、是否平仓等。")
     public String queryStrategyDetailAndOrders(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "策略ID") String strategyId) {
         String owner = authService.decodeOwner(ownerCode);
