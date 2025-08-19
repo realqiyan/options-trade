@@ -276,6 +276,38 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                     // 先渲染表单
                     form.render();
 
+                    // 加载标的列表和策略代码列表
+                    var loadDataCount = 0;
+                    var loadDataSuccess = 0;
+                    
+                    function checkLoadComplete() {
+                        loadDataCount++;
+                        if (loadDataCount === 2) {
+                            // 所有数据加载完成后再设置表单值
+                            form.val('strategyForm', data);
+
+                            // 处理ext字段中的wheel_sellput_strike_price
+                            if (data.ext && typeof data.ext === 'object' && data.ext.wheel_sellput_strike_price) {
+                                $('input[name="sellPutStrikePrice"]').val(data.ext.wheel_sellput_strike_price);
+                            }
+
+                            // 处理ext字段中的initial_stock_num
+                            if (data.ext && typeof data.ext === 'object' && data.ext.initial_stock_num) {
+                                $('input[name="initialStockNum"]').val(data.ext.initial_stock_num);
+                            }
+
+                            // 处理ext字段中的initial_stock_cost
+                            if (data.ext && typeof data.ext === 'object' && data.ext.initial_stock_cost) {
+                                $('input[name="initialStockCost"]').val(data.ext.initial_stock_cost);
+                            }
+
+                            // 根据策略代码显示或隐藏特定配置
+                            toggleStrategyConfig(data.strategyCode);
+
+                            form.render('select');
+                        }
+                    }
+
                     // 加载标的列表
                     $.ajax({
                         url: '/admin/security/list',
@@ -289,40 +321,17 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                                 $.each(securityList, function (index, item) {
                                     securitySelect.append('<option value="' + item.code + '">' + item.code + ' - ' + item.name + '</option>');
                                 });
-
-                                // 设置表单值
-                                form.val('strategyForm', data);
-
-                                // 处理ext字段中的wheel_sellput_strike_price
-                                if (data.ext && typeof data.ext === 'object' && data.ext.wheel_sellput_strike_price) {
-                                    $('input[name="sellPutStrikePrice"]').val(data.ext.wheel_sellput_strike_price);
-                                }
-
-                                // 处理ext字段中的initial_stock_num
-                                if (data.ext && typeof data.ext === 'object' && data.ext.initial_stock_num) {
-                                    $('input[name="initialStockNum"]').val(data.ext.initial_stock_num);
-                                }
-
-                                // 处理ext字段中的initial_stock_cost
-                                if (data.ext && typeof data.ext === 'object' && data.ext.initial_stock_cost) {
-                                    $('input[name="initialStockCost"]').val(data.ext.initial_stock_cost);
-                                }
-
-                                // 根据策略代码显示或隐藏特定配置
-                                toggleStrategyConfig(data.strategyCode);
-
                                 form.render('select');
+                                checkLoadComplete();
                             } else {
                                 layer.msg('加载标的列表失败：' + res.message, {icon: 2});
-                                // 仍然设置表单值
-                                form.val('strategyForm', data);
+                                checkLoadComplete();
                             }
                         },
                         error: function(xhr, status, error) {
                             console.error('加载标的列表请求失败：', error);
                             layer.msg('加载标的列表请求失败，请检查网络连接', {icon: 2});
-                            // 仍然设置表单值
-                            form.val('strategyForm', data);
+                            checkLoadComplete();
                         }
                     });
 
@@ -335,18 +344,21 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                                 var strategyList = res.data;
                                 var strategySelect = $('select[name="strategyCode"]');
                                 strategySelect.empty();
-                                strategySelect.append('<option value="">请选择策略代码</option>');
+                                strategySelect.append('<option value="">请在【知识库管理】添加期权策略知识</option>');
                                 $.each(strategyList, function (index, item) {
                                     strategySelect.append('<option value="' + item.code + '">' + item.title + '</option>');
                                 });
                                 form.render('select');
+                                checkLoadComplete();
                             } else {
                                 layer.msg('加载策略代码列表失败：' + res.message, {icon: 2});
+                                checkLoadComplete();
                             }
                         },
                         error: function(xhr, status, error) {
                             console.error('加载策略代码列表请求失败：', error);
                             layer.msg('加载策略代码列表请求失败，请检查网络连接', {icon: 2});
+                            checkLoadComplete();
                         }
                     });
 
