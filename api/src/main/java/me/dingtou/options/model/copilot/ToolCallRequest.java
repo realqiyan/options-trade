@@ -1,31 +1,30 @@
 package me.dingtou.options.model.copilot;
 
+import java.util.Map;
+
 import lombok.Data;
 
 @Data
-public abstract class ToolCallRequest {
+public class ToolCallRequest {
 
     /**
      * 内置的总结工具
      */
-    String SUMMARY_TOOL = "common.summary";
+    public static final String SUMMARY_TOOL = "common.summary";
 
-    /**
-     * owner
-     */
-    private String owner;
 
     /**
      * 工具名称
      */
-    private String tool;
+    private String name;
 
-    public ToolCallRequest(String owner, String tool) {
-        this.owner = owner;
-        this.tool = tool;
-    }
+    /**
+     * 参数
+     */
+    private Map<String, Object> arguments;
 
-    public boolean isSummary() {
-        return SUMMARY_TOOL.equals(this.tool);
+    public ToolCallRequest(String name, Map<String, Object> arguments) {
+        this.name = name;
+        this.arguments = arguments;
     }
 }

@@ -12,7 +12,6 @@ import com.google.genai.types.Content;
 import com.google.genai.types.Part;
 
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.openai.OpenAiChatModel;
 import io.reactivex.rxjava3.core.Flowable;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.AccountExt;
@@ -20,7 +19,8 @@ import me.dingtou.options.dao.OwnerChatRecordDAO;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
-import me.dingtou.options.util.AccountExtUtils;
+import me.dingtou.options.util.LlmUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -154,7 +154,7 @@ public class AssistantServiceImpl implements AssistantService {
 
         try {
             String name = "generate_title";
-            ChatModel chatModel = buildChatModel(ownerAccount);
+            ChatModel chatModel = LlmUtils.buildChatModel(ownerAccount, false);
 
             // 构建流式ChatModel
             LlmAgent titleAgent = LlmAgent.builder()
@@ -171,32 +171,10 @@ public class AssistantServiceImpl implements AssistantService {
                     .blockingGet();
             Content userMsg = Content.fromParts(Part.fromText(message));
             Flowable<Event> events = runner.runAsync(owner, session.id(), userMsg);
-            return events.blockingFirst().stringifyContent();
+            return LlmUtils.filterThink(events.blockingFirst().stringifyContent());
         } catch (Exception e) {
             log.error("生成会话标题失败 message:{}", e.getMessage(), e);
             return "";
         }
-    }
-
-    /**
-     * 构建流式ChatModel
-     * 
-     * @param account 账户信息
-     * @return 大模型对象
-     */
-    private ChatModel buildChatModel(OwnerAccount account) {
-        String baseUrl = AccountExtUtils.getAiBaseUrl(account);
-        String model = AccountExtUtils.getAiApiModel(account);
-        String apiKey = AccountExtUtils.getAiApiKey(account);
-        Double temperature = Double.parseDouble(AccountExtUtils.getAiApiTemperature(account));
-
-        return OpenAiChatModel.builder()
-                .baseUrl(baseUrl)
-                .apiKey(apiKey)
-                .modelName(model)
-                .temperature(temperature)
-                .logRequests(true)
-                .logResponses(true)
-                .build();
     }
 }

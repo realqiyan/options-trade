@@ -45,6 +45,7 @@ public class McpToolProcesser implements ToolProcesser {
         return content.contains("<use_mcp_tool>");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<ToolCallRequest> parseToolRequest(String owner, String content) {
         // 尝试解析use_mcp_tool
@@ -57,7 +58,8 @@ public class McpToolProcesser implements ToolProcesser {
                 String serverName = matcher.group(1).trim();
                 String toolName = matcher.group(2).trim();
                 String argsContent = matcher.group(3).trim();
-                toolCall = new McpToolCallRequest(owner, serverName, toolName, argsContent);
+                Map<String, Object> argsMap = JSON.parseObject(argsContent, Map.class);
+                toolCall = new McpToolCallRequest(owner, serverName, toolName, argsMap);
                 log.info("Find Tool {} -> {}", serverName, toolName);
                 toolCalls.add(toolCall);
             }
@@ -67,7 +69,7 @@ public class McpToolProcesser implements ToolProcesser {
         return toolCalls;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({ "unchecked" })
     @Override
     public String callTool(ToolCallRequest toolCallRequest) {
         if (!(toolCallRequest instanceof McpToolCallRequest)) {
@@ -79,8 +81,7 @@ public class McpToolProcesser implements ToolProcesser {
             McpSyncClient client = McpUtils.getMcpClient(mcpToolCallRequest.getOwner(),
                     mcpToolCallRequest.getServerName());
 
-            String arguments = mcpToolCallRequest.getArguments();
-            Map params = JSON.parseObject(arguments, Map.class);
+            Map params = mcpToolCallRequest.getArguments();
 
             CallToolResult result = client.callTool(new CallToolRequest(mcpToolCallRequest.getToolName(), params));
             TextContent content = (TextContent) result.content().get(0);
@@ -88,7 +89,7 @@ public class McpToolProcesser implements ToolProcesser {
 
             log.info("callTool {}.{} -> result: {}",
                     mcpToolCallRequest.getServerName(),
-                    mcpToolCallRequest.getTool(),
+                    mcpToolCallRequest.getName(),
                     jsonText);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -103,7 +104,7 @@ public class McpToolProcesser implements ToolProcesser {
         } catch (Exception e) {
             log.error("Failed to call server: {} tool: {} arguments: {} error: {}",
                     mcpToolCallRequest.getServerName(),
-                    mcpToolCallRequest.getTool(),
+                    mcpToolCallRequest.getName(),
                     mcpToolCallRequest.getArguments(),
                     e.getMessage(), e);
             return "调用工具失败:" + e.getMessage();

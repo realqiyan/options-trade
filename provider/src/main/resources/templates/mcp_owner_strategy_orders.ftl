@@ -28,3 +28,9 @@
 <#else>
 暂无订单
 </#if>
+
+<#if includeStrategyRule?? && includeStrategyRule>
+## ${strategySummary.getOptionsStrategy().getTitle() }规则
+
+${strategySummary.getOptionsStrategy().getContent()}
+</#if>

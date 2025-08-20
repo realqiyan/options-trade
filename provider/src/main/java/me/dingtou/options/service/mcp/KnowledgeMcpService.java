@@ -23,7 +23,7 @@ public class KnowledgeMcpService {
     @Autowired
     private KnowledgeManager knowledgeManager;
 
-    @Tool(description = "查询用户期权策略规则。指定期权策略编码时查询指定的期权策略规则详情，不指定时查询所有。")
+    @Tool(description = "查询期权策略规则。指定期权策略Code时查询指定的期权策略规则详情，不指定时查询所有期权策略规则。")
     public String queryStrategyRule(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = false, description = "期权策略Code") String strategyCode) {
         String owner = authService.decodeOwner(ownerCode);

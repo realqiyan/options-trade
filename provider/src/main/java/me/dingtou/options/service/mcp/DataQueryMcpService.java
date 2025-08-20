@@ -75,7 +75,7 @@ public class DataQueryMcpService {
         }
     }
 
-    @Tool(description = "查询指定日期期权链，根据股票代码、市场代码、到期日查询股票对应的期权数据。返回结果包括期权代码、类型(Call/Put)、行权价、当前价格、隐含波动率、Delta、Theta、Gamma、未平仓合约数、当天交易量等信息。")
+    @Tool(description = "查询指定日期期权链，根据股票代码、市场代码、到期日查（到期日请使用查询期权到期日工具获取）询股票对应的期权数据。返回结果包括期权代码、类型(Call/Put)、行权价、当前价格、隐含波动率、Delta、Theta、Gamma、未平仓合约数、当天交易量等信息。")
     public String queryOptionsChain(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
@@ -104,12 +104,12 @@ public class DataQueryMcpService {
         }
     }
 
-    @Tool(description = "查询股票K线数据（日K或周K），根据股票代码code、市场代码market、K线类型(日K或周K)periodCode、K线数量count，查询股票对应K线数据。返回结果包括{count}条K线数据，数据内容：日期、开盘价、收盘价、最高价、最低价、成交量、成交额。")
+    @Tool(description = "查询股票K线数据（日K或周K），根据股票代码code、市场代码market、K线类型(日K或周K)periodCode、K线数量count（最多90条），查询股票对应K线数据。返回结果包括{count}条K线数据，数据内容：日期、开盘价、收盘价、最高价、最低价、成交量、成交额。")
     public String queryStockCandlesticks(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
             @ToolParam(required = true, description = "K线类型 1000:日K 2000:周K") Integer periodCode,
-            @ToolParam(required = true, description = "K线数量") Integer count) {
+            @ToolParam(required = true, description = "K线数量（最多90条）") Integer count) {
         String owner = authService.decodeOwner(ownerCode);
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
@@ -132,12 +132,12 @@ public class DataQueryMcpService {
         }
     }
 
-    @Tool(description = "查询股票的MA、BOLL、MACD、RSI技术指标，根据股票代码code、市场代码market、K线类型periodCode(日K或周K)、数量count，查询股票技术指标。返回结果近{count}条数据，内容包括：date、boll lower、boll middle、boll upper、ema20、ema5、ema50、macd、macd dea、macd dif、rsi。")
+    @Tool(description = "查询股票的MA、BOLL、MACD、RSI技术指标，根据股票代码code、市场代码market、K线类型periodCode(日K或周K)、数量count（最多90条），查询股票技术指标。返回结果近{count}条数据，内容包括：date、boll lower、boll middle、boll upper、ema20、ema5、ema50、macd、macd dea、macd dif、rsi。")
     public String queryStockIndicator(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
             @ToolParam(required = true, description = "指标周期 1000:日 2000:周") Integer periodCode,
-            @ToolParam(required = true, description = "指标数量") Integer count) {
+            @ToolParam(required = true, description = "指标数量（最多90条）") Integer count) {
         String owner = authService.decodeOwner(ownerCode);
         if (null == owner) {
             return "用户编码信息不正确或已经过期";

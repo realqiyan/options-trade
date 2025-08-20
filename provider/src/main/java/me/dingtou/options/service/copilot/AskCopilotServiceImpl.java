@@ -135,7 +135,7 @@ public class AskCopilotServiceImpl implements CopilotService {
         saveChatRecord(owner, sessionId, title, newMessage);
         chatMessages.add(LlmUtils.convertMessage(newMessage));
 
-        StreamingChatModel chatModel = LlmUtils.buildChatModel(account, false);
+        StreamingChatModel chatModel = LlmUtils.buildStreamingChatModel(account, false);
 
         String messageId = "assistant" + System.currentTimeMillis();
 

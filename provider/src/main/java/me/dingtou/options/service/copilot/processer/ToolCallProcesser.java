@@ -48,30 +48,57 @@ public class ToolCallProcesser implements ToolProcesser {
     public List<ToolCallRequest> parseToolRequest(String owner, String content) {
         List<ToolCallRequest> toolCalls = new ArrayList<>();
         try {
-            ToolCallRequest toolCall = null;
             java.util.regex.Matcher matcher = pattern.matcher(content);
             while (matcher.find()) {
                 String callFunc = matcher.group(1).trim();
-                // {"name": <function-name>, "arguments": <args-json-object>}
-                JSONObject jsonObject = JSON.parseObject(callFunc);
-                String name = jsonObject.getString("name");
-                String arguments = jsonObject.getString("arguments");
+                /**
+                 * <tool_call>
+                 * {"name": "Tool name", "parameters": {"Parameter name": "Parameter content"}},
+                 * </tool_call>
+                 * </tool_call>
+                 * [
+                 * {"name": "Tool name", "parameters": {"Parameter name": "Parameter content"}},
+                 * {"name": "...", "parameters": {"...": "...", "...": "..."}},
+                 * ...
+                 * ]
+                 * </tool_call>
+                 */
 
-                int index = name.indexOf(".");
-                String serverName = name.substring(0, index);
-                String toolName = name.substring(index + 1);
-
-                toolCall = new McpToolCallRequest(owner, serverName, toolName, arguments);
-                log.info("Find Tool {} -> {}", serverName, toolName);
-                toolCalls.add(toolCall);
+                // Check if it's an array of tool calls
+                if (callFunc.startsWith("[")) {
+                    // Handle multiple tool calls
+                    List<JSONObject> jsonObjects = JSON.parseArray(callFunc, JSONObject.class);
+                    for (JSONObject jsonObject : jsonObjects) {
+                        toolCalls.add(createToolCall(owner, jsonObject));
+                    }
+                } else {
+                    // Handle single tool call
+                    JSONObject jsonObject = JSON.parseObject(callFunc);
+                    toolCalls.add(createToolCall(owner, jsonObject));
+                }
             }
         } catch (Exception xmlException) {
+            log.error("Failed to parse tool_call: {}", content, xmlException);
             throw new IllegalArgumentException("Failed to parse tool_call: " + xmlException.getMessage());
         }
         return toolCalls;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings("unchecked")
+    private ToolCallRequest createToolCall(String owner, JSONObject jsonObject) {
+        String name = jsonObject.getString("name");
+        Map<String, Object> arguments = jsonObject.getObject("arguments", Map.class);
+
+        int index = name.indexOf(".");
+        String serverName = name.substring(0, index);
+        String toolName = name.substring(index + 1);
+
+        ToolCallRequest toolCall = new McpToolCallRequest(owner, serverName, toolName, arguments);
+        log.info("Find Tool {} -> {}", serverName, toolName);
+        return toolCall;
+    }
+
+    @SuppressWarnings({ "unchecked" })
     @Override
     public String callTool(ToolCallRequest toolCallRequest) {
         if (!(toolCallRequest instanceof McpToolCallRequest)) {
@@ -83,8 +110,7 @@ public class ToolCallProcesser implements ToolProcesser {
             McpSyncClient client = McpUtils.getMcpClient(mcpToolCallRequest.getOwner(),
                     mcpToolCallRequest.getServerName());
 
-            String arguments = mcpToolCallRequest.getArguments();
-            Map params = JSON.parseObject(arguments, Map.class);
+            Map params = mcpToolCallRequest.getArguments();
 
             CallToolResult result = client.callTool(new CallToolRequest(mcpToolCallRequest.getToolName(), params));
             TextContent content = (TextContent) result.content().get(0);
@@ -92,7 +118,7 @@ public class ToolCallProcesser implements ToolProcesser {
 
             log.info("callTool {}.{} -> result: {}",
                     mcpToolCallRequest.getServerName(),
-                    mcpToolCallRequest.getTool(),
+                    mcpToolCallRequest.getName(),
                     jsonText);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -107,7 +133,7 @@ public class ToolCallProcesser implements ToolProcesser {
         } catch (Exception e) {
             log.error("Failed to call server: {} tool: {} arguments: {} error: {}",
                     mcpToolCallRequest.getServerName(),
-                    mcpToolCallRequest.getTool(),
+                    mcpToolCallRequest.getName(),
                     mcpToolCallRequest.getArguments(),
                     e.getMessage(), e);
             return "调用工具失败:" + e.getMessage();
