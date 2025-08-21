@@ -100,7 +100,7 @@ public class DataQueryMcpService {
             return TemplateRenderer.render("mcp_options_chain.ftl", data);
         } catch (Exception e) {
             log.error("查询期权链失败，code={}, market={}, strikeDate={}", code, market, strikeDate, e);
-            return "查询期权链失败，请稍后再试。";
+            return String.format("查询 %s %s 的期权链失败，请先确认已经查询期权到期日。", code, strikeDate);
         }
     }
 

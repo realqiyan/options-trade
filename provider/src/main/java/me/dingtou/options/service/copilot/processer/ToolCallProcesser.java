@@ -34,7 +34,9 @@ import me.dingtou.options.util.TemplateRenderer;
 @Slf4j
 public class ToolCallProcesser implements ToolProcesser {
 
-    private static final Pattern pattern = Pattern.compile("<tool_call>([\\s\\S]*?)</tool_call>", Pattern.DOTALL);
+    private static final String TOOL_CALL = "tool_call";
+
+    private static final Pattern TOOL_CALL_PATTERN = Pattern.compile("<tool_call>([\\s\\S]*?)</tool_call>", Pattern.DOTALL);
 
     @Override
     public boolean support(String content) {
@@ -48,7 +50,7 @@ public class ToolCallProcesser implements ToolProcesser {
     public List<ToolCallRequest> parseToolRequest(String owner, String content) {
         List<ToolCallRequest> toolCalls = new ArrayList<>();
         try {
-            java.util.regex.Matcher matcher = pattern.matcher(content);
+            java.util.regex.Matcher matcher = TOOL_CALL_PATTERN.matcher(content);
             while (matcher.find()) {
                 String callFunc = matcher.group(1).trim();
                 /**
@@ -87,6 +89,12 @@ public class ToolCallProcesser implements ToolProcesser {
     @SuppressWarnings("unchecked")
     private ToolCallRequest createToolCall(String owner, JSONObject jsonObject) {
         String name = jsonObject.getString("name");
+        // 兼容大模型返回嵌套模式：[{"arguments":{"name":"common.summary","arguments":{}},"name":"tool_call"}]
+        if (TOOL_CALL.equals(name)) {
+            jsonObject = jsonObject.getJSONObject("arguments");
+            name = jsonObject.getString("name");
+        }
+
         Map<String, Object> arguments = jsonObject.getObject("arguments", Map.class);
 
         int index = name.indexOf(".");

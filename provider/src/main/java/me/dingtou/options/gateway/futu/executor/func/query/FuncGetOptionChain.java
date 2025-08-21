@@ -131,6 +131,9 @@ public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
         if (null == resp || 0 != resp.getRetType()) {
             throw new RuntimeException(resp != null ? resp.getRetMsg() : "QotGetOptionChain error");
         }
+        if (resp.getS2C().getOptionChainList().isEmpty()) {
+            return Collections.emptyList();
+        }
         QotGetOptionChain.OptionChain optionChain = resp.getS2C().getOptionChainList().iterator().next();
 
         return convert(optionChain);

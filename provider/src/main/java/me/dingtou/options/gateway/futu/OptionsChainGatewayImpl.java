@@ -102,7 +102,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
         List<Options> optionsList = QueryExecutor
                 .query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
         if (null == optionsList || optionsList.isEmpty()) {
-            throw new RuntimeException("FuncGetOptionChain result null");
+            throw new RuntimeException(String.format("未查询到 %s %s 的期权链", security.getCode(), strikeTime));
         }
 
         OptionsChain optionsChain = new OptionsChain(security, strikeTime);

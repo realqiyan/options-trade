@@ -69,10 +69,9 @@ public class OwnerQueryMcpService {
         return TemplateRenderer.render("mcp_owner_position.ftl", data);
     }
 
-    @Tool(description = "通过策略ID查询策略详细，其中包含策略当前情况和策略订单明细，同时也可以请求查询策略使用的期权策略规则。策略详细字段信息包括：策略ID、策略名称、策略Delta、策略盈利、期权盈利、持有股票数量、当前股价、股票支出、持股盈亏、希腊字母。订单明细字段包含：标的代码、证券代码、类型、价格、数量、订单收益、订单费用、行权时间、交易时间、状态、订单号、是否平仓等。")
+    @Tool(description = "通过策略ID查询策略详细，其中包含策略当前情况和策略订单明细。策略详细信息包括：策略ID、策略名称、策略Delta、策略盈利、期权盈利、持有股票数量、当前股价、股票支出、持股盈亏、希腊字母。订单明细包含：标的代码、证券代码、类型、价格、数量、订单收益、订单费用、行权时间、交易时间、状态、订单号、是否平仓等。")
     public String queryStrategyDetailAndOrders(@ToolParam(required = true, description = "用户Token") String ownerCode,
-            @ToolParam(required = true, description = "策略ID") String strategyId,
-            @ToolParam(required = true, description = "是否包含期权策略规则") boolean includeStrategyRule) {
+            @ToolParam(required = true, description = "策略ID") String strategyId) {
         String owner = authService.decodeOwner(ownerCode);
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
@@ -87,7 +86,7 @@ public class OwnerQueryMcpService {
         // 准备模板数据
         Map<String, Object> data = new HashMap<>();
         data.put("strategySummary", strategySummary);
-        data.put("includeStrategyRule", includeStrategyRule);
+        data.put("includeStrategyRule", false);
         data.put("orders", strategySummary.getStrategyOrders());
 
         // 渲染模板
