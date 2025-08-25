@@ -201,6 +201,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         final AtomicBoolean needSummary = new AtomicBoolean(false);
         while (iteration++ < maxIterations && finalResponse.isEmpty()) {
             final StringBuffer returnMessage = new StringBuffer();
+            final StringBuffer reasoningMessage = new StringBuffer();
             String messageId = "assistant" + System.currentTimeMillis();
             final CountDownLatch latch = new CountDownLatch(1);
             // 切换模型
@@ -215,6 +216,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
 
                 @Override
                 public void onPartialThinking(PartialThinking partialThinking) {
+                    reasoningMessage.append(partialThinking.text());
                     Message thinkingMessage = new Message();
                     thinkingMessage.setMessageId(messageId);
                     thinkingMessage.setRole("assistant");
@@ -236,6 +238,9 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
 
                     Message assistantMessage = new Message("assistant", finalMsg);
                     assistantMessage.setMessageId(messageId);
+                    if (!reasoningMessage.isEmpty()) {
+                        assistantMessage.setReasoningContent(reasoningMessage.toString());
+                    }
                     saveChatRecord(owner, sessionId, title, assistantMessage);
                     chatMessages.add(new AiMessage(finalMsg));
 
@@ -288,7 +293,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                     return;
                 }
 
-                @SuppressWarnings("unchecked")
+                @SuppressWarnings({ "unchecked", "rawtypes" })
                 private String convertToolCall(List<ToolExecutionRequest> toolExecutionRequests) {
                     if (null == toolExecutionRequests || toolExecutionRequests.isEmpty()) {
                         return "<tool_call>[]</tool_call>";
@@ -340,7 +345,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                 title,
                 message.getRole(),
                 message.getContent(),
-                "");
+                message.getReasoningContent());
         record.setMessageId(message.getMessageId());
         assistantService.addChatRecord(owner, sessionId, record);
     }
