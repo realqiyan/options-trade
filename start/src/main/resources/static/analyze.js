@@ -23,11 +23,19 @@ function setUrlParam(name, value) {
     window.history.pushState({}, '', url);
 }
 
-function filterStrategyByCode(jsonArray, code) {
-    return jsonArray.filter(item => item.code === code);
+function filterStrategyByCode(strategyList, code) {
+    // 过滤掉状态为suspend的策略
+    strategyList = strategyList.filter(function(strategy) {
+        return strategy.stage !== 'suspend';
+    });
+    return strategyList.filter(item => item.code === code);
 }
-function filterStrategyById(jsonArray, strategyId) {
-    return jsonArray.filter(item => item.strategyId === strategyId);
+function filterStrategyById(strategyList, strategyId) {
+    // 过滤掉状态为suspend的策略
+    strategyList = strategyList.filter(function(strategy) {
+        return strategy.stage !== 'suspend';
+    });
+    return strategyList.filter(item => item.strategyId === strategyId);
 }
 function strategySelect(code,strategyId){
     currentStrategyId = strategyId;

@@ -493,6 +493,10 @@ function reloadData(){
         }
         
         strategyList = result.strategyList;
+        // 过滤掉状态为suspend的策略
+        strategyList = strategyList.filter(function(strategy) {
+            return strategy.stage !== 'suspend';
+        });
         
         // 获取URL中的strategyId参数
         var urlStrategyId = getUrlParam('strategyId');

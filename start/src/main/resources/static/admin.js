@@ -8,6 +8,194 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
     const util = layui.util;
     const element = layui.element;
 
+    // 公共函数区域
+    const CommonUtils = {
+        // 加载标的列表
+        loadSecurityList: function(selectElementId, callback) {
+            $.ajax({
+                url: '/admin/security/list',
+                type: 'GET',
+                success: function (res) {
+                    if (res.success) {
+                        var securityList = res.data;
+                        var securitySelect = $(selectElementId);
+                        securitySelect.empty();
+                        securitySelect.append('<option value="">请选择标的代码</option>');
+                        $.each(securityList, function (index, item) {
+                            securitySelect.append('<option value="' + item.code + '">' + item.code + ' - ' + item.name + '</option>');
+                        });
+                        form.render('select');
+                        if (callback) callback(true);
+                    } else {
+                        layer.msg('加载标的列表失败：' + res.message, {icon: 2});
+                        if (callback) callback(false);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('加载标的列表请求失败：', error);
+                    layer.msg('加载标的列表请求失败，请检查网络连接', {icon: 2});
+                    if (callback) callback(false);
+                }
+            });
+        },
+
+        // 加载策略代码列表
+        loadStrategyList: function(callback) {
+            $.ajax({
+                url: '/admin/knowledge/listByType?type=1',
+                type: 'GET',
+                success: function (res) {
+                    if (res.success) {
+                        var strategyList = res.data;
+                        var strategySelect = $('select[name="strategyCode"]');
+                        strategySelect.empty();
+                        strategySelect.append('<option value="">请在【知识库管理】添加期权策略知识</option>');
+                        $.each(strategyList, function (index, item) {
+                            strategySelect.append('<option value="' + item.code + '">' + item.title + '</option>');
+                        });
+                        form.render('select');
+                        if (callback) callback(true);
+                    } else {
+                        layer.msg('加载策略代码列表失败：' + res.message, {icon: 2});
+                        if (callback) callback(false);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('加载策略代码列表请求失败：', error);
+                    layer.msg('加载策略代码列表请求失败，请检查网络连接', {icon: 2});
+                    if (callback) callback(false);
+                }
+            });
+        },
+
+        // 根据策略代码显示或隐藏特定配置
+        toggleStrategyConfig: function(strategyCode) {
+            if (strategyCode === 'wheel_strategy') {
+                $('#wheelStrategyConfig').show();
+            } else {
+                $('#wheelStrategyConfig').hide();
+                // 清空sellPutStrikePrice字段
+                $('input[name="sellPutStrikePrice"]').val('');
+            }
+        },
+
+        // 处理ext字段数据
+        processExtData: function(data) {
+            if (data.ext && typeof data.ext === 'object') {
+                if (data.ext.wheel_sellput_strike_price) {
+                    $('input[name="sellPutStrikePrice"]').val(data.ext.wheel_sellput_strike_price);
+                }
+                if (data.ext.initial_stock_num) {
+                    $('input[name="initialStockNum"]').val(data.ext.initial_stock_num);
+                }
+                if (data.ext.initial_stock_cost) {
+                    $('input[name="initialStockCost"]').val(data.ext.initial_stock_cost);
+                }
+            }
+        },
+
+        // 处理表单提交数据
+        processFormData: function(formData) {
+            // 处理ext字段
+            if (!formData.ext || formData.ext === '') {
+                formData.ext = {};
+            } else if (typeof formData.ext === 'string') {
+                try {
+                    formData.ext = JSON.parse(formData.ext);
+                } catch (e) {
+                    formData.ext = {};
+                }
+            }
+
+            // 处理车轮策略特有的配置
+            if (formData.strategyCode === 'wheel_strategy' && formData.sellPutStrikePrice) {
+                formData.ext.wheel_sellput_strike_price = formData.sellPutStrikePrice;
+            }
+
+            // 处理通用配置 - 初始股票数
+            if (formData.initialStockNum) {
+                formData.ext.initial_stock_num = formData.initialStockNum;
+            }
+
+            // 处理通用配置 - 初始股票成本价
+            if (formData.initialStockCost) {
+                formData.ext.initial_stock_cost = formData.initialStockCost;
+            }
+
+            // 删除临时字段
+            delete formData.sellPutStrikePrice;
+            delete formData.initialStockNum;
+            delete formData.initialStockCost;
+
+            return formData;
+        },
+
+        // 保存策略数据
+        saveStrategy: function(formData, layerIndex, tableInstance) {
+            $.ajax({
+                url: '/admin/strategy/save',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (res) {
+                    if (res.success) {
+                        layer.close(layerIndex);
+                        layer.msg('保存成功');
+                        tableInstance.reload();
+                    } else {
+                        layer.msg('保存失败：' + res.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('保存策略失败:', xhr.responseText);
+                    layer.msg('保存策略失败: ' + error);
+                }
+            });
+        },
+
+        // 初始化策略表单
+        initStrategyForm: function(isEdit, data, layerIndex, tableInstance) {
+            // 先渲染表单
+            form.render();
+
+            var loadDataCount = 0;
+            var totalLoads = 2;
+            
+            function checkLoadComplete() {
+                loadDataCount++;
+                if (loadDataCount === totalLoads) {
+                    if (isEdit && data) {
+                        // 编辑模式：设置表单值
+                        form.val('strategyForm', data);
+                        CommonUtils.processExtData(data);
+                        CommonUtils.toggleStrategyConfig(data.strategyCode);
+                    } else {
+                        // 新增模式：默认隐藏车轮策略配置
+                        $('#wheelStrategyConfig').hide();
+                    }
+                    form.render('select');
+                }
+            }
+
+            // 加载数据
+            CommonUtils.loadSecurityList('#securitySelect', checkLoadComplete);
+            CommonUtils.loadStrategyList(checkLoadComplete);
+
+            // 监听策略代码选择变化
+            form.on('select(strategyCode)', function(selectData){
+                CommonUtils.toggleStrategyConfig(selectData.value);
+            });
+
+            // 监听表单提交事件
+            form.on('submit(strategySubmit)', function (submitData) {
+                var processedData = CommonUtils.processFormData(submitData.field);
+                console.log('提交的数据:', JSON.stringify(processedData));
+                CommonUtils.saveStrategy(processedData, layerIndex, tableInstance);
+                return false;
+            });
+        }
+    };
+
     // 期权标的表格
     const securityTable = table.render({
         elem: '#securityTable',
@@ -273,197 +461,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                 area: ['500px', '600px'],
                 content: $('#strategyFormTpl').html(),
                 success: function (layero, index) {
-                    // 先渲染表单
-                    form.render();
-
-                    // 加载标的列表和策略代码列表
-                    var loadDataCount = 0;
-                    var loadDataSuccess = 0;
-                    
-                    function checkLoadComplete() {
-                        loadDataCount++;
-                        if (loadDataCount === 2) {
-                            // 所有数据加载完成后再设置表单值
-                            form.val('strategyForm', data);
-
-                            // 处理ext字段中的wheel_sellput_strike_price
-                            if (data.ext && typeof data.ext === 'object' && data.ext.wheel_sellput_strike_price) {
-                                $('input[name="sellPutStrikePrice"]').val(data.ext.wheel_sellput_strike_price);
-                            }
-
-                            // 处理ext字段中的initial_stock_num
-                            if (data.ext && typeof data.ext === 'object' && data.ext.initial_stock_num) {
-                                $('input[name="initialStockNum"]').val(data.ext.initial_stock_num);
-                            }
-
-                            // 处理ext字段中的initial_stock_cost
-                            if (data.ext && typeof data.ext === 'object' && data.ext.initial_stock_cost) {
-                                $('input[name="initialStockCost"]').val(data.ext.initial_stock_cost);
-                            }
-
-                            // 根据策略代码显示或隐藏特定配置
-                            toggleStrategyConfig(data.strategyCode);
-
-                            form.render('select');
-                        }
-                    }
-
-                    // 加载标的列表
-                    $.ajax({
-                        url: '/admin/security/list',
-                        type: 'GET',
-                        success: function (res) {
-                            if (res.success) {
-                                var securityList = res.data;
-                                var securitySelect = $('#securitySelect');
-                                securitySelect.empty();
-                                securitySelect.append('<option value="">请选择标的代码</option>');
-                                $.each(securityList, function (index, item) {
-                                    securitySelect.append('<option value="' + item.code + '">' + item.code + ' - ' + item.name + '</option>');
-                                });
-                                form.render('select');
-                                checkLoadComplete();
-                            } else {
-                                layer.msg('加载标的列表失败：' + res.message, {icon: 2});
-                                checkLoadComplete();
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('加载标的列表请求失败：', error);
-                            layer.msg('加载标的列表请求失败，请检查网络连接', {icon: 2});
-                            checkLoadComplete();
-                        }
-                    });
-
-                    // 加载策略代码列表
-                    $.ajax({
-                        url: '/admin/knowledge/listByType?type=1',
-                        type: 'GET',
-                        success: function (res) {
-                            if (res.success) {
-                                var strategyList = res.data;
-                                var strategySelect = $('select[name="strategyCode"]');
-                                strategySelect.empty();
-                                strategySelect.append('<option value="">请在【知识库管理】添加期权策略知识</option>');
-                                $.each(strategyList, function (index, item) {
-                                    strategySelect.append('<option value="' + item.code + '">' + item.title + '</option>');
-                                });
-                                form.render('select');
-                                checkLoadComplete();
-                            } else {
-                                layer.msg('加载策略代码列表失败：' + res.message, {icon: 2});
-                                checkLoadComplete();
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('加载策略代码列表请求失败：', error);
-                            layer.msg('加载策略代码列表请求失败，请检查网络连接', {icon: 2});
-                            checkLoadComplete();
-                        }
-                    });
-
-                    // 监听策略代码选择变化
-                    form.on('select(strategyCode)', function(data){
-                        toggleStrategyConfig(data.value);
-                    });
-
-                    // 根据策略代码显示或隐藏特定配置
-                    function toggleStrategyConfig(strategyCode) {
-                        if (strategyCode === 'wheel_strategy') {
-                            $('#wheelStrategyConfig').show();
-
-                            // 获取当前表单数据
-                            var formData = form.val('strategyForm');
-
-                            // 如果有ext数据，尝试从中提取wheel_sellput_strike_price和initial_stock_num
-                            if (formData.ext) {
-                                var extData;
-                                if (typeof formData.ext === 'string') {
-                                    try {
-                                        extData = JSON.parse(formData.ext);
-                                    } catch (e) {
-                                        console.error('解析ext数据失败', e);
-                                        extData = {};
-                                    }
-                                } else {
-                                    extData = formData.ext;
-                                }
-
-                                if (extData.wheel_sellput_strike_price) {
-                                    $('input[name="sellPutStrikePrice"]').val(extData.wheel_sellput_strike_price);
-                                }
-
-                                if (extData.initial_stock_num) {
-                                    $('input[name="initialStockNum"]').val(extData.initial_stock_num);
-                                }
-
-                                if (extData.initial_stock_cost) {
-                                    $('input[name="initialStockCost"]').val(extData.initial_stock_cost);
-                                }
-                            }
-                        } else {
-                            $('#wheelStrategyConfig').hide();
-                            // 清空sellPutStrikePrice字段
-                            $('input[name="sellPutStrikePrice"]').val('');
-                        }
-                    }
-
-                    // 监听表单提交事件
-                    form.on('submit(strategySubmit)', function (data) {
-                        // 处理ext字段
-                        if (!data.field.ext || data.field.ext === '') {
-                            data.field.ext = {};
-                        } else if (typeof data.field.ext === 'string') {
-                            try {
-                                data.field.ext = JSON.parse(data.field.ext);
-                            } catch (e) {
-                                data.field.ext = {};
-                            }
-                        }
-
-                        // 处理车轮策略特有的配置
-                        if (data.field.strategyCode === 'wheel_strategy' && data.field.sellPutStrikePrice) {
-                            data.field.ext.wheel_sellput_strike_price = data.field.sellPutStrikePrice;
-                        }
-
-                        // 处理通用配置 - 初始股票数
-                        if (data.field.initialStockNum) {
-                            data.field.ext.initial_stock_num = data.field.initialStockNum;
-                        }
-
-                        // 处理通用配置 - 初始股票成本价
-                        if (data.field.initialStockCost) {
-                            data.field.ext.initial_stock_cost = data.field.initialStockCost;
-                        }
-
-                        // 删除临时字段
-                        delete data.field.sellPutStrikePrice;
-                        delete data.field.initialStockNum;
-                        delete data.field.initialStockCost;
-
-                        console.log('提交的数据:', JSON.stringify(data.field));
-
-                        $.ajax({
-                            url: '/admin/strategy/save',
-                            type: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify(data.field),
-                            success: function (res) {
-                                if (res.success) {
-                                    layer.close(index);
-                                    layer.msg('保存成功');
-                                    strategyTable.reload();
-                                } else {
-                                    layer.msg('保存失败：' + res.message);
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                console.error('保存策略失败:', xhr.responseText);
-                                layer.msg('保存策略失败: ' + error);
-                            }
-                        });
-                        return false;
-                    });
+                    CommonUtils.initStrategyForm(true, data, index, strategyTable);
                 }
             });
         } else if (obj.event === 'delete') {
@@ -551,108 +549,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             area: ['500px', '600px'],
             content: $('#strategyFormTpl').html(),
             success: function (layero, index) {
-                // 先渲染表单
-                form.render();
-
-                // 加载标的列表
-                $.ajax({
-                    url: '/admin/security/list',
-                    type: 'GET',
-                    success: function (res) {
-                        if (res.success) {
-                            var securityList = res.data;
-                            var securitySelect = $('#securitySelect');
-                            securitySelect.empty();
-                            securitySelect.append('<option value="">请选择标的代码</option>');
-                            $.each(securityList, function (index, item) {
-                                securitySelect.append('<option value="' + item.code + '">' + item.code + ' - ' + item.name + '</option>');
-                            });
-                            form.render('select');
-
-                            // 默认隐藏车轮策略特有配置
-                            $('#wheelStrategyConfig').hide();
-
-                            // 监听策略代码选择变化
-                            form.on('select(strategyCode)', function(data){
-                                toggleStrategyConfig(data.value);
-                            });
-
-                            // 根据策略代码显示或隐藏特定配置
-                            function toggleStrategyConfig(strategyCode) {
-                                if (strategyCode === 'wheel_strategy') {
-                                    $('#wheelStrategyConfig').show();
-                                } else {
-                                    $('#wheelStrategyConfig').hide();
-                                    // 清空sellPutStrikePrice字段
-                                    $('input[name="sellPutStrikePrice"]').val('');
-                                }
-                            }
-                        } else {
-                            layer.msg('加载标的列表失败：' + res.message, {icon: 2});
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('加载标的列表请求失败：', error);
-                        layer.msg('加载标的列表请求失败，请检查网络连接', {icon: 2});
-                    }
-                });
-
-                // 监听表单提交事件
-                form.on('submit(strategySubmit)', function (data) {
-                    // 处理ext字段
-                    if (!data.field.ext || data.field.ext === '') {
-                        data.field.ext = {};
-                    } else if (typeof data.field.ext === 'string') {
-                        try {
-                            data.field.ext = JSON.parse(data.field.ext);
-                        } catch (e) {
-                            data.field.ext = {};
-                        }
-                    }
-
-                    // 处理车轮策略特有的配置
-                    if (data.field.strategyCode === 'wheel_strategy' && data.field.sellPutStrikePrice) {
-                        data.field.ext.wheel_sellput_strike_price = data.field.sellPutStrikePrice;
-                    }
-
-                    // 处理通用配置 - 初始股票数
-                    if (data.field.initialStockNum) {
-                        data.field.ext.initial_stock_num = data.field.initialStockNum;
-                    }
-
-                    // 处理通用配置 - 初始股票成本价
-                    if (data.field.initialStockCost) {
-                        data.field.ext.initial_stock_cost = data.field.initialStockCost;
-                    }
-
-                    // 删除临时字段
-                    delete data.field.sellPutStrikePrice;
-                    delete data.field.initialStockNum;
-                    delete data.field.initialStockCost;
-
-                    console.log('提交的数据:', JSON.stringify(data.field));
-
-                    $.ajax({
-                        url: '/admin/strategy/save',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify(data.field),
-                        success: function (res) {
-                            if (res.success) {
-                                layer.close(index);
-                                layer.msg('保存成功');
-                                strategyTable.reload();
-                            } else {
-                                layer.msg('保存失败：' + res.message);
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('保存策略失败:', xhr.responseText);
-                            layer.msg('保存策略失败: ' + error);
-                        }
-                    });
-                    return false;
-                });
+                CommonUtils.initStrategyForm(false, null, index, strategyTable);
             }
         });
     });
