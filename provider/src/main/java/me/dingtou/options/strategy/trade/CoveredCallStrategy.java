@@ -17,6 +17,20 @@ public class CoveredCallStrategy extends BaseTradeStrategy {
     void processData(OwnerAccount account,
             OptionsChain optionsChain,
             StrategySummary summary) {
+        optionsChain.getOptionsList().forEach(options -> {
+            OptionsRealtimeData realtimeData = options.getRealtimeData();
+            if (null != realtimeData) {
+                realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
+                realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
+            } else {
+                options.setRealtimeData(new OptionsRealtimeData());
+            }
+
+            if (options.getOptionExData().getType() == 2) {
+                options.getStrategyData().setRecommend(false);
+                options.getStrategyData().setRecommendLevel(0);
+            }
+        });
         return;
     }
 
@@ -41,7 +55,7 @@ public class CoveredCallStrategy extends BaseTradeStrategy {
         data.put("securityPrice", optionsChain.getStockIndicator().getSecurityQuote().getLastDone());
         data.put("vixIndicator", optionsChain.getVixIndicator());
         data.put("currentDate", new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
-        
+
         String promptStr = TemplateRenderer.render("trade_cc_strategy.ftl", data);
         return new StringBuilder(promptStr);
     }

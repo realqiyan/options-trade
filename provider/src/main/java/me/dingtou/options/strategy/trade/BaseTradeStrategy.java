@@ -68,7 +68,7 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
             strategyData.setSellAnnualYield(sellCallAnnualYield);
 
             // 是否推荐卖出
-            int level = 0;
+            int level = 1;
             OptionsRealtimeData realtimeData = options.getRealtimeData();
             if (null != realtimeData) {
                 BigDecimal delta = realtimeData.getDelta().abs();
@@ -83,7 +83,10 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
                 strategyData.setRecommendLevel(level);
                 // 成交量大于0 且 delta不为0
                 boolean noZero = realtimeData.getVolume() > 0 && !BigDecimal.ZERO.equals(realtimeData.getDelta());
-                strategyData.setRecommend(deltaRecommend && annualYieldRecommend && noZero);
+                if (!noZero) {
+                    level--;
+                }
+                strategyData.setRecommend(level > 0);
             }
 
             // 涨跌幅
@@ -117,34 +120,37 @@ public abstract class BaseTradeStrategy implements OptionsTradeStrategy {
         // StockIndicator stockIndicator = optionsChain.getStockIndicator();
         // CandlestickPeriod period = stockIndicator.getPeriod();
         // if (null == period) {
-        //     period = CandlestickPeriod.DAY;
+        // period = CandlestickPeriod.DAY;
         // }
 
         // List<Candlestick> candlesticks = stockIndicator.getCandlesticks();
         // if (null != candlesticks && !candlesticks.isEmpty()) {
-        //     // 最近K线
-        //     int kSize = candlesticks.size();
-        //     int dataSize = Math.min(kSize, 30);
-        //     List<Candlestick> recentCandlesticks = candlesticks.subList(kSize - dataSize, kSize);
+        // // 最近K线
+        // int kSize = candlesticks.size();
+        // int dataSize = Math.min(kSize, 30);
+        // List<Candlestick> recentCandlesticks = candlesticks.subList(kSize - dataSize,
+        // kSize);
 
-        //     Map<String, Object> data = new HashMap<>();
-        //     data.put("candlesticks", Lists.reverse(new ArrayList<>(recentCandlesticks)));
-        //     data.put("period", dataSize);
-        //     data.put("periodName", period.getName());
-        //     data.put("securityQuote", stockIndicator.getSecurityQuote());
+        // Map<String, Object> data = new HashMap<>();
+        // data.put("candlesticks", Lists.reverse(new ArrayList<>(recentCandlesticks)));
+        // data.put("period", dataSize);
+        // data.put("periodName", period.getName());
+        // data.put("securityQuote", stockIndicator.getSecurityQuote());
 
-        //     String table = TemplateRenderer.render("data_candlesticks.ftl", data);
-        //     prompt.append(table).append("\n");
+        // String table = TemplateRenderer.render("data_candlesticks.ftl", data);
+        // prompt.append(table).append("\n");
 
-        //     // 最近技术指标表格
-        //     IndicatorDataFrame dataFrame = IndicatorDataFrameUtil.createDataFrame(stockIndicator, dataSize);
-        //     Map<String, Object> indicatorsData = new HashMap<>();
-        //     indicatorsData.put("dataFrame", dataFrame);
-        //     indicatorsData.put("period", dataSize);
-        //     indicatorsData.put("periodName", period.getName());
-        //     indicatorsData.put("securityQuote", stockIndicator.getSecurityQuote());
-        //     String indicatorsTable = TemplateRenderer.render("data_indicators.ftl", indicatorsData);
-        //     prompt.append(indicatorsTable).append("\n");
+        // // 最近技术指标表格
+        // IndicatorDataFrame dataFrame =
+        // IndicatorDataFrameUtil.createDataFrame(stockIndicator, dataSize);
+        // Map<String, Object> indicatorsData = new HashMap<>();
+        // indicatorsData.put("dataFrame", dataFrame);
+        // indicatorsData.put("period", dataSize);
+        // indicatorsData.put("periodName", period.getName());
+        // indicatorsData.put("securityQuote", stockIndicator.getSecurityQuote());
+        // String indicatorsTable = TemplateRenderer.render("data_indicators.ftl",
+        // indicatorsData);
+        // prompt.append(indicatorsTable).append("\n");
         // }
 
         // 过滤出推荐的数据

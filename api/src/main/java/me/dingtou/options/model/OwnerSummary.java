@@ -29,6 +29,11 @@ public class OwnerSummary {
     private BigDecimal allHoldStockProfit;
 
     /**
+     * 股票支出总成本
+     */
+    private BigDecimal allTotalStockCost;
+
+    /**
      * 总手续费
      */
     private BigDecimal totalFee;
@@ -79,9 +84,9 @@ public class OwnerSummary {
     private BigDecimal putMarginOccupied;
 
     /**
-     * 持有股票总成本
+     * 持有股票总成本（持股占用）
      */
-    private BigDecimal totalStockCost;
+    private BigDecimal holdStockCost;
 
     /**
      * 可用资金

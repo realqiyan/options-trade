@@ -153,6 +153,8 @@
                         <br/>
                         <span class="income-label">股票盈亏:</span>
                         <span class="layui-badge">${{ d.allHoldStockProfit }}</span>
+                        <span class="income-label">股票支出:</span>
+                        <span class="layui-badge">${{ d.allTotalStockCost }}</span>
                     </div>
 
                 </div>
@@ -174,7 +176,7 @@
                         <span class="income-label">Put占用:</span>
                         <span class="layui-badge">${{= d.putMarginOccupied}}</span>
                         <span class="income-label">持股占用:</span>
-                        <span class="layui-badge">${{= d.totalStockCost}}</span>
+                        <span class="layui-badge">${{= d.holdStockCost}}</span>
                     </div>
                 </div>
             </div>
@@ -235,9 +237,6 @@
                     <div class="layui-colla-content">
                         <div class="layui-row">
                             <div class="layui-col-md12">
-                                <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" onclick="strategyAnalysis('{{ item.strategy.strategyId }}', '{{ item.strategy.strategyName }}')">
-                                    <i class="layui-icon layui-icon-form"></i> 当前策略分析
-                                </button>
                                 <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" onclick="goToStrategyOrders('{{ item.strategy.strategyId }}')">
                                     <i class="layui-icon layui-icon-form"></i> 查看订单详情
                                 </button>

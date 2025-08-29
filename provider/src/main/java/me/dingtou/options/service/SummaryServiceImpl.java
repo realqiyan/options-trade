@@ -84,6 +84,7 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal allHoldStockProfit = BigDecimal.ZERO;
         BigDecimal allOpenOptionsQuantity = BigDecimal.ZERO;
         BigDecimal allIncome = BigDecimal.ZERO;
+        BigDecimal allTotalStockCost = BigDecimal.ZERO;
 
         List<OwnerStrategy> ownerStrategies = ownerManager.queryOwnerStrategy(owner);
         List<StrategySummary> strategySummaries = new CopyOnWriteArrayList<>();
@@ -118,9 +119,10 @@ public class SummaryServiceImpl implements SummaryService {
 
             allHoldStockProfit = allHoldStockProfit.add(strategySummary.getHoldStockProfit());
             allIncome = allIncome.add(strategySummary.getAllIncome());
+            allTotalStockCost = allTotalStockCost.add(strategySummary.getTotalStockCost());
             allOpenOptionsQuantity = allOpenOptionsQuantity.add(strategySummary.getOpenOptionsQuantity());
         }
-
+        ownerSummary.setAllTotalStockCost(allTotalStockCost);
         ownerSummary.setAllOptionsIncome(allOptionsIncome);
         ownerSummary.setTotalFee(totalFee);
         ownerSummary.setUnrealizedOptionsIncome(unrealizedOptionsIncome);
@@ -178,29 +180,29 @@ public class SummaryServiceImpl implements SummaryService {
                 OwnerStrategy strategy = strategySummary.getStrategy();
                 int initialStockNum = Integer.parseInt(strategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
                 BigDecimal averageStockCost = strategySummary.getAverageStockCost();
-                BigDecimal totalStockCost = averageStockCost.multiply(new BigDecimal(initialStockNum));
-                initStockAccountSize = initStockAccountSize.add(totalStockCost);
+                BigDecimal holdStockCost = averageStockCost.multiply(new BigDecimal(initialStockNum));
+                initStockAccountSize = initStockAccountSize.add(holdStockCost);
             }
             accountSize = accountSize.add(initStockAccountSize);
             ownerSummary.setAccountSize(accountSize);
 
             // 计算PUT订单保证金占用和持有股票总成本
             BigDecimal putMarginOccupied = BigDecimal.ZERO;
-            BigDecimal totalStockCost = BigDecimal.ZERO;
+            BigDecimal holdStockCost = BigDecimal.ZERO;
             for (StrategySummary strategySummary : strategySummaries) {
                 putMarginOccupied = putMarginOccupied.add(strategySummary.getPutMarginOccupied());
-                totalStockCost = totalStockCost.add(strategySummary.getTotalStockCost());
+                holdStockCost = holdStockCost.add(strategySummary.getTotalStockCost());
             }
             ownerSummary.setPutMarginOccupied(putMarginOccupied);
             // 计算持有股票总成本(初始股票扣除)
-            ownerSummary.setTotalStockCost(totalStockCost.add(initStockAccountSize));
+            ownerSummary.setHoldStockCost(holdStockCost.add(initStockAccountSize));
 
             // 计算可用资金
             BigDecimal availableFunds = accountSize.subtract(putMarginOccupied)
-                    .subtract(totalStockCost)
+                    .subtract(holdStockCost)
                     .subtract(initStockAccountSize);
             ownerSummary.setAvailableFunds(availableFunds);
-            ownerSummary.setTotalInvestment(putMarginOccupied.add(totalStockCost));
+            ownerSummary.setTotalInvestment(putMarginOccupied.add(holdStockCost));
 
             // 计算未平仓订单的头寸占比
             for (OwnerOrder order : ownerSummary.getUnrealizedOrders()) {
@@ -381,23 +383,21 @@ public class SummaryServiceImpl implements SummaryService {
 
         // 股票订单
         int orderHoldStockNum = 0;
-        BigDecimal totalStockCost = BigDecimal.ZERO;
+        BigDecimal totalStockTradeCost = BigDecimal.ZERO;
         List<OwnerOrder> securityOrders = ownerOrders.stream()
                 .filter(OwnerOrder::isStockOrder)
                 .toList();
         for (OwnerOrder securityOrder : securityOrders) {
+            totalStockTradeCost = totalStockTradeCost.subtract(OwnerOrder.income(securityOrder));
             TradeSide tradeSide = TradeSide.of(securityOrder.getSide());
-            BigDecimal totalPrice = securityOrder.getPrice().multiply(new BigDecimal(securityOrder.getQuantity()));
             switch (tradeSide) {
                 case BUY:
                 case BUY_BACK:
                     orderHoldStockNum += securityOrder.getQuantity();
-                    totalStockCost = totalStockCost.add(totalPrice);
                     break;
                 case SELL:
                 case SELL_SHORT:
                     orderHoldStockNum -= securityOrder.getQuantity();
-                    totalStockCost = totalStockCost.subtract(totalPrice);
                     break;
                 default:
                     break;
@@ -409,15 +409,12 @@ public class SummaryServiceImpl implements SummaryService {
         int initialStockNum = Integer.parseInt(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
         BigDecimal initialStockCost = new BigDecimal(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_COST, "0"));
 
-        // 股票成本
-        summary.setTotalStockCost(totalStockCost);
-
         BigDecimal averageStockCost = BigDecimal.ZERO;
         // 股票平均成本 = 系统设置 or 股票持有数量 / 股票数量
         if (orderHoldStockNum == 0) {
             averageStockCost = initialStockCost;
         } else {
-            averageStockCost = totalStockCost.divide(new BigDecimal(orderHoldStockNum), 4, RoundingMode.HALF_UP);
+            averageStockCost = totalStockTradeCost.divide(new BigDecimal(orderHoldStockNum), 4, RoundingMode.HALF_UP);
         }
 
         // 如果平均成本为0，则使用当前价格
@@ -426,8 +423,9 @@ public class SummaryServiceImpl implements SummaryService {
         }
 
         // 如果交易产生了成本或收益 则往平均成本上累计
-        if (initialStockNum != 0 && !BigDecimal.ZERO.equals(totalStockCost)) {
-            BigDecimal avgCost = totalStockCost.divide(BigDecimal.valueOf(initialStockNum), 4, RoundingMode.HALF_UP);
+        if (initialStockNum != 0 && !BigDecimal.ZERO.equals(totalStockTradeCost)) {
+            BigDecimal avgCost = totalStockTradeCost.divide(BigDecimal.valueOf(initialStockNum), 4,
+                    RoundingMode.HALF_UP);
             averageStockCost = averageStockCost.add(avgCost);
         }
 
@@ -436,6 +434,16 @@ public class SummaryServiceImpl implements SummaryService {
         // 总股票持有数量
         int holdStockNum = initialStockNum + orderHoldStockNum;
         summary.setHoldStockNum(holdStockNum);
+
+        // 股票成本（只有存在初始股本的策略，股票卖出，股票成本才能可能是负值）
+        BigDecimal totalStockCost = totalStockTradeCost;
+        if (BigDecimal.ZERO.compareTo(totalStockTradeCost) > 0
+                && initialStockNum != 0
+                && !BigDecimal.ZERO.equals(initialStockCost)) {
+            BigDecimal sellNum = BigDecimal.valueOf(initialStockNum - holdStockNum);
+            totalStockCost = totalStockTradeCost.add(initialStockCost.multiply(sellNum));
+        }
+        summary.setTotalStockCost(totalStockCost);
 
         int holdStockNumForProfit = holdStockNum;
         // 当初始股票被卖后 holdStockNum 会小于 initialStockNum
