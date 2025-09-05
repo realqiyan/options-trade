@@ -1,5 +1,6 @@
 package me.dingtou.options.gateway;
 
+import me.dingtou.options.constant.OptionsFilterType;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsChain;
 import me.dingtou.options.model.OptionsRealtimeData;
@@ -39,9 +40,13 @@ public interface OptionsChainGateway {
      * @param security   证券
      * @param strikeTime 行权时间
      * @param lastDone   最新价
+     * @param filterType 期权过滤类型
      * @return 期权链
      */
-    OptionsChain queryOptionsChain(Security security, String strikeTime, BigDecimal lastDone);
+    OptionsChain queryOptionsChain(Security security,
+            String strikeTime,
+            BigDecimal lastDone,
+            OptionsFilterType filterType);
 
     /**
      * 查询期权实时数据

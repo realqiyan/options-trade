@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.CandlestickPeriod;
+import me.dingtou.options.constant.OptionsFilterType;
 import me.dingtou.options.manager.IndicatorManager;
 import me.dingtou.options.manager.OptionsQueryManager;
 import me.dingtou.options.manager.OwnerManager;
@@ -79,16 +80,19 @@ public class DataQueryMcpService {
     public String queryOptionsChain(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
-            @ToolParam(required = true, description = "期权到期日 2025-06-27") String strikeDate) {
+            @ToolParam(required = true, description = "期权到期日 2025-06-27") String strikeDate,
+            @ToolParam(required = true, description = "期权类型：ALL|PUT|CALL") String filterType) {
         String owner = authService.decodeOwner(ownerCode);
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
         }
         try {
             OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+
             OptionsChain optionsChain = optionsQueryManager.queryOptionsChain(account, Security.of(code, market),
                     strikeDate,
-                    false);
+                    false,
+                    OptionsFilterType.of(filterType));
 
             // 准备模板数据
             Map<String, Object> data = new HashMap<>();

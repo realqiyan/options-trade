@@ -13,6 +13,7 @@ import com.futu.openapi.pb.QotGetOptionChain.C2S.Builder;
 import com.futu.openapi.pb.QotGetOptionChain.OptionItem;
 import com.google.protobuf.GeneratedMessageV3;
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.OptionsFilterType;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.QueryFunctionCall;
 import me.dingtou.options.model.Options;
@@ -33,17 +34,17 @@ public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
     private final int market;
     private final String code;
     private final String strikeTime;
-    private final boolean isAll;
+    private final OptionsFilterType filterType;
 
     public FuncGetOptionChain(int market, String code, String strikeTime) {
-        this(market, code, strikeTime, false);
+        this(market, code, strikeTime, OptionsFilterType.ALL);
     }
 
-    public FuncGetOptionChain(int market, String code, String strikeTime, boolean isAll) {
+    public FuncGetOptionChain(int market, String code, String strikeTime, OptionsFilterType filterType) {
         this.market = market;
         this.code = code;
         this.strikeTime = strikeTime;
-        this.isAll = isAll;
+        this.filterType = filterType;
     }
 
     @Override
@@ -105,7 +106,7 @@ public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
         QotGetOptionChain.DataFilter dataFilter = builder.build();
 
         Builder chainBuilder = QotGetOptionChain.C2S.newBuilder();
-        if (!isAll) {
+        if (OptionsFilterType.OTM_ALL.equals(filterType)) {
             chainBuilder.setDataFilter(dataFilter)
                     .setCondition(QotGetOptionChain.OptionCondType.OptionCondType_Outside_VALUE);
         }
@@ -149,13 +150,29 @@ public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
             OptionsTuple optionsTuple = convert(optionItem);
 
             Options call = optionsTuple.getCall();
-            if (null != call && null != call.getBasic() && !"0".equals(call.getBasic().getId())) {
-                optionsList.add(call);
-            }
-
             Options put = optionsTuple.getPut();
-            if (null != put && null != put.getBasic() && !"0".equals(put.getBasic().getId())) {
-                optionsList.add(put);
+
+            // 根据过滤类型添加相应的期权
+            switch (filterType) {
+                case ALL:
+                case OTM_ALL:
+                    if (null != call && null != call.getBasic() && !"0".equals(call.getBasic().getId())) {
+                        optionsList.add(call);
+                    }
+                    if (null != put && null != put.getBasic() && !"0".equals(put.getBasic().getId())) {
+                        optionsList.add(put);
+                    }
+                    break;
+                case CALL:
+                    if (null != call && null != call.getBasic() && !"0".equals(call.getBasic().getId())) {
+                        optionsList.add(call);
+                    }
+                    break;
+                case PUT:
+                    if (null != put && null != put.getBasic() && !"0".equals(put.getBasic().getId())) {
+                        optionsList.add(put);
+                    }
+                    break;
             }
         }
         return optionsList;

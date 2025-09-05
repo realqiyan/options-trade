@@ -1,6 +1,7 @@
 package me.dingtou.options.gateway.futu;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.OptionsFilterType;
 import me.dingtou.options.gateway.OptionsChainGateway;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.query.FuncGetOptionsRealtimeData;
@@ -36,7 +37,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
      */
     private static final Cache<String, List<Options>> OPTIONS_LIST_CACHE = CacheBuilder.newBuilder()
             .maximumSize(1000)
-            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .expireAfterWrite(1, TimeUnit.MINUTES)
             .build();
 
     /**
@@ -81,7 +82,10 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
                 @Override
                 public List<Options> call() throws Exception {
                     return QueryExecutor
-                            .query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime, true));
+                            .query(new FuncGetOptionChain(security.getMarket(),
+                                    security.getCode(),
+                                    strikeTime,
+                                    OptionsFilterType.ALL));
                 }
             });
         } catch (ExecutionException e) {
@@ -91,7 +95,8 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
     }
 
     @Override
-    public OptionsChain queryOptionsChain(Security security, String strikeTime, BigDecimal lastDone) {
+    public OptionsChain queryOptionsChain(Security security, String strikeTime, BigDecimal lastDone,
+            OptionsFilterType filterType) {
         BigDecimal minStrikePrice = BigDecimal.ZERO;
         BigDecimal maxStrikePrice = BigDecimal.valueOf(Long.MAX_VALUE);
         if (null != lastDone && !BigDecimal.ZERO.equals(lastDone)) {
@@ -100,7 +105,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
         }
 
         List<Options> optionsList = QueryExecutor
-                .query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime));
+                .query(new FuncGetOptionChain(security.getMarket(), security.getCode(), strikeTime, filterType));
         if (null == optionsList || optionsList.isEmpty()) {
             throw new RuntimeException(String.format("未查询到 %s %s 的期权链", security.getCode(), strikeTime));
         }

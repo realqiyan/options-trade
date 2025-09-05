@@ -1,6 +1,7 @@
 package me.dingtou.options.service;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.OptionsFilterType;
 import me.dingtou.options.manager.OptionsQueryManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
@@ -66,7 +67,11 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
             String strikeDate,
             OwnerStrategy strategy) {
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        OptionsChain optionsChain = optionsQueryManager.queryOptionsChain(account, security, strikeDate, true);
+        OptionsChain optionsChain = optionsQueryManager.queryOptionsChain(account,
+                security,
+                strikeDate,
+                true,
+                OptionsFilterType.OTM_ALL);
 
         if (null == allOptionsStrategy || allOptionsStrategy.isEmpty()) {
             return optionsChain;
