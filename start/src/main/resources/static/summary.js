@@ -165,9 +165,9 @@ function renderOrderTable(orderList){
               }
               return '';
           }},
-          {field: 'strategyName', title: '策略名称', width: 150, templet: function(d){
-              if (d.ext && d.ext.strategyName && d.ext.strategyId) {
-                  return '<a href="javascript:void(0);" class="strategy-link table-link" data-strategy-id="' + d.ext.strategyId + '">' + d.ext.strategyName + '</a>';
+          {field: 'strategyName', title: '策略｜Delta', width: 180, templet: function(d){
+              if (d.ext && d.ext.strategyName && d.ext.strategyId && d.ext.strategyAvgDelta) {
+                  return `<a href="javascript:void(0);" class="strategy-link table-link" data-strategy-id="${d.ext.strategyId}">${d.ext.strategyName}｜${d.ext.strategyAvgDelta}</a>`;
               }
               return d.ext && d.ext.strategyName ? d.ext.strategyName : '-';
           }},

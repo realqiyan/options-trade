@@ -32,13 +32,6 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             .expireAfterWrite(1, TimeUnit.HOURS)
             .build();
 
-    /**
-     * 期权缓存
-     */
-    private static final Cache<String, List<Options>> OPTIONS_LIST_CACHE = CacheBuilder.newBuilder()
-            .maximumSize(1000)
-            .expireAfterWrite(1, TimeUnit.MINUTES)
-            .build();
 
     /**
      * 期权链的长度
@@ -72,26 +65,6 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             throw new RuntimeException("get options strike date failed", e);
         }
 
-    }
-
-    @Override
-    public List<Options> queryAllOptions(Security security, String strikeTime) {
-        String key = security.toString() + "_" + strikeTime;
-        try {
-            return OPTIONS_LIST_CACHE.get(key, new Callable<List<Options>>() {
-                @Override
-                public List<Options> call() throws Exception {
-                    return QueryExecutor
-                            .query(new FuncGetOptionChain(security.getMarket(),
-                                    security.getCode(),
-                                    strikeTime,
-                                    OptionsFilterType.ALL));
-                }
-            });
-        } catch (ExecutionException e) {
-            log.error("get all options failed, security: {}", security, e);
-            throw new RuntimeException("get all options failed", e);
-        }
     }
 
     @Override

@@ -1,7 +1,6 @@
 package me.dingtou.options.constant;
 
-import java.util.List;
-
+import java.math.BigDecimal;
 import com.alibaba.fastjson2.JSON;
 import lombok.Getter;
 import me.dingtou.options.model.Options;
@@ -59,14 +58,14 @@ public enum OrderExt {
     STRATEGY_NAME("strategyName", String.class),
 
     /**
+     * 策略平均Delta
+     */
+    STRATEGY_AVG_DELTA("strategyAvgDelta", BigDecimal.class),
+
+    /**
      * 策略分析提示词
      */
     STRATEGY_PROMPT("strategyPrompt", String.class),
-
-    /**
-     * 可以Roll的期权实时数据
-     */
-    ROLL_OPTIONS("rollOptions", List.class),
 
     ////////////////////////////////
     // 静态属性 //

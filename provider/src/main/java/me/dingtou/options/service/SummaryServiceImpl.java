@@ -3,10 +3,6 @@ package me.dingtou.options.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.DayOfWeek;
-import java.time.temporal.TemporalAdjusters;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -17,19 +13,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import me.dingtou.options.constant.AccountExt;
-import me.dingtou.options.constant.CandlestickPeriod;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.gateway.SecurityQuoteGateway;
-import me.dingtou.options.manager.IndicatorManager;
 import me.dingtou.options.manager.KnowledgeManager;
 import me.dingtou.options.manager.OptionsQueryManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
-import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsRealtimeData;
-import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.OwnerOrder;
@@ -39,7 +31,6 @@ import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.model.OwnerSummary;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
-import me.dingtou.options.model.StockIndicator;
 import me.dingtou.options.model.StrategyExt;
 import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.strategy.OrderTradeStrategy;
@@ -61,9 +52,6 @@ public class SummaryServiceImpl implements SummaryService {
 
     @Autowired
     private OptionsQueryManager optionsQueryManager;
-
-    @Autowired
-    private IndicatorManager indicatorManager;
 
     @Autowired
     private KnowledgeManager knowledgeManager;
@@ -113,6 +101,7 @@ public class SummaryServiceImpl implements SummaryService {
                     .forEach(order -> {
                         order.setExtValue(OrderExt.STRATEGY_ID, strategySummary.getStrategy().getStrategyId());
                         order.setExtValue(OrderExt.STRATEGY_NAME, strategySummary.getStrategy().getStrategyName());
+                        order.setExtValue(OrderExt.STRATEGY_AVG_DELTA, strategySummary.getAvgDelta());
                         order.setExtValue(OrderExt.STRATEGY_PROMPT, strategySummary.getStrategyPrompt());
                         unrealizedOrders.add(order);
                     });
@@ -234,95 +223,6 @@ public class SummaryServiceImpl implements SummaryService {
             return null;
         }
         return queryStrategySummary(owner, ownerStrategy);
-    }
-
-    /**
-     * 获取下一个期权到期日
-     * 
-     * @param optionsStrikeDates 期权到期日列表
-     * @param order              订单
-     * @return 下一个期权到期日
-     */
-    private LocalDate getNextWeekOptionsStrikeDate(List<OptionsStrikeDate> optionsStrikeDates, OwnerOrder order) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String strikeDateStr = dateFormat.format(order.getStrikeTime());
-        final LocalDate strikeDate = LocalDate.parse(strikeDateStr);
-        return optionsStrikeDates.stream()
-                .map(dateObj -> {
-                    String strikeTime = dateObj.getStrikeTime();
-                    LocalDate orderStrikeDate = LocalDate.parse(strikeTime);
-                    return orderStrikeDate;
-                })
-                .filter(date -> date.isAfter(strikeDate))
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
-     * 获取下一个月度期权到期日
-     * 
-     * @param optionsStrikeDates 期权到期日列表
-     * @param order              订单
-     * @return 下一个月度期权到期日
-     */
-    private LocalDate getNextMonthOptionsStrikeDate(List<OptionsStrikeDate> optionsStrikeDates, OwnerOrder order) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String strikeDateStr = dateFormat.format(order.getStrikeTime());
-        final LocalDate strikeDate = LocalDate.parse(strikeDateStr);
-        return optionsStrikeDates.stream()
-                .map(dateObj -> LocalDate.parse(dateObj.getStrikeTime()))
-                .filter(date -> date.isAfter(strikeDate))
-                .filter(this::isThirdFriday)
-                .min(LocalDate::compareTo)
-                .orElse(null);
-    }
-
-    /**
-     * 判断日期是否为当月的第三个周五
-     * 
-     * @param date 待检查的日期
-     * @return 如果是第三个周五返回true，否则返回false
-     */
-    private boolean isThirdFriday(LocalDate date) {
-        if (date.getDayOfWeek() != DayOfWeek.FRIDAY) {
-            return false;
-        }
-        LocalDate firstDayOfMonth = date.withDayOfMonth(1);
-        LocalDate firstFriday = firstDayOfMonth.with(TemporalAdjusters.nextOrSame(DayOfWeek.FRIDAY));
-        LocalDate thirdFriday = firstFriday.plusWeeks(2);
-        return date.equals(thirdFriday);
-    }
-
-    /**
-     * 获取可以Roll的期权
-     * 
-     * @param order          订单
-     * @param nextStrikeDate 下一个期权到期日
-     * @return 可以Roll的期权
-     */
-    private List<Security> getRollOptionsSecurity(OwnerOrder order, LocalDate nextStrikeDate) {
-        List<Security> optionsSecurityList = new ArrayList<>();
-
-        BigDecimal strikePrice = OwnerOrder.strikePrice(order);
-        // 查询下一个期权到期日
-        int range = 5;
-        BigDecimal startPrice = strikePrice.subtract(BigDecimal.valueOf(range));
-        for (int i = 0; i <= range * 2; i++) {
-            BigDecimal nextStrikePrice = startPrice
-                    .add(BigDecimal.valueOf(i))
-                    .multiply(BigDecimal.valueOf(1000))
-                    .setScale(0);
-            // BABA250404P133000
-            String date = nextStrikeDate.format(DateTimeFormatter.ofPattern("yyMMdd"));
-            String code = order.getUnderlyingCode()
-                    + date
-                    + (OwnerOrder.isPut(order) ? "P" : "C")
-                    + nextStrikePrice.toPlainString();
-            optionsSecurityList.add(Security.of(code, order.getMarket()));
-        }
-
-        // OptionsManager
-        return optionsSecurityList;
     }
 
     /**
@@ -619,40 +519,7 @@ public class SummaryServiceImpl implements SummaryService {
         // 未平仓订单处理策略
         OrderTradeStrategy defaultOrderTradeStrategy = new DefaultTradeStrategy(summary);
         for (OwnerOrder order : allOpenOptionsOrder) {
-
-            // 查询未平仓订单可以Roll的期权实时数据
-            // 查询股票期权到期日
-            Security currentSecurity = Security.of(order.getUnderlyingCode(), order.getMarket());
-            List<OptionsStrikeDate> optionsStrikeDates = optionsQueryManager.queryOptionsExpDate(
-                    order.getUnderlyingCode(),
-                    order.getMarket());
-            List<Options> allExistsOptions = new ArrayList<>();
-            List<Security> optionsSecurityList = new ArrayList<>();
-            optionsSecurityList.add(Security.of(order.getCode(), order.getMarket()));
-            LocalDate weekStrikeDate = getNextWeekOptionsStrikeDate(optionsStrikeDates, order);
-            if (null != weekStrikeDate) {
-                List<Security> weekOptionsSecurityList = getRollOptionsSecurity(order, weekStrikeDate);
-                optionsSecurityList.addAll(weekOptionsSecurityList);
-                allExistsOptions
-                        .addAll(optionsQueryManager.queryAllOptions(currentSecurity, weekStrikeDate.toString()));
-            }
-            LocalDate monthStrikeDate = getNextMonthOptionsStrikeDate(optionsStrikeDates, order);
-            if (null != monthStrikeDate) {
-                List<Security> monthOptionsSecurityList = getRollOptionsSecurity(order, monthStrikeDate);
-                optionsSecurityList.addAll(monthOptionsSecurityList);
-                allExistsOptions
-                        .addAll(optionsQueryManager.queryAllOptions(currentSecurity, monthStrikeDate.toString()));
-            }
-            // 过滤存在的期权
-            optionsSecurityList = filterExistsOptions(optionsSecurityList, allExistsOptions);
-
-            List<OptionsRealtimeData> optionsRealtimeDataList = optionsQueryManager
-                    .queryOptionsRealtimeData(optionsSecurityList);
-            order.setExtValue(OrderExt.ROLL_OPTIONS, optionsRealtimeDataList);
-            CandlestickPeriod klinePeriod = me.dingtou.options.util.AccountExtUtils.getKlinePeriod(account);
-            StockIndicator stockIndicator = indicatorManager.calculateStockIndicator(account, security, klinePeriod,
-                    30);
-            defaultOrderTradeStrategy.calculate(account, order, stockIndicator);
+            defaultOrderTradeStrategy.calculate(account, order);
         }
 
         StringBuilder prompt = new StringBuilder();
@@ -668,20 +535,6 @@ public class SummaryServiceImpl implements SummaryService {
         summary.setStrategyPrompt(prompt.toString());
 
         return summary;
-    }
-
-    /**
-     * 过滤真实存在的标的
-     * 
-     * @param optionsSecurityList 期权标的
-     * @param allExistsOptions    真实存在的
-     * @return
-     */
-    private List<Security> filterExistsOptions(List<Security> optionsSecurityList, List<Options> allExistsOptions) {
-        return optionsSecurityList.stream()
-                .filter(security -> allExistsOptions.stream()
-                        .anyMatch(option -> option.getBasic().getSecurity().getCode().equals(security.getCode())))
-                .collect(Collectors.toList());
     }
 
 }

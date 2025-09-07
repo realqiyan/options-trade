@@ -3,7 +3,6 @@ package me.dingtou.options.strategy;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerStrategy;
-import me.dingtou.options.model.StockIndicator;
 
 /**
  * 订单交易策略
@@ -23,9 +22,8 @@ public interface OrderTradeStrategy {
     /**
      * 计算订单处理
      * 
-     * @param account        账户
-     * @param order          订单
-     * @param stockIndicator 股票行情
+     * @param account 账户
+     * @param order   订单
      */
-    void calculate(OwnerAccount account, OwnerOrder order, StockIndicator stockIndicator);
+    void calculate(OwnerAccount account, OwnerOrder order);
 }

@@ -204,10 +204,10 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
         toolbar: true,
         defaultToolbar: ['filter', 'exports', 'print'],
         cols: [[
-            {type: 'checkbox'},
-            {field: 'id', title: 'ID', sort: true, width: 200},
-            {field: 'name', title: '标的名称', width: 200},
+            //{type: 'checkbox'},
+            //{field: 'id', title: 'ID', sort: true, width: 200},
             {field: 'code', title: '标的代码', width: 100},
+            {field: 'name', title: '标的名称', width: 200},
             {field: 'market', title: '市场', width: 80},
             {
                 field: 'createTime', title: '创建时间', width: 200, sort: true,
@@ -253,10 +253,10 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             toolbar: true,
             defaultToolbar: ['filter', 'exports', 'print'],
             cols: [[
-                {type: 'checkbox'},
-                {field: 'id', title: 'ID', sort: true, width: 200},
+                //{type: 'checkbox'},
+                {field: 'strategyId', title: '策略ID', sort: true, width: 280},
                 {field: 'strategyName', title: '策略名称', width: 200},
-                {field: 'strategyCode', title: '策略代码', width: 160},
+                {field: 'strategyCode', title: '策略类型', width: 160},
                 {field: 'stage', title: '策略阶段', width: 100},
                 {field: 'code', title: '标的代码', width: 100},
                 {field: 'lotSize', title: '合约股数', width: 100},
@@ -316,11 +316,11 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             toolbar: true,
             defaultToolbar: ['filter', 'exports', 'print'],
             cols: [[
-                {type: 'checkbox'},
-                {field: 'id', title: 'ID', sort: true, width: 200},
+                //{type: 'checkbox'},
+                {field: 'owner', title: 'Owner', width: 200},
+                {field: 'accountId', title: '账号', width: 200},
                 {field: 'platform', title: '平台', width: 100},
                 {field: 'market', title: '市场', width: 80},
-                {field: 'accountId', title: '账号', width: 200},
                 {
                     field: 'createTime', title: '创建时间', width: 200, sort: true,
                     templet: function (d) {
@@ -873,7 +873,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
         elem: '#knowledgeTable',
         url: '/admin/knowledge/list',
         cols: [[
-            {type: 'checkbox', fixed: 'left'},
+            //{type: 'checkbox', fixed: 'left'},
             {field: 'code', title: '编码', width: 160},
             {field: 'title', title: '标题', width: 260},
             {field: 'type', title: '类型', width: 150, templet: function(d) {

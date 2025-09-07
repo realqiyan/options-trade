@@ -7,7 +7,6 @@ import me.dingtou.options.constant.TradeSide;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerStrategy;
-import me.dingtou.options.model.StockIndicator;
 import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.strategy.OrderTradeStrategy;
 
@@ -30,7 +29,7 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
     }
 
     @Override
-    public void calculate(OwnerAccount account, OwnerOrder order, StockIndicator stockIndicator) {
+    public void calculate(OwnerAccount account, OwnerOrder order) {
         if (OwnerOrder.isStockOrder(order) || OwnerOrder.isClose(order) || !OwnerOrder.isTraded(order)) {
             return;
         }
@@ -48,8 +47,6 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
                 .append("，行权价为：").append(OwnerOrder.strikePrice(order))
                 .append("，").append(sideName).append("价格为：").append(order.getPrice())
                 .append("，").append(sideName).append("数量为：").append(order.getQuantity())
-                .append("，当前价格为：").append(order.getExtValue(OrderExt.CUR_PRICE))
-                .append("，当前股票价格为：").append(stockIndicator.getSecurityQuote().getLastDone())
                 .append("，现在时间是：").append(dateTimeFormat.format(new Date()))
                 .append("，策略ID：").append(summary.getStrategy().getStrategyId())
                 .append("，期权策略Code：").append(summary.getStrategy().getStrategyCode())
