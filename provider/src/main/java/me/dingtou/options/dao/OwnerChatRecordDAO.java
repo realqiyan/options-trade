@@ -27,7 +27,7 @@ public interface OwnerChatRecordDAO extends BaseMapper<OwnerChatRecord> {
             JOIN (
                 SELECT 
                     session_id, 
-                    MAX(update_time) AS max_update_time
+                    MAX(id) AS max_id
                 FROM 
                     `owner_chat_record`
                 WHERE 
@@ -35,7 +35,7 @@ public interface OwnerChatRecordDAO extends BaseMapper<OwnerChatRecord> {
                 GROUP BY 
                     session_id
             ) latest 
-            ON o.session_id = latest.session_id AND o.update_time = latest.max_update_time
+            ON o.session_id = latest.session_id AND o.id = latest.max_id
             WHERE 
                 o.owner = #{owner}
             ORDER BY
