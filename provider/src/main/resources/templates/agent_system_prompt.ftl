@@ -30,7 +30,6 @@
 
 每轮对话必须遵循以下输出结构：
 
-```plaintext
 <thinking>
 你的想法和推理过程
 </thinking>
@@ -43,7 +42,7 @@
 <response>
 你的最终回复
 </response>
-```
+
 
 ## 重要说明
 
