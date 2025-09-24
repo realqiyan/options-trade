@@ -1,5 +1,6 @@
 package me.dingtou.options.service.mcp;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.IndicatorDataFrame;
 import me.dingtou.options.model.OptionsChain;
+import me.dingtou.options.model.OptionsRealtimeData;
 import me.dingtou.options.model.OptionsStrikeDate;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.Security;
@@ -81,7 +83,8 @@ public class DataQueryMcpService {
             @ToolParam(required = true, description = "股票代码") String code,
             @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market,
             @ToolParam(required = true, description = "期权到期日 2025-06-27") String strikeDate,
-            @ToolParam(required = true, description = "期权类型：ALL|PUT|CALL") String filterType) {
+            @ToolParam(required = true, description = "期权类型：ALL|PUT|CALL") String filterType,
+            @ToolParam(required = true, description = "交易类型：SELL|BUY") String tradeType) {
         String owner = authService.decodeOwner(ownerCode);
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
@@ -93,6 +96,19 @@ public class DataQueryMcpService {
                     strikeDate,
                     false,
                     OptionsFilterType.of(filterType));
+
+            if (null == optionsChain || null == optionsChain.getOptionsList()) {
+                return "期权链无结果";
+            }
+            if ("SELL".equalsIgnoreCase(tradeType)) {
+                optionsChain.getOptionsList().forEach(options -> {
+                    OptionsRealtimeData realtimeData = options.getRealtimeData();
+                    if (null != realtimeData) {
+                        realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
+                        realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
+                    }
+                });
+            }
 
             // 准备模板数据
             Map<String, Object> data = new HashMap<>();
