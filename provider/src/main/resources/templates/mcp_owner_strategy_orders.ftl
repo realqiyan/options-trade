@@ -5,15 +5,14 @@
 - 期权策略Code: ${ strategySummary.strategy.strategyCode!'' }
 - 期权策略: ${strategySummary.getOptionsStrategy().getTitle() }
 - 策略名称: ${strategySummary.strategy.strategyName!''}
-- 策略整体Delta: ${strategySummary.strategyDelta!''}
-- 策略平均每股Delta: ${strategySummary.avgDelta!''}
+- 等价持股数: ${strategySummary.strategyDelta!''}
+- 策略delta（归一化）: ${strategySummary.avgDelta!''}
 - 策略盈利: $${strategySummary.allIncome!''}
 - 期权盈利: $${strategySummary.allOptionsIncome!''}
 - 持有股票: ${strategySummary.holdStockNum!''}
 - 当前股价: $${strategySummary.currentStockPrice!''}
 - 股票支出: $${strategySummary.totalStockCost!''} (成本: $${strategySummary.averageStockCost!''})
 - 持股盈亏: $${strategySummary.holdStockProfit!''}
-- 希腊字母: Delta:${strategySummary.optionsDelta!''}｜Gamma:${strategySummary.optionsGamma!''}｜Theta:${strategySummary.optionsTheta!''}
 - 期权已到账收入: $${strategySummary.allOptionsIncome!''} (已扣除手续费$${strategySummary.totalFee!''})
 - 期权未到期收入: $${strategySummary.unrealizedOptionsIncome!''}
 - PUT订单保证金占用: $${strategySummary.putMarginOccupied!''}

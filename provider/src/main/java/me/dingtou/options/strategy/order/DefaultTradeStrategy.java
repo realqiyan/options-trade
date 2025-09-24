@@ -51,8 +51,8 @@ public class DefaultTradeStrategy implements OrderTradeStrategy {
                 .append("，策略ID：").append(summary.getStrategy().getStrategyId())
                 .append("，期权策略Code：").append(summary.getStrategy().getStrategyCode())
                 .append("，期权策略：").append(summary.getOptionsStrategy().getTitle())
-                .append("，策略整体Delta：").append(summary.getStrategyDelta())
-                .append("，策略平均每股Delta：").append(summary.getAvgDelta())
+                .append("，等价持股数：").append(summary.getStrategyDelta())
+                .append("，策略delta（归一化）：").append(summary.getAvgDelta())
                 .append("。请结合期权策略、股票趋势等信息，帮我分析当前订单如何处理。订单是继续持有，还是进行Roll，或是平仓，给我一些指导。");
 
         order.setExtValue(OrderExt.PROMPT, prompt.toString());

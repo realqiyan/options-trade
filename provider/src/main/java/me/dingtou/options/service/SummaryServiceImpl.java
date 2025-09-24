@@ -527,8 +527,8 @@ public class SummaryServiceImpl implements SummaryService {
                 .append("策略ID：").append(ownerStrategy.getStrategyId())
                 .append("，期权策略Code：").append(ownerStrategy.getStrategyCode())
                 .append("，期权策略：").append(optionsStrategy.getTitle())
-                .append("，策略整体Delta：").append(summary.getStrategyDelta())
-                .append("，策略平均每股Delta：").append(summary.getAvgDelta())
+                .append("，等价持股数：").append(summary.getStrategyDelta())
+                .append("，策略delta（归一化）：").append(summary.getAvgDelta())
                 .append("，请按照期权策略规则、期权策略详情和订单，以及其他你评估需要的信息，给我一些交易建议。");
 
         // 生成策略分析提示词

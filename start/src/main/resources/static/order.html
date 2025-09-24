@@ -60,7 +60,7 @@
 <script id="summary" type="text/html">
     <h4 class="layui-bg-gray">
         {{ d.strategy.strategyName }} | <b>策略收益：${{ d.allIncome }}</b> | <b>期权收益：${{ d.allOptionsIncome }}</b> 
-        <b style="color: red;"> (策略整体Delta:{{ d.strategyDelta }}｜Delta:{{ d.optionsDelta }}｜Gamma:{{ d.optionsGamma }}｜Theta:{{ d.optionsTheta }}) </b>
+        <b style="color: red;"> (等价持股数:{{ d.strategyDelta }}｜Delta:{{ d.optionsDelta }}｜Gamma:{{ d.optionsGamma }}｜Theta:{{ d.optionsTheta }}) </b>
         <span class="layui-badge layui-font-16">{{ d.avgDelta }}</span>
         <span class="layui-badge layui-bg-green" style="margin-left: 10px; cursor: pointer;" onclick="currentStrategyAnalysis()">
             <i class="layui-icon layui-icon-chart"></i> 策略分析
