@@ -268,7 +268,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                             String toolResult = null;
                             if (ToolCallRequest.SUMMARY_TOOL.equals(toolCall.getName())) {
                                 needSummary.set(true);
-                                toolResult = "Yes";
+                                toolResult = AccountExtUtils.getSummaryResult(account);
                             } else {
                                 // 调用MCP服务
                                 toolResult = toolProcesser.callTool(toolCall);

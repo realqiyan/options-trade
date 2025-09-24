@@ -155,6 +155,19 @@ public class AccountExtUtils {
     }
 
     /**
+     * 获取AI总结返回提示词
+     *
+     * @param account 账户对象
+     * @return AI总结返回提示词
+     */
+    public static String getSummaryResult(OwnerAccount account) {
+        if (account == null) {
+            return "严格按照交易规则进行综合分析和总结";
+        }
+        return account.getExtValue(AccountExt.AI_SUMMARY_RESULT, "严格按照交易规则进行综合分析和总结");
+    }
+
+    /**
      * 获取MCP服务器配置
      *
      * @param account 账户对象
