@@ -7,5 +7,5 @@ ${strategy.content}
 
 </#list>
 <#else>
-<#include "config_default_strategies.ftl" encoding="UTF-8" parse=true>
+无
 </#if>

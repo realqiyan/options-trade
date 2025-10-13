@@ -237,7 +237,7 @@ public class SummaryServiceImpl implements SummaryService {
 
         summary.setStrategy(ownerStrategy);
 
-        OwnerKnowledge optionsStrategy = knowledgeManager.getKnowledgeByOwnerAndCode(owner,
+        OwnerKnowledge optionsStrategy = knowledgeManager.getStrategyByOwnerAndCode(owner,
                 ownerStrategy.getStrategyCode());
         summary.setOptionsStrategy(optionsStrategy);
 

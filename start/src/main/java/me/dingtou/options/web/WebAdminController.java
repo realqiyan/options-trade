@@ -60,7 +60,8 @@ public class WebAdminController {
      * @return 是否更新成功
      */
     @RequestMapping(value = "/security/status", method = RequestMethod.POST)
-    public WebResult<Boolean> updateSecurityStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status) {
+    public WebResult<Boolean> updateSecurityStatus(@RequestParam("id") Long id,
+            @RequestParam("status") Integer status) {
         boolean result = adminService.updateSecurityStatus(id, status);
         return WebResult.success(result);
     }
@@ -99,11 +100,12 @@ public class WebAdminController {
      * @return 是否更新成功
      */
     @RequestMapping(value = "/strategy/status", method = RequestMethod.POST)
-    public WebResult<Boolean> updateStrategyStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status) {
+    public WebResult<Boolean> updateStrategyStatus(@RequestParam("id") Long id,
+            @RequestParam("status") Integer status) {
         boolean result = adminService.updateStrategyStatus(id, status);
         return WebResult.success(result);
     }
-    
+
     /**
      * 获取所有用户账户
      *
@@ -115,7 +117,7 @@ public class WebAdminController {
         List<OwnerAccount> accounts = adminService.listAccounts(owner);
         return WebResult.success(accounts);
     }
-    
+
     /**
      * 保存用户账户
      *
@@ -129,7 +131,7 @@ public class WebAdminController {
         OwnerAccount savedAccount = adminService.saveAccount(account);
         return WebResult.success(savedAccount);
     }
-    
+
     /**
      * 删除用户账户
      *
@@ -141,7 +143,7 @@ public class WebAdminController {
         boolean result = adminService.updateAccountStatus(id, 0);
         return WebResult.success(result);
     }
-    
+
     /**
      * 获取所有知识库
      *
@@ -153,7 +155,7 @@ public class WebAdminController {
         List<OwnerKnowledge> knowledges = adminService.listKnowledges(owner);
         return WebResult.success(knowledges);
     }
-    
+
     /**
      * 保存知识库
      *
@@ -164,10 +166,14 @@ public class WebAdminController {
     public WebResult<OwnerKnowledge> saveKnowledge(@RequestBody OwnerKnowledge knowledge) {
         String owner = SessionUtils.getCurrentOwner();
         knowledge.setOwner(owner);
-        OwnerKnowledge savedKnowledge = adminService.saveKnowledge(knowledge);
-        return WebResult.success(savedKnowledge);
+        try {
+            OwnerKnowledge savedKnowledge = adminService.saveKnowledge(knowledge);
+            return WebResult.success(savedKnowledge);
+        } catch (Exception e) {
+            return WebResult.failure(e.getMessage());
+        }
     }
-    
+
     /**
      * 更新知识库状态
      *
@@ -176,11 +182,16 @@ public class WebAdminController {
      * @return 是否更新成功
      */
     @RequestMapping(value = "/knowledge/status", method = RequestMethod.POST)
-    public WebResult<Boolean> updateKnowledgeStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status) {
-        boolean result = adminService.updateKnowledgeStatus(id, status);
-        return WebResult.success(result);
+    public WebResult<Boolean> updateKnowledgeStatus(@RequestParam("id") Long id,
+            @RequestParam("status") Integer status) {
+        try {
+            boolean result = adminService.updateKnowledgeStatus(id, status);
+            return WebResult.success(result);
+        } catch (Exception e) {
+            return WebResult.failure(e.getMessage());
+        }
     }
-    
+
     /**
      * 物理删除知识库
      *
@@ -189,10 +200,14 @@ public class WebAdminController {
      */
     @RequestMapping(value = "/knowledge/delete", method = RequestMethod.POST)
     public WebResult<Boolean> deleteKnowledge(@RequestParam("id") Long id) {
-        boolean result = adminService.deleteKnowledge(id);
-        return WebResult.success(result);
+        try {
+            boolean result = adminService.deleteKnowledge(id);
+            return WebResult.success(result);
+        } catch (Exception e) {
+            return WebResult.failure(e.getMessage());
+        }
     }
-    
+
     /**
      * 根据类型查询知识库
      *
