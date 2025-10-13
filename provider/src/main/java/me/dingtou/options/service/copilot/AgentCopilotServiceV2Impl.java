@@ -406,9 +406,6 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             data.put("servers", servers);
         }
 
-        // 是否使用系统策略
-        data.put("useSystemStrategies", AccountExtUtils.getUseSystemStrategies(account));
-
         List<OwnerKnowledge> knowledges = knowledgeManager.listKnowledges(owner);
         if (null != knowledges && !knowledges.isEmpty()) {
             knowledges.forEach(e -> {
