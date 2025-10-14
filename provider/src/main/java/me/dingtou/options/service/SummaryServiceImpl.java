@@ -487,9 +487,9 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal avgDelta = BigDecimal.ZERO;
         if (holdStockNum != 0) {
             BigDecimal holdStockNumBigDecimal = BigDecimal.valueOf(holdStockNum);
-            avgDelta = strategyDelta.divide(holdStockNumBigDecimal, 2, RoundingMode.HALF_UP);
+            avgDelta = strategyDelta.divide(holdStockNumBigDecimal, 4, RoundingMode.HALF_UP);
         } else if (!BigDecimal.ZERO.equals(openOptionsQuantity)) {
-            avgDelta = optionsDelta.divide(openOptionsQuantity, 2, RoundingMode.HALF_UP);
+            avgDelta = optionsDelta.divide(openOptionsQuantity, 4, RoundingMode.HALF_UP);
         }
         summary.setAvgDelta(avgDelta);
 
