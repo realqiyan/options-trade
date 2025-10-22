@@ -44,36 +44,55 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
 
             // 第二步获取账户所有策略并使用AI服务检查
             owners.forEach(owner -> {
-                String ownerId = owner.getOwner();
-                log.info("开始检查账户 {} 的策略", ownerId);
-
-                try {
-                    List<OwnerStrategy> strategies = owner.getStrategyList();
-                    if (strategies == null || strategies.isEmpty()) {
-                        log.info("账户 {} 没有任何策略", ownerId);
-                        return;
-                    }
-
-                    log.info("账户 {} 有 {} 个策略", ownerId, strategies.size());
-
-                    // 第三步检查策略（使用AI服务检查）
-                    strategies.forEach(strategy -> {
-                        try {
-                            checkStrategyWithAI(ownerId, strategy);
-                        } catch (Exception e) {
-                            log.error("检查账户 {} 的策略 {} 时发生错误", ownerId, strategy.getStrategyId(), e);
-                        }
-                    });
-
-                } catch (Exception e) {
-                    log.error("处理账户 {} 时发生错误", ownerId, e);
-                }
+                check(owner);
             });
 
         } catch (Exception e) {
             log.error("检查所有策略时发生错误", e);
         }
 
+    }
+
+    @Override
+    public void checkOwnerStrategy(String owner) {
+        Owner ownerInfo = ownerManager.queryOwner(owner);
+        if (ownerInfo == null) {
+            log.warn("账户 {} 不存在", owner);
+            return;
+        }
+        check(ownerInfo);
+    }
+
+    /**
+     * 检查账户的策略
+     * 
+     * @param owner 账户信息
+     */
+    private void check(Owner owner) {
+        String ownerId = owner.getOwner();
+        log.info("开始检查账户 {} 的策略", ownerId);
+
+        try {
+            List<OwnerStrategy> strategies = owner.getStrategyList();
+            if (strategies == null || strategies.isEmpty()) {
+                log.info("账户 {} 没有任何策略", ownerId);
+                return;
+            }
+
+            log.info("账户 {} 有 {} 个策略", ownerId, strategies.size());
+
+            // 第三步检查策略（使用AI服务检查）
+            strategies.forEach(strategy -> {
+                try {
+                    checkStrategyWithAI(ownerId, strategy);
+                } catch (Exception e) {
+                    log.error("检查账户 {} 的策略 {} 时发生错误", ownerId, strategy.getStrategyId(), e);
+                }
+            });
+
+        } catch (Exception e) {
+            log.error("处理账户 {} 时发生错误", ownerId, e);
+        }
     }
 
     /**
@@ -119,16 +138,15 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
             };
 
             // 生成会话ID
-            String sessionId = "strategy-check-" + ownerId
-                    + "-" + strategy.getStrategyId()
-                    + "-" + System.currentTimeMillis();
+            String sessionId = ownerId + "-" + System.currentTimeMillis();
 
-            String datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String title = strategy.getStrategyName() + "-策略检查-" + datetime;
             // 调用AI服务
             copilotService.start(
                     ownerId,
                     sessionId,
-                    "策略检查-" + datetime + "-" + strategy.getStrategyId(),
+                    title,
                     message,
                     callback,
                     failCallback,
@@ -154,4 +172,5 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
                 .append("，请按照期权策略规则、期权策略详情和订单，以及其他你评估需要的信息，告诉我是否需要调整策略持仓。");
         return prompt.toString();
     }
+
 }

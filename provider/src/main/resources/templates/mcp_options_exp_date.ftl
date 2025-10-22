@@ -4,5 +4,5 @@
 
 到期日列表：
 <#list expDates as expDate>
-- ${expDate.strikeTime}
+- ${expDate.strikeTime} - (${expDate.tag})
 </#list>

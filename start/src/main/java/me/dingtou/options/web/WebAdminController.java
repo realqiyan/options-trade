@@ -6,6 +6,7 @@ import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.service.AdminService;
+import me.dingtou.options.service.CheckStrategyService;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,10 @@ public class WebAdminController {
 
     @Autowired
     private AdminService adminService;
+
+
+    @Autowired
+    private CheckStrategyService checkStrategyService;
 
     /**
      * 获取所有用户期权标的
@@ -104,6 +109,18 @@ public class WebAdminController {
             @RequestParam("status") Integer status) {
         boolean result = adminService.updateStrategyStatus(id, status);
         return WebResult.success(result);
+    }
+
+     /**
+     * 获取所有用户期权策略
+     *
+     * @return 用户期权策略列表
+     */
+    @RequestMapping(value = "/strategy/check", method = RequestMethod.GET)
+    public WebResult<Boolean> checkStrategies() {
+        String owner = SessionUtils.getCurrentOwner();
+        checkStrategyService.checkOwnerStrategy(owner);
+        return WebResult.success(true);
     }
 
     /**

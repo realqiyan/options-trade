@@ -14,6 +14,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -31,7 +32,6 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
             .maximumSize(1000)
             .expireAfterWrite(1, TimeUnit.HOURS)
             .build();
-
 
     /**
      * 期权链的长度
@@ -57,7 +57,14 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
                         return Collections.emptyList();
                     }
                     int min = Math.min(STRIKE_DATE_SIZE, strikeDateList.size());
-                    return strikeDateList.subList(0, min);
+                    List<OptionsStrikeDate> result = strikeDateList.subList(0, min);
+                    result.forEach(item -> {
+                        String strikeTime = item.getStrikeTime();
+                        int weekOfMonth = getWeekOfMonth(strikeTime);
+                        item.setTag(weekOfMonth == 3 ? "月期权" : "周期权");
+                    });
+
+                    return result;
                 }
             });
         } catch (ExecutionException e) {
@@ -181,4 +188,41 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
         options.getRealtimeData().setIntrinsicValue(intrinsicValue);
         options.getRealtimeData().setTimeValue(timeValue);
     }
+
+    /**
+     * 获取日期是所在月的第几工作周
+     * 
+     * @param dateStr 日期字符串，格式为 yyyy-MM-dd
+     * @return 第几工作周（从1开始）
+     */
+    private int getWeekOfMonth(String dateStr) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = sdf.parse(dateStr);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+
+            // 获取日期是所在月的第几周
+            int weekOfMonth = calendar.get(Calendar.WEEK_OF_MONTH);
+
+            // 检查当月第一天是否为工作日（周一到周五）
+            Calendar firstDayOfMonth = Calendar.getInstance();
+            firstDayOfMonth.setTime(date);
+            firstDayOfMonth.set(Calendar.DAY_OF_MONTH, 1);
+
+            int firstDayOfWeek = firstDayOfMonth.get(Calendar.DAY_OF_WEEK);
+            // Calendar.DAY_OF_WEEK: 周日=1, 周一=2, ..., 周六=7
+            // 即1到6
+            boolean notMinus = firstDayOfWeek >= Calendar.SUNDAY && firstDayOfWeek <= Calendar.FRIDAY;
+            if (!notMinus) {
+                weekOfMonth--;
+            }
+
+            return weekOfMonth;
+        } catch (ParseException e) {
+            log.error("解析日期失败: {}", dateStr, e);
+            return -1;
+        }
+    }
+
 }

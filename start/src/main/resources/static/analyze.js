@@ -194,7 +194,7 @@ function loadOptionsExpDate(code, market, urlStrikeTime){
             
             for(var i=0; i<result.length; i++) {
                 var obj = result[i];
-                titleList.push({ title: `${obj.strikeTime}(${obj.optionExpiryDateDistance})` });
+                titleList.push({ title: `${obj.strikeTime}-(${obj.optionExpiryDateDistance})-(${obj.tag})` });
                 contentList.push({ content: ''});
                 
                 // 如果指定了urlStrikeTime且找到匹配项，记录索引
