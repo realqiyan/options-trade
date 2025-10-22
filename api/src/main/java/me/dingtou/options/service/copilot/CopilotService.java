@@ -19,12 +19,13 @@ public interface CopilotService {
         /**
          * 启动对话
          * 
-         * @param owner        用户信息
-         * @param sessionId    会话ID
-         * @param title        对话标题
-         * @param message      对话内容
-         * @param callback     成功回调
-         * @param failCallback 失败回调
+         * @param owner         用户信息
+         * @param sessionId     会话ID
+         * @param title         对话标题
+         * @param message       对话内容
+         * @param callback      成功回调
+         * @param failCallback  失败回调
+         * @param finalCallback 最终回调
          * 
          * @return 会话ID
          */
@@ -33,16 +34,18 @@ public interface CopilotService {
                         String title,
                         Message message,
                         Function<Message, Void> callback,
-                        Function<Message, Void> failCallback);
+                        Function<Message, Void> failCallback,
+                        Function<Message, Void> finalCallback);
 
         /**
          * 继续对话
          * 
-         * @param owner        用户信息
-         * @param sessionId    会话ID
-         * @param message      对话内容
-         * @param callback     成功回调
-         * @param failCallback 失败回调
+         * @param owner         用户信息
+         * @param sessionId     会话ID
+         * @param message       对话内容
+         * @param callback      成功回调
+         * @param failCallback  失败回调
+         * @param finalCallback 最终回调
          * 
          * @return 会话ID
          */
@@ -50,6 +53,7 @@ public interface CopilotService {
                         String sessionId,
                         Message message,
                         Function<Message, Void> callback,
-                        Function<Message, Void> failCallback);
+                        Function<Message, Void> failCallback,
+                        Function<Message, Void> finalCallback);
 
 }

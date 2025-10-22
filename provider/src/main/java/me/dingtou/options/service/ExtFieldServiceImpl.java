@@ -1,8 +1,7 @@
-package me.dingtou.options.service.impl;
+package me.dingtou.options.service;
 
 import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.dto.ExtField;
-import me.dingtou.options.service.ExtFieldService;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;

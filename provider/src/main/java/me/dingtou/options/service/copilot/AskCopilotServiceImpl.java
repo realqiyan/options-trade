@@ -25,7 +25,7 @@ import me.dingtou.options.util.LlmUtils;
  * Ask模式
  */
 @Slf4j
-@Component
+@Component("askCopilotService")
 public class AskCopilotServiceImpl implements CopilotService {
 
     @Autowired
@@ -45,7 +45,8 @@ public class AskCopilotServiceImpl implements CopilotService {
             String title,
             Message message,
             Function<Message, Void> callback,
-            Function<Message, Void> failCallback) {
+            Function<Message, Void> failCallback,
+            Function<Message, Void> finalCallback) {
         log.info("[Ask] 开始新会话, owner={}, sessionId={}, title={}", owner, sessionId, title);
 
         // 验证账户
@@ -57,7 +58,7 @@ public class AskCopilotServiceImpl implements CopilotService {
         // 默认系统提示词也保存
         Message sysMsg = new Message("system", "You are a helpful assistant.");
         saveChatRecord(owner, sessionId, title, sysMsg);
-        work(account, title, message, callback, failCallback, sessionId, List.of(sysMsg));
+        work(account, title, message, callback, failCallback, finalCallback, sessionId, List.of(sysMsg));
 
         return sessionId;
     }
@@ -67,7 +68,8 @@ public class AskCopilotServiceImpl implements CopilotService {
             String sessionId,
             Message message,
             Function<Message, Void> callback,
-            Function<Message, Void> failCallback) {
+            Function<Message, Void> failCallback,
+            Function<Message, Void> finalCallback) {
         log.info("[Ask] 继续会话, owner={}, sessionId={}", owner, sessionId);
 
         // 验证账户
@@ -89,7 +91,7 @@ public class AskCopilotServiceImpl implements CopilotService {
         // 获取会话标题
         String title = records.get(0).getTitle();
 
-        work(account, title, message, callback, failCallback, sessionId, messages);
+        work(account, title, message, callback, failCallback, finalCallback, sessionId, messages);
     }
 
     /**
@@ -117,6 +119,7 @@ public class AskCopilotServiceImpl implements CopilotService {
      * @param newMessage      新消息
      * @param callback        回调函数
      * @param failCallback    失败回调函数
+     * @param finalCallback   最终回调函数
      * @param sessionId       会话ID
      * @param historyMessages 历史消息列表
      */
@@ -125,6 +128,7 @@ public class AskCopilotServiceImpl implements CopilotService {
             Message newMessage,
             Function<Message, Void> callback,
             Function<Message, Void> failCallback,
+            Function<Message, Void> finalCallback,
             String sessionId,
             List<Message> historyMessages) {
 
@@ -161,6 +165,7 @@ public class AskCopilotServiceImpl implements CopilotService {
                 assistantMessage.setReasoningContent(completeResponse.aiMessage().thinking());
                 assistantMessage.setMessageId(messageId);
                 saveChatRecord(owner, sessionId, title, assistantMessage);
+                finalCallback.apply(assistantMessage);
             }
 
             @Override

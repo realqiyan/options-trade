@@ -106,7 +106,7 @@ public class ToolCallProcesser implements ToolProcesser {
         return toolCall;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "unchecked" })
     @Override
     public String callTool(ToolCallRequest toolCallRequest) {
         if (!(toolCallRequest instanceof McpToolCallRequest)) {

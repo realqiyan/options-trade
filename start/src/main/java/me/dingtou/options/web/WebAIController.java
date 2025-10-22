@@ -121,6 +121,8 @@ public class WebAIController {
                                 log.error("send message error:", e.getMessage());
                             }
                             return null;
+                        }, msg -> {
+                            return null;
                         });
                     } catch (Throwable e) {
                         log.error("Error: ", e);
@@ -175,6 +177,8 @@ public class WebAIController {
                             } catch (IOException e) {
                                 log.error("send message error:", e.getMessage());
                             }
+                            return null;
+                        }, msg -> {
                             return null;
                         });
                     } catch (Throwable e) {

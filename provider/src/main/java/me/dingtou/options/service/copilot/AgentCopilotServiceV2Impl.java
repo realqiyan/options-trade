@@ -48,7 +48,7 @@ import me.dingtou.options.util.TemplateRenderer;
  * Agent模式
  */
 @Slf4j
-@Component
+@Component("agentCopilotServiceV2")
 public class AgentCopilotServiceV2Impl implements CopilotService {
 
     @Autowired
@@ -77,7 +77,8 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             String title,
             Message message,
             Function<Message, Void> callback,
-            Function<Message, Void> failCallback) {
+            Function<Message, Void> failCallback,
+            Function<Message, Void> finalCallback) {
         log.info("[Agent] 开始新会话, owner={}, sessionId={}, title={}", owner, sessionId, title);
 
         // 验证账户
@@ -100,7 +101,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         String userMsg = buildContinuePrompt(owner, ownerCode, message.getContent());
         Message userMessage = new Message("user", userMsg);
 
-        work(account, title, userMessage, callback, failCallback, sessionId, List.of(systemMessage));
+        work(account, title, userMessage, callback, failCallback, finalCallback ,sessionId, List.of(systemMessage));
 
         return sessionId;
     }
@@ -110,7 +111,8 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             String sessionId,
             Message message,
             Function<Message, Void> callback,
-            Function<Message, Void> failCallback) {
+            Function<Message, Void> failCallback,
+            Function<Message, Void> finalCallback) {
         log.info("[Agent] 继续会话, owner={}, sessionId={}", owner, sessionId);
 
         // 验证账户
@@ -144,7 +146,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         // 添加新消息
         Message newMessage = new Message("user", continueMessage);
 
-        work(account, title, newMessage, callback, failCallback, sessionId, messages);
+        work(account, title, newMessage, callback, failCallback, finalCallback,sessionId, messages);
     }
 
     /**
@@ -172,6 +174,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
      * @param newMessage      新消息
      * @param callback        回调函数
      * @param failCallback    失败回调函数
+     * @param finalCallback   最终回调函数
      * @param sessionId       会话ID
      * @param historyMessages 历史消息列表
      */
@@ -180,6 +183,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             Message newMessage,
             Function<Message, Void> callback,
             Function<Message, Void> failCallback,
+            Function<Message, Void> finalCallback,
             String sessionId,
             List<Message> historyMessages) {
 
@@ -249,6 +253,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                     if (null == toolProcesser) {
                         // 没有工具调用，返回最终结果
                         finalResponse.append(finalMsg);
+                        finalCallback.apply(assistantMessage);
                         latch.countDown();
                         return;
                     }
@@ -260,6 +265,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                         if (toolCalls == null || toolCalls.isEmpty()) {
                             // 没有工具调用，也返回最终结果
                             finalResponse.append(finalMsg);
+                            finalCallback.apply(assistantMessage);
                             latch.countDown();
                             return;
                         }
@@ -293,7 +299,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                     return;
                 }
 
-                @SuppressWarnings({ "unchecked", "rawtypes" })
+                @SuppressWarnings({ "unchecked" })
                 private String convertToolCall(List<ToolExecutionRequest> toolExecutionRequests) {
                     if (null == toolExecutionRequests || toolExecutionRequests.isEmpty()) {
                         return "<tool_call>[]</tool_call>";

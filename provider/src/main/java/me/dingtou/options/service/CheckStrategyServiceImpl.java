@@ -1,0 +1,157 @@
+package me.dingtou.options.service;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.function.Function;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.service.copilot.CopilotService;
+import me.dingtou.options.manager.OwnerManager;
+import me.dingtou.options.model.Message;
+import me.dingtou.options.model.Owner;
+import me.dingtou.options.model.OwnerStrategy;
+
+@Slf4j
+@Service
+public class CheckStrategyServiceImpl implements CheckStrategyService {
+
+    @Autowired
+    private OwnerManager ownerManager;
+
+    // 自动注入agent模式的agentCopilotServiceV2
+    @Autowired
+    @Qualifier("agentCopilotServiceV2")
+    private CopilotService copilotService;
+
+    @Override
+    public void checkALlOwnerStrategy() {
+        log.info("开始检查所有账户的策略");
+
+        try {
+            // 第一步获取所有账户信息
+            List<Owner> owners = ownerManager.queryAllOwner();
+            if (owners == null || owners.isEmpty()) {
+                log.warn("没有找到任何账户信息");
+                return;
+            }
+
+            log.info("找到 {} 个账户，开始检查策略", owners.size());
+
+            // 第二步获取账户所有策略并使用AI服务检查
+            owners.forEach(owner -> {
+                String ownerId = owner.getOwner();
+                log.info("开始检查账户 {} 的策略", ownerId);
+
+                try {
+                    List<OwnerStrategy> strategies = owner.getStrategyList();
+                    if (strategies == null || strategies.isEmpty()) {
+                        log.info("账户 {} 没有任何策略", ownerId);
+                        return;
+                    }
+
+                    log.info("账户 {} 有 {} 个策略", ownerId, strategies.size());
+
+                    // 第三步检查策略（使用AI服务检查）
+                    strategies.forEach(strategy -> {
+                        try {
+                            checkStrategyWithAI(ownerId, strategy);
+                        } catch (Exception e) {
+                            log.error("检查账户 {} 的策略 {} 时发生错误", ownerId, strategy.getStrategyId(), e);
+                        }
+                    });
+
+                } catch (Exception e) {
+                    log.error("处理账户 {} 时发生错误", ownerId, e);
+                }
+            });
+
+        } catch (Exception e) {
+            log.error("检查所有策略时发生错误", e);
+        }
+
+    }
+
+    /**
+     * 使用AI服务检查单个策略
+     * 
+     * @param ownerId  账户ID
+     * @param strategy 策略
+     */
+    private void checkStrategyWithAI(String ownerId, OwnerStrategy strategy) {
+        log.info("使用AI检查账户 {} 的策略 {}", ownerId, strategy.getStrategyId());
+
+        if (!"cc_strategy".equals(strategy.getStrategyCode())) {
+            log.info("账户 {} 的策略 {} 不是cc_strategy，跳过检查", ownerId, strategy.getStrategyId());
+            return;
+        }
+
+        try {
+            // 构建策略检查提示词
+            String prompt = buildStrategyCheckPrompt(strategy);
+
+            // 创建消息对象
+            Message message = new Message("user", prompt);
+
+            // 定义回调函数
+            Function<Message, Void> callback = response -> {
+                return null;
+            };
+
+            // 定义最终回调函数
+            Function<Message, Void> finalCallback = response -> {
+                log.info("AI检查策略 {} 的响应: {}", strategy.getStrategyId(), response.getContent());
+
+                // 通知
+                return null;
+            };
+
+            // 定义失败回调函数
+            Function<Message, Void> failCallback = error -> {
+                log.error("AI检查策略 {} 失败: {}", strategy.getStrategyId(), error.getContent());
+
+                // 通知
+                return null;
+            };
+
+            // 生成会话ID
+            String sessionId = "strategy-check-" + ownerId
+                    + "-" + strategy.getStrategyId()
+                    + "-" + System.currentTimeMillis();
+
+            String datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            // 调用AI服务
+            copilotService.start(
+                    ownerId,
+                    sessionId,
+                    "策略检查-" + datetime + "-" + strategy.getStrategyId(),
+                    message,
+                    callback,
+                    failCallback,
+                    finalCallback);
+
+        } catch (Exception e) {
+            log.error("使用AI检查策略 {} 时发生异常", strategy.getStrategyId(), e);
+        }
+
+    }
+
+    /**
+     * 构建策略检查提示词
+     * 
+     * @param strategy 策略
+     * @return 提示词
+     */
+    private String buildStrategyCheckPrompt(OwnerStrategy strategy) {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("请帮我对策略：").append(strategy.getStrategyName()).append(" 进行综合分析。\n")
+                .append("策略ID：").append(strategy.getStrategyId())
+                .append("，期权策略Code：").append(strategy.getStrategyCode())
+                .append("，请按照期权策略规则、期权策略详情和订单，以及其他你评估需要的信息，告诉我是否需要调整策略持仓。");
+        return prompt.toString();
+    }
+}
