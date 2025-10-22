@@ -30,6 +30,10 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
     @Qualifier("agentCopilotServiceV2")
     private CopilotService copilotService;
 
+    // 自动注入邮件服务
+    @Autowired
+    private EmailService emailService;
+
     @Override
     public void checkALlOwnerStrategy() {
         log.info("开始检查所有账户的策略");
@@ -144,7 +148,7 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
             };
 
             // 生成会话ID
-            String sessionId = owner + "-" + System.currentTimeMillis();
+            String sessionId = owner.getOwner() + "-" + System.currentTimeMillis();
 
             // 调用AI服务
             copilotService.start(
@@ -192,14 +196,19 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
         return true;
     }
 
-    private void sendEmailNotification(Owner owner, String title, Message error) {
+    private void sendEmailNotification(Owner owner, String title, Message message) {
         OwnerAccount account = owner.getAccount();
         String smtpHost = AccountExtUtils.getSmtpHost(account);
         String smtpPort = AccountExtUtils.getSmtpPort(account);
         String smtpUser = AccountExtUtils.getSmtpUsername(account);
         String smtpPassword = AccountExtUtils.getSmtpPassword(account);
         String emailTo = AccountExtUtils.getEmailNotifyReceiver(account);
-        // 发生邮件通知
+        String content = message.getContent();
+
+        // 使用自定义SMTP配置发送Markdown格式邮件
+        emailService.sendMarkdown(emailTo, title, content, smtpHost, smtpPort, smtpUser, smtpPassword);
+
+        log.info("已发送邮件通知，收件人：{}，主题：{}", emailTo, title);
     }
 
     /**

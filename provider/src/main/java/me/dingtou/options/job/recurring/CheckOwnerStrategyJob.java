@@ -38,9 +38,9 @@ public class CheckOwnerStrategyJob implements Job {
     }
 
     /**
-     * 每天22:30执行一次检查持仓策略
+     * 每天22:30和09:30执行一次检查持仓策略
      */
-    @Scheduled(cron = "0 30 22 * * ?")
+    @Scheduled(cron = "0 30 22,09 * * ?")
     public void checkOwnerStrategy() {
         try {
             // 检查持仓策略
