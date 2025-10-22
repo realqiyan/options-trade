@@ -33,7 +33,17 @@ public enum AccountExt {
     // 账户资金配置
     ACCOUNT_SIZE("account_size", "账户资金规模", "text", 400),
     MARGIN_RATIO("margin_ratio", "保证金比例", "text", 410),
-    POSITION_RATIO("position_ratio", "头寸比例", "text", 420);
+    POSITION_RATIO("position_ratio", "头寸比例", "text", 420),
+
+    // 邮件通知配置
+    EMAIL_NOTIFY("email_notify", "是否开启邮件通知(Y/N)", "text", 500),
+    EMAIL_NOTIFY_RECEIVER("email_notify_receiver", "邮件通知接收人邮箱", "text", 510),
+    SMTP_HOST("smtp_host", "SMTP主机", "text", 520),
+    SMTP_PORT("smtp_port", "SMTP端口", "text", 521),
+    SMTP_USERNAME("smtp_username", "SMTP用户名", "text", 522),
+    SMTP_PASSWORD("smtp_password", "SMTP密码", "text", 523);
+
+
 
     private final String key;
     private final String desc;

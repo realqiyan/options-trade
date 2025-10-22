@@ -197,4 +197,82 @@ public class AccountExtUtils {
             return CandlestickPeriod.WEEK;
         }
     }
+
+    /**
+     * 获取是否开启邮件通知
+     *
+     * @param account 账户对象
+     * @return 是否开启邮件通知，默认为N
+     */
+    public static boolean isEmailNotify(OwnerAccount account) {
+        if (account == null) {
+            return false;
+        }
+        return account.getExtValue(AccountExt.EMAIL_NOTIFY, "N").equals("Y");
+    }
+
+    /**
+     * 获取邮件通知接收人邮箱
+     *
+     * @param account 账户对象
+     * @return 邮件通知接收人邮箱
+     */
+    public static String getEmailNotifyReceiver(OwnerAccount account) {
+        if (account == null) {
+            return null;
+        }
+        return account.getExtValue(AccountExt.EMAIL_NOTIFY_RECEIVER, null);
+    }
+
+    /**
+     * 获取SMTP主机
+     *
+     * @param account 账户对象
+     * @return SMTP主机
+     */
+    public static String getSmtpHost(OwnerAccount account) {
+        if (account == null) {
+            return null;
+        }
+        return account.getExtValue(AccountExt.SMTP_HOST, null);
+    }
+
+    /**
+     * 获取SMTP端口
+     *
+     * @param account 账户对象
+     * @return SMTP端口
+     */
+    public static String getSmtpPort(OwnerAccount account) {
+        if (account == null) {
+            return null;
+        }
+        return account.getExtValue(AccountExt.SMTP_PORT, null);
+    }
+
+    /**
+     * 获取SMTP用户名
+     *
+     * @param account 账户对象
+     * @return SMTP用户名
+     */
+    public static String getSmtpUsername(OwnerAccount account) {
+        if (account == null) {
+            return null;
+        }
+        return account.getExtValue(AccountExt.SMTP_USERNAME, null);
+    }
+
+    /**
+     * 获取SMTP密码
+     *
+     * @param account 账户对象
+     * @return SMTP密码
+     */
+    public static String getSmtpPassword(OwnerAccount account) {
+        if (account == null) {
+            return null;
+        }
+        return account.getExtValue(AccountExt.SMTP_PASSWORD, null);
+    }
 }

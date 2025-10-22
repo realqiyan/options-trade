@@ -11,9 +11,11 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.service.copilot.CopilotService;
+import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.Message;
 import me.dingtou.options.model.Owner;
+import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerStrategy;
 
 @Slf4j
@@ -84,7 +86,7 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
             // 第三步检查策略（使用AI服务检查）
             strategies.forEach(strategy -> {
                 try {
-                    checkStrategyWithAI(ownerId, strategy);
+                    checkStrategyWithAI(owner, strategy);
                 } catch (Exception e) {
                     log.error("检查账户 {} 的策略 {} 时发生错误", ownerId, strategy.getStrategyId(), e);
                 }
@@ -98,18 +100,24 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
     /**
      * 使用AI服务检查单个策略
      * 
-     * @param ownerId  账户ID
+     * @param owner    账户ID
      * @param strategy 策略
      */
-    private void checkStrategyWithAI(String ownerId, OwnerStrategy strategy) {
-        log.info("使用AI检查账户 {} 的策略 {}", ownerId, strategy.getStrategyId());
-
+    private void checkStrategyWithAI(Owner owner, OwnerStrategy strategy) {
+        if (!isEmailNotifyEnabled(owner)) {
+            log.info("账户 {} 的策略 {} 没有开启邮件通知，跳过检查", owner.getOwner(), strategy.getStrategyId());
+            return;
+        }
+        log.info("使用AI检查账户 {} 的策略 {}", owner.getOwner(), strategy.getStrategyId());
         if (!"cc_strategy".equals(strategy.getStrategyCode())) {
-            log.info("账户 {} 的策略 {} 不是cc_strategy，跳过检查", ownerId, strategy.getStrategyId());
+            log.info("账户 {} 的策略 {} 不是cc_strategy，跳过检查", owner.getOwner(), strategy.getStrategyId());
             return;
         }
 
         try {
+            String datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String title = strategy.getStrategyName() + "-策略检查-" + datetime;
+
             // 构建策略检查提示词
             String prompt = buildStrategyCheckPrompt(strategy);
 
@@ -124,27 +132,23 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
             // 定义最终回调函数
             Function<Message, Void> finalCallback = response -> {
                 log.info("AI检查策略 {} 的响应: {}", strategy.getStrategyId(), response.getContent());
-
-                // 通知
+                sendEmailNotification(owner, title, response);
                 return null;
             };
 
             // 定义失败回调函数
             Function<Message, Void> failCallback = error -> {
                 log.error("AI检查策略 {} 失败: {}", strategy.getStrategyId(), error.getContent());
-
-                // 通知
+                sendEmailNotification(owner, title, error);
                 return null;
             };
 
             // 生成会话ID
-            String sessionId = ownerId + "-" + System.currentTimeMillis();
+            String sessionId = owner + "-" + System.currentTimeMillis();
 
-            String datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            String title = strategy.getStrategyName() + "-策略检查-" + datetime;
             // 调用AI服务
             copilotService.start(
-                    ownerId,
+                    owner.getOwner(),
                     sessionId,
                     title,
                     message,
@@ -156,6 +160,46 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
             log.error("使用AI检查策略 {} 时发生异常", strategy.getStrategyId(), e);
         }
 
+    }
+
+    private boolean isEmailNotifyEnabled(Owner owner) {
+        OwnerAccount account = owner.getAccount();
+        String smtpHost = AccountExtUtils.getSmtpHost(account);
+        if (smtpHost == null) {
+            log.warn("账户 {} 没有配置SMTP主机", owner.getOwner());
+            return false;
+        }
+        String smtpPort = AccountExtUtils.getSmtpPort(account);
+        if (smtpPort == null) {
+            log.warn("账户 {} 没有配置SMTP端口", owner.getOwner());
+            return false;
+        }
+        String smtpUser = AccountExtUtils.getSmtpUsername(account);
+        if (smtpUser == null) {
+            log.warn("账户 {} 没有配置SMTP用户", owner.getOwner());
+            return false;
+        }
+        String smtpPassword = AccountExtUtils.getSmtpPassword(account);
+        if (smtpPassword == null) {
+            log.warn("账户 {} 没有配置SMTP密码", owner.getOwner());
+            return false;
+        }
+        String emailTo = AccountExtUtils.getEmailNotifyReceiver(account);
+        if (emailTo == null) {
+            log.warn("账户 {} 没有配置邮件接收人", owner.getOwner());
+            return false;
+        }
+        return true;
+    }
+
+    private void sendEmailNotification(Owner owner, String title, Message error) {
+        OwnerAccount account = owner.getAccount();
+        String smtpHost = AccountExtUtils.getSmtpHost(account);
+        String smtpPort = AccountExtUtils.getSmtpPort(account);
+        String smtpUser = AccountExtUtils.getSmtpUsername(account);
+        String smtpPassword = AccountExtUtils.getSmtpPassword(account);
+        String emailTo = AccountExtUtils.getEmailNotifyReceiver(account);
+        // 发生邮件通知
     }
 
     /**
