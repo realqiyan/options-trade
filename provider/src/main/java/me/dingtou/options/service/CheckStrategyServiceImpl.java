@@ -214,6 +214,16 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
         String content = message.getContent();
 
         // 使用自定义SMTP配置发送Markdown格式邮件
+        String remind = """
+
+                ```markdown
+                * 不要预测，到了指定的点位该rollover就执行。
+                * 不要有侥幸心理，一次可能是运气好，不会每次都有好运气。
+                * 不要在意短期的时间价值获利，看长线，避免因小失大。
+                ```
+
+                 """;
+        content = remind + content;
         emailService.sendMarkdown(emailTo, title, content, smtpHost, smtpPort, smtpUser, smtpPassword);
 
         log.info("已发送邮件通知，收件人：{}，主题：{}", emailTo, title);
