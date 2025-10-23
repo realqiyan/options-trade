@@ -27,11 +27,14 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
      * 提醒内容
      */
     private static final String REMIND = """
-            * 不要预测，到了指定的点位该rollover就执行。
-            * 不要有侥幸心理，一次可能是运气好，不会每次都有好运气。
-            * 不要在意短期的时间价值获利，看长线，避免因小失大。
 
-             """;
+            ---
+            * 不要预测，触发点位即执行。
+            * 不要侥幸，不赌运气。
+            * 要看长线，避免因小失大。
+            ---
+
+            """;
 
     @Autowired
     private OwnerManager ownerManager;
