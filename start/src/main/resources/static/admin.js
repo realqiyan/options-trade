@@ -201,6 +201,12 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
         elem: '#securityTable',
         url: '/admin/security/list',
         page: true,
+        limit: 50,
+        limits: [10, 20, 50],
+        request: {
+            pageName: 'page',
+            limitName: 'size'
+        },
         toolbar: true,
         defaultToolbar: ['filter', 'exports', 'print'],
         cols: [[
@@ -229,12 +235,23 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             statusCode: 0
         },
         parseData: function (res) {
-            return {
-                "code": res.success ? 0 : 1,
-                "msg": res.message,
-                "count": res.data.total,
-                "data": res.data.records || []
-            };
+            // 处理分页数据
+            if (res.data && typeof res.data === 'object' && res.data.total !== undefined) {
+                return {
+                    "code": res.success ? 0 : 1,
+                    "msg": res.message,
+                    "count": res.data.total,
+                    "data": res.data.data || []
+                };
+            } else {
+                // 兼容旧格式
+                return {
+                    "code": res.success ? 0 : 1,
+                    "msg": res.message,
+                    "count": res.data ? res.data.length : 0,
+                    "data": res.data
+                };
+            }
         }
     });
 
@@ -250,6 +267,12 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             elem: '#strategyTable',
             url: '/admin/strategy/list',
             page: true,
+            limit: 50,
+            limits: [10, 20, 50],
+            request: {
+                pageName: 'page',
+                limitName: 'size'
+            },
             toolbar: true,
             defaultToolbar: ['filter', 'exports', 'print'],
             cols: [[
@@ -297,12 +320,23 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                 statusCode: 0
             },
             parseData: function (res) {
-                return {
-                    "code": res.success ? 0 : 1,
-                    "msg": res.message,
-                    "count": res.data.total,
-                    "data": res.data.records || []
-                };
+                // 处理分页数据
+                if (res.data && typeof res.data === 'object' && res.data.total !== undefined) {
+                    return {
+                        "code": res.success ? 0 : 1,
+                        "msg": res.message,
+                        "count": res.data.total,
+                        "data": res.data.data || []
+                    };
+                } else {
+                    // 兼容旧格式
+                    return {
+                        "code": res.success ? 0 : 1,
+                        "msg": res.message,
+                        "count": res.data ? res.data.length : 0,
+                        "data": res.data
+                    };
+                }
             }
         });
     }
@@ -313,6 +347,12 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             elem: '#accountTable',
             url: '/admin/account/list',
             page: true,
+            limit: 50,
+            limits: [10, 20, 50],
+            request: {
+                pageName: 'page',
+                limitName: 'size'
+            },
             toolbar: true,
             defaultToolbar: ['filter', 'exports', 'print'],
             cols: [[
@@ -333,12 +373,23 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                 statusCode: 0
             },
             parseData: function (res) {
-                return {
-                    "code": res.success ? 0 : 1,
-                    "msg": res.message,
-                    "count": res.data.total,
-                    "data": res.data.records || []
-                };
+                // 处理分页数据
+                if (res.data && typeof res.data === 'object' && res.data.total !== undefined) {
+                    return {
+                        "code": res.success ? 0 : 1,
+                        "msg": res.message,
+                        "count": res.data.total,
+                        "data": res.data.data || []
+                    };
+                } else {
+                    // 兼容旧格式
+                    return {
+                        "code": res.success ? 0 : 1,
+                        "msg": res.message,
+                        "count": res.data ? res.data.length : 0,
+                        "data": res.data
+                    };
+                }
             }
         });
     }
@@ -892,7 +943,7 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             {fixed: 'right', title: '操作', toolbar: '#knowledgeTableBar', width: 200}
         ]],
         page: true,
-        limit: 10,
+        limit: 50,
         limits: [10, 20, 50],
         request: {
             pageName: 'page',
@@ -902,12 +953,23 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             statusCode: 0
         },
         parseData: function(res) {
-            return {
-                "code": res.success ? 0 : 1,
-                "msg": res.message,
-                "count": res.data.total,
-                "data": res.data.records || []
-            };
+            // 处理分页数据
+            if (res.data && typeof res.data === 'object' && res.data.total !== undefined) {
+                return {
+                    "code": res.success ? 0 : 1,
+                    "msg": res.message,
+                    "count": res.data.total,
+                    "data": res.data.data || []
+                };
+            } else {
+                // 兼容旧格式
+                return {
+                    "code": res.success ? 0 : 1,
+                    "msg": res.message,
+                    "count": res.data ? res.data.length : 0,
+                    "data": res.data
+                };
+            }
         }
     });
 
