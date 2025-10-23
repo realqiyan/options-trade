@@ -235,23 +235,12 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             statusCode: 0
         },
         parseData: function (res) {
-            // 处理分页数据
-            if (res.data && typeof res.data === 'object' && res.data.total !== undefined) {
-                return {
-                    "code": res.success ? 0 : 1,
-                    "msg": res.message,
-                    "count": res.data.total,
-                    "data": res.data.data || []
-                };
-            } else {
-                // 兼容旧格式
-                return {
-                    "code": res.success ? 0 : 1,
-                    "msg": res.message,
-                    "count": res.data ? res.data.length : 0,
-                    "data": res.data
-                };
-            }
+            return {
+                "code": res.success ? 0 : 1,
+                "msg": res.message,
+                "count": res.data.total,
+                "data": res.data.data || []
+            };
         }
     });
 
@@ -320,23 +309,12 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                 statusCode: 0
             },
             parseData: function (res) {
-                // 处理分页数据
-                if (res.data && typeof res.data === 'object' && res.data.total !== undefined) {
-                    return {
-                        "code": res.success ? 0 : 1,
-                        "msg": res.message,
-                        "count": res.data.total,
-                        "data": res.data.data || []
-                    };
-                } else {
-                    // 兼容旧格式
-                    return {
-                        "code": res.success ? 0 : 1,
-                        "msg": res.message,
-                        "count": res.data ? res.data.length : 0,
-                        "data": res.data
-                    };
-                }
+                return {
+                    "code": res.success ? 0 : 1,
+                    "msg": res.message,
+                    "count": res.data.total,
+                    "data": res.data.data || []
+                };
             }
         });
     }
@@ -373,23 +351,12 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                 statusCode: 0
             },
             parseData: function (res) {
-                // 处理分页数据
-                if (res.data && typeof res.data === 'object' && res.data.total !== undefined) {
-                    return {
-                        "code": res.success ? 0 : 1,
-                        "msg": res.message,
-                        "count": res.data.total,
-                        "data": res.data.data || []
-                    };
-                } else {
-                    // 兼容旧格式
-                    return {
-                        "code": res.success ? 0 : 1,
-                        "msg": res.message,
-                        "count": res.data ? res.data.length : 0,
-                        "data": res.data
-                    };
-                }
+                return {
+                    "code": res.success ? 0 : 1,
+                    "msg": res.message,
+                    "count": res.data.total,
+                    "data": res.data.data || []
+                };
             }
         });
     }
@@ -953,23 +920,12 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             statusCode: 0
         },
         parseData: function(res) {
-            // 处理分页数据
-            if (res.data && typeof res.data === 'object' && res.data.total !== undefined) {
-                return {
-                    "code": res.success ? 0 : 1,
-                    "msg": res.message,
-                    "count": res.data.total,
-                    "data": res.data.data || []
-                };
-            } else {
-                // 兼容旧格式
-                return {
-                    "code": res.success ? 0 : 1,
-                    "msg": res.message,
-                    "count": res.data ? res.data.length : 0,
-                    "data": res.data
-                };
-            }
+            return {
+                "code": res.success ? 0 : 1,
+                "msg": res.message,
+                "count": res.data.total,
+                "data": res.data.data || []
+            };
         }
     });
 
