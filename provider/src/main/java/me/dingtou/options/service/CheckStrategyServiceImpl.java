@@ -230,7 +230,7 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
         prompt.append("请帮我对策略：").append(strategy.getStrategyName()).append(" 进行综合分析。\n")
                 .append("策略ID：").append(strategy.getStrategyId())
                 .append("，期权策略Code：").append(strategy.getStrategyCode())
-                .append("，请按照期权策略规则、期权策略详情和订单，以及其他你评估需要的信息，告诉我是否需要调整策略持仓。");
+                .append("，请按照期权策略规则、期权策略详情和订单，以及其他你评估需要的信息，告诉我策略持仓是否需要调整。");
         return prompt.toString();
     }
 
