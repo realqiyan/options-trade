@@ -53,7 +53,7 @@ public class EmailServiceImpl implements EmailService {
             String htmlContent = htmlRenderer.render(document);
 
             // 添加基本的HTML样式
-            htmlContent = wrapWithHtmlStyle(htmlContent);
+            htmlContent = wrapWithHtmlStyle(subject, htmlContent);
 
             // 发送邮件
             MimeMessage message = customMailSender.createMimeMessage();
@@ -73,15 +73,16 @@ public class EmailServiceImpl implements EmailService {
     /**
      * 为HTML内容添加基本样式
      * 
+     * @param title       邮件标题
      * @param htmlContent HTML内容
      * @return 带样式的HTML内容
      */
-    private String wrapWithHtmlStyle(String htmlContent) {
+    private String wrapWithHtmlStyle(String title, String htmlContent) {
         return "<!DOCTYPE html>\n" +
                 "<html>\n" +
                 "<head>\n" +
                 "    <meta charset=\"UTF-8\">\n" +
-                "    <title>邮件内容</title>\n" +
+                "    <title>" + title + "</title>\n" +
                 "    <style>\n" +
                 "        body {\n" +
                 "            font-family: Arial, sans-serif;\n" +
