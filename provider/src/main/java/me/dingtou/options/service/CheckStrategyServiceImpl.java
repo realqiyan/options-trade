@@ -17,6 +17,7 @@ import me.dingtou.options.model.Message;
 import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerStrategy;
+import me.dingtou.options.model.StrategyExt;
 
 @Slf4j
 @Service
@@ -112,12 +113,19 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
             log.info("账户 {} 的策略 {} 没有开启邮件通知，跳过检查", owner.getOwner(), strategy.getStrategyId());
             return;
         }
-        log.info("使用AI检查账户 {} 的策略 {}", owner.getOwner(), strategy.getStrategyId());
-        if (!"cc_strategy".equals(strategy.getStrategyCode())) {
-            log.info("账户 {} 的策略 {} 不是cc_strategy，跳过检查", owner.getOwner(), strategy.getStrategyId());
+
+        boolean needEvaluate = Boolean.valueOf(strategy.getExtValue(StrategyExt.NEED_EVALUATE, "false"));
+        // 检查是否需要评估策略
+        if (!needEvaluate) {
+            log.info("账户 {} 的策略 {} 没有开启评估，跳过检查", owner.getOwner(), strategy.getStrategyId());
             return;
         }
 
+        if ("default".equals(strategy.getStrategyCode())) {
+            log.info("账户 {} 的策略 {} 是默认策略，跳过检查", owner.getOwner(), strategy.getStrategyId());
+            return;
+        }
+        log.info("使用AI检查账户 {} 的策略 {}", owner.getOwner(), strategy.getStrategyId());
         try {
             String datetime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             String title = strategy.getStrategyName() + "-策略检查-" + datetime;
