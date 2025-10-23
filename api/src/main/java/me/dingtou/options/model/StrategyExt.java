@@ -10,6 +10,8 @@ public enum StrategyExt {
     // 通用配置
     INITIAL_STOCK_NUM("initial_stock_num", "策略初始股票数"),
     INITIAL_STOCK_COST("initial_stock_cost", "策略初始股票成本价"),
+
+    NEED_EVALUATE("need_evaluate", "是否需要评估策略"),
     
     // 车轮策略配置
     WHEEL_SELLPUT_STRIKE_PRICE("wheel_sellput_strike_price", "车轮策略Sell Put可接受的行权价");
