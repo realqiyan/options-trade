@@ -232,8 +232,8 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             return {
                 "code": res.success ? 0 : 1,
                 "msg": res.message,
-                "count": res.data ? res.data.length : 0,
-                "data": res.data
+                "count": res.data.total,
+                "data": res.data.records || []
             };
         }
     });
@@ -300,8 +300,8 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                 return {
                     "code": res.success ? 0 : 1,
                     "msg": res.message,
-                    "count": res.data ? res.data.length : 0,
-                    "data": res.data
+                    "count": res.data.total,
+                    "data": res.data.records || []
                 };
             }
         });
@@ -336,8 +336,8 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
                 return {
                     "code": res.success ? 0 : 1,
                     "msg": res.message,
-                    "count": res.data ? res.data.length : 0,
-                    "data": res.data
+                    "count": res.data.total,
+                    "data": res.data.records || []
                 };
             }
         });
@@ -905,8 +905,8 @@ layui.use(['table', 'form', 'layer', 'util', 'element'], function () {
             return {
                 "code": res.success ? 0 : 1,
                 "msg": res.message,
-                "count": res.data ? res.data.length : 0,
-                "data": res.data
+                "count": res.data.total,
+                "data": res.data.records || []
             };
         }
     });

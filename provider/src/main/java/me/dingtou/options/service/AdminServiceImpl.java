@@ -7,6 +7,7 @@ import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
+import me.dingtou.options.model.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +29,29 @@ public class AdminServiceImpl implements AdminService {
     private KnowledgeManager knowledgeManager;
 
     @Override
-    public List<OwnerSecurity> listSecurities(String owner) {
-        return ownerManager.listSecurities(owner);
+    public PageResult<OwnerSecurity> listSecurities(String owner, Integer page, Integer size) {
+        // 设置默认值
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (size == null || size < 1) {
+            size = 50;
+        }
+        
+        // 获取所有数据
+        List<OwnerSecurity> allSecurities = ownerManager.listSecurities(owner);
+        
+        // 计算总数
+        Long total = (long) allSecurities.size();
+        
+        // 计算分页
+        int startIndex = (page - 1) * size;
+        int endIndex = Math.min(startIndex + size, allSecurities.size());
+        
+        // 获取当前页数据
+        List<OwnerSecurity> pageData = allSecurities.subList(startIndex, endIndex);
+        
+        return PageResult.of(pageData, total, page, size);
     }
 
     @Override
@@ -43,8 +65,29 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<OwnerStrategy> listStrategies(String owner) {
-        return ownerManager.listAllStrategies(owner);
+    public PageResult<OwnerStrategy> listStrategies(String owner, Integer page, Integer size) {
+        // 设置默认值
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (size == null || size < 1) {
+            size = 50;
+        }
+        
+        // 获取所有数据
+        List<OwnerStrategy> allStrategies = ownerManager.listAllStrategies(owner);
+        
+        // 计算总数
+        Long total = (long) allStrategies.size();
+        
+        // 计算分页
+        int startIndex = (page - 1) * size;
+        int endIndex = Math.min(startIndex + size, allStrategies.size());
+        
+        // 获取当前页数据
+        List<OwnerStrategy> pageData = allStrategies.subList(startIndex, endIndex);
+        
+        return PageResult.of(pageData, total, page, size);
     }
 
     @Override
@@ -58,8 +101,29 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<OwnerAccount> listAccounts(String owner) {
-        return ownerManager.listAccounts(owner);
+    public PageResult<OwnerAccount> listAccounts(String owner, Integer page, Integer size) {
+        // 设置默认值
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (size == null || size < 1) {
+            size = 50;
+        }
+        
+        // 获取所有数据
+        List<OwnerAccount> allAccounts = ownerManager.listAccounts(owner);
+        
+        // 计算总数
+        Long total = (long) allAccounts.size();
+        
+        // 计算分页
+        int startIndex = (page - 1) * size;
+        int endIndex = Math.min(startIndex + size, allAccounts.size());
+        
+        // 获取当前页数据
+        List<OwnerAccount> pageData = allAccounts.subList(startIndex, endIndex);
+        
+        return PageResult.of(pageData, total, page, size);
     }
 
     @Override
@@ -73,8 +137,29 @@ public class AdminServiceImpl implements AdminService {
     }
     
     @Override
-    public List<OwnerKnowledge> listKnowledges(String owner) {
-        return knowledgeManager.listKnowledges(owner);
+    public PageResult<OwnerKnowledge> listKnowledges(String owner, Integer page, Integer size) {
+        // 设置默认值
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (size == null || size < 1) {
+            size = 50;
+        }
+        
+        // 获取所有数据
+        List<OwnerKnowledge> allKnowledges = knowledgeManager.listKnowledges(owner);
+        
+        // 计算总数
+        Long total = (long) allKnowledges.size();
+        
+        // 计算分页
+        int startIndex = (page - 1) * size;
+        int endIndex = Math.min(startIndex + size, allKnowledges.size());
+        
+        // 获取当前页数据
+        List<OwnerKnowledge> pageData = allKnowledges.subList(startIndex, endIndex);
+        
+        return PageResult.of(pageData, total, page, size);
     }
     
     @Override
@@ -93,7 +178,28 @@ public class AdminServiceImpl implements AdminService {
     }
     
     @Override
-    public List<OwnerKnowledge> listKnowledgesByType(String owner, Integer type) {
-        return knowledgeManager.listKnowledgesByType(owner, type);
+    public PageResult<OwnerKnowledge> listKnowledgesByType(String owner, Integer type, Integer page, Integer size) {
+        // 设置默认值
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (size == null || size < 1) {
+            size = 50;
+        }
+        
+        // 获取所有数据
+        List<OwnerKnowledge> allKnowledges = knowledgeManager.listKnowledgesByType(owner, type);
+        
+        // 计算总数
+        Long total = (long) allKnowledges.size();
+        
+        // 计算分页
+        int startIndex = (page - 1) * size;
+        int endIndex = Math.min(startIndex + size, allKnowledges.size());
+        
+        // 获取当前页数据
+        List<OwnerKnowledge> pageData = allKnowledges.subList(startIndex, endIndex);
+        
+        return PageResult.of(pageData, total, page, size);
     }
 }

@@ -4,6 +4,7 @@ import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
+import me.dingtou.options.model.PageResult;
 
 import java.util.List;
 
@@ -18,9 +19,11 @@ public interface AdminService {
      * 获取所有用户期权标的
      *
      * @param owner 所有者
-     * @return 用户期权标的列表
+     * @param page  页码
+     * @param size  每页大小
+     * @return 用户期权标的分页结果
      */
-    List<OwnerSecurity> listSecurities(String owner);
+    PageResult<OwnerSecurity> listSecurities(String owner, Integer page, Integer size);
 
     /**
      * 保存用户期权标的
@@ -43,9 +46,11 @@ public interface AdminService {
      * 获取所有用户期权策略
      *
      * @param owner 所有者
-     * @return 用户期权策略列表
+     * @param page  页码
+     * @param size  每页大小
+     * @return 用户期权策略分页结果
      */
-    List<OwnerStrategy> listStrategies(String owner);
+    PageResult<OwnerStrategy> listStrategies(String owner, Integer page, Integer size);
 
     /**
      * 保存用户期权策略
@@ -68,9 +73,11 @@ public interface AdminService {
      * 获取所有用户账户
      *
      * @param owner 所有者
-     * @return 用户账户列表
+     * @param page  页码
+     * @param size  每页大小
+     * @return 用户账户分页结果
      */
-    List<OwnerAccount> listAccounts(String owner);
+    PageResult<OwnerAccount> listAccounts(String owner, Integer page, Integer size);
     
     /**
      * 保存用户账户
@@ -93,9 +100,11 @@ public interface AdminService {
      * 获取所有知识库
      *
      * @param owner 所有者
-     * @return 知识库列表
+     * @param page  页码
+     * @param size  每页大小
+     * @return 知识库分页结果
      */
-    List<OwnerKnowledge> listKnowledges(String owner);
+    PageResult<OwnerKnowledge> listKnowledges(String owner, Integer page, Integer size);
     
     /**
      * 保存知识库
@@ -127,7 +136,9 @@ public interface AdminService {
      *
      * @param owner 所有者
      * @param type  类型
-     * @return 知识库列表
+     * @param page  页码
+     * @param size  每页大小
+     * @return 知识库分页结果
      */
-    List<OwnerKnowledge> listKnowledgesByType(String owner, Integer type);
+    PageResult<OwnerKnowledge> listKnowledgesByType(String owner, Integer type, Integer page, Integer size);
 }

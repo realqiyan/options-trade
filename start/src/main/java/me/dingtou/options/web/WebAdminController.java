@@ -5,14 +5,13 @@ import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
+import me.dingtou.options.model.PageResult;
 import me.dingtou.options.service.AdminService;
 import me.dingtou.options.service.CheckStrategyService;
 import me.dingtou.options.web.model.WebResult;
 import me.dingtou.options.web.util.SessionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 管理控制器
@@ -34,12 +33,16 @@ public class WebAdminController {
     /**
      * 获取所有用户期权标的
      *
-     * @return 用户期权标的列表
+     * @param page 页码
+     * @param size 每页大小
+     * @return 用户期权标的分页结果
      */
     @RequestMapping(value = "/security/list", method = RequestMethod.GET)
-    public WebResult<List<OwnerSecurity>> listSecurities() {
+    public WebResult<PageResult<OwnerSecurity>> listSecurities(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "50") Integer size) {
         String owner = SessionUtils.getCurrentOwner();
-        List<OwnerSecurity> securities = adminService.listSecurities(owner);
+        PageResult<OwnerSecurity> securities = adminService.listSecurities(owner, page, size);
         return WebResult.success(securities);
     }
 
@@ -74,12 +77,16 @@ public class WebAdminController {
     /**
      * 获取所有用户期权策略
      *
-     * @return 用户期权策略列表
+     * @param page 页码
+     * @param size 每页大小
+     * @return 用户期权策略分页结果
      */
     @RequestMapping(value = "/strategy/list", method = RequestMethod.GET)
-    public WebResult<List<OwnerStrategy>> listStrategies() {
+    public WebResult<PageResult<OwnerStrategy>> listStrategies(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "50") Integer size) {
         String owner = SessionUtils.getCurrentOwner();
-        List<OwnerStrategy> strategies = adminService.listStrategies(owner);
+        PageResult<OwnerStrategy> strategies = adminService.listStrategies(owner, page, size);
         return WebResult.success(strategies);
     }
 
@@ -126,12 +133,16 @@ public class WebAdminController {
     /**
      * 获取所有用户账户
      *
-     * @return 用户账户列表
+     * @param page 页码
+     * @param size 每页大小
+     * @return 用户账户分页结果
      */
     @RequestMapping(value = "/account/list", method = RequestMethod.GET)
-    public WebResult<List<OwnerAccount>> listAccounts() {
+    public WebResult<PageResult<OwnerAccount>> listAccounts(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "50") Integer size) {
         String owner = SessionUtils.getCurrentOwner();
-        List<OwnerAccount> accounts = adminService.listAccounts(owner);
+        PageResult<OwnerAccount> accounts = adminService.listAccounts(owner, page, size);
         return WebResult.success(accounts);
     }
 
@@ -164,12 +175,16 @@ public class WebAdminController {
     /**
      * 获取所有知识库
      *
-     * @return 知识库列表
+     * @param page 页码
+     * @param size 每页大小
+     * @return 知识库分页结果
      */
     @RequestMapping(value = "/knowledge/list", method = RequestMethod.GET)
-    public WebResult<List<OwnerKnowledge>> listKnowledges() {
+    public WebResult<PageResult<OwnerKnowledge>> listKnowledges(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "50") Integer size) {
         String owner = SessionUtils.getCurrentOwner();
-        List<OwnerKnowledge> knowledges = adminService.listKnowledges(owner);
+        PageResult<OwnerKnowledge> knowledges = adminService.listKnowledges(owner, page, size);
         return WebResult.success(knowledges);
     }
 
@@ -229,12 +244,17 @@ public class WebAdminController {
      * 根据类型查询知识库
      *
      * @param type 类型
-     * @return 知识库列表
+     * @param page 页码
+     * @param size 每页大小
+     * @return 知识库分页结果
      */
     @RequestMapping(value = "/knowledge/listByType", method = RequestMethod.GET)
-    public WebResult<List<OwnerKnowledge>> listKnowledgesByType(@RequestParam("type") Integer type) {
+    public WebResult<PageResult<OwnerKnowledge>> listKnowledgesByType(
+            @RequestParam("type") Integer type,
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "50") Integer size) {
         String owner = SessionUtils.getCurrentOwner();
-        List<OwnerKnowledge> knowledges = adminService.listKnowledgesByType(owner, type);
+        PageResult<OwnerKnowledge> knowledges = adminService.listKnowledgesByType(owner, type, page, size);
         return WebResult.success(knowledges);
     }
 }
