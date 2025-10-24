@@ -3,6 +3,8 @@ package me.dingtou.options.gateway.futu.util;
 import java.math.BigDecimal;
 
 import com.futu.openapi.pb.TrdCommon;
+
+import me.dingtou.options.constant.Market;
 import me.dingtou.options.model.OwnerPosition;
 
 /**
@@ -29,6 +31,16 @@ public class PositionUtils {
         ownerPosition.setCanSellQty(BigDecimal.valueOf(position.getCanSellQty()));
         ownerPosition.setCostPrice(BigDecimal.valueOf(position.getCostPrice()));
         ownerPosition.setCurrentPrice(BigDecimal.valueOf(position.getPrice()));
+        switch (position.getTrdMarket()) {
+            case TrdCommon.TrdMarket.TrdMarket_US_VALUE:
+                ownerPosition.setMarket(Market.US.getCode());
+                break;
+            case TrdCommon.TrdMarket.TrdMarket_HK_VALUE:
+                ownerPosition.setMarket(Market.HK.getCode());
+                break;
+            default:
+                break;
+        }
         return ownerPosition;
     }
 }

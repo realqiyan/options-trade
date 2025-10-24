@@ -8,6 +8,7 @@ import lombok.Data;
 public class OwnerPosition {
     private String owner;
     private String securityCode;
+    private Integer market;
     private String securityName;
     private BigDecimal quantity;
     private BigDecimal canSellQty;
