@@ -166,7 +166,7 @@ function renderOrderTable(orderList){
               }
               return '';
           }},
-          {field: 'strategyName', title: '策略｜Delta', width: 180, templet: function(d){
+          {field: 'strategyName', title: '策略｜Delta', width: 200, templet: function(d){
               if (d.ext && d.ext.strategyName && d.ext.strategyId && d.ext.strategyAvgDelta) {
                   return `<a href="javascript:void(0);" class="strategy-link table-link" data-strategy-id="${d.ext.strategyId}">${d.ext.strategyName}｜${d.ext.strategyAvgDelta}</a>`;
               }
