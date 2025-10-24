@@ -57,7 +57,7 @@ public class DataQueryMcpService {
     private EarningsCalendarService earningsCalendarService;
 
     @Tool(description = "查询期权到期日列表。根据股票代码和市场代码查询该股票对应的所有期权到期日。返回结果包括股票代码、市场代码和到期日列表，每个到期日包含具体的日期和相关的期权信息。")
-    public String queryOptionsExpDate(@ToolParam(required = true, description = "用户身份验证Token") String ownerCode,
+    public String queryOptionsExpDate(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码，如AAPL、TSLA等") String code,
             @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market) {
         String encodeOwner = authService.decodeOwner(ownerCode);
@@ -79,7 +79,7 @@ public class DataQueryMcpService {
     }
 
     @Tool(description = "查询指定到期日的期权链数据。根据股票代码、市场代码、到期日、期权类型和交易类型查询期权详细信息。使用前请先使用queryOptionsExpDate工具获取有效的到期日。返回结果包括期权代码、类型(Call/Put)、行权价、当前价格、隐含波动率、希腊字母(Delta、Theta、Gamma)、未平仓合约数、当天交易量等完整信息。注意：当交易类型为SELL时，系统会自动调整Delta和Theta值的符号。")
-    public String queryOptionsChain(@ToolParam(required = true, description = "用户身份验证Token") String ownerCode,
+    public String queryOptionsChain(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码，如AAPL、TSLA等") String code,
             @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market,
             @ToolParam(required = true, description = "期权到期日，格式为YYYY-MM-DD，如2025-06-27。请先使用queryOptionsExpDate工具获取有效日期") String strikeDate,
@@ -125,7 +125,7 @@ public class DataQueryMcpService {
     }
 
     @Tool(description = "查询股票K线数据（日K或周K）。根据股票代码、市场代码、K线类型和数量查询股票历史K线数据。返回结果包括指定数量的K线数据，每条K线包含日期、开盘价、收盘价、最高价、最低价、成交量和成交额。最多可查询90条K线数据。")
-    public String queryStockCandlesticks(@ToolParam(required = true, description = "用户身份验证Token") String ownerCode,
+    public String queryStockCandlesticks(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码，如AAPL、TSLA等") String code,
             @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market,
             @ToolParam(required = true, description = "K线类型：1000表示日K线，2000表示周K线") Integer periodCode,
@@ -153,7 +153,7 @@ public class DataQueryMcpService {
     }
 
     @Tool(description = "查询股票技术指标数据。根据股票代码、市场代码、指标周期和数量查询股票的技术分析指标，包括MA(移动平均线)、BOLL(布林带)、MACD和RSI等常用指标。返回结果包含指定数量的历史数据，每条数据包括日期、布林带下轨/中轨/上轨、EMA20/EMA5/EMA50指数移动平均线、MACD指标(DEA/DIF)、RSI相对强弱指数等。最多可查询90条数据。")
-    public String queryStockIndicator(@ToolParam(required = true, description = "用户身份验证Token") String ownerCode,
+    public String queryStockIndicator(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码，如AAPL、TSLA等") String code,
             @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market,
             @ToolParam(required = true, description = "指标周期：1000表示日线指标，2000表示周线指标") Integer periodCode,
@@ -198,7 +198,7 @@ public class DataQueryMcpService {
     }
 
     @Tool(description = "查询期权买卖盘报价数据。根据期权代码和市场代码查询当前期权的买卖盘详细信息，包括不同价位的买卖挂单数量和价格。返回结果包括期权代码、市场代码以及完整的买卖盘价格列表，帮助投资者了解当前市场的流动性和价格深度。")
-    public String queryOrderBook(@ToolParam(required = true, description = "用户身份验证Token") String ownerCode,
+    public String queryOrderBook(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "期权代码，如AAPL250620C150等") String code,
             @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market) {
 
@@ -221,7 +221,7 @@ public class DataQueryMcpService {
     }
 
     @Tool(description = "查询股票实时价格。根据股票代码和市场代码查询股票的当前最新价格。返回结果为股票的实时价格数值，可用于快速获取股票当前市场价值。")
-    public String queryStockRealPrice(@ToolParam(required = true, description = "用户身份验证Token") String ownerCode,
+    public String queryStockRealPrice(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = true, description = "股票代码，如AAPL、TSLA等") String code,
             @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market) {
         String owner = authService.decodeOwner(ownerCode);
