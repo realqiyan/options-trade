@@ -1,7 +1,6 @@
 package me.dingtou.options.service.mcp;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -12,7 +11,6 @@ import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.manager.TradeManager;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerPosition;
-import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerSummary;
 import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.service.AuthService;
@@ -50,16 +48,32 @@ public class OwnerQueryMcpService {
         return TemplateRenderer.render("mcp_owner_strategy.ftl", data);
     }
 
-    @Tool(description = "查询用户账户所有持仓明细，包含用户账户下所有策略所持有的股票和期权信息汇总。返回结果包括证券代码、证券名称、持仓数量、可卖数量、成本价、当前价。对于期权持仓，数量为负数时表示卖出期权合约。")
-    public String queryPosition(@ToolParam(required = true, description = "用户Token") String ownerCode) {
+    @Tool(description = "查询用户账户指定股票或期权的所有持仓（包含多个策略相同股票或期权的持仓汇总）。返回结果包括证券代码、证券名称、持仓数量、可卖数量、成本价、当前价。对于期权持仓，数量为负数时表示卖出期权合约。")
+    public String queryPositionByCode(@ToolParam(required = true, description = "用户Token") String ownerCode,
+            @ToolParam(required = true, description = "股票代码") String code,
+            @ToolParam(required = true, description = "市场代码 1:港股 11:美股") Integer market) {
         String owner = authService.decodeOwner(ownerCode);
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
         }
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
-        List<OwnerSecurity> securities = ownerManager.queryOwnerSecurity(owner);
-        List<String> codes = securities.stream().map(OwnerSecurity::getCode).collect(Collectors.toList());
-        List<OwnerPosition> ownerPositionList = tradeManager.queryOwnerPosition(account, codes);
+        List<OwnerPosition> ownerPositionList = tradeManager.queryOwnerPosition(account, List.of(code));
+        // 准备模板数据
+        Map<String, Object> data = new HashMap<>();
+        data.put("positions", ownerPositionList);
+
+        // 渲染模板
+        return TemplateRenderer.render("mcp_owner_position.ftl", data);
+    }
+
+    @Tool(description = "查询用户账户所有持仓明细，包含用户账户下所有的股票和期权信息汇总。返回结果包括证券代码、证券名称、持仓数量、可卖数量、成本价、当前价。对于期权持仓，数量为负数时表示卖出期权合约。")
+    public String queryAllPosition(@ToolParam(required = true, description = "用户Token") String ownerCode) {
+        String owner = authService.decodeOwner(ownerCode);
+        if (null == owner) {
+            return "用户编码信息不正确或已经过期";
+        }
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+        List<OwnerPosition> ownerPositionList = tradeManager.queryOwnerPosition(account, null);
 
         // 准备模板数据
         Map<String, Object> data = new HashMap<>();
