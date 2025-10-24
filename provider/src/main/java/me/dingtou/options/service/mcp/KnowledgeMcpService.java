@@ -23,7 +23,7 @@ public class KnowledgeMcpService {
     @Autowired
     private KnowledgeManager knowledgeManager;
 
-    @Tool(description = "查询期权交易策略规则。系统提供三种默认策略：1) 备兑看涨策略(Covered Call) - 适用于持有标的股票并卖出看涨期权的场景，包含首次开仓规则、策略delta监控与调整规则、到期日调整规则等；2) 车轮策略(Wheel Strategy) - 包含股票趋势确认、市场安全评估、技术指标分析、持仓管理等完整流程；3) 默认卖期权策略 - 适用于单腿期权卖出的基础策略。每个策略都包含具体的交易规则、delta要求、行权日期选择要求、技术指标要求等详细信息。当指定strategyCode参数时，返回指定策略的详细规则；不指定时，返回所有可用策略的规则列表。")
+    @Tool(description = "查询期权交易策略规则。策略规则包含具体的交易规则、delta要求、行权日期选择要求、技术指标要求等详细信息。当指定strategyCode参数时，返回指定策略的详细规则；不指定时，返回所有可用策略的规则列表。")
     public String queryStrategyRule(@ToolParam(required = true, description = "用户Token") String ownerCode,
             @ToolParam(required = false, description = "期权策略编码，可选值：cc_strategy(备兑看涨策略)、wheel_strategy(车轮策略)、default(默认卖期权策略)。不指定时返回所有策略") String strategyCode) {
         String owner = authService.decodeOwner(ownerCode);
