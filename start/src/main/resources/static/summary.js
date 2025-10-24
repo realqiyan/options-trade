@@ -53,6 +53,7 @@ function renderPositionTable(positions){
             cols: [[
                 {field: 'securityCode', title: '代码', width: 220},
                 {field: 'securityName', title: '名称', width: 360},
+                {field: 'market', title: '市场', width: 80},
                 {field: 'quantity', title: '持仓数量', width: 120},
                 {field: 'canSellQty', title: '可卖数量', width: 120},
                 {field: 'costPrice', title: '成本价', width: 120},
