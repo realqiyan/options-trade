@@ -5,6 +5,7 @@
 - 期权策略Code: ${ strategySummary.strategy.strategyCode!'' }
 - 期权策略: ${strategySummary.getOptionsStrategy().getTitle() }
 - 策略名称: ${strategySummary.strategy.strategyName!''}
+- 期权lotSize: ${ strategySummary.strategy.lotSize!''}
 - 等价持股数: ${strategySummary.strategyDelta!''}
 - 策略delta（归一化）: ${strategySummary.avgDelta!''}
 - 策略盈利: $${strategySummary.allIncome!''}

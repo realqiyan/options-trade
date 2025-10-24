@@ -8,6 +8,7 @@
 - 期权策略Code: ${ item.strategy.strategyCode }
 - 期权策略: ${ item.getOptionsStrategy().getTitle() }
 - 策略标的: ${ item.strategy.code }
+- 期权lotSize: ${ item.strategy.lotSize }
 - 当前股价: $${ item.currentStockPrice }
 
 </#list>
