@@ -162,9 +162,9 @@ public class AccountExtUtils {
      */
     public static String getSummaryResult(OwnerAccount account) {
         if (account == null) {
-            return "严格按照交易规则进行综合分析和总结";
+            return "Yes 严格按照交易规则进行综合分析和总结";
         }
-        return account.getExtValue(AccountExt.AI_SUMMARY_RESULT, "严格按照交易规则进行综合分析和总结");
+        return account.getExtValue(AccountExt.AI_SUMMARY_RESULT, "Yes 严格按照交易规则进行综合分析和总结");
     }
 
     /**
