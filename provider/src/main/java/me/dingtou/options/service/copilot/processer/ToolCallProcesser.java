@@ -98,6 +98,11 @@ public class ToolCallProcesser implements ToolProcesser {
         Map<String, Object> arguments = jsonObject.getObject("arguments", Map.class);
 
         int index = name.indexOf(".");
+        // 工具名称 = 服务名.工具名
+        // 服务名不能为空
+        if (index <= 0) {
+            throw new IllegalArgumentException("Invalid tool name: " + name);
+        }
         String serverName = name.substring(0, index);
         String toolName = name.substring(index + 1);
 
