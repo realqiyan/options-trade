@@ -78,7 +78,7 @@ public class SummaryServiceImpl implements SummaryService {
         List<StrategySummary> strategySummaries = new CopyOnWriteArrayList<>();
         // 批量拉取策略数据
         ownerStrategies.parallelStream().forEach(ownerStrategy -> {
-            StrategySummary strategySummary = queryStrategySummary(owner, ownerStrategy);
+            StrategySummary strategySummary = calculateStrategySummary(owner, ownerStrategy);
             strategySummaries.add(strategySummary);
         });
         strategySummaries.stream().filter(summary -> CollectionUtils.isEmpty(summary.getStrategyOrders()))
@@ -122,14 +122,14 @@ public class SummaryServiceImpl implements SummaryService {
                 // 首先比较策略状态，suspend状态的策略沉底
                 boolean o1Suspend = "suspend".equals(o1.getStrategy().getStage());
                 boolean o2Suspend = "suspend".equals(o2.getStrategy().getStage());
-                
+
                 if (o1Suspend && !o2Suspend) {
                     return 1; // o1是suspend，排在后面
                 }
                 if (!o1Suspend && o2Suspend) {
                     return -1; // o2是suspend，排在后面
                 }
-                
+
                 // 如果都是suspend或都不是suspend，则按期权收益降序排列
                 return o2.getAllOptionsIncome().compareTo(o1.getAllOptionsIncome());
             }
@@ -234,55 +234,38 @@ public class SummaryServiceImpl implements SummaryService {
         if (ownerStrategy.getStatus() == 0) {
             return null;
         }
-        return queryStrategySummary(owner, ownerStrategy);
+        return calculateStrategySummary(owner, ownerStrategy);
     }
 
     /**
-     * 查询策略汇总
+     * 计算策略汇总
      * 
      * @param owner         所有者
      * @param ownerStrategy 策略
      * @return 策略汇总
      */
-    private StrategySummary queryStrategySummary(String owner, OwnerStrategy ownerStrategy) {
+    private StrategySummary calculateStrategySummary(String owner, OwnerStrategy ownerStrategy) {
         StrategySummary summary = new StrategySummary();
 
+        // 获取账号配置
+        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
+
+        // 设置策略信息
         summary.setStrategy(ownerStrategy);
 
-        OwnerKnowledge optionsStrategy = knowledgeManager.getStrategyByOwnerAndCode(owner,
-                ownerStrategy.getStrategyCode());
+        // 设置策略知识
+        String code = ownerStrategy.getStrategyCode();
+        OwnerKnowledge optionsStrategy = knowledgeManager.getStrategyByOwnerAndCode(owner, code);
         summary.setOptionsStrategy(optionsStrategy);
 
-        // 订单列表
+        // 查询订单列表 所有收益都基于订单计算
         List<OwnerOrder> ownerOrders = ownerManager.queryStrategyOrder(ownerStrategy);
         summary.setStrategyOrders(ownerOrders);
 
-        // 订单组聚合
-        Map<String, List<OwnerOrder>> groupByPlatformOrderId = ownerOrders.stream()
-                .filter(order -> order.getPlatformOrderId() != null)
-                .collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
-        Map<String, OwnerOrderGroup> orderGroups = new HashMap<>();
-        for (Map.Entry<String, List<OwnerOrder>> entry : groupByPlatformOrderId.entrySet()) {
-            String platformOrderId = entry.getKey();
-            List<OwnerOrder> groupOrders = entry.getValue();
-            // 累计收益
-            BigDecimal totalIncome = groupOrders.stream()
-                    .map(OwnerOrder::income)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            // 累计手续费
-            BigDecimal totalOrderFee = groupOrders.stream()
-                    .map(OwnerOrder::getOrderFee)
-                    .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            OwnerOrderGroup group = new OwnerOrderGroup(platformOrderId);
-            group.setTotalIncome(totalIncome);
-            group.setTotalOrderFee(totalOrderFee);
-            group.setOrderCount(groupOrders.size());
-            orderGroups.put(platformOrderId, group);
-        }
+        // 按平台订单号platformOrderId聚合订单收益信息
+        Map<String, OwnerOrderGroup> orderGroups = calculateOrderGroups(ownerOrders);
         summary.setOrderGroups(orderGroups);
 
-        OwnerAccount account = ownerManager.queryOwnerAccount(owner);
         // 订单费用
         BigDecimal totalFee = tradeManager.queryTotalOrderFee(account, ownerOrders);
         summary.setTotalFee(totalFee);
@@ -293,7 +276,7 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal lastDone = securityQuote.getLastDone();
         summary.setCurrentStockPrice(lastDone);
 
-        // 股票订单
+        // 已成交股票订单
         int orderHoldStockNum = 0;
         BigDecimal totalStockTradeCost = BigDecimal.ZERO;
         List<OwnerOrder> securityOrders = ownerOrders.stream()
@@ -528,6 +511,20 @@ public class SummaryServiceImpl implements SummaryService {
             summary.setPutMarginOccupied(putMarginOccupied);
         }
 
+        //处理提示词
+        processPrompt(summary, account, allOpenOptionsOrder);
+
+        return summary;
+    }
+
+    /**
+     * 处理提示词
+     * 
+     * @param summary             策略汇总
+     * @param account             账户信息
+     * @param allOpenOptionsOrder 所有未平仓期权订单
+     */
+    private void processPrompt(StrategySummary summary, OwnerAccount account, List<OwnerOrder> allOpenOptionsOrder) {
         // 未平仓订单处理策略
         OrderTradeStrategy defaultOrderTradeStrategy = new DefaultTradeStrategy(summary);
         for (OwnerOrder order : allOpenOptionsOrder) {
@@ -535,18 +532,53 @@ public class SummaryServiceImpl implements SummaryService {
         }
 
         StringBuilder prompt = new StringBuilder();
+        OwnerStrategy ownerStrategy = summary.getStrategy();
         prompt.append("请帮我对策略：").append(ownerStrategy.getStrategyName()).append(" 进行综合分析。\n")
                 .append("策略ID：").append(ownerStrategy.getStrategyId())
                 .append("，期权策略Code：").append(ownerStrategy.getStrategyCode())
-                .append("，期权策略：").append(optionsStrategy.getTitle())
+                .append("，期权策略：").append(summary.getOptionsStrategy().getTitle())
                 .append("，等价持股数：").append(summary.getStrategyDelta())
                 .append("，策略delta（归一化）：").append(summary.getAvgDelta())
                 .append("，请按照期权策略规则、期权策略详情和订单，以及其他你评估需要的信息，给我一些交易建议。");
 
         // 生成策略分析提示词
         summary.setStrategyPrompt(prompt.toString());
+    }
 
-        return summary;
+    /**
+     * 计算订单分组
+     * 
+     * @param ownerOrders 未平仓期权订单
+     * @return 订单分组
+     */
+    private Map<String, OwnerOrderGroup> calculateOrderGroups(List<OwnerOrder> ownerOrders) {
+        // 订单组聚合
+        Map<String, List<OwnerOrder>> groupByPlatformOrderId = ownerOrders.stream()
+                .filter(order -> order.getPlatformOrderId() != null)
+                .collect(Collectors.groupingBy(OwnerOrder::getPlatformOrderId));
+
+        // 订单组聚合统计
+        Map<String, OwnerOrderGroup> orderGroups = new HashMap<>();
+        for (Map.Entry<String, List<OwnerOrder>> entry : groupByPlatformOrderId.entrySet()) {
+            String platformOrderId = entry.getKey();
+            List<OwnerOrder> groupOrders = entry.getValue();
+            // 累计收益
+            BigDecimal totalIncome = groupOrders.stream()
+                    .map(OwnerOrder::income)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            // 累计手续费
+            BigDecimal totalOrderFee = groupOrders.stream()
+                    .map(OwnerOrder::getOrderFee)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            OwnerOrderGroup group = new OwnerOrderGroup(platformOrderId);
+            group.setTotalIncome(totalIncome);
+            group.setTotalOrderFee(totalOrderFee);
+            group.setOrderCount(groupOrders.size());
+            orderGroups.put(platformOrderId, group);
+        }
+        return orderGroups;
     }
 
 }
