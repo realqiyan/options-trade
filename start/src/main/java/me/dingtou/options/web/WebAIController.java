@@ -35,7 +35,7 @@ import java.util.Map;
 @RestController
 public class WebAIController {
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(10,
+    private final ExecutorService executorService = Executors.newFixedThreadPool(20,
             new ThreadFactoryBuilder().setNameFormat("ai-chat-%d").build());
 
     private static final Pattern TASK = Pattern.compile("<task>([\\s\\S]*?)</task>", Pattern.DOTALL);

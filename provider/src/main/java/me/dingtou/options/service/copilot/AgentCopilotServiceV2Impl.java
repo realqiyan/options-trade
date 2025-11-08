@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
@@ -101,7 +102,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         String userMsg = buildContinuePrompt(owner, ownerCode, message.getContent());
         Message userMessage = new Message("user", userMsg);
 
-        work(account, title, userMessage, callback, failCallback, finalCallback ,sessionId, List.of(systemMessage));
+        work(account, title, userMessage, callback, failCallback, finalCallback, sessionId, List.of(systemMessage));
 
         return sessionId;
     }
@@ -146,7 +147,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         // 添加新消息
         Message newMessage = new Message("user", continueMessage);
 
-        work(account, title, newMessage, callback, failCallback, finalCallback,sessionId, messages);
+        work(account, title, newMessage, callback, failCallback, finalCallback, sessionId, messages);
     }
 
     /**
@@ -324,7 +325,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             // 使用过一次summary后切换成false
             needSummary.set(false);
             try {
-                latch.await();
+                latch.await(10, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
                 log.error("[Agent] 模型请求中断, sessionId={}", sessionId);
             }
