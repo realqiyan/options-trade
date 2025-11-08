@@ -77,6 +77,21 @@ public class AdminServiceImpl implements AdminService {
         // 获取所有数据
         List<OwnerStrategy> allStrategies = ownerManager.listAllStrategies(owner);
         
+        // 按stage排序，将suspend状态的策略排在最后
+        allStrategies.sort((s1, s2) -> {
+            boolean s1IsSuspend = "suspend".equals(s1.getStage());
+            boolean s2IsSuspend = "suspend".equals(s2.getStage());
+            
+            if (s1IsSuspend && !s2IsSuspend) {
+                return 1; // s1是suspend，排在后面
+            } else if (!s1IsSuspend && s2IsSuspend) {
+                return -1; // s2是suspend，排在后面
+            } else {
+                // 两者都是suspend或都不是suspend，按strategy_name排序
+                return s1.getStrategyName().compareTo(s2.getStrategyName());
+            }
+        });
+        
         // 计算总数
         Long total = (long) allStrategies.size();
         

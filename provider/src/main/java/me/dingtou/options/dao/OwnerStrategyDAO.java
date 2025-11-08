@@ -34,7 +34,7 @@ public interface OwnerStrategyDAO extends BaseMapper<OwnerStrategy> {
      * @param owner owner
      * @return 策略列表
      */
-    @Select("SELECT * FROM owner_strategy WHERE owner = #{owner} order by strategy_name")
+    @Select("SELECT * FROM owner_strategy WHERE owner = #{owner} ORDER BY CASE WHEN stage = 'suspend' THEN 1 ELSE 0 END, strategy_name")
     @Results({
             @Result(property = "ext", column = "ext", jdbcType = JdbcType.VARCHAR, typeHandler = com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler.class)
     })
