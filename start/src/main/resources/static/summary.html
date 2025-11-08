@@ -211,6 +211,14 @@
                     <div class="layui-colla-title">
                         <span class="layui-badge layui-font-16" style="margin-right: 10px;">平均每股Delta:{{ item.avgDelta }}</span>
                         <span class="layui-font-16" style="font-weight: bold; margin-right: 10px;">{{ item.strategy.strategyName }}</span>
+                        
+                        {{# if(item.strategy.stage === 'suspend') { }}
+                        <span class="layui-badge layui-bg-orange" style="margin-right: 10px;">暂停</span>
+                        {{# } else if(item.strategy.stage === 'stopped') { }}
+                        <span class="layui-badge layui-bg-gray" style="margin-right: 10px;">已停止</span>
+                        {{# } else { }}
+                        <span class="layui-badge layui-bg-green" style="margin-right: 10px;">运行中</span>
+                        {{# } }}
 
                         <span style="font-weight: bold;">持有股票</span> 
                         <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">{{ item.holdStockNum }}</span>
@@ -244,7 +252,15 @@
                         <div class="layui-row layui-col-space15">
                             <div class="layui-col-md6">
                                 <div class="strategy-item">
-                                    <div><span style="font-weight: bold;">策略ID:</span> {{ item.strategy.strategyId }} <span style="color: #FF5722;">({{ item.strategy.strategyCode }})</span></div>
+                                    <div><span style="font-weight: bold;">策略ID:</span> {{ item.strategy.strategyId }} <span style="color: #FF5722;">({{ item.strategy.strategyCode }})</span>
+                                        {{# if(item.strategy.stage === 'suspend') { }}
+                                        <span class="layui-badge layui-bg-orange">暂停</span>
+                                        {{# } else if(item.strategy.stage === 'stopped') { }}
+                                        <span class="layui-badge layui-bg-gray">已停止</span>
+                                        {{# } else { }}
+                                        <span class="layui-badge layui-bg-green">运行中</span>
+                                        {{# } }}
+                                    </div>
                                     <div><span style="font-weight: bold;">希腊字母:</span> Delta:{{ item.optionsDelta }}｜Gamma:{{ item.optionsGamma }}｜Theta:{{ item.optionsTheta }}</div>
                                     <div><span style="font-weight: bold;">当前股价:</span> ${{ item.currentStockPrice }}</div>
                                     <div><span style="font-weight: bold;">期权已到账收入:</span> ${{ item.allOptionsIncome }} <span style="color: #FF5722;">(已扣除手续费${{ item.totalFee }})</span></div>

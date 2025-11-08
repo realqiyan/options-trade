@@ -119,6 +119,18 @@ public class SummaryServiceImpl implements SummaryService {
         strategySummaries.sort(new Comparator<StrategySummary>() {
             @Override
             public int compare(StrategySummary o1, StrategySummary o2) {
+                // 首先比较策略状态，suspend状态的策略沉底
+                boolean o1Suspend = "suspend".equals(o1.getStrategy().getStage());
+                boolean o2Suspend = "suspend".equals(o2.getStrategy().getStage());
+                
+                if (o1Suspend && !o2Suspend) {
+                    return 1; // o1是suspend，排在后面
+                }
+                if (!o1Suspend && o2Suspend) {
+                    return -1; // o2是suspend，排在后面
+                }
+                
+                // 如果都是suspend或都不是suspend，则按期权收益降序排列
                 return o2.getAllOptionsIncome().compareTo(o1.getAllOptionsIncome());
             }
         });
