@@ -126,18 +126,16 @@
         <div class="layui-col-md4">
             <div class="income-card">
                 <div class="income-header">
-                    <h3>策略综合收入</h3>
+                    <h3>期权收入</h3>
                 </div>
                 <div class="income-body">
-                    <div class="income-value">综合收入：${{ d.allIncome }}</div>
+                    <div class="income-value">已到账收入：${{ d.allOptionsIncome }}</div>
                     <div class="income-item">
-                        <span class="income-label">期权收入:</span>
-                        <span class="layui-badge">${{ d.allOptionsIncome }}</span>
+                        <span class="income-label">手续费（收入已扣除）：</span>
+                        <span class="layui-badge">${{ d.totalFee }}</span>
                         <br/>
-                        <span class="income-label">股票盈亏:</span>
-                        <span class="layui-badge">${{ d.allHoldStockProfit }}</span>
-                        <span class="income-label">股票支出:</span>
-                        <span class="layui-badge">${{ d.allTotalStockCost }}</span>
+                        <span class="income-label">未到期合约总数:</span>
+                        <span class="layui-badge">{{= d.allOpenOptionsQuantity}}个</span>
                     </div>
                 </div>
             </div>
@@ -145,16 +143,18 @@
         <div class="layui-col-md4">
             <div class="income-card">
                 <div class="income-header">
-                    <h3>期权收入</h3>
+                    <h3>策略综合收入</h3>
                 </div>
                 <div class="income-body">
-                    <div class="income-value">已到账：${{ d.allOptionsIncome }}</div>
+                    <div class="income-value">综合收益：${{ d.allIncome }}</div>
                     <div class="income-item">
-                        <span class="income-label">已扣除手续费:</span>
-                        <span class="layui-badge">${{ d.totalFee }}</span>
+                        <span class="income-label">期权收入:</span>
+                        <span class="layui-badge">${{ d.allOptionsIncome }}</span>
+                        <span class="income-label">股票盈亏:</span>
+                        <span class="layui-badge">${{ d.allHoldStockProfit }}</span>
                         <br/>
-                        <span class="income-label">未到期合约总数:</span>
-                        <span class="layui-badge">{{= d.allOpenOptionsQuantity}}个</span>
+                        <span class="income-label">股票支出:</span>
+                        <span class="layui-badge">${{ d.allTotalStockCost }}</span>
                     </div>
                 </div>
             </div>

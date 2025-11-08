@@ -1,5 +1,6 @@
 package me.dingtou.options.strategy.trade;
 
+import me.dingtou.options.constant.OptionsStrategy;
 import me.dingtou.options.model.*;
 import me.dingtou.options.util.TemplateRenderer;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,7 @@ public class DefaultSellStrategy extends BaseTradeStrategy {
 
     @Override
     public boolean isSupport(OwnerStrategy strategy) {
-        return null == strategy || "default".equalsIgnoreCase(strategy.getStrategyCode());
+        String code = OptionsStrategy.DEFAULT.getCode();
+        return null == strategy || code.equalsIgnoreCase(strategy.getStrategyCode());
     }
 }

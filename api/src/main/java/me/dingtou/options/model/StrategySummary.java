@@ -60,8 +60,8 @@ public class StrategySummary {
     private BigDecimal totalFee;
 
     /**
-     * 期权总收益(未扣除手续费)
-     * 注意：put期权提前指派后，卖出被指派股票和被指派期权后，allOptionsIncome会失真，一部分收益是股票差价。
+     * 期权总收益(已扣除手续费)
+     * 注意：put期权提前指派后，卖出被指派股票和被指派期权后，allOptionsIncome会失真，一部分收益是股票差价。【已经通过订单修正功能解决】
      * 例如：
      * BABA250627P130000 在股价117.05时被指派。
      * 接下来卖出100股BABA（117.05） + BABA250718P130000（13.45）
@@ -70,7 +70,7 @@ public class StrategySummary {
     private BigDecimal allOptionsIncome;
 
     /**
-     * 策略所有交易总收益（已经扣除手续和初始化投资）
+     * 策略所有交易总收益（包含股票和期权收益）
      */
     private BigDecimal allIncome;
 

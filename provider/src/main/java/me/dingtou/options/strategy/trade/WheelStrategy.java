@@ -2,6 +2,7 @@ package me.dingtou.options.strategy.trade;
 
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.IndicatorKey;
+import me.dingtou.options.constant.OptionsStrategy;
 import me.dingtou.options.model.*;
 import me.dingtou.options.util.TemplateRenderer;
 import org.apache.commons.lang3.StringUtils;
@@ -10,9 +11,6 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Comparator;
 
 @Slf4j
 @Component
@@ -20,7 +18,8 @@ public class WheelStrategy extends BaseTradeStrategy {
 
     @Override
     public boolean isSupport(OwnerStrategy strategy) {
-        return null != strategy && "wheel_strategy".equals(strategy.getStrategyCode());
+        String code = OptionsStrategy.WHEEL_STRATEGY.getCode();
+        return null == strategy || code.equalsIgnoreCase(strategy.getStrategyCode());
     }
 
     @Override

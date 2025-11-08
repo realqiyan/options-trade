@@ -1,5 +1,6 @@
 package me.dingtou.options.strategy.trade;
 
+import me.dingtou.options.constant.OptionsStrategy;
 import me.dingtou.options.model.*;
 import me.dingtou.options.util.TemplateRenderer;
 import org.springframework.stereotype.Component;
@@ -62,7 +63,8 @@ public class CoveredCallStrategy extends BaseTradeStrategy {
 
     @Override
     public boolean isSupport(OwnerStrategy strategy) {
-        return null == strategy || "cc_strategy".equalsIgnoreCase(strategy.getStrategyCode());
+        String code = OptionsStrategy.CC_STRATEGY.getCode();
+        return null == strategy || code.equalsIgnoreCase(strategy.getStrategyCode());
     }
 
 }

@@ -397,6 +397,21 @@ public class OwnerOrder implements Cloneable {
     }
 
     /**
+     * 买卖数量 买+ 卖-
+     * 
+     * @param order 订单
+     * @return 买卖数量 买+ 卖-
+     */
+    public static BigDecimal quantity(OwnerOrder order) {
+        if (!OwnerOrder.isTraded(order)) {
+            return BigDecimal.ZERO;
+        }
+        // 开销符号 -1花钱 1赚钱 数量在花钱时是买入+ 卖时是卖出-
+        return new BigDecimal(order.getQuantity())
+                .multiply(new BigDecimal(TradeSide.of(order.getSide()).getSign() * -1));
+    }
+
+    /**
      * 订单的收益
      * 
      * @param order 订单

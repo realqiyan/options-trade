@@ -2,6 +2,7 @@ package me.dingtou.options.manager;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.OptionsStrategy;
 import me.dingtou.options.dao.OwnerKnowledgeDAO;
 import me.dingtou.options.model.OwnerKnowledge;
 import me.dingtou.options.model.OwnerKnowledge.KnowledgeStatus;
@@ -141,9 +142,9 @@ public class KnowledgeManager {
                 if (!DEFAULT_STRATEGIES.isEmpty()) {
                     return DEFAULT_STRATEGIES;
                 }
-                DEFAULT_STRATEGIES.add(createDefaultStrategy(owner, "cc_strategy", "备兑看涨策略(Covered Call Strategy)"));
-                DEFAULT_STRATEGIES.add(createDefaultStrategy(owner, "wheel_strategy", "车轮策略 (Wheel Strategy)"));
-                DEFAULT_STRATEGIES.add(createDefaultStrategy(owner, "default", "默认卖期权策略(Default Strategy)"));
+                DEFAULT_STRATEGIES.add(createDefaultStrategy(owner, OptionsStrategy.CC_STRATEGY));
+                DEFAULT_STRATEGIES.add(createDefaultStrategy(owner, OptionsStrategy.WHEEL_STRATEGY));
+                DEFAULT_STRATEGIES.add(createDefaultStrategy(owner, OptionsStrategy.DEFAULT));
             }
         }
         return DEFAULT_STRATEGIES;
@@ -157,13 +158,14 @@ public class KnowledgeManager {
      * @param title 标题
      * @return 策略
      */
-    private OwnerKnowledge createDefaultStrategy(String owner, String code, String title) {
+    private OwnerKnowledge createDefaultStrategy(String owner, OptionsStrategy optionsStrategy) {
+        String code = optionsStrategy.getCode();
         OwnerKnowledge strategy = new OwnerKnowledge();
         strategy.setOwner(owner);
         strategy.setId(Long.MIN_VALUE);
         strategy.setType(KnowledgeType.OPTIONS_STRATEGY.getCode());
         strategy.setCode(code);
-        strategy.setTitle(title);
+        strategy.setTitle(optionsStrategy.getDescription());
         strategy.setContent(TemplateRenderer.render("default_strategy_" + code + ".ftl", new HashMap<>()));
         strategy.setStatus(KnowledgeStatus.ENABLED.getCode());
         return strategy;

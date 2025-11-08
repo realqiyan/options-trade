@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import me.dingtou.options.constant.AccountExt;
+import me.dingtou.options.constant.OptionsStrategy;
 import me.dingtou.options.constant.OrderExt;
 import me.dingtou.options.constant.OrderStatus;
 import me.dingtou.options.constant.TradeSide;
@@ -240,26 +241,26 @@ public class SummaryServiceImpl implements SummaryService {
     /**
      * 计算策略汇总
      * 
-     * @param owner         所有者
-     * @param ownerStrategy 策略
+     * @param owner    所有者
+     * @param strategy 策略
      * @return 策略汇总
      */
-    private StrategySummary calculateStrategySummary(String owner, OwnerStrategy ownerStrategy) {
+    private StrategySummary calculateStrategySummary(String owner, OwnerStrategy strategy) {
         StrategySummary summary = new StrategySummary();
 
         // 获取账号配置
         OwnerAccount account = ownerManager.queryOwnerAccount(owner);
 
         // 设置策略信息
-        summary.setStrategy(ownerStrategy);
+        summary.setStrategy(strategy);
 
         // 设置策略知识
-        String code = ownerStrategy.getStrategyCode();
+        String code = strategy.getStrategyCode();
         OwnerKnowledge optionsStrategy = knowledgeManager.getStrategyByOwnerAndCode(owner, code);
         summary.setOptionsStrategy(optionsStrategy);
 
         // 查询订单列表 所有收益都基于订单计算
-        List<OwnerOrder> ownerOrders = ownerManager.queryStrategyOrder(ownerStrategy);
+        List<OwnerOrder> ownerOrders = ownerManager.queryStrategyOrder(strategy);
         summary.setStrategyOrders(ownerOrders);
 
         // 按平台订单号platformOrderId聚合订单收益信息
@@ -267,138 +268,101 @@ public class SummaryServiceImpl implements SummaryService {
         summary.setOrderGroups(orderGroups);
 
         // 订单费用
-        BigDecimal totalFee = tradeManager.queryTotalOrderFee(account, ownerOrders);
-        summary.setTotalFee(totalFee);
+        List<OwnerOrder> securityOrders = ownerOrders.stream()
+                .filter(OwnerOrder::isStockOrder)
+                .toList();
+        BigDecimal allOrderFee = tradeManager.queryTotalOrderFee(account, securityOrders);
+
+        List<OwnerOrder> allOptionsOrders = ownerOrders.stream()
+                .filter(order -> OrderStatus.of(order.getStatus()).isTraded())
+                .filter(OwnerOrder::isOptionsOrder)
+                .toList();
+        BigDecimal allOptionsFee = tradeManager.queryTotalOrderFee(account, allOptionsOrders);
+
+        summary.setTotalFee(allOrderFee.add(allOptionsFee));
 
         // 股票现价
-        Security security = Security.of(ownerStrategy.getCode(), account.getMarket());
+        Security security = Security.of(strategy.getCode(), account.getMarket());
         SecurityQuote securityQuote = securityQuoteGateway.quote(account, security);
         BigDecimal lastDone = securityQuote.getLastDone();
         summary.setCurrentStockPrice(lastDone);
 
-        // 已成交股票订单
-        int orderHoldStockNum = 0;
-        BigDecimal totalStockTradeCost = BigDecimal.ZERO;
-        List<OwnerOrder> securityOrders = ownerOrders.stream()
-                .filter(OwnerOrder::isStockOrder)
-                .toList();
-        for (OwnerOrder securityOrder : securityOrders) {
-            totalStockTradeCost = totalStockTradeCost.subtract(OwnerOrder.income(securityOrder));
-            TradeSide tradeSide = TradeSide.of(securityOrder.getSide());
-            switch (tradeSide) {
-                case BUY:
-                case BUY_BACK:
-                    orderHoldStockNum += securityOrder.getQuantity();
-                    break;
-                case SELL:
-                case SELL_SHORT:
-                    orderHoldStockNum -= securityOrder.getQuantity();
-                    break;
-                default:
-                    break;
-            }
-
-        }
-
+        // 计算持有股票数
         // 初始股票数&成本
-        int initialStockNum = Integer.parseInt(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0"));
-        BigDecimal initialStockCost = new BigDecimal(ownerStrategy.getExtValue(StrategyExt.INITIAL_STOCK_COST, "0"));
+        String initialStockNumStr = strategy.getExtValue(StrategyExt.INITIAL_STOCK_NUM, "0");
+        int initialStockNum = Integer.parseInt(initialStockNumStr);
+        String initialStockCostStr = strategy.getExtValue(StrategyExt.INITIAL_STOCK_COST, lastDone.toString());
+        BigDecimal initialStockCost = new BigDecimal(initialStockCostStr);
 
-        BigDecimal averageStockCost = BigDecimal.ZERO;
-        // 股票平均成本 = 系统设置 or 股票持有数量 / 股票数量
-        if (orderHoldStockNum == 0) {
-            averageStockCost = initialStockCost;
+        // 持有股票数 = 初始股票数 + 买入订单数量 - 卖出订单数量
+        // 持股股票金额 = 初始股票成本 + 买入订单成本 - 卖出订单成本
+        int holdStockNum = 0;
+        BigDecimal holdStockCost = BigDecimal.ZERO;
+
+        for (OwnerOrder securityOrder : securityOrders) {
+            holdStockNum += OwnerOrder.quantity(securityOrder).intValue();
+            holdStockCost = holdStockCost.subtract(OwnerOrder.income(securityOrder));
+        }
+
+        // 初始股票成本
+        BigDecimal initStockCost = BigDecimal.ZERO;
+        if (holdStockNum >= initialStockNum) {
+            // 如果持股数大于初始股票数，则初始股票没有卖出，成本为当前股价*初始股票数
+            initStockCost = lastDone.multiply(BigDecimal.valueOf(initialStockNum));
         } else {
-            averageStockCost = totalStockTradeCost.divide(new BigDecimal(orderHoldStockNum), 4, RoundingMode.HALF_UP);
+            // 如果持股数小于初始股票数，则卖出的部分使用初始股票成本*已经卖出初始股票数 + 现价*没有卖出的初始股数量
+            int sellInitialStockNum = initialStockNum - holdStockNum;
+            BigDecimal holdInitStockCost = lastDone.multiply(BigDecimal.valueOf(holdStockNum));
+            initStockCost = initialStockCost
+                    .multiply(BigDecimal.valueOf(sellInitialStockNum))
+                    .add(holdInitStockCost);
         }
+        holdStockNum = holdStockNum + initialStockNum;
+        holdStockCost = holdStockCost.add(initStockCost);
 
-        // 如果平均成本为0，则使用当前价格
-        if (BigDecimal.ZERO.equals(averageStockCost)) {
-            averageStockCost = lastDone;
-        }
-
-        // 如果交易产生了成本或收益 则往平均成本上累计
-        if (initialStockNum != 0 && !BigDecimal.ZERO.equals(totalStockTradeCost)) {
-            BigDecimal avgCost = totalStockTradeCost.divide(BigDecimal.valueOf(initialStockNum), 4,
-                    RoundingMode.HALF_UP);
-            averageStockCost = averageStockCost.add(avgCost);
+        // 股票平均成本 = 股票持有数量 / 股票数量
+        BigDecimal averageStockCost = BigDecimal.ZERO;
+        switch (OptionsStrategy.of(strategy.getCode())) {
+            case CC_STRATEGY:
+                averageStockCost = initialStockCost;
+                break;
+            default:
+                if (holdStockNum != 0) {
+                    averageStockCost = holdStockCost.divide(new BigDecimal(holdStockNum), 4, RoundingMode.HALF_UP);
+                } else {
+                    averageStockCost = lastDone;
+                }
+                break;
         }
 
         summary.setAverageStockCost(averageStockCost);
 
         // 总股票持有数量
-        int holdStockNum = initialStockNum + orderHoldStockNum;
         summary.setHoldStockNum(holdStockNum);
 
-        // 股票成本（只有存在初始股本的策略，股票卖出，股票成本才能可能是负值）
-        BigDecimal totalStockCost = totalStockTradeCost;
-        if (BigDecimal.ZERO.compareTo(totalStockTradeCost) > 0
-                && initialStockNum != 0
-                && !BigDecimal.ZERO.equals(initialStockCost)) {
-            BigDecimal sellNum = BigDecimal.valueOf(initialStockNum - holdStockNum);
-            totalStockCost = totalStockTradeCost.add(initialStockCost.multiply(sellNum));
-        }
+        // 股票花费（总花费-初始成本）
+        BigDecimal totalStockCost = holdStockCost.subtract(initStockCost);
         summary.setTotalStockCost(totalStockCost);
 
-        int holdStockNumForProfit = holdStockNum;
-        // 当初始股票被卖后 holdStockNum 会小于 initialStockNum
-        // 当holdStockNumForProfit小于0时，不计算持股收益
-        if (holdStockNumForProfit < 0) {
-            holdStockNumForProfit = 0;
-        }
-
-        // 持有股票价格
-        BigDecimal holdStockPrice = lastDone;
-
-        // 期权订单
-        List<OwnerOrder> allOptionsOrders = ownerOrders.stream()
-                .filter(order -> OrderStatus.of(order.getStatus()).isTraded())
-                .filter(OwnerOrder::isOptionsOrder)
-                .toList();
-
-        // 卖空订单
-        List<OwnerOrder> sellCallOrders = allOptionsOrders.stream()
-                .filter(OwnerOrder::isSell)
-                .filter(OwnerOrder::isOpen)
-                .filter(OwnerOrder::isCall)
-                .toList();
-
-        // 计算持股盈利
-        BigDecimal holdStockProfit = BigDecimal.ZERO;
-        BigDecimal holdStockNumForProfitLoop = BigDecimal.valueOf(holdStockNumForProfit);
-        for (OwnerOrder ownerOrder : sellCallOrders) {
-            BigDecimal strikePrice = OwnerOrder.strikePrice(ownerOrder);
-            BigDecimal currLotSize = BigDecimal.valueOf(OwnerOrder.lotSize(ownerOrder));
-            // 卖空订单小于holdStockPrice 并且剩余持有数量大于当前订单的lotSize时
-            if (strikePrice.compareTo(holdStockPrice) <= 0 && holdStockNumForProfitLoop.compareTo(currLotSize) >= 0) {
-                BigDecimal currHoldStockProfit = strikePrice.subtract(averageStockCost).multiply(currLotSize);
-                holdStockProfit = holdStockProfit.add(currHoldStockProfit);
-                holdStockNumForProfitLoop = holdStockNumForProfitLoop.subtract(currLotSize);
-            }
-        }
-        BigDecimal otherHoldStockProfit = holdStockPrice.subtract(averageStockCost).multiply(holdStockNumForProfitLoop);
-        holdStockProfit = holdStockProfit.add(otherHoldStockProfit);
+        // 计算持股盈利（持股盈利需要扣除初始股票成本）
+        BigDecimal profitPrice = lastDone.subtract(averageStockCost);
+        BigDecimal holdStockProfit = profitPrice
+                .multiply(BigDecimal.valueOf(holdStockNum));
         summary.setHoldStockProfit(holdStockProfit);
 
-        BigDecimal lotSize = new BigDecimal(ownerStrategy.getLotSize());
+        // 期权订单
+
+        BigDecimal lotSize = new BigDecimal(strategy.getLotSize());
         // 所有期权利润
         BigDecimal allOptionsIncome = allOptionsOrders.stream()
                 .map(OwnerOrder::income)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        allOptionsIncome = allOptionsIncome.subtract(allOptionsFee);
         summary.setAllOptionsIncome(allOptionsIncome);
 
-        // 所有期权利润会有误差，后续关注交易收入，否则指派后卖出股票和期权时会多计算盈利。
-        BigDecimal allTradeIncome = ownerOrders.stream()
-                .map(OwnerOrder::income)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        allTradeIncome = allTradeIncome.subtract(totalFee);
-        if (holdStockNum < initialStockNum) {
-            // 卖掉的初始本金不算盈利
-            int sellNum = initialStockNum - holdStockNum;
-            BigDecimal principal = initialStockCost.multiply(BigDecimal.valueOf(sellNum));
-            allTradeIncome = allTradeIncome.subtract(principal);
-        }
         // 总收入
+        BigDecimal allTradeIncome = holdStockProfit.subtract(allOrderFee).add(allOptionsIncome);
         summary.setAllIncome(allTradeIncome);
 
         // 所有未平仓的期权
@@ -511,7 +475,7 @@ public class SummaryServiceImpl implements SummaryService {
             summary.setPutMarginOccupied(putMarginOccupied);
         }
 
-        //处理提示词
+        // 处理提示词
         processPrompt(summary, account, allOpenOptionsOrder);
 
         return summary;
