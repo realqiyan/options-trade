@@ -397,12 +397,12 @@ public class OwnerOrder implements Cloneable {
     }
 
     /**
-     * 买卖数量 买+ 卖-
+     * 交易数量 买+ 卖-
      * 
      * @param order 订单
-     * @return 买卖数量 买+ 卖-
+     * @return 交易数量 买+ 卖-
      */
-    public static BigDecimal quantity(OwnerOrder order) {
+    public static BigDecimal tradeQuantity(OwnerOrder order) {
         if (!OwnerOrder.isTraded(order)) {
             return BigDecimal.ZERO;
         }

@@ -300,7 +300,7 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal holdStockCost = BigDecimal.ZERO;
 
         for (OwnerOrder securityOrder : securityOrders) {
-            holdStockNum += OwnerOrder.quantity(securityOrder).intValue();
+            holdStockNum += OwnerOrder.tradeQuantity(securityOrder).intValue();
             holdStockCost = holdStockCost.subtract(OwnerOrder.income(securityOrder));
         }
 
