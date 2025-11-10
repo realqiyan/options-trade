@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -227,7 +228,10 @@ public class CheckStrategyServiceImpl implements CheckStrategyService {
         String content = message.getContent();
 
         // 使用自定义SMTP配置发送Markdown格式邮件
-
+        if (StringUtils.isBlank(content)) {
+            log.warn("邮件内容为空，无需发送通知");
+            return;
+        }
         content = REMIND + content;
         emailService.sendMarkdown(emailTo, title, content, smtpHost, smtpPort, smtpUser, smtpPassword);
 

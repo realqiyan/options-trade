@@ -6,8 +6,6 @@ import me.dingtou.options.model.OwnerSecurity;
 import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.model.PageResult;
 
-import java.util.List;
-
 /**
  * 管理服务接口
  *
