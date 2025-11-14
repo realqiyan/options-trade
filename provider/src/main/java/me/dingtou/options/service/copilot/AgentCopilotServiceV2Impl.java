@@ -247,13 +247,15 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                         if (!reasoningMessage.isEmpty()) {
                             assistantMessage.setReasoningContent(reasoningMessage.toString());
                         }
-                        if (StringUtils.isBlank(finalMsg)) {
-                            // 模型回复为空，直接返回
-                            log.warn("finalMsg is blank, return. sessionId: {}", sessionId);
-                            failCallback.apply(new Message("assistant", "模型响应为空"));
+                        boolean chatRecord = saveChatRecord(owner, sessionId, title, assistantMessage);
+                        if (!chatRecord) {
+                            log.error("saveChatRecord fail, sessionId={}, record={}", sessionId, assistantMessage);
+                            if (StringUtils.isBlank(assistantMessage.getContent())
+                                    && StringUtils.isBlank(assistantMessage.getReasoningContent())) {
+                                failCallback.apply(new Message("assistant", "模型响应为空"));
+                            }
                             return;
                         }
-                        saveChatRecord(owner, sessionId, title, assistantMessage);
                         chatMessages.add(new AiMessage(finalMsg));
 
                         // 提取工具调用信息
@@ -355,7 +357,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
      * @param title     会话标题
      * @param message   消息
      */
-    private void saveChatRecord(String owner, String sessionId, String title, Message message) {
+    private boolean saveChatRecord(String owner, String sessionId, String title, Message message) {
         OwnerChatRecord record = new OwnerChatRecord(
                 owner,
                 sessionId,
@@ -368,6 +370,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         if (!chatRecord) {
             log.error("saveChatRecord error, owner={}, sessionId={}, record={}", owner, sessionId, record);
         }
+        return Boolean.TRUE.equals(chatRecord);
     }
 
     /**
