@@ -15,6 +15,8 @@ import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.util.Langchain4jUtils;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -119,7 +121,7 @@ public class AssistantServiceImpl implements AssistantService {
 
     @Override
     public Boolean addChatRecord(String owner, String sessionId, OwnerChatRecord record) {
-        if (null == record) {
+        if (null == record || StringUtils.isBlank(record.getContent())) {
             return Boolean.FALSE;
         }
         record.setOwner(owner);

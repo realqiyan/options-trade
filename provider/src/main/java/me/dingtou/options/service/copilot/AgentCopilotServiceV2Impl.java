@@ -231,73 +231,83 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
 
                 @Override
                 public void onCompleteResponse(ChatResponse completeResponse) {
-                    // 保存模型回复
-                    String finalMsg = returnMessage.toString();
-
-                    if (StringUtils.isBlank(finalMsg) && completeResponse.aiMessage().hasToolExecutionRequests()) {
-                        finalMsg = convertToolCall(completeResponse.aiMessage().toolExecutionRequests());
-                        // returnMessage 为空时客户端未收到任何命令，此时直接输出工具调用请求
-                        callback.apply(new Message(messageId, "assistant", finalMsg));
-                        log.info("hasToolExecutionRequests finalMsg: {}", finalMsg);
-                    }
-
-                    Message assistantMessage = new Message("assistant", finalMsg);
-                    assistantMessage.setMessageId(messageId);
-                    if (!reasoningMessage.isEmpty()) {
-                        assistantMessage.setReasoningContent(reasoningMessage.toString());
-                    }
-                    saveChatRecord(owner, sessionId, title, assistantMessage);
-                    chatMessages.add(new AiMessage(finalMsg));
-
-                    // 提取工具调用信息
-                    ToolProcesser toolProcesser = findToolProcesser(finalMsg);
-                    if (null == toolProcesser) {
-                        // 没有工具调用，返回最终结果
-                        finalResponse.append(finalMsg);
-                        finalCallback.apply(assistantMessage);
-                        latch.countDown();
-                        return;
-                    }
-
-                    // 调用工具
-                    StringBuffer toolResultPrompt = new StringBuffer();
                     try {
-                        List<ToolCallRequest> toolCalls = toolProcesser.parseToolRequest(owner, finalMsg);
-                        if (toolCalls == null || toolCalls.isEmpty()) {
-                            // 没有工具调用，也返回最终结果
+                        // 保存模型回复
+                        String finalMsg = returnMessage.toString();
+
+                        if (StringUtils.isBlank(finalMsg) && completeResponse.aiMessage().hasToolExecutionRequests()) {
+                            finalMsg = convertToolCall(completeResponse.aiMessage().toolExecutionRequests());
+                            // returnMessage 为空时客户端未收到任何命令，此时直接输出工具调用请求
+                            callback.apply(new Message(messageId, "assistant", finalMsg));
+                            log.info("hasToolExecutionRequests finalMsg: {}", finalMsg);
+                        }
+
+                        Message assistantMessage = new Message("assistant", finalMsg);
+                        assistantMessage.setMessageId(messageId);
+                        if (!reasoningMessage.isEmpty()) {
+                            assistantMessage.setReasoningContent(reasoningMessage.toString());
+                        }
+                        if (StringUtils.isBlank(finalMsg)) {
+                            // 模型回复为空，直接返回
+                            log.warn("finalMsg is blank, return. sessionId: {}", sessionId);
+                            failCallback.apply(new Message("assistant", "模型响应为空"));
+                            return;
+                        }
+                        saveChatRecord(owner, sessionId, title, assistantMessage);
+                        chatMessages.add(new AiMessage(finalMsg));
+
+                        // 提取工具调用信息
+                        ToolProcesser toolProcesser = findToolProcesser(finalMsg);
+                        if (null == toolProcesser) {
+                            // 没有工具调用，返回最终结果
                             finalResponse.append(finalMsg);
                             finalCallback.apply(assistantMessage);
-                            latch.countDown();
                             return;
                         }
 
-                        for (ToolCallRequest toolCall : toolCalls) {
-                            String toolResult = null;
-                            if (ToolCallRequest.SUMMARY_TOOL.equals(toolCall.getName())) {
-                                needSummary.set(true);
-                                toolResult = AccountExtUtils.getSummaryResult(account);
-                            } else {
-                                // 调用MCP服务
-                                toolResult = toolProcesser.callTool(toolCall);
+                        // 调用工具
+                        StringBuffer toolResultPrompt = new StringBuffer();
+                        try {
+                            List<ToolCallRequest> toolCalls = toolProcesser.parseToolRequest(owner, finalMsg);
+                            if (toolCalls == null || toolCalls.isEmpty()) {
+                                // 没有工具调用，也返回最终结果
+                                finalResponse.append(finalMsg);
+                                finalCallback.apply(assistantMessage);
+                                return;
                             }
-                            // 构建工具调用结果提示
-                            toolResultPrompt.append(toolProcesser.buildResultPrompt(toolCall, toolResult));
-                        }
-                    } catch (Exception e) {
-                        log.error("ToolProcesser error: {}", e.getMessage(), e);
-                        // 工具调用异常也反馈给模型
-                        toolResultPrompt.append(e.getMessage());
-                    }
 
-                    // 保存工具调用结果
-                    Message toolResultMessage = new Message("user", toolResultPrompt.toString());
-                    saveChatRecord(owner, sessionId, title, toolResultMessage);
-                    chatMessages.add(new UserMessage(toolResultPrompt.toString()));
-                    // 添加工具响应消息
-                    callback.apply(toolResultMessage);
-                    // 将MCP结果提交给大模型继续处理
-                    latch.countDown();
-                    return;
+                            for (ToolCallRequest toolCall : toolCalls) {
+                                String toolResult = null;
+                                if (ToolCallRequest.SUMMARY_TOOL.equals(toolCall.getName())) {
+                                    needSummary.set(true);
+                                    toolResult = AccountExtUtils.getSummaryResult(account);
+                                } else {
+                                    // 调用MCP服务
+                                    toolResult = toolProcesser.callTool(toolCall);
+                                }
+                                // 构建工具调用结果提示
+                                toolResultPrompt.append(toolProcesser.buildResultPrompt(toolCall, toolResult));
+                            }
+                        } catch (Exception e) {
+                            log.error("ToolProcesser error: {}", e.getMessage(), e);
+                            // 工具调用异常也反馈给模型
+                            toolResultPrompt.append(e.getMessage());
+                        }
+
+                        // 保存工具调用结果
+                        Message toolResultMessage = new Message("user", toolResultPrompt.toString());
+                        saveChatRecord(owner, sessionId, title, toolResultMessage);
+                        chatMessages.add(new UserMessage(toolResultPrompt.toString()));
+                        // 添加工具响应消息
+                        callback.apply(toolResultMessage);
+                        // 将MCP结果提交给大模型继续处理
+                        return;
+                    } catch (Throwable e) {
+                        log.error("onCompleteResponse error: {}", e.getMessage(), e);
+                        failCallback.apply(new Message("assistant", "模型响应失败:" + e.getMessage()));
+                    } finally {
+                        latch.countDown();
+                    }
                 }
 
                 @SuppressWarnings({ "unchecked" })
@@ -354,7 +364,10 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                 message.getContent(),
                 message.getReasoningContent());
         record.setMessageId(message.getMessageId());
-        assistantService.addChatRecord(owner, sessionId, record);
+        Boolean chatRecord = assistantService.addChatRecord(owner, sessionId, record);
+        if (!chatRecord) {
+            log.error("saveChatRecord error, owner={}, sessionId={}, record={}", owner, sessionId, record);
+        }
     }
 
     /**

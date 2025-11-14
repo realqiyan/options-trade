@@ -1,5 +1,6 @@
 package me.dingtou.options.util;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,7 @@ public class Langchain4jUtils {
                 .returnThinking(true)
                 .logRequests(true)
                 .logResponses(true)
+                .timeout(Duration.ofSeconds(300))
                 .build();
     }
 
@@ -86,6 +88,7 @@ public class Langchain4jUtils {
                 .returnThinking(true)
                 .logRequests(true)
                 .logResponses(true)
+                .timeout(Duration.ofSeconds(300))
                 .build();
     }
 
