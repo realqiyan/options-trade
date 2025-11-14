@@ -24,7 +24,6 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>3.5.4</spring-boot.version>
-        <spring-ai.version>1.0.1</spring-ai.version>
         <mybatis-plus.version>3.5.12</mybatis-plus.version>
         <lombok.version>1.18.30</lombok.version>
         <mysql-connector.version>8.4.0</mysql-connector.version>
@@ -37,15 +36,23 @@
         <jjwt.version>0.12.6</jjwt.version>
         <okhttp.version>4.12.0</okhttp.version>
         <jobrunr.version>7.4.1</jobrunr.version>
-        <jackson-databind.version>2.16.1</jackson-databind.version>
         <commons-text.version>1.10.0</commons-text.version>
         <reactor-core.version>3.7.7</reactor-core.version>
-        <langchain4j.version>1.2.0</langchain4j.version>
-        <google-adk.version>0.2.0</google-adk.version>
+        <langchain4j.version>1.8.0</langchain4j.version>
+        <spring-ai.version>1.1.0-M4</spring-ai.version>
+        <spring-ai-alibaba.version>1.1.0.0-M4</spring-ai-alibaba.version>
+        <jackson.version>2.19.2</jackson.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
@@ -53,6 +60,24 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+          
+            <!-- fasterxml jackson Core -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-freemarker</artifactId>
@@ -156,11 +181,6 @@
                 <version>${jobrunr.version}</version> 
             </dependency>
             <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson-databind.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
                 <version>${commons-text.version}</version>
@@ -179,31 +199,21 @@
             </dependency>
             <dependency>
                 <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-ollama</artifactId>
-                <version>${langchain4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j</artifactId>
                 <version>${langchain4j.version}</version>
             </dependency>
 
-            <!-- google-adk -->
-            <dependency>
-                <groupId>com.google.adk</groupId>
-                <artifactId>google-adk</artifactId>
-                <version>${google-adk.version}</version>
+            <!-- spring-alibaba-ai -->
+             <dependency>
+                <groupId>com.alibaba.cloud.ai</groupId>
+                <artifactId>spring-ai-alibaba-agent-framework</artifactId>
+                <version>${spring-ai-alibaba.version}</version>
             </dependency>
+
             <dependency>
-                <groupId>com.google.adk</groupId>
-                <artifactId>google-adk-contrib-langchain4j</artifactId>
-                <version>${google-adk.version}</version>
-            </dependency>
-            <!-- Dev UI -->
-            <dependency>
-                <groupId>com.google.adk</groupId>
-                <artifactId>google-adk-dev</artifactId>
-                <version>${google-adk.version}</version>
+                <groupId>com.alibaba.cloud.ai</groupId>
+                <artifactId>spring-ai-alibaba-graph-core</artifactId>
+                <version>${spring-ai-alibaba.version}</version>
             </dependency>
 
             <!--fastjson -->

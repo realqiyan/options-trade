@@ -41,7 +41,7 @@ import me.dingtou.options.service.AuthService;
 import me.dingtou.options.util.AccountExtUtils;
 import me.dingtou.options.util.DateUtils;
 import me.dingtou.options.util.EscapeUtils;
-import me.dingtou.options.util.LlmUtils;
+import me.dingtou.options.util.Langchain4jUtils;
 import me.dingtou.options.util.McpUtils;
 import me.dingtou.options.util.TemplateRenderer;
 
@@ -192,15 +192,15 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         int maxIterations = 20;
         int iteration = 0;
 
-        List<ChatMessage> chatMessages = LlmUtils.convertMessage(historyMessages);
+        List<ChatMessage> chatMessages = Langchain4jUtils.convertMessage(historyMessages);
 
         String owner = account.getOwner();
         // 保存用户消息
         saveChatRecord(owner, sessionId, title, newMessage);
-        chatMessages.add(LlmUtils.convertMessage(newMessage));
+        chatMessages.add(Langchain4jUtils.convertMessage(newMessage));
 
-        StreamingChatModel chatModel = LlmUtils.buildStreamingChatModel(account, false);
-        StreamingChatModel summaryModel = LlmUtils.buildStreamingChatModel(account, true);
+        StreamingChatModel chatModel = Langchain4jUtils.buildStreamingChatModel(account, false);
+        StreamingChatModel summaryModel = Langchain4jUtils.buildStreamingChatModel(account, true);
         final StringBuffer finalResponse = new StringBuffer();
         // 是否需要切换summary模型
         final AtomicBoolean needSummary = new AtomicBoolean(false);

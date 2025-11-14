@@ -19,7 +19,7 @@ import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
 import me.dingtou.options.service.AssistantService;
-import me.dingtou.options.util.LlmUtils;
+import me.dingtou.options.util.Langchain4jUtils;
 
 /**
  * Ask模式
@@ -132,14 +132,14 @@ public class AskCopilotServiceImpl implements CopilotService {
             String sessionId,
             List<Message> historyMessages) {
 
-        List<ChatMessage> chatMessages = LlmUtils.convertMessage(historyMessages);
+        List<ChatMessage> chatMessages = Langchain4jUtils.convertMessage(historyMessages);
 
         String owner = account.getOwner();
         // 保存用户消息
         saveChatRecord(owner, sessionId, title, newMessage);
-        chatMessages.add(LlmUtils.convertMessage(newMessage));
+        chatMessages.add(Langchain4jUtils.convertMessage(newMessage));
 
-        StreamingChatModel chatModel = LlmUtils.buildStreamingChatModel(account, false);
+        StreamingChatModel chatModel = Langchain4jUtils.buildStreamingChatModel(account, false);
 
         String messageId = "assistant" + System.currentTimeMillis();
 

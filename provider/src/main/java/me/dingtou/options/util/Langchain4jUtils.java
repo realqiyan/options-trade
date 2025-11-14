@@ -20,7 +20,7 @@ import me.dingtou.options.model.OwnerAccount;
 /**
  * LLM 工具类
  */
-public class LlmUtils {
+public class Langchain4jUtils {
 
     /**
      * 过滤模型思考内容 <think> XML标签

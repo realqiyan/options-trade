@@ -1,29 +1,20 @@
 package me.dingtou.options.service;
 
 import java.util.List;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.google.adk.agents.LlmAgent;
-import com.google.adk.events.Event;
-import com.google.adk.models.langchain4j.LangChain4j;
-import com.google.adk.runner.InMemoryRunner;
-import com.google.adk.sessions.Session;
-import com.google.genai.types.Content;
-import com.google.genai.types.Part;
 
 import dev.langchain4j.model.chat.ChatModel;
-import io.reactivex.rxjava3.core.Flowable;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.dao.OwnerChatRecordDAO;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
-import me.dingtou.options.util.LlmUtils;
-
+import me.dingtou.options.util.Langchain4jUtils;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,14 +27,16 @@ public class AssistantServiceImpl implements AssistantService {
     @Autowired
     private OwnerChatRecordDAO ownerChatRecordDAO;
 
-    private static final String SESSION_TITLE_DESC = "生成会话标题";
-    private static final String SESSION_TITLE_INSTRUCTION = """
+    private static final String SESSION_TITLE_PROMPT = """
             你的任务是根据用户消息生成会话标题。
 
             要求：
             * 标题必须控制在20个字以内。
             * 标题尽可能的包含关键信息，例如：标的、交易日期。
             * 直接返回标题，不允许附加任何其他信息和符号。
+
+            以下是用户输入：
+            %s
             """;
 
     @Override
@@ -151,27 +144,10 @@ public class AssistantServiceImpl implements AssistantService {
         if (ownerAccount == null) {
             return "";
         }
-
         try {
-            String name = "generate_title";
-            ChatModel chatModel = LlmUtils.buildChatModel(ownerAccount, false);
-
-            // 构建流式ChatModel
-            LlmAgent titleAgent = LlmAgent.builder()
-                    .name(name)
-                    .description(SESSION_TITLE_DESC)
-                    .model(new LangChain4j(chatModel))
-                    .instruction(SESSION_TITLE_INSTRUCTION)
-                    .build();
-
-            InMemoryRunner runner = new InMemoryRunner(titleAgent);
-            Session session = runner
-                    .sessionService()
-                    .createSession(name, owner)
-                    .blockingGet();
-            Content userMsg = Content.fromParts(Part.fromText(message));
-            Flowable<Event> events = runner.runAsync(owner, session.id(), userMsg);
-            return LlmUtils.filterThink(events.blockingFirst().stringifyContent());
+            ChatModel chatModel = Langchain4jUtils.buildChatModel(ownerAccount, false);
+            String buildTitle = chatModel.chat(String.format(SESSION_TITLE_PROMPT, message));
+            return Langchain4jUtils.filterThink(buildTitle);
         } catch (Exception e) {
             log.error("生成会话标题失败 message:{}", e.getMessage(), e);
             return "";

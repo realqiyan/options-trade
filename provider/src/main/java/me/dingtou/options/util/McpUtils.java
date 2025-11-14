@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.TypeReference;
-import com.google.adk.tools.mcp.SseServerParameters;
 
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
@@ -197,6 +196,49 @@ public class McpUtils {
         log.info("Mcp服务[{}]已注册到用户[{}]", serverName, owner);
 
         return client;
+    }
+
+    static class SseServerParameters {
+        /**
+         * mcp服务地址
+         */
+        private String url;
+        /**
+         * 请求头
+         */
+        private Map<String, Object> headers;
+
+        public static SseServerParameters builder() {
+            return new SseServerParameters();
+        }
+
+        /**
+         * mcp服务地址
+         */
+        public String url() {
+            return this.url;
+        }
+
+        /**
+         * 请求头
+         */
+        public Map<String, Object> headers() {
+            return this.headers;
+        }
+
+        public SseServerParameters url(String url) {
+            this.url = url;
+            return this;
+        }
+
+        public SseServerParameters headers(Map<String, Object> headers) {
+            this.headers = headers;
+            return this;
+        }
+
+        public SseServerParameters build() {
+            return this;
+        }
     }
 
 }

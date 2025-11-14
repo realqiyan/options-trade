@@ -110,27 +110,23 @@
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-ollama</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
         </dependency>
 
-        <!-- google-adk -->
+        <!-- alibaba ai 相关依赖 -->
         <dependency>
-            <groupId>com.google.adk</groupId>
-            <artifactId>google-adk</artifactId>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-agent-framework</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.adk</groupId>
-            <artifactId>google-adk-contrib-langchain4j</artifactId>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-openai</artifactId>
         </dependency>
-        <!-- Dev UI -->
         <dependency>
-            <groupId>com.google.adk</groupId>
-            <artifactId>google-adk-dev</artifactId>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-deepseek</artifactId>
         </dependency>
+
         
         <!-- 邮件发送相关依赖 -->
         <dependency>
