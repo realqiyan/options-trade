@@ -14,6 +14,7 @@ import com.alibaba.cloud.ai.graph.NodeOutput;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.alibaba.cloud.ai.graph.StateGraph;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
+import com.alibaba.cloud.ai.graph.streaming.StreamingOutput;
 import com.alibaba.fastjson.JSON;
 
 import me.dingtou.options.graph.fatory.GraphFactory;
@@ -71,11 +72,17 @@ public class GraphCopilotServiceImpl implements CopilotService {
                     .subscribe(new Consumer<NodeOutput>() {
                         @Override
                         public void accept(NodeOutput nodeOutput) {
-                            callback.apply(new Message("assistant", JSON.toJSONString(nodeOutput)));
+                            if (nodeOutput instanceof StreamingOutput streamingOutput) {
+                                Object originData = streamingOutput.getOriginData();
+                                callback.apply(new Message("assistant", JSON.toJSONString(originData)));
+                            } else {
+                                callback.apply(new Message("assistant", JSON.toJSONString(nodeOutput)));
+                            }
                         }
                     }, new Consumer<Throwable>() {
                         @Override
                         public void accept(Throwable throwable) {
+                            log.error("[Graph] 会话过程中发生错误, owner={}, sessionId={}", owner, sessionId, throwable);
                             failCallback.apply(new Message("assistant", throwable.getMessage()));
                         }
                     });

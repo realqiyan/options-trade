@@ -15,6 +15,7 @@ import com.alibaba.cloud.ai.graph.action.AsyncEdgeAction;
 import com.alibaba.cloud.ai.graph.action.AsyncNodeActionWithConfig;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
+import com.alibaba.cloud.ai.graph.state.strategy.AppendStrategy;
 import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
@@ -113,9 +114,10 @@ public final class GraphFactory {
                 ReactAgent strategyAgent = ReactAgent.builder()
                                 .model(chatModel)
                                 .name("strategy")
-                                .systemPrompt("你是期权交易工具options-trade的人工智能助手，你的任务是根据用户输入，使用工具获取期权交易策略。")
+                                .instruction("你是期权交易工具options-trade的人工智能助手，你的任务是根据用户输入，使用工具获取期权交易策略。")
                                 .tools(List.of(toolCallbacks))
                                 .outputKey("strategy")
+                                .includeContents(true)
                                 .build();
 
                 KeyStrategyFactory keyStrategyFactory = () -> {
@@ -125,6 +127,7 @@ public final class GraphFactory {
                         keyStrategyMap.put("strategy", new ReplaceStrategy());
                         keyStrategyMap.put("research", new ReplaceStrategy());
                         keyStrategyMap.put("summary", new ReplaceStrategy());
+                        keyStrategyMap.put("messages", new AppendStrategy());
                         return keyStrategyMap;
                 };
 
