@@ -114,7 +114,6 @@
         </dependency>
 
         <!-- alibaba ai 相关依赖 -->
-        <!--
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-agent-framework</artifactId>
@@ -127,7 +126,6 @@
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-deepseek</artifactId>
         </dependency>
-        -->
         
         <!-- 邮件发送相关依赖 -->
         <dependency>

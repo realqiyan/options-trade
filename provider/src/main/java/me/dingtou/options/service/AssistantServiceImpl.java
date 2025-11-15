@@ -2,21 +2,26 @@ package me.dingtou.options.service;
 
 import java.util.List;
 
+import com.alibaba.cloud.ai.graph.OverAllState;
+import com.alibaba.cloud.ai.graph.StateGraph;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 
-import dev.langchain4j.model.chat.ChatModel;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.dao.OwnerChatRecordDAO;
+import me.dingtou.options.graph.fatory.GraphFactory;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
-import me.dingtou.options.util.Langchain4jUtils;
+import me.dingtou.options.util.SpringAiUtils;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,18 +33,6 @@ public class AssistantServiceImpl implements AssistantService {
     private OwnerManager ownerManager;
     @Autowired
     private OwnerChatRecordDAO ownerChatRecordDAO;
-
-    private static final String SESSION_TITLE_PROMPT = """
-            你的任务是根据用户消息生成会话标题。
-
-            要求：
-            * 标题必须控制在20个字以内。
-            * 标题尽可能的包含关键信息，例如：标的、交易日期。
-            * 直接返回标题，不允许附加任何其他信息和符号。
-
-            以下是用户输入：
-            %s
-            """;
 
     @Override
     public Map<String, Object> getSettings(String owner) {
@@ -147,9 +140,10 @@ public class AssistantServiceImpl implements AssistantService {
             return "";
         }
         try {
-            ChatModel chatModel = Langchain4jUtils.buildChatModel(ownerAccount, false);
-            String buildTitle = chatModel.chat(String.format(SESSION_TITLE_PROMPT, message));
-            return Langchain4jUtils.filterThink(buildTitle);
+            ChatModel chatModel = SpringAiUtils.buildChatModel(ownerAccount, false);
+            StateGraph copilotAgent = GraphFactory.generateTitleGraph(chatModel);
+            Optional<OverAllState> result = copilotAgent.compile().invoke(Map.of("input", message));
+            return (String) result.get().data().get("title");
         } catch (Exception e) {
             log.error("生成会话标题失败 message:{}", e.getMessage(), e);
             return "";
