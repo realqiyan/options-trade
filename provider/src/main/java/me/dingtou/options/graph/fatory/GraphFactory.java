@@ -1,16 +1,26 @@
 package me.dingtou.options.graph.fatory;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 
+import com.alibaba.cloud.ai.graph.KeyStrategy;
+import com.alibaba.cloud.ai.graph.KeyStrategyFactory;
 import com.alibaba.cloud.ai.graph.StateGraph;
-import com.alibaba.cloud.ai.graph.action.AsyncNodeAction;
+import com.alibaba.cloud.ai.graph.action.AsyncEdgeAction;
+import com.alibaba.cloud.ai.graph.action.AsyncNodeActionWithConfig;
+import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
+import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 
 import me.dingtou.options.graph.node.SimpleLlmNode;
+import me.dingtou.options.service.mcp.KnowledgeMcpService;
 
 /**
  * 图工厂
@@ -38,6 +48,10 @@ public final class GraphFactory {
                         以JSON格式返回: {"intent": "..."}
                         """;
 
+        private static final String SUMMARY_PROMPT = """
+                        你是期权交易工具options-trade的人工智能助手，请基于掌握的信息进行总结。
+                        """;
+
         /**
          * 注册会话标题生成图
          * 
@@ -51,8 +65,15 @@ public final class GraphFactory {
                                 "input",
                                 result -> Map.of("title", result));
 
-                StateGraph graph = new StateGraph()
-                                .addNode("title", AsyncNodeAction.node_async(titleNode))
+                KeyStrategyFactory keyStrategyFactory = () -> {
+                        Map<String, KeyStrategy> keyStrategyMap = new HashMap<>();
+                        keyStrategyMap.put("input", new ReplaceStrategy());
+                        keyStrategyMap.put("title", new ReplaceStrategy());
+                        return keyStrategyMap;
+                };
+
+                StateGraph graph = new StateGraph(keyStrategyFactory)
+                                .addNode("title", AsyncNodeActionWithConfig.node_async(titleNode))
                                 .addEdge(StateGraph.START, "title")
                                 .addEdge("title", StateGraph.END);
 
@@ -64,7 +85,8 @@ public final class GraphFactory {
          * 
          * @throws GraphStateException
          */
-        public static StateGraph copilotAgent(ChatModel chatModel) throws GraphStateException {
+        public static StateGraph copilotAgent(ChatModel chatModel, KnowledgeMcpService knowledgeMcpService)
+                        throws GraphStateException {
 
                 SimpleLlmNode intentNode = new SimpleLlmNode(chatModel,
                                 "intent",
@@ -75,10 +97,52 @@ public final class GraphFactory {
                                         return Map.of("intent", object.getString("intent"));
                                 });
 
-                StateGraph graph = new StateGraph()
-                                .addNode("intent", AsyncNodeAction.node_async(intentNode))
-                                .addEdge(StateGraph.START, "intent")
-                                .addEdge("intent", StateGraph.END);
+                SimpleLlmNode summaryNode = new SimpleLlmNode(chatModel,
+                                "summary",
+                                SUMMARY_PROMPT,
+                                "input",
+                                result -> {
+                                        return Map.of("summary", result);
+                                });
+
+                ToolCallback[] toolCallbacks = MethodToolCallbackProvider.builder()
+                                .toolObjects(knowledgeMcpService)
+                                .build()
+                                .getToolCallbacks();
+
+                ReactAgent strategyAgent = ReactAgent.builder()
+                                .model(chatModel)
+                                .name("strategy")
+                                .systemPrompt("你是期权交易工具options-trade的人工智能助手，你的任务是根据用户输入，使用工具获取期权交易策略。")
+                                .tools(List.of(toolCallbacks))
+                                .outputKey("strategy")
+                                .build();
+
+                KeyStrategyFactory keyStrategyFactory = () -> {
+                        Map<String, KeyStrategy> keyStrategyMap = new HashMap<>();
+                        keyStrategyMap.put("input", new ReplaceStrategy());
+                        keyStrategyMap.put("intent", new ReplaceStrategy());
+                        keyStrategyMap.put("strategy", new ReplaceStrategy());
+                        keyStrategyMap.put("research", new ReplaceStrategy());
+                        keyStrategyMap.put("summary", new ReplaceStrategy());
+                        return keyStrategyMap;
+                };
+
+                StateGraph graph = new StateGraph(keyStrategyFactory)
+                                .addNode("intent", AsyncNodeActionWithConfig.node_async(intentNode))
+                                .addNode("strategy", strategyAgent.asNode(true, true, "strategy"))
+                                .addNode("summary", AsyncNodeActionWithConfig.node_async(summaryNode));
+
+                graph.addEdge(StateGraph.START, "intent");
+                graph.addConditionalEdges("intent",
+                                AsyncEdgeAction.edge_async(state -> {
+                                        return (String) state.value("intent").orElse("other");
+                                }),
+                                Map.of(
+                                                "option", "strategy",
+                                                "other", "summary"));
+                graph.addEdge("strategy", "summary");
+                graph.addEdge("summary", StateGraph.END);
 
                 return graph;
         }

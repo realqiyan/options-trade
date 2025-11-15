@@ -1,24 +1,38 @@
 package me.dingtou.options.graph.node;
 
-import com.alibaba.cloud.ai.graph.OverAllState;
-import com.alibaba.cloud.ai.graph.action.NodeAction;
+import java.util.Optional;
+import java.util.function.Function;
 
+import com.alibaba.cloud.ai.graph.OverAllState;
+import com.alibaba.cloud.ai.graph.RunnableConfig;
+import com.alibaba.cloud.ai.graph.action.NodeActionWithConfig;
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.model.Message;
 
 /**
  * 基础节点
  */
 @Slf4j
-public abstract class BaseNode implements NodeAction {
+public abstract class BaseNode implements NodeActionWithConfig {
 
     /**
-     * 记录消息日志
+     * callback
      * 
      * @param state   状态
+     * @param config  配置
      * @param message 消息
      */
-    protected void log(OverAllState state, String message) {
-        log.info("{}: {}", name(), message);
+    protected void callback(OverAllState state, RunnableConfig config, Message message) {
+        log.info("node:{} message:{}", name(), message);
+        Optional<Object> metadata = config.metadata("__callback__");
+        if (metadata.isPresent()) {
+            @SuppressWarnings("unchecked")
+            Function<Message, Void> callback = (Function<Message, Void>) metadata.get();
+            callback.apply(message);
+        } else {
+            log.info("__callback__ 未配置, 忽略消息: {}", message);
+        }
+
     }
 
     /**

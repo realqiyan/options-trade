@@ -1,6 +1,7 @@
 package me.dingtou.options.graph.node;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -8,8 +9,10 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
+import com.alibaba.cloud.ai.graph.RunnableConfig;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.model.Message;
 import reactor.core.publisher.Flux;
 
 /**
@@ -65,8 +68,9 @@ public class SimpleLlmNode extends BaseNode {
     }
 
     @Override
-    public Map<String, Object> apply(OverAllState state) throws Exception {
+    public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
         String userMessage = (String) state.value(inputKey).orElse("");
+        String messageId = UUID.randomUUID().toString();
         // 使用流式输出
         StringBuilder fullContent = new StringBuilder();
         Flux<String> contentFlux = chatClient.prompt()
@@ -75,7 +79,7 @@ public class SimpleLlmNode extends BaseNode {
                 .stream()
                 .content().map(chunk -> {
                     // 实时输出
-                    log(state, chunk);
+                    callback(state, config, new Message(messageId, "assistant", chunk));
                     fullContent.append(chunk);
                     return chunk;
                 });
