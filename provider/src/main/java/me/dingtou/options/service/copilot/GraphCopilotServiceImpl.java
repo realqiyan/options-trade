@@ -3,6 +3,7 @@ package me.dingtou.options.service.copilot;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -12,10 +13,12 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.NodeOutput;
+import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
-import com.alibaba.cloud.ai.graph.StateGraph;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
+import com.alibaba.cloud.ai.graph.state.StateSnapshot;
 import com.alibaba.cloud.ai.graph.streaming.StreamingOutput;
 import com.alibaba.fastjson.JSON;
 
@@ -23,8 +26,12 @@ import me.dingtou.options.graph.fatory.GraphFactory;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.service.AuthService;
+import me.dingtou.options.service.mcp.DataQueryMcpService;
 import me.dingtou.options.service.mcp.KnowledgeMcpService;
+import me.dingtou.options.service.mcp.OwnerQueryMcpService;
 import me.dingtou.options.util.SpringAiUtils;
+import reactor.core.publisher.Flux;
 
 /**
  * Ask模式
@@ -33,8 +40,17 @@ import me.dingtou.options.util.SpringAiUtils;
 @Component("graphCopilotService")
 public class GraphCopilotServiceImpl implements CopilotService {
 
+    private final Map<String, CompiledGraph> copilotGraphMap = new ConcurrentHashMap<>();
+
     @Autowired
     private KnowledgeMcpService knowledgeMcpService;
+    @Autowired
+    private DataQueryMcpService dataQueryMcpService;
+    @Autowired
+    private OwnerQueryMcpService ownerQueryMcpService;
+
+    @Autowired
+    private AuthService authService;
 
     @Autowired
     private OwnerManager ownerManager;
@@ -59,39 +75,90 @@ public class GraphCopilotServiceImpl implements CopilotService {
         if (account == null) {
             return sessionId;
         }
-
-        ChatModel chatModel = SpringAiUtils.buildChatModel(account, false);
-        try {
-            StateGraph copilotAgent = GraphFactory.copilotAgent(chatModel, knowledgeMcpService);
-            RunnableConfig config = RunnableConfig.builder()
-                    .threadId(sessionId)
-                    .addMetadata("__callback__", callback)
-                    .addMetadata("__failCallback__", failCallback)
-                    .build();
-            Map<String, Object> inputs = Map.of("input", message.getContent());
-            copilotAgent.compile()
-                    .stream(inputs, config)
-                    .subscribe(new Consumer<NodeOutput>() {
-                        @Override
-                        public void accept(NodeOutput nodeOutput) {
-                            Message message = processMessage(nodeOutput);
-                            if (null != message) {
-                                callback.apply(message);
-                            }
-                        }
-                    }, new Consumer<Throwable>() {
-                        @Override
-                        public void accept(Throwable throwable) {
-                            log.error("[Graph] 会话过程中发生错误, owner={}, sessionId={}", owner, sessionId, throwable);
-                            failCallback.apply(new Message("assistant", throwable.getMessage()));
-                        }
-                    });
-        } catch (GraphStateException e) {
-            throw new RuntimeException("创建Copilot Agent失败", e);
-        }
+        work(true, account, sessionId, message, callback, failCallback, finalCallback);
         return sessionId;
     }
 
+    private void work(boolean isNew,
+            OwnerAccount account,
+            String sessionId,
+            Message message,
+            Function<Message, Void> callback,
+            Function<Message, Void> failCallback,
+            Function<Message, Void> finalCallback) {
+
+        try {
+
+            // 编码owner
+            String ownerCode = authService.encodeOwner(account.getOwner());
+            CompiledGraph copilotAgent = getCopilotGraph(account);
+            RunnableConfig config = RunnableConfig.builder()
+                    .threadId(sessionId)
+                    .addMetadata("__owner__", ownerCode)
+                    .addMetadata("__callback__", callback)
+                    .addMetadata("__failCallback__", failCallback)
+                    .build();
+
+            Flux<NodeOutput> stream;
+            Map<String, Object> inputs = Map.of("input", message.getContent());
+            if (isNew) {
+                stream = copilotAgent.stream(inputs, config);
+            } else {
+                StateSnapshot stateSnapshot = copilotAgent.getState(config);
+                OverAllState state = stateSnapshot.state();
+                state.updateState(inputs);
+                stream = copilotAgent.streamFromInitialNode(state, config);
+            }
+
+            stream.subscribe(new Consumer<NodeOutput>() {
+                @Override
+                public void accept(NodeOutput nodeOutput) {
+                    Message message = processMessage(nodeOutput);
+                    if (null != message) {
+                        callback.apply(message);
+                    }
+                }
+            }, new Consumer<Throwable>() {
+                @Override
+                public void accept(Throwable throwable) {
+                    log.error("[Graph] 会话过程中发生错误, owner={}, sessionId={}", account.getOwner(), sessionId,
+                            throwable);
+                    failCallback.apply(new Message("assistant", throwable.getMessage()));
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("执行Copilot Agent失败", e);
+        }
+    }
+
+    /**
+     * 获取Copilot Agent
+     * 
+     * @param account 用户账户
+     * @return Copilot Agent
+     * @throws GraphStateException 图状态异常
+     */
+    private CompiledGraph getCopilotGraph(OwnerAccount account) throws GraphStateException {
+        return copilotGraphMap.computeIfAbsent(account.getOwner(),
+                key -> {
+                    try {
+                        ChatModel chatModel = SpringAiUtils.buildChatModel(account, false);
+                        return GraphFactory.copilotGraph(chatModel,
+                                knowledgeMcpService,
+                                dataQueryMcpService,
+                                ownerQueryMcpService);
+                    } catch (GraphStateException e) {
+                        throw new RuntimeException("创建Copilot Agent失败", e);
+                    }
+                });
+    }
+
+    /**
+     * 处理节点输出
+     * 
+     * @param nodeOutput 节点输出
+     * @return 处理后的消息
+     */
     protected Message processMessage(NodeOutput nodeOutput) {
         String agent = nodeOutput.agent();
         String node = nodeOutput.node();
@@ -141,7 +208,12 @@ public class GraphCopilotServiceImpl implements CopilotService {
             Function<Message, Void> finalCallback) {
         log.info("[Graph] 继续会话, owner={}, sessionId={}", owner, sessionId);
 
-        throw new UnsupportedOperationException("暂不支持继续会话");
+        // 验证账户
+        OwnerAccount account = validateAccount(owner, failCallback);
+        if (account == null) {
+            return;
+        }
+        work(false, account, sessionId, message, callback, failCallback, finalCallback);
 
     }
 

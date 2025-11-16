@@ -2,8 +2,8 @@ package me.dingtou.options.service;
 
 import java.util.List;
 
+import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
-import com.alibaba.cloud.ai.graph.StateGraph;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 
@@ -141,8 +141,8 @@ public class AssistantServiceImpl implements AssistantService {
         }
         try {
             ChatModel chatModel = SpringAiUtils.buildChatModel(ownerAccount, false);
-            StateGraph copilotAgent = GraphFactory.generateTitleGraph(chatModel);
-            Optional<OverAllState> result = copilotAgent.compile().invoke(Map.of("input", message));
+            CompiledGraph copilotAgent = GraphFactory.generateTitleGraph(chatModel);
+            Optional<OverAllState> result = copilotAgent.invoke(Map.of("input", message));
             return (String) result.get().data().get("title");
         } catch (Exception e) {
             log.error("生成会话标题失败 message:{}", e.getMessage(), e);
