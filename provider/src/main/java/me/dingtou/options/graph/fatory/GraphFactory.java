@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -143,6 +144,7 @@ public final class GraphFactory {
                         Map<String, KeyStrategy> keyStrategyMap = new HashMap<>();
                         keyStrategyMap.put("__node_start_time__", new ReplaceStrategy());
                         keyStrategyMap.put("messages", new AppendStrategy());
+                        keyStrategyMap.put("chat_messages", new AppendStrategy());
                         keyStrategyMap.put("input", new ReplaceStrategy());
                         keyStrategyMap.put("intent", new ReplaceStrategy());
                         keyStrategyMap.put("strategy", new ReplaceStrategy());
@@ -276,16 +278,25 @@ public final class GraphFactory {
                         @Override
                         public List<Message> apply(OverAllState state, RunnableConfig config) {
                                 String input = state.value("input", "");
+                                List<Message> chatMessages = state.value("chat_messages", new ArrayList<>());
                                 SystemMessage system = SystemMessage.builder().text("你是一个聪明的人工智能助手。").build();
+                                if (chatMessages.isEmpty()) {
+                                        state.updateState(Map.of("chat_messages", system));
+                                        chatMessages.add(system);
+                                }
                                 UserMessage user = UserMessage.builder().text(input).build();
-                                return List.of(system, user);
+                                state.updateState(Map.of("chat_messages", user));
+                                chatMessages.add(user);
+
+                                return chatMessages;
                         }
                 };
 
                 OutputConvertFunction outputConvert = new OutputConvertFunction() {
                         @Override
                         public Map<String, Object> apply(OverAllState state, RunnableConfig config, String result) {
-                                return Map.of("chat", result);
+                                AssistantMessage assistant = AssistantMessage.builder().content(result).build();
+                                return Map.of("chat", result, "chat_messages", assistant);
                         }
                 };
 
