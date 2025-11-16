@@ -1,7 +1,6 @@
 package me.dingtou.options.graph.node;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -68,9 +67,12 @@ public class SimpleLlmNode extends BaseNode {
     }
 
     @Override
-    public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
+    public Map<String, Object> apply(OverAllState state,
+            RunnableConfig config,
+            Function<Message, Void> callback,
+            Function<Message, Void> failCallback) throws Exception {
         String userMessage = (String) state.value(inputKey).orElse("");
-        String messageId = UUID.randomUUID().toString();
+        String messageId = name() + "_" + state.data().getOrDefault("__node_start_time__", System.currentTimeMillis());
         // 使用流式输出
         StringBuilder fullContent = new StringBuilder();
         Flux<String> contentFlux = chatClient.prompt()
@@ -79,7 +81,7 @@ public class SimpleLlmNode extends BaseNode {
                 .stream()
                 .content().map(chunk -> {
                     // 实时输出
-                    callback(state, config, new Message(messageId, "assistant", chunk));
+                    callback.apply(new Message(messageId, "assistant", chunk));
                     fullContent.append(chunk);
                     return chunk;
                 });

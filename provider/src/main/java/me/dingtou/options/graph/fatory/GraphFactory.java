@@ -122,12 +122,14 @@ public final class GraphFactory {
 
                 KeyStrategyFactory keyStrategyFactory = () -> {
                         Map<String, KeyStrategy> keyStrategyMap = new HashMap<>();
+                        keyStrategyMap.put("__node_start_time__", new ReplaceStrategy());
+                        keyStrategyMap.put("messages", new AppendStrategy());
                         keyStrategyMap.put("input", new ReplaceStrategy());
                         keyStrategyMap.put("intent", new ReplaceStrategy());
                         keyStrategyMap.put("strategy", new ReplaceStrategy());
                         keyStrategyMap.put("research", new ReplaceStrategy());
                         keyStrategyMap.put("summary", new ReplaceStrategy());
-                        keyStrategyMap.put("messages", new AppendStrategy());
+
                         return keyStrategyMap;
                 };
 

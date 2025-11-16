@@ -6,7 +6,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -72,11 +74,9 @@ public class GraphCopilotServiceImpl implements CopilotService {
                     .subscribe(new Consumer<NodeOutput>() {
                         @Override
                         public void accept(NodeOutput nodeOutput) {
-                            if (nodeOutput instanceof StreamingOutput streamingOutput) {
-                                Object originData = streamingOutput.getOriginData();
-                                callback.apply(new Message("assistant", JSON.toJSONString(originData)));
-                            } else {
-                                callback.apply(new Message("assistant", JSON.toJSONString(nodeOutput)));
+                            Message message = processMessage(nodeOutput);
+                            if (null != message) {
+                                callback.apply(message);
                             }
                         }
                     }, new Consumer<Throwable>() {
@@ -90,6 +90,46 @@ public class GraphCopilotServiceImpl implements CopilotService {
             throw new RuntimeException("创建Copilot Agent失败", e);
         }
         return sessionId;
+    }
+
+    protected Message processMessage(NodeOutput nodeOutput) {
+        String agent = nodeOutput.agent();
+        String node = nodeOutput.node();
+        Long startTime = nodeOutput.state().value("__node_start_time__", System.currentTimeMillis());
+
+        String messageId = String.format("%s_%s_%d", agent, node, startTime);
+        if (nodeOutput instanceof StreamingOutput streamingOutput) {
+            Object originData = streamingOutput.getOriginData();
+            if (originData instanceof ChatResponse chatResponse) {
+                AssistantMessage output = chatResponse.getResult().getOutput();
+                if (output.hasToolCalls()) {
+                    StringBuffer toolMsg = new StringBuffer();
+                    output.getToolCalls().forEach(tc -> {
+                        toolMsg.append(tc.name()).append("(").append(tc.arguments()).append(")").append("\n");
+                    });
+                    return new Message(messageId, "assistant", toolMsg.toString());
+                } else if (null != output.getText()) {
+                    return new Message(messageId, "assistant", output.getText());
+                } else {
+                    log.warn("[Graph] 节点 {}.{} 输出为空", agent, node);
+                }
+            } else if (null != originData) {
+                return new Message(messageId, "assistant", JSON.toJSONString(originData));
+            } else {
+                log.warn("[Graph] 未知节点 {}.{}", agent, node);
+            }
+
+        } else {
+            boolean start = nodeOutput.isSTART();
+            boolean end = nodeOutput.isEND();
+            if (start) {
+                return new Message(messageId, "assistant", "节点 " + agent + "." + node + " 开始");
+            } else if (end) {
+                return new Message(messageId, "assistant", "节点 " + agent + "." + node + " 结束");
+            }
+        }
+
+        return null;
     }
 
     @Override

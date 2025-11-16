@@ -1,5 +1,6 @@
 package me.dingtou.options.graph.node;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -15,25 +16,55 @@ import me.dingtou.options.model.Message;
 @Slf4j
 public abstract class BaseNode implements NodeActionWithConfig {
 
-    /**
-     * callback
-     * 
-     * @param state   状态
-     * @param config  配置
-     * @param message 消息
-     */
-    protected void callback(OverAllState state, RunnableConfig config, Message message) {
-        log.info("node:{} message:{}", name(), message);
-        Optional<Object> metadata = config.metadata("__callback__");
-        if (metadata.isPresent()) {
-            @SuppressWarnings("unchecked")
-            Function<Message, Void> callback = (Function<Message, Void>) metadata.get();
-            callback.apply(message);
+    @Override
+    @SuppressWarnings("unchecked")
+    final public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
+        Optional<Object> callbackMetadata = config.metadata("__callback__");
+        Optional<Object> failCallbackMetadata = config.metadata("__fail_callback__");
+
+        state.updateState(Map.of("__node_start_time__", System.currentTimeMillis()));
+
+        Function<Message, Void> callback;
+        if (callbackMetadata.isPresent()) {
+            callback = (Function<Message, Void>) callbackMetadata.get();
         } else {
-            log.info("__callback__ 未配置, 忽略消息: {}", message);
+            callback = new Function<Message, Void>() {
+                @Override
+                public Void apply(Message message) {
+                    return null;
+                }
+            };
         }
 
+        Function<Message, Void> failCallback;
+        if (failCallbackMetadata.isPresent()) {
+            failCallback = (Function<Message, Void>) failCallbackMetadata.get();
+        } else {
+            failCallback = new Function<Message, Void>() {
+                @Override
+                public Void apply(Message message) {
+                    return null;
+                }
+            };
+        }
+
+        return apply(state, config, callback, failCallback);
     }
+
+    /**
+     * 执行节点
+     * 
+     * @param state        状态
+     * @param config       配置
+     * @param callback     成功回调
+     * @param failCallback 失败回调
+     * @return 节点输出
+     * @throws Exception 执行异常
+     */
+    public abstract Map<String, Object> apply(OverAllState state,
+            RunnableConfig config,
+            Function<Message, Void> callback,
+            Function<Message, Void> failCallback) throws Exception;
 
     /**
      * 获取节点名称
