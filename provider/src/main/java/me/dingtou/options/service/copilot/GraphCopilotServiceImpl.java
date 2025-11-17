@@ -22,6 +22,7 @@ import com.alibaba.cloud.ai.graph.state.StateSnapshot;
 import com.alibaba.cloud.ai.graph.streaming.StreamingOutput;
 import com.alibaba.fastjson.JSON;
 
+import me.dingtou.options.graph.common.ContextKeys;
 import me.dingtou.options.graph.fatory.GraphFactory;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.Message;
@@ -94,13 +95,13 @@ public class GraphCopilotServiceImpl implements CopilotService {
             CompiledGraph copilotAgent = getCopilotGraph(account);
             RunnableConfig config = RunnableConfig.builder()
                     .threadId(sessionId)
-                    .addMetadata("__owner__", ownerCode)
                     .addMetadata("__callback__", callback)
                     .addMetadata("__failCallback__", failCallback)
                     .build();
 
             Flux<NodeOutput> stream;
-            Map<String, Object> inputs = Map.of("input", message.getContent());
+            Map<String, Object> inputs = Map.of(ContextKeys.INPUT, message.getContent(),
+                    ContextKeys.OWNER_CODE, ownerCode);
             if (isNew) {
                 stream = copilotAgent.stream(inputs, config);
             } else {

@@ -58,7 +58,7 @@ public final class GraphFactory {
         private static final String INTENT_PROMPT = """
                         你是期权交易工具options-trade的人工智能助手，你的任务是分析用户输入并进行意图分类。
 
-                        意图分类包含：期权策略相关问题（strategy）、非期权策略相关的交易问题（trade）、其他问题（other）
+                        意图分类包含：涉及期权策略相关问题（strategy）、非期权策略相关的股票和期权问题（trade）、其他问题（other）
                         意图返回: strategy, trade, other
                         意图只能选择以上分类中的一个。
 
@@ -128,7 +128,7 @@ public final class GraphFactory {
                 // 意图识别节点
                 SimpleLlmNode intentNode = getIntentNode(chatModel);
 
-                // 期权交易策略节点
+                // 策略节点
                 ReactAgent strategyAgent = getStrategyAgent(chatModel, knowledgeMcpService);
 
                 // 研究节点
@@ -142,16 +142,11 @@ public final class GraphFactory {
 
                 KeyStrategyFactory keyStrategyFactory = () -> {
                         Map<String, KeyStrategy> keyStrategyMap = new HashMap<>();
-                        keyStrategyMap.put("__node_start_time__", new ReplaceStrategy());
                         keyStrategyMap.put("messages", new AppendStrategy());
                         keyStrategyMap.put("chat_messages", new AppendStrategy());
                         keyStrategyMap.put("input", new ReplaceStrategy());
+                        keyStrategyMap.put("owner_code", new ReplaceStrategy());
                         keyStrategyMap.put("intent", new ReplaceStrategy());
-                        keyStrategyMap.put("strategy", new ReplaceStrategy());
-                        keyStrategyMap.put("research", new ReplaceStrategy());
-                        keyStrategyMap.put("summary", new ReplaceStrategy());
-                        keyStrategyMap.put("chat", new ReplaceStrategy());
-
                         return keyStrategyMap;
                 };
 
@@ -202,10 +197,17 @@ public final class GraphFactory {
                 ReactAgent strategyAgent = ReactAgent.builder()
                                 .model(chatModel)
                                 .name("strategy")
-                                .instruction("你是期权交易工具options-trade的人工智能助手，你的任务是根据用户输入，使用工具获取期权交易策略。")
+                                .instruction("""
+                                                你是期权交易工具options-trade的人工智能助手，你的任务是根据用户输入，使用工具获取期权交易策略。
+
+                                                ## 用户信息
+
+                                                * 用户token：{owner_code}
+                                                * 用户输入：{input}
+                                                """)
                                 .tools(List.of(toolCallbacks))
-                                .outputKey("strategy")
-                                .includeContents(true)
+                                .includeContents(false)
+                                .enableLogging(true)
                                 .build();
                 return strategyAgent;
         }
@@ -229,40 +231,51 @@ public final class GraphFactory {
                                 .model(chatModel)
                                 .name("copilot")
                                 .instruction("""
-                                                        你是Qian，一名专注于股票与期权交易的对话助手。通过多轮对话持续追踪上下文，结合工具调用收集实时信息，提供专业、结构化的回复。
+                                                你是Qian，一名专注于股票与期权交易的对话助手。通过多轮对话持续追踪上下文，结合工具调用收集实时信息，提供专业、结构化的回复。
 
-                                                        ## 期权交易策略要求
+                                                ## 期权交易策略要求
 
-                                                        1. 用户在咨询期权策略相关的问题时，需要先查询期权交易策略规则，获取规则后，必须严格基于规则详情重新制定任务计划。
-                                                        2. 所有推荐的期权标必须使用工具查询期权标的当前价格、隐含波动率、Delta、Theta、Gamma、未平仓合约数、当天交易量等信息。
-                                                        3. 提供移仓建议前，务必查询期权链信息后给出移仓建议，严格按照要求调整策略Delta，如果有必要可以同时查询多个不同到期日的期权链，给出最优移仓标的。
+                                                1. 用户在咨询期权策略相关的问题时，需要先查询期权交易策略规则，获取规则后，必须严格基于规则详情重新制定任务计划。
+                                                2. 所有推荐的期权标必须使用工具查询期权标的当前价格、隐含波动率、Delta、Theta、Gamma、未平仓合约数、当天交易量等信息。
+                                                3. 提供移仓建议前，务必查询期权链信息后给出移仓建议，严格按照要求调整策略Delta，如果有必要可以同时查询多个不同到期日的期权链，给出最优移仓标的。
 
-                                                        ## delta说明
+                                                ## delta说明
 
-                                                        1. **期权lotSize**：1张期权合约对应的股票数量
-                                                        * 重要说明：期权lotSize因标的物、市场和合约规格而异，在实际计算中必须通过工具查询获取准确值。
-                                                        * 举例说明：例如美股默认为100。
-                                                        2. **股票delta**：股票delta = 持有股票数 / 期权lotSize
-                                                        * 举例说明：例如100股BABA股票的delta = 100（持有股数）/100（期权lotSize） = 1, 100股股票delta为1。
-                                                        3. **期权delta**：每张期权合约都有对应的delta，买入为正数，卖出为负数
-                                                        * 举例说明：例如一张ATM delta0.45的期权，买入时delta=0.45，卖出时delta=-0.45。
-                                                        4. **策略delta**：策略delta = 持有股票数 / 期权lotSize + 持有合约数 * 期权delta
-                                                        * 举例说明：例如持有100股BABA股票，卖出1张ATM附近delta=0.45的期权合约，那么策略delta就是 `(100/100) + (1*-0.45) = 0.55`。
-                                                        5. **策略delta（归一化）**：策略delta（归一化） = 策略delta / (持股数 / 期权lotSize)
-                                                        * 目的说明：归一化策略delta用于标准化不同头寸规模的delta暴露，便于在不同持仓量间进行风险比较和风险管理。
-                                                        * 举例说明：例如持有200股BABA股票，卖出2张ATM附近delta=0.45的期权合约，那么策略delta就是 `(200/100) + (2*-0.45) = 1.1`，归一化后策略delta = 1.1 / (200/100) = 0.55。
+                                                1. **期权lotSize**：1张期权合约对应的股票数量
+                                                * 重要说明：期权lotSize因标的物、市场和合约规格而异，在实际计算中必须通过工具查询获取准确值。
+                                                * 举例说明：例如美股默认为100。
+                                                2. **股票delta**：股票delta = 持有股票数 / 期权lotSize
+                                                * 举例说明：例如100股BABA股票的delta = 100（持有股数）/100（期权lotSize） = 1, 100股股票delta为1。
+                                                3. **期权delta**：每张期权合约都有对应的delta，买入为正数，卖出为负数
+                                                * 举例说明：例如一张ATM delta0.45的期权，买入时delta=0.45，卖出时delta=-0.45。
+                                                4. **策略delta**：策略delta = 持有股票数 / 期权lotSize + 持有合约数 * 期权delta
+                                                * 举例说明：例如持有100股BABA股票，卖出1张ATM附近delta=0.45的期权合约，那么策略delta就是 `(100/100) + (1*-0.45) = 0.55`。
+                                                5. **策略delta（归一化）**：策略delta（归一化） = 策略delta / (持股数 / 期权lotSize)
+                                                * 目的说明：归一化策略delta用于标准化不同头寸规模的delta暴露，便于在不同持仓量间进行风险比较和风险管理。
+                                                * 举例说明：例如持有200股BABA股票，卖出2张ATM附近delta=0.45的期权合约，那么策略delta就是 `(200/100) + (2*-0.45) = 1.1`，归一化后策略delta = 1.1 / (200/100) = 0.55。
 
-                                                        ## 期权交易关键规则
+                                                ## 期权交易关键规则
 
-                                                        * SELL CALL：股价 > 行权价 → 很可能被指派
-                                                        * SELL PUT：股价 < 行权价 → 很可能被指派
-                                                        * 价外期权：通常不会被指派
-                                                        - 价外期权定义：对于CALL期权，行权价 > 当前股价；对于PUT期权，行权价 < 当前股价
+                                                * SELL CALL：股价 > 行权价 → 很可能被指派
+                                                * SELL PUT：股价 < 行权价 → 很可能被指派
+                                                * 价外期权：通常不会被指派
+                                                - 价外期权定义：对于CALL期权，行权价 > 当前股价；对于PUT期权，行权价 < 当前股价
+
+                                                ## 重要说明
+
+                                                1. **信息来源要求**: 你能参考的信息包括所有历史对话记录，优先从历史对话上下文中获取完成任务所需信息，如果遇到所需信息无法获取，应首先评估是否可以通过工具查询获取，如无法通过工具获取则必须立即咨询用户，不做任何假设。
+                                                2. **信息收集完成判断要求**: 调用`common.summary`前，你需要综合分析对话上下文中的所有信息，只有判断已经完成所有信息收集后才结束。
+                                                3. **信息完整性要求**: 发现信息缺失，并且评估可以使用工具查询时，请立即使用工具，将信息补充完整。
+
+                                                ## 用户信息
+
+                                                * 用户token：{owner_code}
+                                                * 用户输入：{input}
 
                                                 """)
                                 .tools(List.of(toolCallbacks))
-                                .outputKey("strategy")
                                 .includeContents(true)
+                                .enableLogging(true)
                                 .build();
                 return copilotAgent;
         }

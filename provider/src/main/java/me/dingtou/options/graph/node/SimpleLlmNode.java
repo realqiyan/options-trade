@@ -112,6 +112,8 @@ public class SimpleLlmNode extends BaseNode {
                 .stream()
                 .collect(Collectors.joining());
 
+        log.info("SimpleLlmNode {} result: {}", name, result);
+
         return outputConvert.apply(state, config, result);
     }
 
