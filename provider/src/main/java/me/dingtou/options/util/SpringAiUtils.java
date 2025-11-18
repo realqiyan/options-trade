@@ -3,6 +3,9 @@ package me.dingtou.options.util;
 import java.util.Map;
 
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.deepseek.DeepSeekChatModel;
+import org.springframework.ai.deepseek.DeepSeekChatOptions;
+import org.springframework.ai.deepseek.api.DeepSeekApi;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
@@ -32,6 +35,24 @@ public class SpringAiUtils {
                                 : AccountExtUtils.getAiApiTemperature(account);
                 Double temperature = Double.parseDouble(temperatureVal);
 
+                if (baseUrl.contains("api.deepseek.com")) {
+                        DeepSeekApi deepSeekApi = DeepSeekApi.builder()
+                                        .apiKey(apiKey)
+                                        .build();
+
+                        DeepSeekChatOptions deepSeekChatOptions = DeepSeekChatOptions.builder()
+                                        .model(model)
+                                        .temperature(temperature)
+                                        .logprobs(true)
+                                        .internalToolExecutionEnabled(true)
+                                        .build();
+
+                        return DeepSeekChatModel.builder()
+                                        .deepSeekApi(deepSeekApi)
+                                        .defaultOptions(deepSeekChatOptions)
+                                        .build();
+                }
+
                 OpenAiApi openAiApi = OpenAiApi.builder()
                                 .baseUrl(baseUrl)
                                 .completionsPath("/chat/completions")
@@ -42,12 +63,14 @@ public class SpringAiUtils {
                                 .temperature(temperature)
                                 .httpHeaders(Map.of("Content-Type", "application/json;charset=UTF-8"))
                                 .streamUsage(true)
+                                .internalToolExecutionEnabled(true)
                                 .build();
 
                 return OpenAiChatModel.builder()
                                 .openAiApi(openAiApi)
                                 .defaultOptions(openAiChatOptions)
                                 .build();
+
         }
 
 }

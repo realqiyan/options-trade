@@ -8,6 +8,7 @@ import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.alibaba.cloud.ai.graph.action.NodeActionWithConfig;
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.graph.common.ContextKeys;
 import me.dingtou.options.model.Message;
 
 /**
@@ -22,7 +23,7 @@ public abstract class BaseNode implements NodeActionWithConfig {
         Optional<Object> callbackMetadata = config.metadata("__callback__");
         Optional<Object> failCallbackMetadata = config.metadata("__fail_callback__");
 
-        state.updateState(Map.of("__node_start_time__", System.currentTimeMillis()));
+        state.updateState(Map.of(ContextKeys.NODE_START_TIME, System.currentTimeMillis()));
 
         Function<Message, Void> callback;
         if (callbackMetadata.isPresent()) {
@@ -48,7 +49,8 @@ public abstract class BaseNode implements NodeActionWithConfig {
             };
         }
 
-        return apply(state, config, callback, failCallback);
+        Map<String, Object> result = apply(state, config, callback, failCallback);
+        return result;
     }
 
     /**

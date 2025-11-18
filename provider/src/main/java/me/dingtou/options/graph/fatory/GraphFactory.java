@@ -31,6 +31,7 @@ import com.alibaba.cloud.ai.graph.state.strategy.ReplaceStrategy;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 
+import me.dingtou.options.graph.common.ContextKeys;
 import me.dingtou.options.graph.func.InputConvertFunction;
 import me.dingtou.options.graph.func.OutputConvertFunction;
 import me.dingtou.options.graph.node.SimpleLlmNode;
@@ -142,10 +143,11 @@ public final class GraphFactory {
 
                 KeyStrategyFactory keyStrategyFactory = () -> {
                         Map<String, KeyStrategy> keyStrategyMap = new HashMap<>();
+                        keyStrategyMap.put(ContextKeys.NODE_START_TIME, new ReplaceStrategy());
+                        keyStrategyMap.put(ContextKeys.INPUT, new ReplaceStrategy());
+                        keyStrategyMap.put(ContextKeys.OWNER_CODE, new ReplaceStrategy());
                         keyStrategyMap.put("messages", new AppendStrategy());
                         keyStrategyMap.put("chat_messages", new AppendStrategy());
-                        keyStrategyMap.put("input", new ReplaceStrategy());
-                        keyStrategyMap.put("owner_code", new ReplaceStrategy());
                         keyStrategyMap.put("intent", new ReplaceStrategy());
                         return keyStrategyMap;
                 };
@@ -156,6 +158,9 @@ public final class GraphFactory {
                                 .addNode("strategy", strategyAgent.asNode(true, false, "strategy"))
                                 .addNode("copilot", copilotAgent.asNode(true, false, "copilot"))
                                 .addNode("summary", AsyncNodeActionWithConfig.node_async(summaryNode));
+
+                // graph.addEdge(StateGraph.START, "strategy");
+                // graph.addEdge("strategy", StateGraph.END);
 
                 graph.addEdge(StateGraph.START, "intent");
                 graph.addConditionalEdges("intent",
@@ -189,6 +194,7 @@ public final class GraphFactory {
          * @return ReactAgent
          */
         private static ReactAgent getStrategyAgent(ChatModel chatModel, KnowledgeMcpService knowledgeMcpService) {
+
                 ToolCallback[] toolCallbacks = MethodToolCallbackProvider.builder()
                                 .toolObjects(knowledgeMcpService)
                                 .build()
@@ -264,7 +270,7 @@ public final class GraphFactory {
                                                 ## 重要说明
 
                                                 1. **信息来源要求**: 你能参考的信息包括所有历史对话记录，优先从历史对话上下文中获取完成任务所需信息，如果遇到所需信息无法获取，应首先评估是否可以通过工具查询获取，如无法通过工具获取则必须立即咨询用户，不做任何假设。
-                                                2. **信息收集完成判断要求**: 调用`common.summary`前，你需要综合分析对话上下文中的所有信息，只有判断已经完成所有信息收集后才结束。
+                                                2. **信息收集完成判断要求**: 你需要综合分析对话上下文中的所有信息，只有判断已经完成所有信息收集后才结束。
                                                 3. **信息完整性要求**: 发现信息缺失，并且评估可以使用工具查询时，请立即使用工具，将信息补充完整。
 
                                                 ## 用户信息

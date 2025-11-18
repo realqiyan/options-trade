@@ -163,7 +163,13 @@ public class GraphCopilotServiceImpl implements CopilotService {
     protected Message processMessage(NodeOutput nodeOutput) {
         String agent = nodeOutput.agent();
         String node = nodeOutput.node();
-        Long startTime = nodeOutput.state().value("__node_start_time__", System.currentTimeMillis());
+
+        Long startTime;
+        try {
+            startTime = nodeOutput.state().value(ContextKeys.NODE_START_TIME, Long.class).orElse(System.currentTimeMillis());
+        } catch (Exception e) {
+            startTime = System.currentTimeMillis();
+        }
 
         String messageId = String.format("%s_%s_%d", agent, node, startTime);
         if (nodeOutput instanceof StreamingOutput streamingOutput) {

@@ -16,6 +16,7 @@ import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.graph.common.ContextKeys;
 import me.dingtou.options.graph.func.InputConvertFunction;
 import me.dingtou.options.graph.func.OutputConvertFunction;
 import me.dingtou.options.model.Message;
@@ -78,7 +79,7 @@ public class SimpleLlmNode extends BaseNode {
             Function<Message, Void> callback,
             Function<Message, Void> failCallback) throws Exception {
         // String userMessage = (String) state.value(inputKey).orElse("");
-        String messageId = name() + "_" + state.data().getOrDefault("__node_start_time__", System.currentTimeMillis());
+        String messageId = name() + "_" + state.value(ContextKeys.NODE_START_TIME, Long.class).orElse(System.currentTimeMillis());
         // 使用流式输出
         StringBuilder fullContent = new StringBuilder();
         List<org.springframework.ai.chat.messages.Message> messages = inputConvert.apply(state, config);
@@ -102,7 +103,7 @@ public class SimpleLlmNode extends BaseNode {
                             .map(ChatResponse::getResult)
                             .map(Generation::getOutput)
                             .map(AbstractMessage::getText)
-                            .orElse(null);
+                            .orElse("");
                     return chunk;
                 });
 
