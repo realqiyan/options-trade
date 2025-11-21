@@ -32,6 +32,7 @@ import me.dingtou.options.model.OwnerStrategy;
 import me.dingtou.options.model.OwnerSummary;
 import me.dingtou.options.model.Security;
 import me.dingtou.options.model.SecurityQuote;
+import me.dingtou.options.model.StockSummary;
 import me.dingtou.options.model.StrategyExt;
 import me.dingtou.options.model.StrategySummary;
 import me.dingtou.options.strategy.OrderTradeStrategy;
@@ -245,6 +246,10 @@ public class SummaryServiceImpl implements SummaryService {
                 .collect(Collectors.toList());
         List<OwnerPosition> ownerPositionList = tradeManager.queryOwnerPosition(account, stockCodes);
         ownerSummary.setPositions(ownerPositionList);
+
+        // 计算按股票汇总的收益明细
+        List<StockSummary> stockSummaries = calculateStockSummaries(strategySummaries);
+        ownerSummary.setStockSummaries(stockSummaries);
 
         return ownerSummary;
     }
@@ -563,6 +568,83 @@ public class SummaryServiceImpl implements SummaryService {
             orderGroups.put(platformOrderId, group);
         }
         return orderGroups;
+    }
+
+    /**
+     * 计算按股票汇总的收益明细
+     * 
+     * @param strategySummaries 策略汇总列表
+     * @return 按股票汇总的收益明细
+     */
+    private List<StockSummary> calculateStockSummaries(List<StrategySummary> strategySummaries) {
+        if (CollectionUtils.isEmpty(strategySummaries)) {
+            return new ArrayList<>();
+        }
+
+        // 按股票代码分组
+        Map<String, List<StrategySummary>> stockGroups = strategySummaries.stream()
+                .collect(Collectors.groupingBy(summary -> summary.getStrategy().getCode()));
+
+        List<StockSummary> stockSummaries = new ArrayList<>();
+        for (Map.Entry<String, List<StrategySummary>> entry : stockGroups.entrySet()) {
+            String stockCode = entry.getKey();
+            List<StrategySummary> stockStrategies = entry.getValue();
+            
+            StockSummary stockSummary = new StockSummary();
+            stockSummary.setStockCode(stockCode);
+            stockSummary.setStrategyCount(stockStrategies.size());
+
+            // 计算汇总数据
+            BigDecimal totalOptionsIncome = BigDecimal.ZERO;
+            BigDecimal totalStockProfit = BigDecimal.ZERO;
+            BigDecimal totalIncome = BigDecimal.ZERO;
+            BigDecimal totalFee = BigDecimal.ZERO;
+            BigDecimal unrealizedOptionsIncome = BigDecimal.ZERO;
+            Integer totalHoldStockNum = 0;
+            BigDecimal totalHoldStockCost = BigDecimal.ZERO;
+            BigDecimal totalAverageCost = BigDecimal.ZERO;
+
+            for (StrategySummary strategySummary : stockStrategies) {
+                if (strategySummary.getAllOptionsIncome() != null) {
+                    totalOptionsIncome = totalOptionsIncome.add(strategySummary.getAllOptionsIncome());
+                }
+                if (strategySummary.getHoldStockProfit() != null) {
+                    totalStockProfit = totalStockProfit.add(strategySummary.getHoldStockProfit());
+                }
+                if (strategySummary.getAllIncome() != null) {
+                    totalIncome = totalIncome.add(strategySummary.getAllIncome());
+                }
+                if (strategySummary.getTotalFee() != null) {
+                    totalFee = totalFee.add(strategySummary.getTotalFee());
+                }
+                if (strategySummary.getUnrealizedOptionsIncome() != null) {
+                    unrealizedOptionsIncome = unrealizedOptionsIncome.add(strategySummary.getUnrealizedOptionsIncome());
+                }
+                if (strategySummary.getHoldStockNum() != null) {
+                    totalHoldStockNum += strategySummary.getHoldStockNum();
+                }
+                if (strategySummary.getTotalStockCost() != null) {
+                    totalHoldStockCost = totalHoldStockCost.add(strategySummary.getTotalStockCost());
+                }
+                if (strategySummary.getAverageStockCost() != null) {
+                    totalAverageCost = totalAverageCost.add(strategySummary.getAverageStockCost());
+                }
+            }
+
+            stockSummary.setTotalOptionsIncome(totalOptionsIncome);
+            stockSummary.setStockProfit(totalStockProfit);
+            stockSummary.setTotalIncome(totalIncome);
+            stockSummary.setTotalFee(totalFee);
+            stockSummary.setHoldStockNum(totalHoldStockNum);
+           
+
+            stockSummaries.add(stockSummary);
+        }
+
+        // 按股票代码排序
+        stockSummaries.sort((s1, s2) -> s1.getStockCode().compareTo(s2.getStockCode()));
+
+        return stockSummaries;
     }
 
 }

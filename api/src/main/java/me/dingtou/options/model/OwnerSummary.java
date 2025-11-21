@@ -54,6 +54,11 @@ public class OwnerSummary {
     private List<StrategySummary> strategySummaries;
 
     /**
+     * 按股票汇总的策略收益明细
+     */
+    private List<StockSummary> stockSummaries;
+
+    /**
      * 未实现期权
      */
     private List<OwnerOrder> unrealizedOrders;

@@ -193,6 +193,15 @@
 
     <div class="layui-card income-card" style="margin-top: 10px;">
         <div class="income-header">
+            <h3>股票维度收益汇总</h3>
+        </div>
+        <div class="layui-card-body">
+            <div id="stockSummaryTable"></div>
+        </div>
+    </div>
+
+    <div class="layui-card income-card" style="margin-top: 10px;">
+        <div class="income-header">
             <h3>未平仓期权订单 <span class="layui-badge">{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span></h3>
         </div>
         <div class="layui-card-body">

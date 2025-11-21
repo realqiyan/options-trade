@@ -64,6 +64,47 @@ function renderPositionTable(positions){
 
 }
 
+function renderStockSummaryTable(stockSummaries){
+    if(!stockSummaries){
+        return;
+    }
+    
+    layui.use(['table'], function () {
+        const table = layui.table;
+        // 初始化表格
+        table.render({
+            elem: '#stockSummaryTable',
+            data: stockSummaries,
+            cols: [[
+                {field: 'stockCode', title: '股票代码', width: 120},
+                {field: 'totalOptionsIncome', title: '期权总收入', width: 120, templet: function(d){
+                    return d.totalOptionsIncome !== null ? '$' + d.totalOptionsIncome.toFixed(2) : '-';
+                }},
+                {field: 'stockProfit', title: '股票盈亏', width: 120, templet: function(d){
+                    const profit = d.stockProfit || 0;
+                    const className = profit >= 0 ? 'positive-value' : 'negative-value';
+                    return '<span class="' + className + '">$' + profit.toFixed(2) + '</span>';
+                }},
+                {field: 'totalIncome', title: '总收入', width: 120, templet: function(d){
+                    const income = d.totalIncome || 0;
+                    const className = income >= 0 ? 'positive-value' : 'negative-value';
+                    return '<span class="' + className + '">$' + income.toFixed(2) + '</span>';
+                }},
+                {field: 'totalFee', title: '手续费', width: 120, templet: function(d){
+                    return d.totalFee ? '$' + d.totalFee.toFixed(2) : '$0.00';
+                }},
+                {field: 'holdStockNum', title: '持股数量', width: 120, templet: function(d){
+                    return d.holdStockNum || 0;
+                }},
+                {field: 'strategyCount', title: '策略数量', width: 100}
+            ]],
+            page: false,
+            limit: 50,
+            height: 300
+        });
+    });
+}
+
 function renderOrderTable(orderList){
     if(!orderList){
         return;
@@ -484,6 +525,7 @@ function reloadData(){
           view.innerHTML = html;
         });
         renderPositionTable(result.positions);
+        renderStockSummaryTable(result.stockSummaries);
         renderOrderTable(result.unrealizedOrders);
 
         // 准备月度收益数据
