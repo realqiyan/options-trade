@@ -159,10 +159,10 @@ public class OwnerManager {
      * 查询owner策略
      *
      * @param owner 账号
-     * @return owner策略
+     * @return owner策略，按暂停状态排序（暂停策略排在末尾）
      */
     public List<OwnerStrategy> queryOwnerStrategy(String owner) {
-        return ownerStrategyDAO.queryOwnerStrategies(owner);
+        return ownerStrategyDAO.queryAllOwnerStrategies(owner);
     }
 
     /**
@@ -393,25 +393,6 @@ public class OwnerManager {
         return ownerSecurityDAO.update(null, updateWrapper) > 0;
     }
 
-    /**
-     * 查询用户的有效策略
-     *
-     * @param owner 用户
-     * @return 策略列表
-     */
-    public List<OwnerStrategy> listStrategies(String owner) {
-        return ownerStrategyDAO.queryOwnerStrategies(owner);
-    }
-
-    /**
-     * 查询用户的所有策略
-     *
-     * @param owner 用户
-     * @return 策略列表
-     */
-    public List<OwnerStrategy> listAllStrategies(String owner) {
-        return ownerStrategyDAO.queryAllOwnerStrategies(owner);
-    }
 
     /**
      * 保存用户的策略

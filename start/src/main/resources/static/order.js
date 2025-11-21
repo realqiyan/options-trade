@@ -493,10 +493,10 @@ function reloadData(){
         }
         
         strategyList = result.strategyList;
-        // 过滤掉状态为suspend的策略
-        strategyList = strategyList.filter(function(strategy) {
-            return strategy.stage !== 'suspend';
-        });
+        // 移除过滤逻辑，允许所有状态的策略（包括暂停的策略）显示
+        // strategyList = strategyList.filter(function(strategy) {
+        //     return strategy.stage !== 'suspend';
+        // });
         
         // 获取URL中的strategyId参数
         var urlStrategyId = getUrlParam('strategyId');
@@ -536,10 +536,16 @@ function reloadData(){
                 var obj = strategyList[i];
                 var isActive = (obj.strategyId === targetStrategyId);
                 
+                // 为暂停的策略添加标识
+                var strategyDisplayName = obj.strategyName;
+                if (obj.stage === 'suspend') {
+                    strategyDisplayName += ' <span class="layui-badge layui-bg-orange">暂停</span>';
+                }
+                
                 // 添加Tab项（使用索引作为lay-id，但也保留策略ID作为data属性）
                 tabTitles.innerHTML += '<li lay-id="' + i + '" data-strategy-id="' + obj.strategyId + '"' + 
                                       (isActive ? ' class="layui-this"' : '') + '>' + 
-                                      obj.strategyName + '</li>';
+                                      strategyDisplayName + '</li>';
             }
             
             // 重新渲染Tab

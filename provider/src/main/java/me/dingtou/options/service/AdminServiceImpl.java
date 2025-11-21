@@ -75,7 +75,7 @@ public class AdminServiceImpl implements AdminService {
         }
         
         // 获取所有数据
-        List<OwnerStrategy> allStrategies = ownerManager.listAllStrategies(owner);
+        List<OwnerStrategy> allStrategies = ownerManager.queryOwnerStrategy(owner);
         
         // 按stage排序，将suspend状态的策略排在最后
         allStrategies.sort((s1, s2) -> {
