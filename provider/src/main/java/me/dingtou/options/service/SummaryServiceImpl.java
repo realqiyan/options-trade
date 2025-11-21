@@ -603,6 +603,7 @@ public class SummaryServiceImpl implements SummaryService {
             Integer totalHoldStockNum = 0;
             BigDecimal totalHoldStockCost = BigDecimal.ZERO;
             BigDecimal totalAverageCost = BigDecimal.ZERO;
+            BigDecimal totalOptionsContracts = BigDecimal.ZERO;
 
             for (StrategySummary strategySummary : stockStrategies) {
                 if (strategySummary.getAllOptionsIncome() != null) {
@@ -629,6 +630,9 @@ public class SummaryServiceImpl implements SummaryService {
                 if (strategySummary.getAverageStockCost() != null) {
                     totalAverageCost = totalAverageCost.add(strategySummary.getAverageStockCost());
                 }
+                if (strategySummary.getOpenOptionsQuantity() != null) {
+                    totalOptionsContracts = totalOptionsContracts.add(strategySummary.getOpenOptionsQuantity());
+                }
             }
 
             stockSummary.setTotalOptionsIncome(totalOptionsIncome);
@@ -636,6 +640,7 @@ public class SummaryServiceImpl implements SummaryService {
             stockSummary.setTotalIncome(totalIncome);
             stockSummary.setTotalFee(totalFee);
             stockSummary.setHoldStockNum(totalHoldStockNum);
+            stockSummary.setTotalOptionsContracts(totalOptionsContracts);
            
 
             stockSummaries.add(stockSummary);

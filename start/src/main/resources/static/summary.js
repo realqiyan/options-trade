@@ -81,20 +81,19 @@ function renderStockSummaryTable(stockSummaries){
                     return d.totalOptionsIncome !== null ? '$' + d.totalOptionsIncome.toFixed(2) : '-';
                 }},
                 {field: 'stockProfit', title: '股票盈亏', width: 120, templet: function(d){
-                    const profit = d.stockProfit || 0;
-                    const className = profit >= 0 ? 'positive-value' : 'negative-value';
-                    return '<span class="' + className + '">$' + profit.toFixed(2) + '</span>';
+                    return d.stockProfit ? '$' + d.stockProfit.toFixed(2) : '-';
                 }},
                 {field: 'totalIncome', title: '总收入', width: 120, templet: function(d){
-                    const income = d.totalIncome || 0;
-                    const className = income >= 0 ? 'positive-value' : 'negative-value';
-                    return '<span class="' + className + '">$' + income.toFixed(2) + '</span>';
+                    return d.totalIncome ? '$' + d.totalIncome.toFixed(2) : '-';
                 }},
                 {field: 'totalFee', title: '手续费', width: 120, templet: function(d){
-                    return d.totalFee ? '$' + d.totalFee.toFixed(2) : '$0.00';
+                    return d.totalFee ? '$' + d.totalFee.toFixed(2) : '-';
                 }},
                 {field: 'holdStockNum', title: '持股数量', width: 120, templet: function(d){
                     return d.holdStockNum || 0;
+                }},
+                {field: 'totalOptionsContracts', title: '期权合约数', width: 120, templet: function(d){
+                    return d.totalOptionsContracts ? d.totalOptionsContracts.toString() : '0';
                 }},
                 {field: 'strategyCount', title: '策略数量', width: 100}
             ]],

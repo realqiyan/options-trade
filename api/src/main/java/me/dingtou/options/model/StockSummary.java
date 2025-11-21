@@ -46,4 +46,9 @@ public class StockSummary implements Serializable {
      * 策略数量
      */
     private Integer strategyCount;
+
+    /**
+     * 总期权合约数（所有策略的未平仓期权合约数汇总）
+     */
+    private BigDecimal totalOptionsContracts;
 }
