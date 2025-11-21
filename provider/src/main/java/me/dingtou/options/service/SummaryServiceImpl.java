@@ -120,19 +120,39 @@ public class SummaryServiceImpl implements SummaryService {
         strategySummaries.sort(new Comparator<StrategySummary>() {
             @Override
             public int compare(StrategySummary o1, StrategySummary o2) {
-                // 首先比较策略状态，suspend状态的策略沉底
-                boolean o1Suspend = "suspend".equals(o1.getStrategy().getStage());
-                boolean o2Suspend = "suspend".equals(o2.getStrategy().getStage());
+                // 优先按股票code排序，相同股票内按收益降序排列，最后按stage排序，将suspend状态的策略排在最后
 
-                if (o1Suspend && !o2Suspend) {
-                    return 1; // o1是suspend，排在后面
-                }
-                if (!o1Suspend && o2Suspend) {
-                    return -1; // o2是suspend，排在后面
+                // 首先按股票code排序
+                String code1 = o1.getStrategy().getCode();
+                String code2 = o2.getStrategy().getCode();
+                int codeCompare = code1.compareTo(code2);
+                if (codeCompare != 0) {
+                    return codeCompare;
                 }
 
-                // 如果都是suspend或都不是suspend，则按期权收益降序排列
-                return o2.getAllOptionsIncome().compareTo(o1.getAllOptionsIncome());
+                // 相同股票代码内，先按suspend状态排序（suspend排在最后），再按收益降序排列
+                String stage1 = o1.getStrategy().getStage();
+                String stage2 = o2.getStrategy().getStage();
+                boolean stage1IsSuspend = "suspend".equals(stage1);
+                boolean stage2IsSuspend = "suspend".equals(stage2);
+
+                // 如果一个是suspend而另一个不是，非suspend的排在前面
+                if (stage1IsSuspend && !stage2IsSuspend) {
+                    return 1; // o1是suspend，在相同股票内排在后面
+                } else if (!stage1IsSuspend && stage2IsSuspend) {
+                    return -1; // o2是suspend，在相同股票内排在后面
+                }
+
+                // 两者都是suspend或都不是suspend，按收益降序排列
+                BigDecimal income1 = o1.getAllOptionsIncome() != null ? o1.getAllOptionsIncome() : BigDecimal.ZERO;
+                BigDecimal income2 = o2.getAllOptionsIncome() != null ? o2.getAllOptionsIncome() : BigDecimal.ZERO;
+                int incomeCompare = income2.compareTo(income1);
+                if (incomeCompare != 0) {
+                    return incomeCompare;
+                }
+
+                // 最后按stage排序
+                return stage1.compareTo(stage2);
             }
         });
         ownerSummary.setStrategySummaries(strategySummaries);

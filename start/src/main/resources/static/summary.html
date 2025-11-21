@@ -202,44 +202,49 @@
 
     <div class="layui-card income-card" style="margin-top: 10px;">
         <div class="income-header">
-            <h3>策略收益明细 <span class="layui-badge">期权净收益：${{ d.allOptionsIncome }}</span></h3>
+            <h3>期权策略收益明细 <span class="layui-badge">期权净收益：${{ d.allOptionsIncome }}</span></h3>
         </div>
         <div class="layui-card-body">
             <div class="layui-collapse">
             {{#  layui.each(d.strategySummaries, function(index, item){ }}
                 <div class="layui-colla-item">
                     <div class="layui-colla-title">
-                        <span class="layui-badge layui-font-16" style="margin-right: 10px;">平均每股Delta:{{ item.avgDelta }}</span>
-                        <span class="layui-font-16" style="font-weight: bold; margin-right: 10px;">{{ item.strategy.strategyName }}</span>
-                        
                         {{# if(item.strategy.stage === 'suspend') { }}
-                        <span class="layui-badge layui-bg-orange" style="margin-right: 10px;">暂停</span>
+                        <span class="layui-badge layui-bg-orange" style="margin-right: 5px;">暂停</span>
                         {{# } else if(item.strategy.stage === 'stopped') { }}
-                        <span class="layui-badge layui-bg-gray" style="margin-right: 10px;">已停止</span>
+                        <span class="layui-badge layui-bg-gray" style="margin-right: 5px;">已停止</span>
                         {{# } else { }}
-                        <span class="layui-badge layui-bg-green" style="margin-right: 10px;">运行中</span>
+                        <span class="layui-badge layui-bg-green" style="margin-right: 5px;">运行中</span>
                         {{# } }}
 
+                        <span class="layui-font-16" style="font-weight: bold; margin-right: 5px;">
+                            {{ item.strategy.strategyName }}
+                            <b>({{ item.avgDelta }})</b>
+                        </span>
+                        <b class="layui-font-16" style="color: {{ item.allOptionsIncome > 0 ? 'red' : 'green' }};" title="期权净收益:${{ item.allOptionsIncome }}">
+                            ${{ item.allOptionsIncome }}ℹ️
+                        </b>
+
+                        <span style="font-weight: bold;">整体盈利</span>
+                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">
+                            ${{ item.allIncome }}
+                        </span>
+
                         <span style="font-weight: bold;">持有股票</span> 
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">{{ item.holdStockNum }}</span>
+                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">{{ item.holdStockNum }}</span>
 
-                        <span style="font-weight: bold;">策略盈利</span>
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.allIncome }}</span>
-
-                        <span style="font-weight: bold;">期权盈利</span>
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.allOptionsIncome }}</span>
-
+                       
                         <span style="font-weight: bold;">当前股价</span>
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.currentStockPrice }}</span>
+                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.currentStockPrice }}</span>
 
                         <span style="font-weight: bold;">股票支出</span> 
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.totalStockCost }} (成本: ${{ item.averageStockCost }})</span>
+                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.totalStockCost }} (成本: ${{ item.averageStockCost }})</span>
 
                         <span style="font-weight: bold;">持股盈亏</span> 
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.holdStockProfit }}</span>
+                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.holdStockProfit }}</span>
 
                         <span style="font-weight: bold;">保证金占用</span> 
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 10px;">${{ item.putMarginOccupied }}</span>
+                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.putMarginOccupied }}</span>
                     </div>
                     <div class="layui-colla-content">
                         <div class="layui-row">
