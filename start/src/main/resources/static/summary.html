@@ -184,124 +184,130 @@
 
     <div class="layui-card income-card" style="margin-top: 10px;">
         <div class="income-header">
-            <h3>月度期权收益 <span class="layui-badge">统计近{{= Object.keys(d.monthlyIncome).length }}个月数据</span></h3>
-        </div>
+                <h3>月度期权收益 <span class="layui-badge">统计近{{= Object.keys(d.monthlyIncome).length }}个月数据</span></h3>
+            </div>
         <div class="layui-card-body">
-            <canvas id="monthlyIncomeChart" height="300" width="100%"></canvas>
+                <canvas id="monthlyIncomeChart" height="300" width="100%"></canvas>
         </div>
     </div>
 
     <div class="layui-card income-card" style="margin-top: 10px;">
         <div class="income-header">
-            <h3>股票维度收益汇总</h3>
-        </div>
+                <h3>未平仓期权订单 <span class="layui-badge">{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span></h3>
+            </div>
         <div class="layui-card-body">
-            <div id="stockSummaryTable"></div>
-        </div>
-    </div>
-
-    <div class="layui-card income-card" style="margin-top: 10px;">
-        <div class="income-header">
-            <h3>当前持仓</h3>
-        </div>
-        <div class="layui-card-body">
-            <div id="positionTable"></div>
-        </div>
-    </div>
-
-    <div class="layui-card income-card" style="margin-top: 10px;">
-        <div class="income-header">
-            <h3>未平仓期权订单 <span class="layui-badge">{{= d.unrealizedOrders?d.unrealizedOrders.length:0}}单</span></h3>
-        </div>
-        <div class="layui-card-body">
-            <div id="orderTable"></div>
+                <div id="orderTable"></div>
         </div>
     </div> 
 
-    <div class="layui-card income-card" style="margin-top: 10px;">
-        <div class="income-header">
-            <h3>期权策略收益明细 <span class="layui-badge">期权净收益：${{ d.allOptionsIncome }}</span></h3>
+    <div class="layui-collapse income-card" style="margin-top: 10px;">
+        <div class="layui-colla-item">
+            <div class="layui-colla-title">
+                <h3>股票维度收益汇总</h3>
+            </div>
+            <div class="layui-colla-content">
+                <div id="stockSummaryTable"></div>
+            </div>
         </div>
-        <div class="layui-card-body">
-            <div class="layui-collapse">
-            {{#  layui.each(d.strategySummaries, function(index, item){ }}
-                <div class="layui-colla-item">
-                    <div class="layui-colla-title">
-                        {{# if(item.strategy.stage === 'suspend') { }}
-                        <span class="layui-badge layui-bg-orange" style="margin-right: 5px;">暂停</span>
-                        {{# } else if(item.strategy.stage === 'stopped') { }}
-                        <span class="layui-badge layui-bg-gray" style="margin-right: 5px;">已停止</span>
-                        {{# } else { }}
-                        <span class="layui-badge layui-bg-green" style="margin-right: 5px;">运行中</span>
-                        {{# } }}
+    </div>
 
-                        <span class="layui-font-16" style="font-weight: bold; margin-right: 5px;">
-                            {{ item.strategy.strategyName }}
-                            <b>({{ item.avgDelta }})</b>
-                        </span>
-                        <b class="layui-font-16" style="color: {{ item.allOptionsIncome > 0 ? 'red' : 'green' }};" title="期权净收益:${{ item.allOptionsIncome }}">
-                            ${{ item.allOptionsIncome }}ℹ️
-                        </b>
+    <div class="layui-collapse income-card" style="margin-top: 10px;">
+        <div class="layui-colla-item">
+            <div class="layui-colla-title">
+                <h3>所有策略持仓汇总</h3>
+            </div>
+            <div class="layui-colla-content">
+                <div id="positionTable"></div>
+            </div>
+        </div>
+    </div>
 
-                        <span style="font-weight: bold;">整体盈利</span>
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">
-                            ${{ item.allIncome }}
-                        </span>
+    <div class="layui-collapse income-card" style="margin-top: 10px;">
+        <div class="layui-colla-item">
+            <div class="layui-colla-title">
+                <h3>期权策略收益明细 <span class="layui-badge">期权净收益：${{ d.allOptionsIncome }}</span></h3>
+            </div>
+            <div class="layui-colla-content">
+                <div class="layui-collapse">
+                {{#  layui.each(d.strategySummaries, function(index, item){ }}
+                    <div class="layui-colla-item">
+                        <div class="layui-colla-title">
+                            {{# if(item.strategy.stage === 'suspend') { }}
+                            <span class="layui-badge layui-bg-orange" style="margin-right: 5px;">暂停</span>
+                            {{# } else if(item.strategy.stage === 'stopped') { }}
+                            <span class="layui-badge layui-bg-gray" style="margin-right: 5px;">已停止</span>
+                            {{# } else { }}
+                            <span class="layui-badge layui-bg-green" style="margin-right: 5px;">运行中</span>
+                            {{# } }}
 
-                        <span style="font-weight: bold;">持有股票</span> 
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">{{ item.holdStockNum }}</span>
+                            <span class="layui-font-16" style="font-weight: bold; margin-right: 5px;">
+                                {{ item.strategy.strategyName }}
+                                <b>({{ item.avgDelta }})</b>
+                            </span>
+                            <b class="layui-font-16" style="color: {{ item.allOptionsIncome > 0 ? 'red' : 'green' }};" title="期权净收益:${{ item.allOptionsIncome }}">
+                                ${{ item.allOptionsIncome }}ℹ️
+                            </b>
 
-                       
-                        <span style="font-weight: bold;">当前股价</span>
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.currentStockPrice }}</span>
+                            <span style="font-weight: bold;">整体盈利</span>
+                            <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">
+                                ${{ item.allIncome }}
+                            </span>
 
-                        <span style="font-weight: bold;">股票支出</span> 
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.totalStockCost }} (成本: ${{ item.averageStockCost }})</span>
+                            <span style="font-weight: bold;">持有股票</span> 
+                            <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">{{ item.holdStockNum }}</span>
 
-                        <span style="font-weight: bold;">持股盈亏</span> 
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.holdStockProfit }}</span>
+                        
+                            <span style="font-weight: bold;">当前股价</span>
+                            <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.currentStockPrice }}</span>
 
-                        <span style="font-weight: bold;">保证金占用</span> 
-                        <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.putMarginOccupied }}</span>
-                    </div>
-                    <div class="layui-colla-content">
-                        <div class="layui-row">
-                            <div class="layui-col-md12">
-                                <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" onclick="goToStrategyOrders('{{ item.strategy.strategyId }}')">
-                                    <i class="layui-icon layui-icon-form"></i> 查看订单详情
-                                </button>
-                            </div>
+                            <span style="font-weight: bold;">股票支出</span> 
+                            <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.totalStockCost }} (成本: ${{ item.averageStockCost }})</span>
+
+                            <span style="font-weight: bold;">持股盈亏</span> 
+                            <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.holdStockProfit }}</span>
+
+                            <span style="font-weight: bold;">保证金占用</span> 
+                            <span class="layui-badge layui-bg-blue layui-font-16" style="margin-right: 5px;">${{ item.putMarginOccupied }}</span>
                         </div>
-                        <div class="layui-row layui-col-space15">
-                            <div class="layui-col-md6">
-                                <div class="strategy-item">
-                                    <div><span style="font-weight: bold;">策略ID:</span> {{ item.strategy.strategyId }} <span style="color: #FF5722;">({{ item.strategy.strategyCode }})</span>
-                                        {{# if(item.strategy.stage === 'suspend') { }}
-                                        <span class="layui-badge layui-bg-orange">暂停</span>
-                                        {{# } else if(item.strategy.stage === 'stopped') { }}
-                                        <span class="layui-badge layui-bg-gray">已停止</span>
-                                        {{# } else { }}
-                                        <span class="layui-badge layui-bg-green">运行中</span>
-                                        {{# } }}
+                        <div class="layui-colla-content">
+                            <div class="layui-row">
+                                <div class="layui-col-md12">
+                                    <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" onclick="goToStrategyOrders('{{ item.strategy.strategyId }}')">
+                                        <i class="layui-icon layui-icon-form"></i> 查看订单详情
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md6">
+                                    <div class="strategy-item">
+                                        <div><span style="font-weight: bold;">策略ID:</span> {{ item.strategy.strategyId }} <span style="color: #FF5722;">({{ item.strategy.strategyCode }})</span>
+                                            {{# if(item.strategy.stage === 'suspend') { }}
+                                            <span class="layui-badge layui-bg-orange">暂停</span>
+                                            {{# } else if(item.strategy.stage === 'stopped') { }}
+                                            <span class="layui-badge layui-bg-gray">已停止</span>
+                                            {{# } else { }}
+                                            <span class="layui-badge layui-bg-green">运行中</span>
+                                            {{# } }}
+                                        </div>
+                                        <div><span style="font-weight: bold;">希腊字母:</span> Delta:{{ item.optionsDelta }}｜Gamma:{{ item.optionsGamma }}｜Theta:{{ item.optionsTheta }}</div>
+                                        <div><span style="font-weight: bold;">当前股价:</span> ${{ item.currentStockPrice }}</div>
+                                        <div><span style="font-weight: bold;">期权已到账收入:</span> ${{ item.allOptionsIncome }} <span style="color: #FF5722;">(已扣除手续费${{ item.totalFee }})</span></div>
+                                        <div><span style="font-weight: bold;">期权未到期收入:</span> ${{ item.unrealizedOptionsIncome }}</div>
                                     </div>
-                                    <div><span style="font-weight: bold;">希腊字母:</span> Delta:{{ item.optionsDelta }}｜Gamma:{{ item.optionsGamma }}｜Theta:{{ item.optionsTheta }}</div>
-                                    <div><span style="font-weight: bold;">当前股价:</span> ${{ item.currentStockPrice }}</div>
-                                    <div><span style="font-weight: bold;">期权已到账收入:</span> ${{ item.allOptionsIncome }} <span style="color: #FF5722;">(已扣除手续费${{ item.totalFee }})</span></div>
-                                    <div><span style="font-weight: bold;">期权未到期收入:</span> ${{ item.unrealizedOptionsIncome }}</div>
                                 </div>
-                            </div>
-                            <div class="layui-col-md6">
-                                <div class="strategy-item">
-                                    <div><span style="font-weight: bold;">策略持有股票:</span> {{ item.holdStockNum }} 股</div>
-                                    <div><span style="font-weight: bold;">策略股票支出:</span> ${{ item.totalStockCost }}</div>
-                                    <div><span style="font-weight: bold;">平均成本:</span> ${{ item.averageStockCost }}</div>
-                                    <div><span style="font-weight: bold;">持股盈亏:</span> ${{ item.holdStockProfit }}</div>
+                                <div class="layui-col-md6">
+                                    <div class="strategy-item">
+                                        <div><span style="font-weight: bold;">策略持有股票:</span> {{ item.holdStockNum }} 股</div>
+                                        <div><span style="font-weight: bold;">策略股票支出:</span> ${{ item.totalStockCost }}</div>
+                                        <div><span style="font-weight: bold;">平均成本:</span> ${{ item.averageStockCost }}</div>
+                                        <div><span style="font-weight: bold;">持股盈亏:</span> ${{ item.holdStockProfit }}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                {{#  }); }}
                 </div>
-            {{#  }); }}
             </div>
         </div>
     </div>

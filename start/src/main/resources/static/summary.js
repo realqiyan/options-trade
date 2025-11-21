@@ -523,6 +523,13 @@ function reloadData(){
         laytpl(getTpl).render(result, function(html){
           view.innerHTML = html;
         });
+        
+        // 初始化折叠功能
+        layui.use('element', function(){
+            var element = layui.element;
+            element.render('collapse');
+        });
+        
         renderPositionTable(result.positions);
         renderStockSummaryTable(result.stockSummaries);
         renderOrderTable(result.unrealizedOrders);
