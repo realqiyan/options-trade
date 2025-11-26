@@ -61,9 +61,7 @@ public final class GraphFactory {
 
                         意图分类包含：涉及期权策略相关问题（strategy）、非期权策略相关的股票和期权问题（trade）、其他问题（other）
                         意图返回: strategy, trade, other
-                        意图只能选择以上分类中的一个。
-
-                        以JSON格式返回: {"intent": "..."}
+                        意图只能选择以上分类中的一个，以纯文本返回，不要添加任何额外信息。
                         """;
 
         private static final String SUMMARY_PROMPT = """
@@ -379,8 +377,7 @@ public final class GraphFactory {
                 OutputConvertFunction outputConvert = new OutputConvertFunction() {
                         @Override
                         public Map<String, Object> apply(OverAllState state, RunnableConfig config, String result) {
-                                JSONObject object = JSON.parseObject(result);
-                                return Map.of("intent", object.getString("intent"));
+                                return Map.of("intent", result);
                         }
                 };
 
