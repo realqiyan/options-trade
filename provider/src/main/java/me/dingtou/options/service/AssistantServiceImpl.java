@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.AccountExt;
 import me.dingtou.options.dao.OwnerChatRecordDAO;
-import me.dingtou.options.graph.fatory.GraphFactory;
+import me.dingtou.options.graph.fatory.TitleGraphFactory;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerChatRecord;
@@ -23,6 +23,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,6 +34,10 @@ public class AssistantServiceImpl implements AssistantService {
     private OwnerManager ownerManager;
     @Autowired
     private OwnerChatRecordDAO ownerChatRecordDAO;
+
+    @Autowired
+    @Qualifier("titleGraphFactory")
+    private TitleGraphFactory titleGraphFactory;
 
     @Override
     public Map<String, Object> getSettings(String owner) {
@@ -141,7 +146,7 @@ public class AssistantServiceImpl implements AssistantService {
         }
         try {
             ChatModel chatModel = SpringAiUtils.buildChatModel(ownerAccount, false);
-            CompiledGraph copilotAgent = GraphFactory.generateTitleGraph(chatModel);
+            CompiledGraph copilotAgent = titleGraphFactory.buildGraph(chatModel);
             Optional<OverAllState> result = copilotAgent.invoke(Map.of("input", message));
             return (String) result.get().data().get("title");
         } catch (Exception e) {

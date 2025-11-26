@@ -11,6 +11,7 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.cloud.ai.graph.CompiledGraph;
@@ -28,9 +29,6 @@ import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.service.AuthService;
-import me.dingtou.options.service.mcp.DataQueryMcpService;
-import me.dingtou.options.service.mcp.KnowledgeMcpService;
-import me.dingtou.options.service.mcp.OwnerQueryMcpService;
 import me.dingtou.options.util.SpringAiUtils;
 import reactor.core.publisher.Flux;
 
@@ -44,11 +42,8 @@ public class GraphCopilotServiceImpl implements CopilotService {
     private final Map<String, CompiledGraph> copilotGraphMap = new ConcurrentHashMap<>();
 
     @Autowired
-    private KnowledgeMcpService knowledgeMcpService;
-    @Autowired
-    private DataQueryMcpService dataQueryMcpService;
-    @Autowired
-    private OwnerQueryMcpService ownerQueryMcpService;
+    @Qualifier("copilotGraphFactory")
+    private GraphFactory copilotGraphFactory;
 
     @Autowired
     private AuthService authService;
@@ -144,10 +139,7 @@ public class GraphCopilotServiceImpl implements CopilotService {
                 key -> {
                     try {
                         ChatModel chatModel = SpringAiUtils.buildChatModel(account, false);
-                        return GraphFactory.copilotGraph(chatModel,
-                                knowledgeMcpService,
-                                dataQueryMcpService,
-                                ownerQueryMcpService);
+                        return copilotGraphFactory.buildGraph(chatModel);
                     } catch (GraphStateException e) {
                         throw new RuntimeException("创建Copilot Agent失败", e);
                     }
@@ -166,7 +158,8 @@ public class GraphCopilotServiceImpl implements CopilotService {
 
         Long startTime;
         try {
-            startTime = nodeOutput.state().value(ContextKeys.NODE_START_TIME, Long.class).orElse(System.currentTimeMillis());
+            startTime = nodeOutput.state().value(ContextKeys.NODE_START_TIME, Long.class)
+                    .orElse(System.currentTimeMillis());
         } catch (Exception e) {
             startTime = System.currentTimeMillis();
         }
