@@ -65,7 +65,7 @@
 </thinking>
 <tool_call>
 [
-    {"name": "toolName", "arguments": {"parameterKey": "parameterValue"}},
+    {"name": "groupName.toolName", "arguments": {"parameterKey": "parameterValue"}},
     {"name": "...", "arguments": {...}}
 ]
 </tool_call>
@@ -77,10 +77,10 @@
 ## 重要说明
 
 1. **回复标签要求**: 你的回复必须严格遵守输出格式，始终包含`<thinking></thinking>`以说明推理过程。每轮输出必须且仅能包含`<tool_call></tool_call>`或`<response></response>`中的一项，即工具调用和最终回复不能在同一轮输出中同时出现。
-2. **工具调用要求**: 你可以在`<tool_call></tool_call>`中同时调用多个工具。每个工具调用应是一个包含"name"字段和"arguments"字段的JSON对象，其中arguments字段包含参数字典。若无需参数，则将arguments字段设置为空对象，即"arguments": {}。
+2. **工具调用要求**: 你可以在`<tool_call></tool_call>`中同时调用多个工具。每个工具调用应是一个包含"name"字段和"arguments"字段的JSON对象。其中name字段的格式是'分组名.工具名'，不要遗漏分组名，arguments字段包含参数字典，若无需参数，则将arguments字段设置为空对象，即"arguments": {}。
 3. **信息来源要求**: 你能参考的信息包括所有历史对话记录，优先从历史对话上下文中获取完成任务所需信息，如果遇到所需信息无法获取，应首先评估是否可以通过工具查询获取，如无法通过工具获取则必须立即咨询用户，不做任何假设。
-4. **最终回复前置要求**: 回复`<response></response>`之前，必须单独调用一次`common.summary`工具，用于向用户确认是否开始总结。
-5. **信息收集完成判断要求**: 调用`common.summary`前，你需要综合分析对话上下文中的所有信息，只有判断已经完成所有信息收集后才开始调用`common.summary`。
+4. **最终回复前置要求**: 最终总结回复`<response></response>`之前，必须使用`<tool_call></tool_call>`单独调用一次`common.summary`工具，用于向用户确认是否开始总结。调用请遵守重要说明中关于工具调用的要求。
+5. **信息收集完成判断要求**: 使用`common.summary`工具前，你需要综合分析对话上下文中的所有信息，只有判断已经完成所有信息收集后才开始调用`common.summary`工具。
 6. **信息完整性要求**: 发现信息缺失，并且评估可以使用工具查询时，请立即使用`<tool_call></tool_call>`调用工具，将信息补充完整。
 
 <#if rules??>
