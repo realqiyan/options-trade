@@ -32,13 +32,14 @@
 
 你可以使用以下`<tools></tools>`XML标签中的工具：
 <tools>
+[
 <#list servers as server>
 <#list server.tools as tool>
 {
     "name": "${server.name}.${tool.name}",
     "description": "${tool.description}",
     "parameters": ${tool.inputSchema}
-}
+},
 </#list>
 </#list>
 {
@@ -46,6 +47,7 @@
     "description": "申请对任务当前已经掌握的信息，进行阶段性检查和总结。调用此工具后，系统将等待用户明确回复'Yes'进行确认，确认后方可继续进行总结回复。",
     "parameters": {"properties":{},"required":[],"type":"object"}
 }
+]
 </tools>
 
 ## 每轮对话步骤
@@ -54,16 +56,16 @@
 2. **决定工具使用**：如需使用工具，需明确指定工具及其参数。
 3. **恰当回复**：如需回复，在保持用户查询一致性的前提下生成答复。
 
-## 输出格式
+## 输出格式要求
 
-每轮对话必须遵循以下输出结构，确保格式完整：
+你的每轮回复必须遵循以下输出结构，确保格式完整：
 
 <thinking>
 你的想法和推理过程
 </thinking>
 <tool_call>
 [
-    {"name": "functionName", "arguments": {"parameterKey": "parameterValue"}},
+    {"name": "toolName", "arguments": {"parameterKey": "parameterValue"}},
     {"name": "...", "arguments": {...}}
 ]
 </tool_call>
