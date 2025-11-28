@@ -58,8 +58,8 @@ public class Langchain4jUtils {
                 .customHeaders(Map.of("Content-Type", "application/json;charset=UTF-8"))
                 .temperature(temperature)
                 .returnThinking(true)
-                .logRequests(true)
-                .logResponses(true)
+                .logRequests(false)
+                .logResponses(false)
                 .timeout(Duration.ofSeconds(300))
                 .build();
     }
@@ -86,8 +86,8 @@ public class Langchain4jUtils {
                 .customHeaders(Map.of("Content-Type", "application/json;charset=UTF-8"))
                 .temperature(temperature)
                 .returnThinking(true)
-                .logRequests(true)
-                .logResponses(true)
+                .logRequests(false)
+                .logResponses(false)
                 .timeout(Duration.ofSeconds(300))
                 .build();
     }
