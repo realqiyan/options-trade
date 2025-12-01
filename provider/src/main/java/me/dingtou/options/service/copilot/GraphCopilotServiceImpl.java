@@ -39,6 +39,11 @@ import reactor.core.publisher.Flux;
 @Component("graphCopilotService")
 public class GraphCopilotServiceImpl implements CopilotService {
 
+    /**
+     * 暂时关闭Graph模式
+     */
+    private static boolean CLOSED = true;
+
     private final Map<String, CompiledGraph> copilotGraphMap = new ConcurrentHashMap<>();
 
     @Autowired
@@ -82,6 +87,11 @@ public class GraphCopilotServiceImpl implements CopilotService {
             Function<Message, Void> callback,
             Function<Message, Void> failCallback,
             Function<Message, Void> finalCallback) {
+
+        if (CLOSED) {
+            failCallback.apply(new Message("assistant", "Copilot Graph模式已关闭"));
+            return;
+        }
 
         try {
 
