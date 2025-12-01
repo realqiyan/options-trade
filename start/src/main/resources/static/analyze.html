@@ -159,9 +159,30 @@
                 <div class="layui-form-item">
                     <canvas id="chartZone" style="display:none;" height="200"></canvas>
                 </div>
-                <div class="layui-form-item">
-                    <div class="layui-card-body" id="result" lay-filter="result">
-                        依次操作：1.选择股票 2.选择期权策略 3.点击期权到期日
+                
+                <!-- 期权类型Tab分组 -->
+                <div class="layui-form-item" id="options-type-tabs" style="display:none;">
+                    <div class="layui-tab layui-tab-brief" lay-filter="options-type" id="options-type-tab-container">
+                        <ul class="layui-tab-title" id="options-type-tab-title">
+                            <li class="layui-this" data-type="all">全部期权</li>
+                            <li data-type="call">Call期权</li>
+                            <li data-type="put">Put期权</li>
+                        </ul>
+                        <div class="layui-tab-content">
+                            依次操作：1.选择股票 2.选择期权策略 3.点击期权到期日
+                            <div class="layui-tab-item layui-show">
+                                <div class="layui-card-body" id="result-all">
+                                </div>
+                            </div>
+                            <div class="layui-tab-item">
+                                <div class="layui-card-body" id="result-call">
+                                </div>
+                            </div>
+                            <div class="layui-tab-item">
+                                <div class="layui-card-body" id="result-put">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

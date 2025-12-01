@@ -300,52 +300,91 @@ function loadOptionsChain(strikeTime){
             };
         });
 
+        // 按期权类型分组数据
+        var callData = convertedData.filter(item => item.type === 'Call');
+        var putData = convertedData.filter(item => item.type === 'Put');
+        
+        // 显示Tab分组组件
+        $('#options-type-tabs').show();
+        $('#result-original').hide();
+        
+        // 定义表格列配置
+        var tableCols = [[
+          {field: 'type', title: '类型', width: 60, templet: function(d) {
+              if(d.type === 'Call') {
+                  return '<span class="option-call-badge">Call</span>';
+              } else if(d.type === 'Put') {
+                  return '<span class="option-put-badge">Put</span>';
+              } else {
+                  return d.type;
+              }
+          }},
+          {field: 'code', title: '期权代码', width: 165},
+          {field: 'strikePrice', title: '行权价', width: 80, templet: function(d) {
+              var currentPrice = parseFloat(d.data.realtimeData.underlyingPrice);
+              var strikePrice = parseFloat(d.strikePrice);
+              if (!isNaN(currentPrice) && !isNaN(strikePrice)) {
+                  if (d.type === 'Call' && strikePrice <= currentPrice || 
+                      d.type === 'Put' && strikePrice >= currentPrice) {
+                      return '<span class="option-strike-in">' + d.strikePrice + '</span>';
+                  } else {
+                      return '<span class="option-strike-out">' + d.strikePrice + '</span>';
+                  }
+              }
+              return d.strikePrice;
+          }},
+          {field: 'range', title: '涨跌幅', width: 80},
+          {field: 'curPrice', title: '当前价格', width: 110},
+          {field: 'sellAnnualYield', title: '年化', width: 80},
+          {title: '交易参考信息', width: 500, templet: '#TPL-table-tradeInfo'},
+          {field: 'group', title: '分组', width: 80},
+          {field: 'options', title: '卖出', width: 80, templet: function(d) {
+              if (d.options) {
+                  var btnClass = 'layui-btn-primary';
+                  if (d.type === 'Call') {
+                      btnClass = 'layui-bg-cyan';
+                  } else if (d.type === 'Put') {
+                      btnClass = 'layui-bg-red';
+                  }
+                  return `<div><a title="${d.data.basic.name}" class="layui-btn ${btnClass} layui-btn-xs" onclick='sell(${d.options})' lay-event="sell">卖出${d.type}</a></div>`;
+              }
+              return '';
+          }},
+        ]];
+        
+        // 定义表格渲染后的样式处理函数
+        function applyTableStyles(container) {
+            // 为表格行添加样式区分Call和Put
+            container.find('.layui-table-body .layui-table tr').each(function() {
+                var type = $(this).find('td[data-field="type"]').text();
+                if (type.indexOf('Call') > -1) {
+                    $(this).addClass('layui-table-call');
+                } else if (type.indexOf('Put') > -1) {
+                    $(this).addClass('layui-table-put');
+                }
+                
+                // 为价格添加颜色
+                var priceCell = $(this).find('td[data-field="curPrice"]');
+                var price = parseFloat(priceCell.text());
+                if (!isNaN(price)) {
+                    if (price > 0) {
+                        if (type.indexOf('Call') > -1) {
+                            priceCell.addClass('option-price-up');
+                        } else if (type.indexOf('Put') > -1) {
+                            priceCell.addClass('option-price-down');
+                        }
+                    }
+                }
+            });
+        }
+
         layui.use('table', function(){
           var table = layui.table;
-          var inst = table.render({
-            elem: '#result',
-            cols: [[
-              {field: 'type', title: '类型', width: 60, templet: function(d) {
-                  if(d.type === 'Call') {
-                      return '<span class="option-call-badge">Call</span>';
-                  } else if(d.type === 'Put') {
-                      return '<span class="option-put-badge">Put</span>';
-                  } else {
-                      return d.type;
-                  }
-              }},
-              {field: 'code', title: '期权代码', width: 165},
-              {field: 'strikePrice', title: '行权价', width: 80, templet: function(d) {
-                  var currentPrice = parseFloat(d.data.realtimeData.underlyingPrice);
-                  var strikePrice = parseFloat(d.strikePrice);
-                  if (!isNaN(currentPrice) && !isNaN(strikePrice)) {
-                      if (d.type === 'Call' && strikePrice <= currentPrice || 
-                          d.type === 'Put' && strikePrice >= currentPrice) {
-                          return '<span class="option-strike-in">' + d.strikePrice + '</span>';
-                      } else {
-                          return '<span class="option-strike-out">' + d.strikePrice + '</span>';
-                      }
-                  }
-                  return d.strikePrice;
-              }},
-              {field: 'range', title: '涨跌幅', width: 80},
-              {field: 'curPrice', title: '当前价格', width: 110},
-              {field: 'sellAnnualYield', title: '年化', width: 80},
-              {title: '交易参考信息', width: 500, templet: '#TPL-table-tradeInfo'},
-              {field: 'group', title: '分组', width: 80},
-              {field: 'options', title: '卖出', width: 80, templet: function(d) {
-                  if (d.options) {
-                      var btnClass = 'layui-btn-primary';
-                      if (d.type === 'Call') {
-                          btnClass = 'layui-bg-cyan';
-                      } else if (d.type === 'Put') {
-                          btnClass = 'layui-bg-red';
-                      }
-                      return `<div><a title="${d.data.basic.name}" class="layui-btn ${btnClass} layui-btn-xs" onclick='sell(${d.options})' lay-event="sell">卖出${d.type}</a></div>`;
-                  }
-                  return '';
-              }},
-            ]],
+          
+          // 渲染全部期权表格
+          table.render({
+            elem: '#result-all',
+            cols: tableCols,
             data: convertedData,
             toolbar: true,
             lineStyle: 'height: 100%;',
@@ -355,32 +394,8 @@ function loadOptionsChain(strikeTime){
               'print' // 打印
             ],
             done: function(res) {
-                // 为表格行添加样式区分Call和Put
-                $('.layui-table-body .layui-table tr').each(function() {
-                    var type = $(this).find('td[data-field="type"]').text();
-                    if (type.indexOf('Call') > -1) {
-                        $(this).addClass('layui-table-call');
-                    } else if (type.indexOf('Put') > -1) {
-                        $(this).addClass('layui-table-put');
-                    }
-                    
-                    // 为价格添加颜色
-                    var priceCell = $(this).find('td[data-field="curPrice"]');
-                    var price = parseFloat(priceCell.text());
-                    if (!isNaN(price)) {
-                        if (price > 0) {
-                            if (type.indexOf('Call') > -1) {
-                                priceCell.addClass('option-price-up');
-                            } else if (type.indexOf('Put') > -1) {
-                                priceCell.addClass('option-price-down');
-                            }
-                        }
-                    }
-                });
-                
+                applyTableStyles($('#result-all'));
             },
-            //skin: 'line',
-            //even: true,
             height: 'full-320',
             lineStyle: 'height: 100%;',
             initSort: {
@@ -390,6 +405,67 @@ function loadOptionsChain(strikeTime){
             page: false,
             limits: [100, 200, 500],
             limit: 100
+          });
+          
+          // 渲染Call期权表格
+          table.render({
+            elem: '#result-call',
+            cols: tableCols,
+            data: callData,
+            toolbar: true,
+            lineStyle: 'height: 100%;',
+            defaultToolbar: [
+              'filter', // 列筛选
+              'exports', // 导出
+              'print' // 打印
+            ],
+            done: function(res) {
+                applyTableStyles($('#result-call'));
+            },
+            height: 'full-320',
+            lineStyle: 'height: 100%;',
+            initSort: {
+              field: 'strikePrice',
+              type: 'asc'
+            },
+            page: false,
+            limits: [100, 200, 500],
+            limit: 100
+          });
+          
+          // 渲染Put期权表格
+          table.render({
+            elem: '#result-put',
+            cols: tableCols,
+            data: putData,
+            toolbar: true,
+            lineStyle: 'height: 100%;',
+            defaultToolbar: [
+              'filter', // 列筛选
+              'exports', // 导出
+              'print' // 打印
+            ],
+            done: function(res) {
+                applyTableStyles($('#result-put'));
+            },
+            height: 'full-320',
+            lineStyle: 'height: 100%;',
+            initSort: {
+              field: 'strikePrice',
+              type: 'asc'
+            },
+            page: false,
+            limits: [100, 200, 500],
+            limit: 100
+          });
+        });
+        
+        // 监听Tab切换事件
+        layui.use('element', function(){
+          var element = layui.element;
+          element.on('tab(options-type)', function(data){
+            console.log('切换到Tab:', data.index, '期权类型:', $(this).data('type'));
+            // 如果切换到其他Tab，可以在这里添加额外的处理逻辑
           });
         });
 
