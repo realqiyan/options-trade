@@ -71,7 +71,7 @@ public class OptionsQueryServiceImpl implements OptionsQueryService {
                 security,
                 strikeDate,
                 true,
-                OptionsFilterType.OTM_ALL);
+                OptionsFilterType.ALL);
 
         if (null == allOptionsStrategy || allOptionsStrategy.isEmpty()) {
             return optionsChain;

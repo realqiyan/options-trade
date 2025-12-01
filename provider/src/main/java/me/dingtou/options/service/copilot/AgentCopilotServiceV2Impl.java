@@ -315,7 +315,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                 @SuppressWarnings({ "unchecked" })
                 private String convertToolCall(List<ToolExecutionRequest> toolExecutionRequests) {
                     if (null == toolExecutionRequests || toolExecutionRequests.isEmpty()) {
-                        return "<tool_call>[]</tool_call>";
+                        return "<use_tool>[]</use_tool>";
                     }
                     List<ToolCallRequest> callRequests = new ArrayList<>();
                     for (ToolExecutionRequest toolExecutionRequest : toolExecutionRequests) {
@@ -325,7 +325,7 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                         ToolCallRequest callReq = new ToolCallRequest(name, argsMap);
                         callRequests.add(callReq);
                     }
-                    return String.format("<tool_call>%s</tool_call>", JSON.toJSONString(callRequests));
+                    return String.format("<use_tool>%s</use_tool>", JSON.toJSONString(callRequests));
                 }
 
                 @Override

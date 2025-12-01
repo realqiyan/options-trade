@@ -34,36 +34,45 @@ import me.dingtou.options.util.TemplateRenderer;
 @Slf4j
 public class ToolCallProcesser implements ToolProcesser {
 
-    private static final String TOOL_CALL = "tool_call";
+    private static final String USE_TOOL = "use_tool";
 
-    private static final Pattern TOOL_CALL_PATTERN = Pattern.compile("<tool_call>([\\s\\S]*?)</tool_call>", Pattern.DOTALL);
+    private static final Pattern USE_TOOL_PATTERN = Pattern.compile("<use_tool>([\\s\\S]*?)</use_tool>",
+            Pattern.DOTALL);
 
     @Override
     public boolean support(String content) {
         if (StringUtils.isBlank(content)) {
             return false;
         }
-        return content.contains("<tool_call>");
+        return content.contains("<use_tool>");
+    }
+
+    public static void main(String[] args) {
+        String text = """
+                 </thinking> <use_tool> <use_tool> [{\"name\": \"common.summary\", \"arguments\": {}}] </use_tool> </use_tool>
+                """;
+        List<ToolCallRequest> toolCalls = new ToolCallProcesser().parseToolRequest("owner", text);
+        System.out.println(toolCalls);
     }
 
     @Override
     public List<ToolCallRequest> parseToolRequest(String owner, String content) {
         List<ToolCallRequest> toolCalls = new ArrayList<>();
         try {
-            java.util.regex.Matcher matcher = TOOL_CALL_PATTERN.matcher(content);
+            java.util.regex.Matcher matcher = USE_TOOL_PATTERN.matcher(content);
             while (matcher.find()) {
                 String callFunc = matcher.group(1).trim();
                 /**
-                 * <tool_call>
+                 * <use_tool>
                  * {"name": "Tool name", "parameters": {"Parameter name": "Parameter content"}},
-                 * </tool_call>
-                 * </tool_call>
+                 * </use_tool>
+                 * </use_tool>
                  * [
                  * {"name": "Tool name", "parameters": {"Parameter name": "Parameter content"}},
                  * {"name": "...", "parameters": {"...": "...", "...": "..."}},
                  * ...
                  * ]
-                 * </tool_call>
+                 * </use_tool>
                  */
 
                 // Check if it's an array of tool calls
@@ -80,8 +89,8 @@ public class ToolCallProcesser implements ToolProcesser {
                 }
             }
         } catch (Exception xmlException) {
-            log.error("Failed to parse tool_call: {}", content, xmlException);
-            throw new IllegalArgumentException("Failed to parse tool_call: " + xmlException.getMessage());
+            log.error("Failed to parse use_tool: {}", content, xmlException);
+            throw new IllegalArgumentException("Failed to parse use_tool: " + xmlException.getMessage());
         }
         return toolCalls;
     }
@@ -89,8 +98,8 @@ public class ToolCallProcesser implements ToolProcesser {
     @SuppressWarnings("unchecked")
     private ToolCallRequest createToolCall(String owner, JSONObject jsonObject) {
         String name = jsonObject.getString("name");
-        // 兼容大模型返回嵌套模式：[{"arguments":{"name":"common.summary","arguments":{}},"name":"tool_call"}]
-        if (TOOL_CALL.equals(name)) {
+        // 兼容大模型返回嵌套模式：[{"arguments":{"name":"common.summary","arguments":{}},"name":"use_tool"}]
+        if (USE_TOOL.equals(name)) {
             jsonObject = jsonObject.getJSONObject("arguments");
             name = jsonObject.getString("name");
         }
