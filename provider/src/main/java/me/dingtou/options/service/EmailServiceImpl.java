@@ -1,6 +1,11 @@
 package me.dingtou.options.service;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+
+import org.commonmark.Extension;
+import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
@@ -18,9 +23,6 @@ import jakarta.mail.internet.MimeMessage;
 @Service
 @Slf4j
 public class EmailServiceImpl implements EmailService {
-
-    private final Parser markdownParser = Parser.builder().build();
-    private final HtmlRenderer htmlRenderer = HtmlRenderer.builder().build();
 
     @Override
     public void sendMarkdown(String to,
@@ -49,6 +51,13 @@ public class EmailServiceImpl implements EmailService {
             customMailSender.setJavaMailProperties(props);
 
             // 将Markdown转换为HTML
+            List<Extension> extensions = List.of(TablesExtension.create());
+            Parser markdownParser = Parser.builder()
+                    .extensions(extensions)
+                    .build();
+            HtmlRenderer htmlRenderer = HtmlRenderer.builder()
+                    .extensions(extensions)
+                    .build();
             Node document = markdownParser.parse(content);
             String htmlContent = htmlRenderer.render(document);
 
