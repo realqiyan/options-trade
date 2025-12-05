@@ -46,7 +46,7 @@ public class LoginFilter implements Filter {
 
         // 检查是否为排除的路径
         String requestURI = httpRequest.getRequestURI();
-        if (requestURI.equals("/sse") || requestURI.equals("/mcp/message")) {
+        if (requestURI.equals("/mcp")) {
             chain.doFilter(request, response);
             return;
         }

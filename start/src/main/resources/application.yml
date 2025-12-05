@@ -41,9 +41,10 @@ spring:
   ai:
     mcp:
       server:
+        protocol: STREAMABLE
         enabled: true
         stdio: false
-        name: options-trade-mcp-server
+        name: options-trade-server
         version: 1.0.0
         type: SYNC
         tool-change-notification: true
@@ -52,9 +53,9 @@ spring:
           tool: true
           prompt: false
           completion: false
-        sse-message-endpoint: /mcp/message
-        sse-endpoint: /sse
-        request-timeout: 30
+        request-timeout: 60
+        streamable-http:
+          mcp-endpoint: /mcp
 
 # JobRunr
 org:

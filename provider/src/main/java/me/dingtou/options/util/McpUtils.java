@@ -25,6 +25,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class McpUtils {
 
+    public static final String MCP_TYPE_SSE = "sse";
+    public static final String MCP_TYPE_STREAMABLE_HTTP = "streamable-http";
+
     /**
      * mcp客户端 {owner:{server:Client}}
      */
@@ -73,14 +76,35 @@ public class McpUtils {
             log.error("初始化McpClient失败: 用户名为空");
             return;
         }
-        Map<String, SseServerParameters> sseServerParameters = getSseServerParameters(mcpSettings);
-        for (Map.Entry<String, SseServerParameters> entry : sseServerParameters.entrySet()) {
+        Map<String, ServerParameters> serverParameters = getServerParameters(mcpSettings);
+        for (Map.Entry<String, ServerParameters> entry : serverParameters.entrySet()) {
             String serverName = entry.getKey();
-            SseServerParameters sseServerParameter = entry.getValue();
-            initMcpSseClient(owner, serverName, sseServerParameter.url(), sseServerParameter.headers());
+            ServerParameters serverParameter = entry.getValue();
+            String type = serverParameter.type();
+            if (type == null || type.isEmpty()) {
+                log.error("服务[{}]初始化失败: type为空", serverName);
+                continue;
+            }
+            switch (type) {
+                case MCP_TYPE_SSE:
+                    initMcpSseClient(owner, serverName, serverParameter.url(), serverParameter.headers());
+                    break;
+                case MCP_TYPE_STREAMABLE_HTTP:
+                    initMcpStreamableClient(owner, serverName, serverParameter.url(), serverParameter.headers());
+                    break;
+                default:
+                    throw new IllegalArgumentException("不支持的Mcp类型: " + serverParameter.toString());
+            }
+
         }
         log.info("用户[{}]的Mcp客户端初始化完成", owner);
 
+    }
+
+    private static void initMcpStreamableClient(String owner, String serverName, String url,
+            Map<String, Object> headers) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'initMcpStreamableClient'");
     }
 
     /**
@@ -89,12 +113,12 @@ public class McpUtils {
      * @param mcpSettings mcp设置
      * @return 转换后的参数
      */
-    public static Map<String, SseServerParameters> getSseServerParameters(String mcpSettings) {
+    public static Map<String, ServerParameters> getServerParameters(String mcpSettings) {
         if (mcpSettings == null || mcpSettings.isEmpty()) {
             log.error("初始化McpClient失败: mcpSettings为空");
             return Collections.emptyMap();
         }
-        Map<String, SseServerParameters> result = new HashMap<>();
+        Map<String, ServerParameters> result = new HashMap<>();
         try {
             // 初始化mcp服务器
             JSONObject mcpServers = JSON.parseObject(mcpSettings).getJSONObject("mcpServers");
@@ -106,6 +130,11 @@ public class McpUtils {
             log.info("发现{}个Mcp服务需要初始化", mcpServers.size());
             for (String serverName : mcpServers.keySet()) {
                 JSONObject server = mcpServers.getJSONObject(serverName);
+                String type = server.getString("type");
+                if (type == null || type.isEmpty()) {
+                    log.error("服务[{}]初始化失败: type为空", serverName);
+                    continue;
+                }
                 String url = server.getString("url");
                 if (url == null || url.isEmpty()) {
                     log.error("服务[{}]初始化失败: URL为空", serverName);
@@ -114,11 +143,12 @@ public class McpUtils {
                 Map<String, Object> headers = server.getObject("headers", new TypeReference<Map<String, Object>>() {
                 });
                 log.info("正在初始化Mcp服务: {} -> {}", serverName, url);
-                SseServerParameters sseServerParameters = SseServerParameters.builder()
+                ServerParameters serverParameters = ServerParameters.builder()
+                        .type(type)
                         .url(url)
                         .headers(headers)
                         .build();
-                result.put(serverName, sseServerParameters);
+                result.put(serverName, serverParameters);
             }
             log.info("Mcp客户端初始化完成");
         } catch (Exception e) {
@@ -198,7 +228,12 @@ public class McpUtils {
         return client;
     }
 
-    static class SseServerParameters {
+    static class ServerParameters {
+
+        /**
+         * streamable-http / sse
+         */
+        private String type;
         /**
          * mcp服务地址
          */
@@ -208,8 +243,17 @@ public class McpUtils {
          */
         private Map<String, Object> headers;
 
-        public static SseServerParameters builder() {
-            return new SseServerParameters();
+        public static ServerParameters builder() {
+            return new ServerParameters();
+        }
+
+        /**
+         * streamable-http / sse
+         * 
+         * @return
+         */
+        public String type() {
+            return this.type;
         }
 
         /**
@@ -226,18 +270,32 @@ public class McpUtils {
             return this.headers;
         }
 
-        public SseServerParameters url(String url) {
+        public ServerParameters type(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public ServerParameters url(String url) {
             this.url = url;
             return this;
         }
 
-        public SseServerParameters headers(Map<String, Object> headers) {
+        public ServerParameters headers(Map<String, Object> headers) {
             this.headers = headers;
             return this;
         }
 
-        public SseServerParameters build() {
+        public ServerParameters build() {
             return this;
+        }
+
+        @Override
+        public String toString() {
+            return "SseServerParameters{" +
+                    "type='" + type + '\'' +
+                    ", url='" + url + '\'' +
+                    ", headers=" + headers +
+                    '}';
         }
     }
 
