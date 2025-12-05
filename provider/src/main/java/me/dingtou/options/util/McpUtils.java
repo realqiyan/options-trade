@@ -16,6 +16,8 @@ import com.alibaba.fastjson2.TypeReference;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
+import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
+import io.modelcontextprotocol.spec.McpClientTransport;
 import io.modelcontextprotocol.spec.McpSchema.ClientCapabilities;
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,26 +87,15 @@ public class McpUtils {
                 log.error("服务[{}]初始化失败: type为空", serverName);
                 continue;
             }
-            switch (type) {
-                case MCP_TYPE_SSE:
-                    initMcpSseClient(owner, serverName, serverParameter.url(), serverParameter.headers());
-                    break;
-                case MCP_TYPE_STREAMABLE_HTTP:
-                    initMcpStreamableClient(owner, serverName, serverParameter.url(), serverParameter.headers());
-                    break;
-                default:
-                    throw new IllegalArgumentException("不支持的Mcp类型: " + serverParameter.toString());
+            try {
+                initMcpSseClient(owner, serverName, serverParameter);
+            } catch (Exception e) {
+                log.error("服务[{}]初始化失败: {}", serverName, e.getMessage(), e);
             }
 
         }
         log.info("用户[{}]的Mcp客户端初始化完成", owner);
 
-    }
-
-    private static void initMcpStreamableClient(String owner, String serverName, String url,
-            Map<String, Object> headers) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'initMcpStreamableClient'");
     }
 
     /**
@@ -166,18 +157,18 @@ public class McpUtils {
      * @param headers    请求头
      * 
      * @return McpSyncClient
+     * @throws Exception
      */
     public synchronized static McpSyncClient initMcpSseClient(String owner,
             String serverName,
-            String url,
-            Map<String, Object> headers) {
+            ServerParameters serverParameter) throws Exception {
 
         Map<String, McpSyncClient> mcpServers = OWNER_MCP_SERVERS
                 .computeIfAbsent(owner, k -> new ConcurrentHashMap<>());
 
         McpSyncClient mcpSyncClient = mcpServers.get(serverName);
         if (null != mcpSyncClient) {
-            log.info("McpClient 已缓存: {} -> {}", serverName, url);
+            log.info("McpClient 已缓存 -> {}", serverName);
             return mcpSyncClient;
         }
 
@@ -185,27 +176,44 @@ public class McpUtils {
         Builder requestBuilder = HttpRequest.newBuilder()
                 .header("Content-Type", "application/json");
 
+        var headers = serverParameter.headers();
+        var type = serverParameter.type();
+        var url = serverParameter.url();
         if (null != headers && !headers.isEmpty()) {
             for (Map.Entry<String, Object> entry : headers.entrySet()) {
                 requestBuilder.header(entry.getKey(), entry.getValue().toString());
             }
         }
 
-        HttpClientSseClientTransport transport;
-        try {
-            URL serverUrl = new URL(url);
-            String endpoint = serverUrl.getPath() + (null != serverUrl.getQuery() ? "?" + serverUrl.getQuery() : "");
-            transport = HttpClientSseClientTransport.builder(url)
-                    .sseEndpoint(endpoint)
-                    .requestBuilder(requestBuilder)
-                    .build();
-        } catch (Exception e) {
-            log.error("McpClient初始化失败, url:{}", url, e);
-            throw new RuntimeException(e);
+        McpClientTransport transport;
+        URL serverUrl = new URL(url);
+        String endpoint = serverUrl.getPath()
+                + (null != serverUrl.getQuery() ? "?" + serverUrl.getQuery() : "");
+        switch (type) {
+            case MCP_TYPE_SSE:
+                transport = HttpClientSseClientTransport.builder(url)
+                        .sseEndpoint(endpoint)
+                        .requestBuilder(requestBuilder)
+                        .build();
+                break;
+            case MCP_TYPE_STREAMABLE_HTTP:
+                try {
+                    transport = HttpClientStreamableHttpTransport.builder(url)
+                            .endpoint(endpoint)
+                            .requestBuilder(requestBuilder)
+                            .build();
+                } catch (Exception e) {
+                    log.error("McpClient初始化失败, url:{}", url, e);
+                    throw new RuntimeException(e);
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("不支持的Mcp类型: " + serverParameter.toString());
         }
+
         // Create a sync client with custom configuration
         McpSyncClient client = McpClient.sync(transport)
-                .requestTimeout(Duration.ofSeconds(30))
+                .requestTimeout(Duration.ofSeconds(60))
                 .capabilities(ClientCapabilities.builder()
                         .roots(true)
                         .sampling()
