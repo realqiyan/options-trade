@@ -88,18 +88,15 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             return sessionId;
         }
 
-        // 编码owner
-        String ownerCode = authService.encodeOwner(owner);
-
         // 初始化MCP服务
         initMcpServer(account);
 
         // 构建包含MCP工具描述的系统提示词
-        String sysMsg = buildSystemPrompt(account, ownerCode);
+        String sysMsg = buildSystemPrompt(account);
         Message systemMessage = new Message("system", sysMsg);
         saveChatRecord(owner, sessionId, title, systemMessage);
 
-        String userMsg = buildContinuePrompt(owner, ownerCode, message.getContent());
+        String userMsg = buildContinuePrompt(owner, message.getContent());
         Message userMessage = new Message("user", userMsg);
 
         work(account, title, userMessage, callback, failCallback, finalCallback, sessionId, List.of(systemMessage));
@@ -135,14 +132,11 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
         // 获取会话标题
         String title = records.get(0).getTitle();
 
-        // 编码owner
-        String ownerCode = authService.encodeOwner(owner);
-
         // 初始化MCP服务（避免基于老会话继续沟通找不到客户端的问题）
         initMcpServer(account);
 
         // 构建系统上下文
-        String continueMessage = buildContinuePrompt(owner, ownerCode, message.getContent());
+        String continueMessage = buildContinuePrompt(owner, message.getContent());
 
         // 添加新消息
         Message newMessage = new Message("user", continueMessage);
@@ -312,7 +306,6 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
                     }
                 }
 
-                @SuppressWarnings({ "unchecked" })
                 private String convertToolCall(List<ToolExecutionRequest> toolExecutionRequests) {
                     if (null == toolExecutionRequests || toolExecutionRequests.isEmpty()) {
                         return "<use_tool>[]</use_tool>";
@@ -385,8 +378,12 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
             log.info("[mcp] initMcpServer, owner={} mcpSettings={}", ownerAccount.getOwner(), mcpSettings);
             McpUtils.initMcpClient(ownerAccount.getOwner(), mcpSettings);
         }
+        // 编码owner
+        String ownerCode = authService.encodeOwner(ownerAccount.getOwner());
         // 默认配置初始化
         Map<String, Object> params = new HashMap<>();
+        params.put("owner", ownerAccount.getOwner());
+        params.put("ownerCode", ownerCode);
         mcpSettings = TemplateRenderer.render("config_default_mcp_settings.ftl", params);
         McpUtils.initMcpClient(ownerAccount.getOwner(), mcpSettings);
     }
@@ -395,12 +392,10 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
      * 构建系统Prompt
      * 
      * @param account   账户
-     * @param ownerCode 账户编码
      * @return 系统Prompt
      */
-    private String buildSystemPrompt(OwnerAccount account, String ownerCode) {
+    private String buildSystemPrompt(OwnerAccount account) {
         Map<String, Object> data = new HashMap<>();
-        data.put("ownerCode", ownerCode);
         data.put("time", DateUtils.currentTime());
 
         String owner = account.getOwner();
@@ -460,14 +455,12 @@ public class AgentCopilotServiceV2Impl implements CopilotService {
      * 构建继续对话的Prompt
      * 
      * @param owner     账户
-     * @param ownerCode 账户编码
      * @param content   内容
      * @return 继续对话的Prompt
      */
-    private String buildContinuePrompt(String owner, String ownerCode, String content) {
+    private String buildContinuePrompt(String owner, String content) {
         Map<String, Object> data = new HashMap<>();
         data.put("task", content);
-        data.put("ownerCode", ownerCode);
         data.put("time", DateUtils.currentTime());
         // 渲染模板
         return TemplateRenderer.render("agent_continue_prompt.ftl", data);

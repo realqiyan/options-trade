@@ -17,7 +17,6 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -128,14 +127,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
-     * 获取动态密码
+     * 基于用户otpAuth 获取用户身份code
      * 
      * @param owner 用户
      * @return SecretKeySpec
      * @throws NoSuchAlgorithmException
      */
     private SecretKeySpec buildSecretKey(String owner) throws NoSuchAlgorithmException {
-        String currentSecretKey = secretKeySha256(owner) + LocalDate.now().toString();
+        String currentSecretKey = secretKeySha256(owner);
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] keyBytes = digest.digest(currentSecretKey.getBytes(StandardCharsets.UTF_8));
         SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "AES");

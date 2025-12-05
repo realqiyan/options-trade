@@ -95,7 +95,6 @@ public class ToolCallProcesser implements ToolProcesser {
         return toolCalls;
     }
 
-    @SuppressWarnings("unchecked")
     private ToolCallRequest createToolCall(String owner, JSONObject jsonObject) {
         String name = jsonObject.getString("name");
         // 兼容大模型返回嵌套模式：[{"arguments":{"name":"common.summary","arguments":{}},"name":"use_tool"}]
@@ -120,7 +119,6 @@ public class ToolCallProcesser implements ToolProcesser {
         return toolCall;
     }
 
-    @SuppressWarnings({ "unchecked" })
     @Override
     public String callTool(ToolCallRequest toolCallRequest) {
         if (!(toolCallRequest instanceof McpToolCallRequest)) {

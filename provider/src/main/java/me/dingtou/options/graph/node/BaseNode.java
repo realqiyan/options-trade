@@ -18,7 +18,6 @@ import me.dingtou.options.model.Message;
 public abstract class BaseNode implements NodeActionWithConfig {
 
     @Override
-    @SuppressWarnings("unchecked")
     final public Map<String, Object> apply(OverAllState state, RunnableConfig config) throws Exception {
         Optional<Object> callbackMetadata = config.metadata("__callback__");
         Optional<Object> failCallbackMetadata = config.metadata("__fail_callback__");

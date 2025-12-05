@@ -1,13 +1,13 @@
 package me.dingtou.options.util;
 
 import java.net.URL;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.Builder;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.springaicommunity.mcp.security.client.sync.AuthenticationMcpTransportContextProvider;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
@@ -17,6 +17,7 @@ import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
 import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
+import io.modelcontextprotocol.client.transport.customizer.McpSyncHttpClientRequestCustomizer;
 import io.modelcontextprotocol.spec.McpClientTransport;
 import io.modelcontextprotocol.spec.McpSchema.ClientCapabilities;
 import lombok.extern.slf4j.Slf4j;
@@ -88,7 +89,7 @@ public class McpUtils {
                 continue;
             }
             try {
-                initMcpSseClient(owner, serverName, serverParameter);
+                initMcpClient(owner, serverName, serverParameter);
             } catch (Exception e) {
                 log.error("服务[{}]初始化失败: {}", serverName, e.getMessage(), e);
             }
@@ -159,7 +160,7 @@ public class McpUtils {
      * @return McpSyncClient
      * @throws Exception
      */
-    public synchronized static McpSyncClient initMcpSseClient(String owner,
+    public synchronized static McpSyncClient initMcpClient(String owner,
             String serverName,
             ServerParameters serverParameter) throws Exception {
 
@@ -173,18 +174,16 @@ public class McpUtils {
         }
 
         // Create a transport
-        Builder requestBuilder = HttpRequest.newBuilder()
-                .header("Content-Type", "application/json");
-
         var headers = serverParameter.headers();
         var type = serverParameter.type();
         var url = serverParameter.url();
-        if (null != headers && !headers.isEmpty()) {
-            for (Map.Entry<String, Object> entry : headers.entrySet()) {
-                requestBuilder.header(entry.getKey(), entry.getValue().toString());
+        McpSyncHttpClientRequestCustomizer requestCustomizer = (builder, method, endpoint, body, context) -> {
+            if (null != headers && !headers.isEmpty()) {
+                for (Map.Entry<String, Object> entry : headers.entrySet()) {
+                    builder.header(entry.getKey(), entry.getValue().toString());
+                }
             }
-        }
-
+        };
         McpClientTransport transport;
         URL serverUrl = new URL(url);
         String endpoint = serverUrl.getPath()
@@ -193,14 +192,14 @@ public class McpUtils {
             case MCP_TYPE_SSE:
                 transport = HttpClientSseClientTransport.builder(url)
                         .sseEndpoint(endpoint)
-                        .requestBuilder(requestBuilder)
+                        .httpRequestCustomizer(requestCustomizer)
                         .build();
                 break;
             case MCP_TYPE_STREAMABLE_HTTP:
                 try {
                     transport = HttpClientStreamableHttpTransport.builder(url)
                             .endpoint(endpoint)
-                            .requestBuilder(requestBuilder)
+                            .httpRequestCustomizer(requestCustomizer)
                             .build();
                 } catch (Exception e) {
                     log.error("McpClient初始化失败, url:{}", url, e);
@@ -218,6 +217,7 @@ public class McpUtils {
                         .roots(true)
                         .sampling()
                         .build())
+                .transportContextProvider(new AuthenticationMcpTransportContextProvider())
                 .build();
         // Initialize connection
         try {

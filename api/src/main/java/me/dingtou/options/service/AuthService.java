@@ -36,17 +36,17 @@ public interface AuthService {
     String jwt(String owner, Date expireDate);
 
     /**
-     * 获取账号的动态加密编码 （一天内有效）
+     * 获取账号的加密编码 （基于otpAuth生成）
      *
      * @param owner 用户
-     * @return 账号的动态加密编码
+     * @return 账号的加密编码
      */
     String encodeOwner(String owner);
 
     /**
-     * 解密账号的动态加密编码
+     * 解密账号的加密编码
      *
-     * @param ownerCode 账号的动态加密编码
+     * @param ownerCode 账号的加密编码
      * @return 用户
      */
     String decodeOwner(String ownerCode);

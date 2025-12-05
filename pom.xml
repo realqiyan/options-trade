@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.4</version>
+        <version>3.5.8</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>me.dingtou.options</groupId>
@@ -23,7 +23,6 @@
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-boot.version>3.5.4</spring-boot.version>
         <mybatis-plus.version>3.5.12</mybatis-plus.version>
         <lombok.version>1.18.30</lombok.version>
         <mysql-connector.version>8.4.0</mysql-connector.version>
@@ -66,6 +65,12 @@
                 <artifactId>mcp-server-security</artifactId>
                 <version>0.0.5</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.springaicommunity</groupId>
+                <artifactId>mcp-client-security</artifactId>
+                <version>0.0.5</version>
+            </dependency>
           
             <!-- fasterxml jackson Core -->
             <dependency>
@@ -82,12 +87,6 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.version}</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-freemarker</artifactId>
-                <version>${spring-boot.version}</version>
             </dependency>
             <dependency>
                 <groupId>me.dingtou.options</groupId>

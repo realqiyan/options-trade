@@ -45,7 +45,6 @@ public class McpToolProcesser implements ToolProcesser {
         return content.contains("<use_mcp_tool>");
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public List<ToolCallRequest> parseToolRequest(String owner, String content) {
         // 尝试解析use_mcp_tool
@@ -69,7 +68,6 @@ public class McpToolProcesser implements ToolProcesser {
         return toolCalls;
     }
 
-    @SuppressWarnings({ "unchecked" })
     @Override
     public String callTool(ToolCallRequest toolCallRequest) {
         if (!(toolCallRequest instanceof McpToolCallRequest)) {

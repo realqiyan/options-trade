@@ -28,7 +28,6 @@ import me.dingtou.options.graph.fatory.GraphFactory;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.Message;
 import me.dingtou.options.model.OwnerAccount;
-import me.dingtou.options.service.AuthService;
 import me.dingtou.options.util.SpringAiUtils;
 import reactor.core.publisher.Flux;
 
@@ -49,9 +48,6 @@ public class GraphCopilotServiceImpl implements CopilotService {
     @Autowired
     @Qualifier("copilotGraphFactory")
     private GraphFactory copilotGraphFactory;
-
-    @Autowired
-    private AuthService authService;
 
     @Autowired
     private OwnerManager ownerManager;
@@ -95,8 +91,6 @@ public class GraphCopilotServiceImpl implements CopilotService {
 
         try {
 
-            // 编码owner
-            String ownerCode = authService.encodeOwner(account.getOwner());
             CompiledGraph copilotAgent = getCopilotGraph(account);
             RunnableConfig config = RunnableConfig.builder()
                     .threadId(sessionId)
@@ -105,8 +99,7 @@ public class GraphCopilotServiceImpl implements CopilotService {
                     .build();
 
             Flux<NodeOutput> stream;
-            Map<String, Object> inputs = Map.of(ContextKeys.INPUT, message.getContent(),
-                    ContextKeys.OWNER_CODE, ownerCode);
+            Map<String, Object> inputs = Map.of(ContextKeys.INPUT, message.getContent());
             if (isNew) {
                 stream = copilotAgent.stream(inputs, config);
             } else {

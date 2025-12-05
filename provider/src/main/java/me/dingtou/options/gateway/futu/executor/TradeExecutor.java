@@ -56,7 +56,6 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void onInitConnect(FTAPI_Conn client, long errCode, String desc) {
         log.warn("Qot onInitConnect: ret={} desc={} connID={}", errCode, desc, client.getConnectID());
@@ -90,7 +89,6 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
         this.future.complete(rsp);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void onReply_UnlockTrade(FTAPI_Conn client, int nSerialNo, TrdUnlockTrade.Response rsp) {
         if (rsp.getRetType() != Common.RetType.RetType_Succeed_VALUE) {

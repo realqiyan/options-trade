@@ -130,7 +130,6 @@ public class QueryExecutor extends FTAPI_Conn_Qot implements FTSPI_Qot, FTSPI_Co
      *
      * @return 最终结果
      */
-    @SuppressWarnings("unchecked")
     public static <R> R query(QueryFunctionCall<R> call) {
         QueryExecutor client = getInstance();
         if (!client.isConnected()) {
