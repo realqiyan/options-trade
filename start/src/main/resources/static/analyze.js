@@ -320,7 +320,7 @@ function loadOptionsChain(strikeTime){
               }
           }},
           {field: 'code', title: '期权代码', width: 165},
-          {field: 'strikePrice', title: '行权价', width: 80, templet: function(d) {
+          {field: 'strikePrice', title: '行权价', width: 100, sort: true, templet: function(d) {
               var currentPrice = parseFloat(d.data.realtimeData.underlyingPrice);
               var strikePrice = parseFloat(d.strikePrice);
               if (!isNaN(currentPrice) && !isNaN(strikePrice)) {
@@ -337,7 +337,7 @@ function loadOptionsChain(strikeTime){
           {field: 'curPrice', title: '当前价格', width: 110},
           {field: 'sellAnnualYield', title: '年化', width: 80},
           {title: '交易参考信息', width: 500, templet: '#TPL-table-tradeInfo'},
-          {field: 'group', title: '分组', width: 80},
+          {field: 'group', title: '分组', width: 85, sort: true},
           {field: 'options', title: '卖出', width: 80, templet: function(d) {
               if (d.options) {
                   var btnClass = 'layui-btn-primary';
