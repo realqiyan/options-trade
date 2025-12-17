@@ -116,7 +116,7 @@ public class OptionsChainGatewayImpl implements OptionsChainGateway {
         mergeRealtimeData(optionsChain, realtimeData, lastDone);
 
         // 过滤交易量0的期权
-        optionsChain.getOptionsList().removeIf(options -> options.getRealtimeData().getVolume() == 0);
+        // optionsChain.getOptionsList().removeIf(options -> options.getRealtimeData().getVolume() == 0);
 
         return optionsChain;
     }
