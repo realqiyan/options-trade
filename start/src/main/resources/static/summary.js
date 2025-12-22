@@ -92,8 +92,14 @@ function renderStockSummaryTable(stockSummaries){
                 {field: 'holdStockNum', title: '持股数量', width: 120, templet: function(d){
                     return d.holdStockNum || 0;
                 }},
-                {field: 'totalOptionsContracts', title: '期权合约数', width: 120, templet: function(d){
+                {field: 'totalOptionsContracts', title: '期权合约总数', width: 120, templet: function(d){
                     return d.totalOptionsContracts ? d.totalOptionsContracts.toString() : '0';
+                }},
+                {field: 'totalOptionsCallContracts', title: 'Call合约数', width: 100, templet: function(d){
+                    return d.totalOptionsCallContracts ? d.totalOptionsCallContracts.toString() : '0';
+                }},
+                {field: 'totalOptionsPutContracts', title: 'Put合约数', width: 100, templet: function(d){
+                    return d.totalOptionsPutContracts ? d.totalOptionsPutContracts.toString() : '0';
                 }},
                 {field: 'strategyCount', title: '策略数量', width: 100}
             ]],

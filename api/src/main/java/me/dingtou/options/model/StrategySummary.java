@@ -50,6 +50,16 @@ public class StrategySummary {
     private BigDecimal openOptionsQuantity;
 
     /**
+     * 策略未平仓的Call期权合约数
+     */
+    private BigDecimal openOptionsCallQuantity;
+
+    /**
+     * 策略未平仓的Put期权合约数
+     */
+    private BigDecimal openOptionsPutQuantity;
+
+    /**
      * 策略平均每股Delta
      */
     private BigDecimal avgDelta;

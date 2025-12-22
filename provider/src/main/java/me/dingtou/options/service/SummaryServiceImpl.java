@@ -421,6 +421,8 @@ public class SummaryServiceImpl implements SummaryService {
         BigDecimal optionsGamma = BigDecimal.ZERO;
         BigDecimal optionsTheta = BigDecimal.ZERO;
         BigDecimal openOptionsQuantity = BigDecimal.ZERO;
+        BigDecimal openOptionsCallQuantity = BigDecimal.ZERO;
+        BigDecimal openOptionsPutQuantity = BigDecimal.ZERO;
         for (OwnerOrder order : allOpenOptionsOrder) {
             OptionsRealtimeData realtimeData = securityDeltaMap.get(Security.of(order.getCode(), order.getMarket()));
             if (null == realtimeData) {
@@ -450,6 +452,12 @@ public class SummaryServiceImpl implements SummaryService {
             optionsGamma = optionsGamma.add(gamma);
             optionsTheta = optionsTheta.add(theta);
             openOptionsQuantity = openOptionsQuantity.add(quantity);
+            if (OwnerOrder.isCall(order)) {
+                openOptionsCallQuantity = openOptionsCallQuantity.add(quantity);
+            }
+            if (OwnerOrder.isPut(order)) {
+                openOptionsPutQuantity = openOptionsPutQuantity.add(quantity);
+            }
         }
         // 策略Gamma(未平仓期权Delta)
         summary.setOptionsDelta(optionsDelta);
@@ -459,6 +467,8 @@ public class SummaryServiceImpl implements SummaryService {
         summary.setOptionsTheta(optionsTheta);
         // 策略期权合约数
         summary.setOpenOptionsQuantity(openOptionsQuantity);
+        summary.setOpenOptionsCallQuantity(openOptionsCallQuantity);
+        summary.setOpenOptionsPutQuantity(openOptionsPutQuantity);
 
         // 股票Delta
         BigDecimal stockDelta = BigDecimal.valueOf(holdStockNum);
@@ -589,7 +599,7 @@ public class SummaryServiceImpl implements SummaryService {
         for (Map.Entry<String, List<StrategySummary>> entry : stockGroups.entrySet()) {
             String stockCode = entry.getKey();
             List<StrategySummary> stockStrategies = entry.getValue();
-            
+
             StockSummary stockSummary = new StockSummary();
             stockSummary.setStockCode(stockCode);
             stockSummary.setStrategyCount(stockStrategies.size());
@@ -604,6 +614,8 @@ public class SummaryServiceImpl implements SummaryService {
             BigDecimal totalHoldStockCost = BigDecimal.ZERO;
             BigDecimal totalAverageCost = BigDecimal.ZERO;
             BigDecimal totalOptionsContracts = BigDecimal.ZERO;
+            BigDecimal totalOptionsCallContracts = BigDecimal.ZERO;
+            BigDecimal totalOptionsPutContracts = BigDecimal.ZERO;
 
             for (StrategySummary strategySummary : stockStrategies) {
                 if (strategySummary.getAllOptionsIncome() != null) {
@@ -633,6 +645,14 @@ public class SummaryServiceImpl implements SummaryService {
                 if (strategySummary.getOpenOptionsQuantity() != null) {
                     totalOptionsContracts = totalOptionsContracts.add(strategySummary.getOpenOptionsQuantity());
                 }
+                if (strategySummary.getOpenOptionsCallQuantity() != null) {
+                    totalOptionsCallContracts = totalOptionsCallContracts
+                            .add(strategySummary.getOpenOptionsCallQuantity());
+                }
+                if (strategySummary.getOpenOptionsPutQuantity() != null) {
+                    totalOptionsPutContracts = totalOptionsPutContracts
+                            .add(strategySummary.getOpenOptionsPutQuantity());
+                }
             }
 
             stockSummary.setTotalOptionsIncome(totalOptionsIncome);
@@ -641,7 +661,8 @@ public class SummaryServiceImpl implements SummaryService {
             stockSummary.setTotalFee(totalFee);
             stockSummary.setHoldStockNum(totalHoldStockNum);
             stockSummary.setTotalOptionsContracts(totalOptionsContracts);
-           
+            stockSummary.setTotalOptionsCallContracts(totalOptionsCallContracts);
+            stockSummary.setTotalOptionsPutContracts(totalOptionsPutContracts);
 
             stockSummaries.add(stockSummary);
         }

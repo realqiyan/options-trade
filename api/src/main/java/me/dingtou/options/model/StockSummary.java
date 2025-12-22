@@ -51,4 +51,14 @@ public class StockSummary implements Serializable {
      * 总期权合约数（所有策略的未平仓期权合约数汇总）
      */
     private BigDecimal totalOptionsContracts;
+
+    /**
+     * 总Call期权合约数
+     */
+    private BigDecimal totalOptionsCallContracts;
+
+    /**
+     * 总Put期权合约数
+     */
+    private BigDecimal totalOptionsPutContracts;
 }
