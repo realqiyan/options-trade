@@ -22,6 +22,10 @@ public class BaseLongPortGateway {
                         AccountExtUtils.getLongportAccessToken(ownerAccount)).build();
             }
             if (refresh) {
+                if (null != quoteContext) {
+                    quoteContext.close();
+                    quoteContext = null;
+                }
                 quoteContext = QuoteContext.create(config).get();
             }
             if (null == quoteContext) {

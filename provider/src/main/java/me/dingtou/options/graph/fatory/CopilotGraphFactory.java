@@ -100,8 +100,8 @@ public class CopilotGraphFactory implements GraphFactory {
                 StateGraph graph = new StateGraph(keyStrategyFactory)
                                 .addNode("intent", AsyncNodeActionWithConfig.node_async(intentNode))
                                 .addNode("chat", AsyncNodeActionWithConfig.node_async(chatNode))
-                                .addNode("strategy", strategyAgent.asNode(true, false, "strategy"))
-                                .addNode("copilot", copilotAgent.asNode(true, false, "copilot"))
+                                .addNode("strategy", strategyAgent.asNode(true, false))
+                                .addNode("copilot", copilotAgent.asNode(true, false))
                                 .addNode("summary", AsyncNodeActionWithConfig.node_async(summaryNode));
 
                 // graph.addEdge(StateGraph.START, "strategy");
