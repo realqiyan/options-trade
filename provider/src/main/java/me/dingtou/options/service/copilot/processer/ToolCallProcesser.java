@@ -36,7 +36,7 @@ public class ToolCallProcesser implements ToolProcesser {
 
     private static final String USE_TOOL = "use_tool";
 
-    private static final Pattern USE_TOOL_PATTERN = Pattern.compile("<use_tool>([\\s\\S]*?)</use_tool>",
+    private static final Pattern USE_TOOL_PATTERN = Pattern.compile(".*<use_tool>([\\s\\S]*?)</use_tool>.*",
             Pattern.DOTALL);
 
     @Override
@@ -45,14 +45,6 @@ public class ToolCallProcesser implements ToolProcesser {
             return false;
         }
         return content.contains("<use_tool>");
-    }
-
-    public static void main(String[] args) {
-        String text = """
-                 </thinking> <use_tool> <use_tool> [{\"name\": \"common.summary\", \"arguments\": {}}] </use_tool> </use_tool>
-                """;
-        List<ToolCallRequest> toolCalls = new ToolCallProcesser().parseToolRequest("owner", text);
-        System.out.println(toolCalls);
     }
 
     @Override
