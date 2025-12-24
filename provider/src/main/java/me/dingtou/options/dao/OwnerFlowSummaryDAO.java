@@ -2,6 +2,7 @@ package me.dingtou.options.dao;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
@@ -11,7 +12,11 @@ import me.dingtou.options.model.OwnerFlowSummary;
 
 public interface OwnerFlowSummaryDAO extends BaseMapper<OwnerFlowSummary> {
 
-        @Select("SELECT * FROM owner_flow_summary WHERE owner = #{owner}")
+        @Select("<script>" +
+                "SELECT * FROM owner_flow_summary WHERE owner = #{owner}" +
+                "<if test='startDate != null'> AND clearing_date &gt;= #{startDate}</if>" +
+                "<if test='endDate != null'> AND clearing_date &lt;= #{endDate}</if>" +
+                "</script>")
         @Results({
                         @Result(property = "cashflowId", column = "cashflow_id"),
                         @Result(property = "clearingDate", column = "clearing_date"),
@@ -23,7 +28,7 @@ public interface OwnerFlowSummaryDAO extends BaseMapper<OwnerFlowSummary> {
                         @Result(property = "cashflowRemark", column = "cashflow_remark"),
                         @Result(property = "platform", column = "platform")
         })
-        List<OwnerFlowSummary> queryOwnerFlowSummary(String owner);
+        List<OwnerFlowSummary> queryOwnerFlowSummary(@Param("owner") String owner, @Param("startDate") String startDate, @Param("endDate") String endDate);
 
         @Select("SELECT * FROM owner_flow_summary WHERE owner = #{owner} AND platform = #{platform}")
         @Results({

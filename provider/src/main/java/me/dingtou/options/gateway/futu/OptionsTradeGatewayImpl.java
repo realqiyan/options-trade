@@ -1,6 +1,7 @@
 package me.dingtou.options.gateway.futu;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.Market;
 import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.gateway.futu.executor.OrderPushExecutor;
 import me.dingtou.options.gateway.futu.executor.TradeExecutor;
@@ -67,7 +68,7 @@ public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
     }
 
     @Override
-    public List<OwnerFlowSummary> getFlowSummary(OwnerAccount account, String clearingDate) {
-        return TradeExecutor.submit(new FuncGetFlowSummary(account, clearingDate));
+    public List<OwnerFlowSummary> getFlowSummary(OwnerAccount account, Market market, String clearingDate) {
+        return TradeExecutor.submit(new FuncGetFlowSummary(account, market, clearingDate));
     }
 }

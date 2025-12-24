@@ -1,6 +1,7 @@
 package me.dingtou.options.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.Market;
 import me.dingtou.options.manager.OwnerFlowSummaryManager;
 import me.dingtou.options.manager.OwnerManager;
 import me.dingtou.options.model.OwnerAccount;
@@ -39,7 +40,9 @@ public class FlowSummaryServiceImpl implements FlowSummaryService {
         for (int day = 1; day <= totalDays; day++) {
             LocalDate date = yearMonth.atDay(day);
             String clearingDate = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            int count = ownerFlowSummaryManager.syncFlowSummary(account, clearingDate);
+            int count = ownerFlowSummaryManager.syncFlowSummary(account, Market.HK, clearingDate);
+            totalCount += count;
+            count = ownerFlowSummaryManager.syncFlowSummary(account, Market.US, clearingDate);
             totalCount += count;
         }
 
@@ -47,8 +50,8 @@ public class FlowSummaryServiceImpl implements FlowSummaryService {
     }
 
     @Override
-    public List<OwnerFlowSummary> listFlowSummary(String owner) {
-        return ownerFlowSummaryManager.listFlowSummary(owner);
+    public List<OwnerFlowSummary> listFlowSummary(String owner, String startDate, String endDate) {
+        return ownerFlowSummaryManager.listFlowSummary(owner, startDate, endDate);
     }
 
     @Override

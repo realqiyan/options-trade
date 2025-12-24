@@ -1,6 +1,17 @@
 var table;
-var owner = 'default';
 var allFlowData = [];
+
+var flowTableCols = [[
+    {field: 'platform', title: '平台', width: 100},
+    {field: 'clearingDate', title: '清算日期', width: 120, templet: function(d) { return formatDate(d.clearingDate); }},
+    {field: 'settlementDate', title: '结算日期', width: 120, templet: function(d) { return formatDate(d.settlementDate); }},
+    {field: 'cashflowType', title: '流水类型', width: 180, sort: true},
+    {field: 'cashflowDirection', title: '方向', width: 80, templet: function(d) { return d.cashflowDirection == 'IN' ? '流入' : '流出'; }},
+    {field: 'cashflowAmount', title: '金额', width: 120, sort: true},
+    {field: 'currency', title: '币种', width: 80},
+    {field: 'cashflowRemark', title: '备注', width: 200},
+    {fixed: 'right', title: '操作', width: 120, toolbar: '#flowTableBar'}
+]];
 
 layui.use(['table', 'layer', 'form', 'laydate'], function(){
     table = layui.table;
@@ -18,38 +29,8 @@ layui.use(['table', 'layer', 'form', 'laydate'], function(){
     laydate.render({
         elem: '#dateRange',
         range: true,
-        format: 'yyyy-MM-dd'
-    });
-    
-    renderTable();
-});
-
-function renderTable() {
-    table.render({
-        elem: '#flowTable',
-        url: '/api/flow/list',
-        method: 'get',
-        where: {
-            owner: owner
-        },
-        page: true,
-        limit: 10,
-        limits: [10, 20, 50, 100],
-        cols: [[
-            {field: 'platform', title: '平台', width: 100},
-            {field: 'clearingDate', title: '清算日期', width: 120, templet: function(d) { return formatDate(d.clearingDate); }},
-            {field: 'settlementDate', title: '结算日期', width: 120, templet: function(d) { return formatDate(d.settlementDate); }},
-            {field: 'cashflowType', title: '流水类型', width: 180, sort: true},
-            {field: 'cashflowDirection', title: '方向', width: 80, templet: function(d) { return d.cashflowDirection == 1 ? '流入' : '流出'; }},
-            {field: 'cashflowAmount', title: '金额', width: 120, sort: true},
-            {field: 'currency', title: '币种', width: 80},
-            {field: 'cashflowRemark', title: '备注', width: 200},
-            {fixed: 'right', title: '操作', width: 120, toolbar: '#flowTableBar'}
-        ]],
-        id: 'flowTableReload',
-        done: function(res) {
-            allFlowData = res.data;
-        }
+        format: 'yyyy-MM-dd',
+        value: getMonthRange()
     });
     
     table.on('tool(flowTable)', function(obj) {
@@ -58,7 +39,8 @@ function renderTable() {
             showFlowDetail(data);
         }
     });
-}
+});
+
 
 function syncFlowSummary() {
     var clearingMonth = document.getElementById('clearingMonth').value;
@@ -79,7 +61,7 @@ function syncFlowSummary() {
             var result = JSON.parse(xhr.responseText);
             if(result.code == 0) {
                 layer.msg('同步成功，共同步 ' + result.data + ' 条流水', {icon: 1});
-                table.reload('flowTableReload');
+                table.reload('flowTable');
             } else {
                 layer.msg('同步失败: ' + result.message, {icon: 2});
             }
@@ -88,49 +70,57 @@ function syncFlowSummary() {
     xhr.send('clearingMonth=' + clearingMonth);
 }
 
-function searchFlowSummary() {
+function validateDateRange() {
     var dateRange = document.getElementById('dateRange').value;
-    
-    var url = '/api/flow/list';
-    var params = {
-        dateRange: dateRange
-    };
-    
-    $.get(url, params, function(res) {
-        if(res.code == 0) {
-            var filteredData = filterByDateRange(res.data, dateRange);
-            table.reload('flowTableReload', {
-                data: filteredData,
-                page: {
-                    curr: 1
-                }
-            });
-        } else {
-            layer.msg('查询失败: ' + res.message, {icon: 2});
+    if(!dateRange || dateRange.trim() === '') {
+        layer.msg('请选择日期范围', {icon: 2});
+        return false;
+    }
+    return dateRange;
+}
+
+function loadSummaryData(dateRange) {
+    $.get('/api/flow/list', {dateRange: dateRange}, function(result) {
+        if(result.code == 0) {
+            calculateAndDisplaySummary(result.data);
         }
     });
 }
 
-function filterByDateRange(data, dateRange) {
-    if(!dateRange || !data || data.length == 0) {
-        return data;
-    }
+function searchFlowSummary() {
+    var dateRange = validateDateRange();
+    if(!dateRange) return;
     
-    var dates = dateRange.split(' - ');
-    if(dates.length != 2) {
-        return data;
-    }
-    
-    var startDate = new Date(dates[0]);
-    var endDate = new Date(dates[1]);
-    endDate.setHours(23, 59, 59, 999);
-    
-    return data.filter(function(item) {
-        if(!item.clearingDate) {
-            return false;
+    table.render({
+        elem: '#flowTable',
+        url: '/api/flow/list',
+        method: 'get',
+        where: {
+            dateRange: dateRange
+        },
+        parseData: function(res) {
+            return {
+                "code": res.code,
+                "msg": res.message,
+                "count": res.data ? res.data.length : 0,
+                "data": res.data
+            };
+        },
+        page: true,
+        
+        limit: 500,
+        limits: [500, 1000],
+        cols: flowTableCols,
+        defaultToolbar: [
+          'filter', 'exports', 'print'
+        ],
+        id: 'flowTable',
+        done: function(res) {
+            allFlowData = res.data;
+            if(dateRange && dateRange.trim() !== '') {
+                loadSummaryData(dateRange);
+            }
         }
-        var clearingDate = new Date(item.clearingDate);
-        return clearingDate >= startDate && clearingDate <= endDate;
     });
 }
 
@@ -146,7 +136,7 @@ function showFlowDetail(data) {
                  '<tr><td>清算日期</td><td>' + formatDate(data.clearingDate) + '</td></tr>' +
                  '<tr><td>结算日期</td><td>' + formatDate(data.settlementDate) + '</td></tr>' +
                  '<tr><td>流水类型</td><td>' + data.cashflowType + '</td></tr>' +
-                 '<tr><td>方向</td><td>' + (data.cashflowDirection == 1 ? '流入' : '流出') + '</td></tr>' +
+                 '<tr><td>方向</td><td>' + (data.cashflowDirection == 'IN' ? '流入' : '流出') + '</td></tr>' +
                  '<tr><td>金额</td><td>' + data.cashflowAmount + '</td></tr>' +
                  '<tr><td>币种</td><td>' + data.currency + '</td></tr>' +
                  '<tr><td>备注</td><td>' + data.cashflowRemark + '</td></tr>' +
@@ -168,10 +158,71 @@ function formatDateTime(dateStr) {
            date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0') + ':' + date.getSeconds().toString().padStart(2, '0');
 }
 
-function init() {
-    document.getElementById('owner').value = owner;
+function formatAmount(amount) {
+    if(amount === null || amount === undefined) return '0.00';
+    return parseFloat(amount).toFixed(2);
 }
 
-window.onload = function() {
-    init();
-};
+function getMonthRange() {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = now.getMonth();
+    
+    var firstDay = new Date(year, month, 1);
+    var lastDay = new Date(year, month + 1, 0);
+    
+    var firstDayStr = firstDay.getFullYear() + '-' + (firstDay.getMonth() + 1).toString().padStart(2, '0') + '-' + firstDay.getDate().toString().padStart(2, '0');
+    var lastDayStr = lastDay.getFullYear() + '-' + (lastDay.getMonth() + 1).toString().padStart(2, '0') + '-' + lastDay.getDate().toString().padStart(2, '0');
+    
+    return firstDayStr + ' - ' + lastDayStr;
+}
+
+function calculateAndDisplaySummary(data) {
+    if(!data || data.length == 0) {
+        document.getElementById('summaryContainer').style.display = 'none';
+        return;
+    }
+    
+    var summaryMap = {};
+    
+    for(var i = 0; i < data.length; i++) {
+        var item = data[i];
+        var key = item.cashflowType + '_' + item.currency;
+        
+        if(!summaryMap[key]) {
+            summaryMap[key] = {
+                cashflowType: item.cashflowType,
+                currency: item.currency,
+                inflow: 0,
+                outflow: 0
+            };
+        }
+        
+        if(item.cashflowDirection == 'IN') {
+            summaryMap[key].inflow += item.cashflowAmount;
+        } else {
+            summaryMap[key].outflow += item.cashflowAmount;
+        }
+    }
+    
+    var tbody = document.getElementById('summaryTableBody');
+    tbody.innerHTML = '';
+    
+    var sortedKeys = Object.keys(summaryMap).sort();
+    
+    for(var i = 0; i < sortedKeys.length; i++) {
+        var key = sortedKeys[i];
+        var summary = summaryMap[key];
+        var netAmount = summary.inflow - summary.outflow;
+        
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + summary.cashflowType + '</td>' +
+                      '<td>' + formatAmount(summary.inflow) + '</td>' +
+                      '<td>' + formatAmount(summary.outflow) + '</td>' +
+                      '<td>' + formatAmount(netAmount) + '</td>' +
+                      '<td>' + summary.currency + '</td>';
+        tbody.appendChild(tr);
+    }
+    
+    document.getElementById('summaryContainer').style.display = 'block';
+}

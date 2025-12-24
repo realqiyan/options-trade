@@ -50,15 +50,26 @@ public class FlowSummaryController {
     /**
      * 查询资金流水列表
      *
-     * @param owner 所有者
+     * @param dateRange 日期范围(格式: yyyy-MM-dd - yyyy-MM-dd)
      * @return 资金流水列表
      */
     @GetMapping("/list")
-    public Map<String, Object> listFlowSummary() {
+    public Map<String, Object> listFlowSummary(@RequestParam(required = false) String dateRange) {
         Map<String, Object> result = new HashMap<>();
         try {
             String owner = SessionUtils.getCurrentOwner();
-            List<OwnerFlowSummary> flowSummaries = ownerFlowSummaryService.listFlowSummary(owner);
+            String startDate = null;
+            String endDate = null;
+            
+            if (dateRange != null && !dateRange.trim().isEmpty()) {
+                String[] dates = dateRange.split(" - ");
+                if (dates.length == 2) {
+                    startDate = dates[0].trim();
+                    endDate = dates[1].trim();
+                }
+            }
+            
+            List<OwnerFlowSummary> flowSummaries = ownerFlowSummaryService.listFlowSummary(owner, startDate, endDate);
             result.put("code", 0);
             result.put("message", "查询成功");
             result.put("data", flowSummaries);

@@ -1,5 +1,6 @@
 package me.dingtou.options.gateway;
 
+import me.dingtou.options.constant.Market;
 import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerFlowSummary;
@@ -89,9 +90,10 @@ public interface OptionsTradeGateway {
      * 获取资金流
      * 
      * @param account      用户账号
+     * @param market       交易市场
      * @param clearingDate clearingDate(yyyy-MM-dd)
      * @return 资金流列表
      */
-    List<OwnerFlowSummary> getFlowSummary(OwnerAccount account, String clearingDate);
+    List<OwnerFlowSummary> getFlowSummary(OwnerAccount account, Market market, String clearingDate);
 
 }

@@ -54,7 +54,7 @@
             <br/>
             
             <div class="layui-card layui-panel">
-                <div class="layui-card-header">资金流水列表</div>
+                <div class="layui-card-header">资金流水汇总</div>
                 <div class="layui-card-body">
                     <div class="layui-form-item">
                         <div class="layui-inline">
@@ -67,6 +67,36 @@
                         <button type="button" class="layui-btn layui-bg-blue" onClick="searchFlowSummary()">查询</button>
                     </div>
                     
+                    <div id="summaryContainer" style="display: none;">
+                        <table class="layui-table" lay-skin="line">
+                            <colgroup>
+                                <col width="200">
+                                <col width="150">
+                                <col width="150">
+                                <col width="150">
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>流水类型</th>
+                                    <th>流入金额</th>
+                                    <th>流出金额</th>
+                                    <th>净额</th>
+                                    <th>币种</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summaryTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <br/>
+            
+            <div class="layui-card layui-panel">
+                <div class="layui-card-header">资金流水列表</div>
+                <div class="layui-card-body">
                     <table class="layui-hide" id="flowTable" lay-filter="flowTable"></table>
                 </div>
             </div>

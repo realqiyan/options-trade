@@ -24,10 +24,12 @@ public interface FlowSummaryService {
     /**
      * 查询资金流水列表
      *
-     * @param owner 所有者
+     * @param owner     所有者
+     * @param startDate 开始日期(yyyy-MM-dd)
+     * @param endDate   结束日期(yyyy-MM-dd)
      * @return 资金流水列表
      */
-    List<OwnerFlowSummary> listFlowSummary(String owner);
+    List<OwnerFlowSummary> listFlowSummary(String owner, String startDate, String endDate);
 
     /**
      * 根据平台查询资金流水列表

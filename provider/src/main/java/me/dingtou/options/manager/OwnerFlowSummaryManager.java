@@ -1,6 +1,7 @@
 package me.dingtou.options.manager;
 
 import lombok.extern.slf4j.Slf4j;
+import me.dingtou.options.constant.Market;
 import me.dingtou.options.dao.OwnerFlowSummaryDAO;
 import me.dingtou.options.gateway.OptionsTradeGateway;
 import me.dingtou.options.model.OwnerAccount;
@@ -29,15 +30,15 @@ public class OwnerFlowSummaryManager {
      * 同步指定日期的资金流水
      *
      * @param account      账号
-     * @param platform     平台
+     * @param market       交易市场
      * @param clearingDate 清算日期(yyyy-MM-dd)
      * @return 同步的流水数量
      */
-    public int syncFlowSummary(OwnerAccount account, String clearingDate) {
+    public int syncFlowSummary(OwnerAccount account, Market market, String clearingDate) {
 
         try {
             // 从外部系统获取资金流水
-            List<OwnerFlowSummary> flowSummaries = optionsTradeGateway.getFlowSummary(account, clearingDate);
+            List<OwnerFlowSummary> flowSummaries = optionsTradeGateway.getFlowSummary(account, market, clearingDate);
             if (flowSummaries == null || flowSummaries.isEmpty()) {
                 log.info("没有获取到资金流水数据，owner: {}, platform: {}, clearingDate: {}",
                         account.getOwner(),
@@ -82,11 +83,13 @@ public class OwnerFlowSummaryManager {
     /**
      * 查询资金流水列表
      *
-     * @param owner 所有者
+     * @param owner     所有者
+     * @param startDate 开始日期(yyyy-MM-dd)
+     * @param endDate   结束日期(yyyy-MM-dd)
      * @return 资金流水列表
      */
-    public List<OwnerFlowSummary> listFlowSummary(String owner) {
-        return ownerFlowSummaryDAO.queryOwnerFlowSummary(owner);
+    public List<OwnerFlowSummary> listFlowSummary(String owner, String startDate, String endDate) {
+        return ownerFlowSummaryDAO.queryOwnerFlowSummary(owner, startDate, endDate);
     }
 
     /**
