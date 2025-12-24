@@ -27,11 +27,11 @@ public class OwnerFlowSummary implements Serializable {
 
     private Date settlementDate;
 
-    private Integer currency;
+    private String currency;
 
     private String cashflowType;
 
-    private Integer cashflowDirection;
+    private String cashflowDirection;
 
     private BigDecimal cashflowAmount;
 

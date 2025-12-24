@@ -53,4 +53,18 @@ public interface OwnerFlowSummaryDAO extends BaseMapper<OwnerFlowSummary> {
         })
         OwnerFlowSummary queryByCashflowId(String owner, Long cashflowId);
 
+        @Select("SELECT * FROM owner_flow_summary WHERE owner = #{owner} AND clearing_date = #{clearingDate}")
+        @Results({
+                        @Result(property = "cashflowId", column = "cashflow_id"),
+                        @Result(property = "clearingDate", column = "clearing_date"),
+                        @Result(property = "settlementDate", column = "settlement_date"),
+                        @Result(property = "currency", column = "currency"),
+                        @Result(property = "cashflowType", column = "cashflow_type"),
+                        @Result(property = "cashflowDirection", column = "cashflow_direction"),
+                        @Result(property = "cashflowAmount", column = "cashflow_amount"),
+                        @Result(property = "cashflowRemark", column = "cashflow_remark"),
+                        @Result(property = "platform", column = "platform")
+        })
+        List<OwnerFlowSummary> getFlowSummary(String owner, String clearingDate);
+
 }

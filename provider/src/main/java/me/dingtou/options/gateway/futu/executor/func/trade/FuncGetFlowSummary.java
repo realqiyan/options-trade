@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.Market;
 import me.dingtou.options.gateway.futu.executor.TradeExecutor;
 import me.dingtou.options.gateway.futu.executor.func.TradeFunctionCall;
+import me.dingtou.options.gateway.futu.util.RateLimiter;
 import me.dingtou.options.model.OwnerAccount;
 import me.dingtou.options.model.OwnerFlowSummary;
 
@@ -19,6 +20,8 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class FuncGetFlowSummary implements TradeFunctionCall<List<OwnerFlowSummary>> {
+
+    private static final RateLimiter RATE_LIMITER = new RateLimiter("GetFlowSummary", 30000, 20);
 
     private final OwnerAccount account;
     private final String clearingDate;
@@ -35,6 +38,8 @@ public class FuncGetFlowSummary implements TradeFunctionCall<List<OwnerFlowSumma
 
     @Override
     public void call(TradeExecutor<List<OwnerFlowSummary>> client) {
+        RATE_LIMITER.acquire();
+
         int trdMarket;
         if (account.getMarket().equals(Market.HK.getCode())) {
             trdMarket = TrdCommon.TrdMarket.TrdMarket_HK_VALUE;
@@ -77,13 +82,13 @@ public class FuncGetFlowSummary implements TradeFunctionCall<List<OwnerFlowSumma
             summary.setPlatform(account.getPlatform());
             summary.setCashflowId(cashFlow.getCashFlowID());
             summary.setClearingDate(parseDate(cashFlow.getClearingDate()));
-            if (cashFlow.hasSettlementDate()) {
-                summary.setSettlementDate(parseDate(cashFlow.getSettlementDate()));
-            }
-            summary.setCurrency(cashFlow.getCurrency());
-            summary.setCashflowType(cashFlow.getCashFlowType());
-            summary.setCashflowDirection(cashFlow.getCashFlowDirection());
-            summary.setCashflowAmount(BigDecimal.valueOf(cashFlow.getCashFlowAmount()));
+        if (cashFlow.hasSettlementDate()) {
+            summary.setSettlementDate(parseDate(cashFlow.getSettlementDate()));
+        }
+        summary.setCurrency(String.valueOf(cashFlow.getCurrency()));
+        summary.setCashflowType(cashFlow.getCashFlowType());
+        summary.setCashflowDirection(String.valueOf(cashFlow.getCashFlowDirection()));
+        summary.setCashflowAmount(BigDecimal.valueOf(cashFlow.getCashFlowAmount()));
             summary.setCashflowRemark(cashFlow.getCashFlowRemark());
             summary.setCreateTime(new Date());
             summary.setUpdateTime(new Date());

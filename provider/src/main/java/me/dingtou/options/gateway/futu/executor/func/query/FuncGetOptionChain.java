@@ -2,9 +2,7 @@ package me.dingtou.options.gateway.futu.executor.func.query;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 import com.alibaba.fastjson2.JSON;
 import com.futu.openapi.pb.QotCommon;
@@ -16,20 +14,14 @@ import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.constant.OptionsFilterType;
 import me.dingtou.options.gateway.futu.executor.QueryExecutor;
 import me.dingtou.options.gateway.futu.executor.func.QueryFunctionCall;
+import me.dingtou.options.gateway.futu.util.RateLimiter;
 import me.dingtou.options.model.Options;
 import me.dingtou.options.model.OptionsTuple;
 
-/**
- * 获取期权链
- *
- * @author qiyan
- */
 @Slf4j
 public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
 
-    private static final long TIME_WINDOW_MS = 30000; // 30秒时间窗口
-    private static final int MAX_REQUESTS_PER_WINDOW = 9; // 每个时间窗口最多9次请求
-    private static final Queue<Long> requestTimestamps = new LinkedList<>();
+    private static final RateLimiter RATE_LIMITER = new RateLimiter("GetOptionChain", 30000, 9);
 
     private final int market;
     private final String code;
@@ -49,52 +41,7 @@ public class FuncGetOptionChain implements QueryFunctionCall<List<Options>> {
 
     @Override
     public int call(QueryExecutor client) {
-        // 实现滑动窗口频率限制，30秒内最多10次请求
-        synchronized (FuncGetOptionChain.class) {
-            long currentTime = System.currentTimeMillis();
-
-            // 清理时间窗口外的旧请求记录
-            while (!requestTimestamps.isEmpty() &&
-                    currentTime - requestTimestamps.peek() > TIME_WINDOW_MS) {
-                requestTimestamps.poll();
-            }
-
-            // 记录当前窗口内的请求数量
-            int currentRequests = requestTimestamps.size();
-            log.info("GetOptionChain requests in window: {}, max allowed: {}", currentRequests,
-                    MAX_REQUESTS_PER_WINDOW);
-
-            // 检查是否超过请求限制
-            if (currentRequests >= MAX_REQUESTS_PER_WINDOW) {
-                // 计算需要等待的时间
-                long oldestRequestTime = requestTimestamps.peek();
-                long sleepTime = TIME_WINDOW_MS - (currentTime - oldestRequestTime) + 1; // 加1毫秒确保窗口移动
-
-                if (sleepTime > 0) {
-                    log.info(
-                            "GetOptionChain rate limit enforced for market: {}, code: {}, strikeTime: {}. Current requests: {}, waiting for {} ms",
-                            market, code, strikeTime, currentRequests, sleepTime);
-                    try {
-                        Thread.sleep(sleepTime);
-                        // 等待后需要更新当前时间并重新清理过期记录
-                        currentTime = System.currentTimeMillis();
-                        while (!requestTimestamps.isEmpty() &&
-                                currentTime - requestTimestamps.peek() > TIME_WINDOW_MS) {
-                            requestTimestamps.poll();
-                        }
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        log.error("Interrupted while waiting for rate limit for market: {}, code: {}, strikeTime: {}",
-                                market, code, strikeTime, e);
-                        throw new RuntimeException("Interrupted while waiting for rate limit", e);
-                    }
-                }
-            }
-
-            // 记录当前请求时间
-            requestTimestamps.offer(currentTime);
-            log.info("GetOptionChain new window count: {}", requestTimestamps.size());
-        }
+        RATE_LIMITER.acquire();
 
         QotCommon.Security sec = QotCommon.Security.newBuilder()
                 .setMarket(market)
