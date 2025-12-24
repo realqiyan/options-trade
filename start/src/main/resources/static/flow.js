@@ -3,14 +3,13 @@ var allFlowData = [];
 
 var flowTableCols = [[
     {field: 'platform', title: '平台', width: 100},
-    {field: 'clearingDate', title: '清算日期', width: 120, templet: function(d) { return formatDate(d.clearingDate); }},
-    {field: 'settlementDate', title: '结算日期', width: 120, templet: function(d) { return formatDate(d.settlementDate); }},
+    {field: 'clearingDate', title: '清算日期', width: 120, sort: true, templet: function(d) { return formatDate(d.clearingDate); }},
+    {field: 'settlementDate', title: '结算日期', width: 120, sort: true, templet: function(d) { return formatDate(d.settlementDate); }},
     {field: 'cashflowType', title: '流水类型', width: 180, sort: true},
-    {field: 'cashflowDirection', title: '方向', width: 80, templet: function(d) { return d.cashflowDirection == 'IN' ? '流入' : '流出'; }},
+    {field: 'cashflowDirection', title: '方向', width: 80, sort: true, templet: function(d) { return d.cashflowDirection == '1' ? '流入' : '流出'; }},
     {field: 'cashflowAmount', title: '金额', width: 120, sort: true},
-    {field: 'currency', title: '币种', width: 80},
-    {field: 'cashflowRemark', title: '备注', width: 200},
-    {fixed: 'right', title: '操作', width: 120, toolbar: '#flowTableBar'}
+    {field: 'currency', title: '币种', width: 80, sort: true, templet: function(d) { return formatCurrency(d.currency); }},
+    {field: 'cashflowRemark', title: '备注', width: 600, sort: true},
 ]];
 
 layui.use(['table', 'layer', 'form', 'laydate'], function(){
@@ -27,18 +26,19 @@ layui.use(['table', 'layer', 'form', 'laydate'], function(){
     });
     
     laydate.render({
+        elem: '#clearingYear',
+        type: 'year',
+        format: 'yyyy',
+        value: new Date()
+    });
+    
+    laydate.render({
         elem: '#dateRange',
         range: true,
         format: 'yyyy-MM-dd',
         value: getMonthRange()
     });
     
-    table.on('tool(flowTable)', function(obj) {
-        var data = obj.data;
-        if(obj.event === 'detail') {
-            showFlowDetail(data);
-        }
-    });
 });
 
 
@@ -68,6 +68,37 @@ function syncFlowSummary() {
         }
     };
     xhr.send('clearingMonth=' + clearingMonth);
+}
+
+function syncFlowSummaryByYear() {
+    var clearingYear = document.getElementById('clearingYear').value;
+    
+    if(!clearingYear) {
+        layer.msg('请选择清算年份', {icon: 2});
+        return;
+    }
+    
+    layer.confirm('确定要同步 ' + clearingYear + ' 年的所有资金流水吗？此操作可能需要较长时间。', {icon: 3, title: '确认'}, function(index) {
+        layer.close(index);
+        layer.load(2);
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/flow/syncByYear', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == 4) {
+                layer.closeAll('loading');
+                var result = JSON.parse(xhr.responseText);
+                if(result.code == 0) {
+                    layer.msg('同步成功，共同步 ' + result.data + ' 条流水', {icon: 1});
+                    table.reload('flowTable');
+                } else {
+                    layer.msg('同步失败: ' + result.message, {icon: 2});
+                }
+            }
+        };
+        xhr.send('year=' + clearingYear);
+    });
 }
 
 function validateDateRange() {
@@ -107,10 +138,10 @@ function searchFlowSummary() {
             };
         },
         page: true,
-        
         limit: 500,
         limits: [500, 1000],
         cols: flowTableCols,
+        toolbar: true,
         defaultToolbar: [
           'filter', 'exports', 'print'
         ],
@@ -121,27 +152,6 @@ function searchFlowSummary() {
                 loadSummaryData(dateRange);
             }
         }
-    });
-}
-
-function showFlowDetail(data) {
-    layer.open({
-        type: 1,
-        title: '资金流水详情',
-        area: ['600px', '400px'],
-        content: '<div style="padding: 20px;">' +
-                 '<table class="layui-table">' +
-                 '<tr><td>ID</td><td>' + data.id + '</td></tr>' +
-                 '<tr><td>平台</td><td>' + data.platform + '</td></tr>' +
-                 '<tr><td>清算日期</td><td>' + formatDate(data.clearingDate) + '</td></tr>' +
-                 '<tr><td>结算日期</td><td>' + formatDate(data.settlementDate) + '</td></tr>' +
-                 '<tr><td>流水类型</td><td>' + data.cashflowType + '</td></tr>' +
-                 '<tr><td>方向</td><td>' + (data.cashflowDirection == 'IN' ? '流入' : '流出') + '</td></tr>' +
-                 '<tr><td>金额</td><td>' + data.cashflowAmount + '</td></tr>' +
-                 '<tr><td>币种</td><td>' + data.currency + '</td></tr>' +
-                 '<tr><td>备注</td><td>' + data.cashflowRemark + '</td></tr>' +
-                 '<tr><td>创建时间</td><td>' + formatDateTime(data.createTime) + '</td></tr>' +
-                 '</table></div>'
     });
 }
 
@@ -161,6 +171,13 @@ function formatDateTime(dateStr) {
 function formatAmount(amount) {
     if(amount === null || amount === undefined) return '0.00';
     return parseFloat(amount).toFixed(2);
+}
+
+function formatCurrency(currency) {
+    if(!currency) return '';
+    if(currency == '1') return '港币';
+    if(currency == '2') return '美元';
+    return currency;
 }
 
 function getMonthRange() {
@@ -198,7 +215,7 @@ function calculateAndDisplaySummary(data) {
             };
         }
         
-        if(item.cashflowDirection == 'IN') {
+        if(item.cashflowDirection == '1') {
             summaryMap[key].inflow += item.cashflowAmount;
         } else {
             summaryMap[key].outflow += item.cashflowAmount;
@@ -220,7 +237,7 @@ function calculateAndDisplaySummary(data) {
                       '<td>' + formatAmount(summary.inflow) + '</td>' +
                       '<td>' + formatAmount(summary.outflow) + '</td>' +
                       '<td>' + formatAmount(netAmount) + '</td>' +
-                      '<td>' + summary.currency + '</td>';
+                      '<td>' + formatCurrency(summary.currency) + '</td>';
         tbody.appendChild(tr);
     }
     

@@ -22,6 +22,15 @@ public interface FlowSummaryService {
     int syncFlowSummary(String owner, String clearingMonth);
 
     /**
+     * 同步指定年份的资金流水
+     *
+     * @param owner 所有者
+     * @param year  年份(yyyy)
+     * @return 同步的流水数量
+     */
+    int syncFlowSummaryByYear(String owner, String year);
+
+    /**
      * 查询资金流水列表
      *
      * @param owner     所有者

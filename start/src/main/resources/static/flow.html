@@ -25,29 +25,26 @@
     </div>
     <div class="layui-body" style="left: 0;">
         <div style="padding: 15px;">
-            <input type="hidden" id="owner"/>
-            
-            <div class="layui-form">
-                <div class="layui-form-item">
-                    <div class="layui-inline">
-                        <label class="layui-form-label">交易验证码</label>
-                        <div class="layui-input-inline">
-                            <input type="text" id="totp" name="totp" placeholder="请输入OTP验证码" autocomplete="off" class="layui-input">
-                        </div>
-                    </div>
-                </div>
-            </div>
+
             
             <div class="layui-card layui-panel">
                 <div class="layui-card-header">同步资金流水</div>
                 <div class="layui-card-body">
                     <div class="layui-form-item">
+                        <label class="layui-form-label">清算年份</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="clearingYear" name="clearingYear" placeholder="请选择年份" autocomplete="off" class="layui-input" lay-verify="required">
+                        </div>
+                        <button type="button" class="layui-btn layui-bg-orange" onClick="syncFlowSummaryByYear()">同步</button>
+                    </div>
+                    <div class="layui-form-item">
                         <label class="layui-form-label">清算月份</label>
                         <div class="layui-input-inline">
                             <input type="text" id="clearingMonth" name="clearingMonth" placeholder="请选择月份" autocomplete="off" class="layui-input" lay-verify="required">
                         </div>
-                        <button type="button" class="layui-btn layui-bg-blue" onClick="syncFlowSummary()">同步流水</button>
+                        <button type="button" class="layui-btn layui-bg-blue" onClick="syncFlowSummary()">同步</button>
                     </div>
+                    
                 </div>
             </div>
             
@@ -107,8 +104,5 @@
 <script src="layui/layui.js"></script>
 <script src="common.js"></script>
 <script src="flow.js"></script>
-<script type="text/html" id="flowTableBar">
-    <a class="layui-btn layui-btn-xs" lay-event="detail">详情</a>
-</script>
 </body>
 </html>

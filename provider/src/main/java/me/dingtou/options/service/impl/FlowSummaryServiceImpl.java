@@ -40,12 +40,28 @@ public class FlowSummaryServiceImpl implements FlowSummaryService {
         for (int day = 1; day <= totalDays; day++) {
             LocalDate date = yearMonth.atDay(day);
             String clearingDate = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                log.warn("sleep error, owner={}, clearingDate={}", owner, clearingDate);
+            }
+            log.info("sync flow summary, owner={}, clearingDate={}", owner, clearingDate);
             int count = ownerFlowSummaryManager.syncFlowSummary(account, Market.HK, clearingDate);
             totalCount += count;
             count = ownerFlowSummaryManager.syncFlowSummary(account, Market.US, clearingDate);
             totalCount += count;
         }
 
+        return totalCount;
+    }
+
+    @Override
+    public int syncFlowSummaryByYear(String owner, String year) {
+        int totalCount = 0;
+        for (int month = 1; month <= 12; month++) {
+            String clearingMonth = year + "-" + String.format("%02d", month);
+            totalCount += syncFlowSummary(owner, clearingMonth);
+        }
         return totalCount;
     }
 

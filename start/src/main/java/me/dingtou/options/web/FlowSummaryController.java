@@ -47,6 +47,22 @@ public class FlowSummaryController {
         return result;
     }
 
+    @PostMapping("/syncByYear")
+    public Map<String, Object> syncFlowSummaryByYear(@RequestParam String year) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            String owner = SessionUtils.getCurrentOwner();
+            int count = ownerFlowSummaryService.syncFlowSummaryByYear(owner, year);
+            result.put("code", 0);
+            result.put("message", "同步成功");
+            result.put("data", count);
+        } catch (Exception e) {
+            result.put("code", 1);
+            result.put("message", "同步失败: " + e.getMessage());
+        }
+        return result;
+    }
+
     /**
      * 查询资金流水列表
      *
