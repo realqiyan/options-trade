@@ -7,6 +7,7 @@ import me.dingtou.options.gateway.futu.executor.TradeExecutor;
 import me.dingtou.options.gateway.futu.executor.func.trade.*;
 import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.model.OwnerFlowSummary;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerPosition;
 
@@ -45,7 +46,6 @@ public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
         return TradeExecutor.submit(new FuncGetOrderFee(account, orders));
     }
 
-
     @Override
     public List<OwnerOrder> pullOrder(Owner owner) {
         return TradeExecutor.submit(new FuncGetHistoryOrder(owner));
@@ -64,5 +64,10 @@ public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
     @Override
     public List<OwnerPosition> getPosition(OwnerAccount account) {
         return TradeExecutor.submit(new FuncGetPosition(account));
+    }
+
+    @Override
+    public List<OwnerFlowSummary> getFlowSummary(OwnerAccount account, String clearingDate) {
+        return TradeExecutor.submit(new FuncGetFlowSummary(account, clearingDate));
     }
 }

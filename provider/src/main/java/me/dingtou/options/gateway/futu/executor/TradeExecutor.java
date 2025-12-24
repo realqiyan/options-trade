@@ -132,4 +132,9 @@ public class TradeExecutor<R> extends FTAPI_Conn_Trd implements FTSPI_Trd, FTSPI
     public void onReply_GetPositionList(FTAPI_Conn client, int nSerialNo, TrdGetPositionList.Response rsp) {
         handleQotOnReply(rsp);
     }
+
+    @Override
+    public void onReply_GetFlowSummary(FTAPI_Conn client, int nSerialNo, TrdFlowSummary.Response rsp) {
+        handleQotOnReply(rsp);
+    }
 }

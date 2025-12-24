@@ -2,6 +2,7 @@ package me.dingtou.options.gateway;
 
 import me.dingtou.options.model.Owner;
 import me.dingtou.options.model.OwnerAccount;
+import me.dingtou.options.model.OwnerFlowSummary;
 import me.dingtou.options.model.OwnerOrder;
 import me.dingtou.options.model.OwnerPosition;
 
@@ -34,7 +35,6 @@ public interface OptionsTradeGateway {
      * @return 订单
      */
     OwnerOrder cancel(OwnerAccount account, OwnerOrder order);
-
 
     /**
      * 删除订单
@@ -71,6 +71,7 @@ public interface OptionsTradeGateway {
 
     /**
      * 获取持仓
+     * 
      * @param owner 用户账号
      * @return 持仓列表
      */
@@ -84,7 +85,13 @@ public interface OptionsTradeGateway {
      */
     void subscribeOrderPush(List<Owner> allOwner, Function<OwnerOrder, Void> callback);
 
-
-
+    /**
+     * 获取资金流
+     * 
+     * @param account      用户账号
+     * @param clearingDate clearingDate(yyyy-MM-dd)
+     * @return 资金流列表
+     */
+    List<OwnerFlowSummary> getFlowSummary(OwnerAccount account, String clearingDate);
 
 }

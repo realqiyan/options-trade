@@ -1,0 +1,20 @@
+CREATE TABLE `owner_flow_summary` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `owner` varchar(50) NOT NULL COMMENT '所有者',
+  `platform` varchar(20) NOT NULL COMMENT '平台',
+  `cashflow_id` bigint(20) NOT NULL COMMENT '现金流ID',
+  `clearing_date` date NOT NULL COMMENT '清算日期',
+  `settlement_date` date DEFAULT NULL COMMENT '交收日期',
+  `currency` varchar(10) NOT NULL COMMENT '币种',
+  `cashflow_type` varchar(50) NOT NULL COMMENT '现金流类型',
+  `cashflow_direction` varchar(20) NOT NULL COMMENT '现金流方向',
+  `cashflow_amount` decimal(20, 4) NOT NULL COMMENT '金额（正数表示流入，负数表示流出）',
+  `cashflow_remark` varchar(1000) DEFAULT NULL COMMENT '备注',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_owner_cashflow_id` (`owner`, `cashflow_id`),
+  KEY `idx_owner` (`owner`),
+  KEY `idx_platform` (`platform`),
+  KEY `idx_clearing_date` (`clearing_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='账户现金流水表';
