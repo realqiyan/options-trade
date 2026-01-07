@@ -85,7 +85,7 @@ public class OwnerManager {
 
         // 过滤出到期未行权的订单
         List<OwnerOrder> unexercisedOrders = ownerOrderList.stream()
-            .filter(order -> !order.getCode().equals(order.getUnderlyingCode())) // 是期权订单
+            .filter(order -> OwnerOrder.isOptionsOrder(order)) // 是期权订单
             .filter(order -> !OwnerOrder.isClose(order)) // 未平仓
             .filter(order -> OwnerOrder.dte(order) > 0) // 已到期
             .toList();
