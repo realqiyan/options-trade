@@ -20,10 +20,7 @@ public class CoveredCallStrategy extends BaseTradeStrategy {
             StrategySummary summary) {
         optionsChain.getOptionsList().forEach(options -> {
             OptionsRealtimeData realtimeData = options.getRealtimeData();
-            if (null != realtimeData) {
-                realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
-                realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
-            } else {
+            if (null == realtimeData) {
                 options.setRealtimeData(new OptionsRealtimeData());
             }
 
@@ -37,17 +34,6 @@ public class CoveredCallStrategy extends BaseTradeStrategy {
 
     @Override
     StringBuilder processPrompt(OwnerAccount account, OptionsChain optionsChain, StrategySummary summary) {
-        // 反转delta和theta
-        optionsChain.getOptionsList().forEach(options -> {
-            OptionsRealtimeData realtimeData = options.getRealtimeData();
-            if (null != realtimeData) {
-                realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
-                realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
-            } else {
-                options.setRealtimeData(new OptionsRealtimeData());
-            }
-        });
-
         // 准备模板数据
         Map<String, Object> data = new HashMap<>();
         data.put("securityQuote", optionsChain.getStockIndicator().getSecurityQuote());

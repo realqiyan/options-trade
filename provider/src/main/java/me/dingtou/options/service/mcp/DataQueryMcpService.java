@@ -97,15 +97,6 @@ public class DataQueryMcpService extends BaseMcpService {
             if (null == optionsChain || null == optionsChain.getOptionsList()) {
                 return "期权链无结果";
             }
-            if ("SELL".equalsIgnoreCase(tradeType)) {
-                optionsChain.getOptionsList().forEach(options -> {
-                    OptionsRealtimeData realtimeData = options.getRealtimeData();
-                    if (null != realtimeData) {
-                        realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
-                        realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
-                    }
-                });
-            }
 
             // 准备模板数据
             Map<String, Object> data = new HashMap<>();

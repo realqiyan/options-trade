@@ -33,6 +33,14 @@ public class BaseLongPortGateway {
             }
         } catch (Throwable e) {
             log.error("init longport_java error. message:{}", e.getMessage());
+            if (null != quoteContext) {
+                try {
+                    quoteContext.close();
+                    quoteContext = null;
+                } catch (Exception ex) {
+                    log.error("QuoteContext close error. message:{}", ex.getMessage());
+                }
+            }
             ExceptionUtils.throwRuntimeException(e);
         }
         return quoteContext;

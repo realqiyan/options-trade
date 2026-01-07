@@ -38,10 +38,7 @@ public class WheelStrategy extends BaseTradeStrategy {
 
         optionsChain.getOptionsList().forEach(options -> {
             OptionsRealtimeData realtimeData = options.getRealtimeData();
-            if (null != realtimeData) {
-                realtimeData.setDelta(realtimeData.getDelta().multiply(BigDecimal.valueOf(-1)));
-                realtimeData.setTheta(realtimeData.getTheta().multiply(BigDecimal.valueOf(-1)));
-            } else {
+            if (null == realtimeData) {
                 options.setRealtimeData(new OptionsRealtimeData());
             }
 
