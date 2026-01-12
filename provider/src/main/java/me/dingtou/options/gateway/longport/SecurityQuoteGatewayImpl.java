@@ -106,7 +106,7 @@ public class SecurityQuoteGatewayImpl extends BaseLongPortGateway implements Sec
                 return;
             }
             Set<String> securitySet = security.stream().map(Security::toString).collect(Collectors.toSet());
-            QuoteContext ctx = getQuoteContext(ownerAccount, false);
+            QuoteContext ctx = getSubscribeQuoteContext(ownerAccount);
             CompletableFuture<Subscription[]> historySubscriptions = ctx.getSubscrptions();
             Subscription[] subscriptions = historySubscriptions.get();
             for (Subscription subscription : subscriptions) {

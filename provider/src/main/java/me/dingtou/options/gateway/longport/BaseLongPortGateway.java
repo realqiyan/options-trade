@@ -2,6 +2,7 @@ package me.dingtou.options.gateway.longport;
 
 import com.longport.Config;
 import com.longport.ConfigBuilder;
+import com.longport.OpenApiException;
 import com.longport.quote.QuoteContext;
 import lombok.extern.slf4j.Slf4j;
 import me.dingtou.options.model.OwnerAccount;
@@ -11,28 +12,47 @@ import me.dingtou.options.util.ExceptionUtils;
 @Slf4j
 public class BaseLongPortGateway {
 
-    private Config config;
-    private QuoteContext quoteContext;
+    private static QuoteContext quoteContext;
+    private static QuoteContext subscribeQuoteContext;
 
-    protected QuoteContext getQuoteContext(OwnerAccount ownerAccount, boolean refresh) {
+    protected synchronized static QuoteContext getSubscribeQuoteContext(OwnerAccount ownerAccount) {
         try {
-            if (null == config) {
-                config = new ConfigBuilder(AccountExtUtils.getLongportAppKey(ownerAccount),
-                        AccountExtUtils.getLongportAppSecret(ownerAccount),
-                        AccountExtUtils.getLongportAccessToken(ownerAccount)).build();
+            if (null != subscribeQuoteContext) {
+                return subscribeQuoteContext;
             }
-            if (refresh) {
-                if (null != quoteContext) {
-                    quoteContext.close();
-                    quoteContext = null;
-                }
-                quoteContext = QuoteContext.create(config).get();
+            Config config = buildConfig(ownerAccount);
+            subscribeQuoteContext = QuoteContext.create(config).get();
+        } catch (Throwable e) {
+            log.error("getSubscribeQuoteContext init longport_java error. message:{}", e.getMessage());
+            ExceptionUtils.throwRuntimeException(e);
+        }
+        return subscribeQuoteContext;
+    }
+
+    private static Config buildConfig(OwnerAccount ownerAccount) throws OpenApiException {
+        String appKey = AccountExtUtils.getLongportAppKey(ownerAccount);
+        String appSecret = AccountExtUtils.getLongportAppSecret(ownerAccount);
+        String accessToken = AccountExtUtils.getLongportAccessToken(ownerAccount);
+        Config config = new ConfigBuilder(appKey, appSecret, accessToken).build();
+        return config;
+    }
+
+    protected synchronized static QuoteContext getQuoteContext(OwnerAccount ownerAccount, boolean refresh) {
+        try {
+            if (null != quoteContext && !refresh) {
+                return quoteContext;
             }
+            if (null != quoteContext) {
+                quoteContext.close();
+                quoteContext = null;
+            }
+            Config config = buildConfig(ownerAccount);
+            quoteContext = QuoteContext.create(config).get();
             if (null == quoteContext) {
                 quoteContext = QuoteContext.create(config).get();
             }
         } catch (Throwable e) {
-            log.error("init longport_java error. message:{}", e.getMessage());
+            log.error("getQuoteContext init longport_java error. message:{}", e.getMessage());
             if (null != quoteContext) {
                 try {
                     quoteContext.close();
