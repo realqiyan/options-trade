@@ -61,6 +61,7 @@ public class Langchain4jUtils {
                 .logRequests(false)
                 .logResponses(false)
                 .timeout(Duration.ofSeconds(300))
+                .maxTokens(10000)
                 .build();
     }
 
@@ -89,6 +90,7 @@ public class Langchain4jUtils {
                 .logRequests(false)
                 .logResponses(false)
                 .timeout(Duration.ofSeconds(300))
+                .maxTokens(10000)
                 .build();
     }
 
