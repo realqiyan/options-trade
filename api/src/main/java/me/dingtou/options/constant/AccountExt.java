@@ -17,7 +17,8 @@ public enum AccountExt {
     AI_API_MODEL("ai_api_model", "AI模型名称", "text", 201),
     AI_API_KEY("ai_api_key", "AI接口Key", "text", 202),
     AI_API_TEMPERATURE("ai_api_temperature", "AI温度参数", "text", 220),
-    AI_MCP_SETTINGS("ai_mcp_settings", "MCP服务器配置", "textarea", 221),
+    AI_API_MAX_TOKENS("ai_api_max_tokens", "AI最大Token数", "text", 221),
+    AI_MCP_SETTINGS("ai_mcp_settings", "MCP服务器配置", "textarea", 222),
 
     AI_SUMMARY_BASE_URL("ai_summary_base_url", "AI BaseUrl（总结）", "text", 230),
     AI_SUMMARY_API_MODEL("ai_summary_api_model", "AI模型名称（总结）", "text", 231),

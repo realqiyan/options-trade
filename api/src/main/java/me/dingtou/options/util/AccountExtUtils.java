@@ -103,6 +103,24 @@ public class AccountExtUtils {
     }
 
     /**
+     * 获取AI最大Token数
+     *
+     * @param account 账户对象
+     * @return AI最大Token数
+     */
+    public static Integer getAiApiMaxTokens(OwnerAccount account) {
+        if (account == null) {
+            return 10000;
+        }
+        String maxTokens = account.getExtValue(AccountExt.AI_API_MAX_TOKENS, "10000");
+        try {
+            return Integer.parseInt(maxTokens);
+        } catch (NumberFormatException e) {
+            return 10000;
+        }
+    }
+
+    /**
      * 获取AI接口Base URL
      *
      * @param account 账户对象

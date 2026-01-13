@@ -50,6 +50,7 @@ public class Langchain4jUtils {
         String temperatureVal = isSummary ? AccountExtUtils.getSummaryApiTemperature(account)
                 : AccountExtUtils.getAiApiTemperature(account);
         Double temperature = Double.parseDouble(temperatureVal);
+        Integer maxTokens = AccountExtUtils.getAiApiMaxTokens(account);
 
         return OpenAiChatModel.builder()
                 .baseUrl(baseUrl)
@@ -61,7 +62,7 @@ public class Langchain4jUtils {
                 .logRequests(false)
                 .logResponses(false)
                 .timeout(Duration.ofSeconds(300))
-                .maxTokens(10000)
+                .maxTokens(maxTokens)
                 .build();
     }
 
@@ -79,6 +80,7 @@ public class Langchain4jUtils {
         String temperatureVal = isSummary ? AccountExtUtils.getSummaryApiTemperature(account)
                 : AccountExtUtils.getAiApiTemperature(account);
         Double temperature = Double.parseDouble(temperatureVal);
+        Integer maxTokens = AccountExtUtils.getAiApiMaxTokens(account);
 
         return OpenAiStreamingChatModel.builder()
                 .baseUrl(baseUrl)
@@ -90,7 +92,7 @@ public class Langchain4jUtils {
                 .logRequests(false)
                 .logResponses(false)
                 .timeout(Duration.ofSeconds(300))
-                .maxTokens(10000)
+                .maxTokens(maxTokens)
                 .build();
     }
 
