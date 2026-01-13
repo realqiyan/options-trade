@@ -35,6 +35,8 @@ public class SpringAiUtils {
                                 : AccountExtUtils.getAiApiTemperature(account);
                 Double temperature = Double.parseDouble(temperatureVal);
 
+                Integer maxTokens = AccountExtUtils.getAiApiMaxTokens(account);
+
                 if (baseUrl.contains("api.deepseek.com")) {
                         DeepSeekApi deepSeekApi = DeepSeekApi.builder()
                                         .apiKey(apiKey)
@@ -45,6 +47,7 @@ public class SpringAiUtils {
                                         .temperature(temperature)
                                         .logprobs(true)
                                         .internalToolExecutionEnabled(true)
+                                        .maxTokens(maxTokens)
                                         .build();
 
                         return DeepSeekChatModel.builder()
@@ -64,6 +67,7 @@ public class SpringAiUtils {
                                 .httpHeaders(Map.of("Content-Type", "application/json;charset=UTF-8"))
                                 .streamUsage(true)
                                 .internalToolExecutionEnabled(true)
+                                .maxTokens(maxTokens)
                                 .build();
 
                 return OpenAiChatModel.builder()

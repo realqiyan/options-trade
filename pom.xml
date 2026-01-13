@@ -37,9 +37,9 @@
         <jobrunr.version>7.4.1</jobrunr.version>
         <commons-text.version>1.10.0</commons-text.version>
         <reactor-core.version>3.7.7</reactor-core.version>
-        <langchain4j.version>1.8.0</langchain4j.version>
+        <langchain4j.version>1.10.0</langchain4j.version>
         <spring-ai.version>1.1.0</spring-ai.version>
-        <spring-ai-alibaba.version>1.1.0.0-RC1</spring-ai-alibaba.version>
+        <spring-ai-alibaba.version>1.1.0.0</spring-ai-alibaba.version>
         <jackson.version>2.19.2</jackson.version>
     </properties>
 
