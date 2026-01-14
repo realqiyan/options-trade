@@ -54,7 +54,8 @@ public class DataQueryMcpService extends BaseMcpService {
     @Tool(description = "查询期权到期日列表。根据股票代码和市场代码查询该股票对应的所有期权到期日。返回结果包括股票代码、市场代码和到期日列表。")
     @PreAuthorize("isAuthenticated()")
     public String queryOptionsExpDate(@ToolParam(required = true, description = "股票代码，如AAPL、TSLA等") String code,
-            @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market) {
+            @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market,
+            @ToolParam(required = false, description = "数据格式：json、markdown") String format) {
         String encodeOwner = getOwner();
         if (null == encodeOwner) {
             return "用户编码信息不正确或已经过期";
@@ -65,6 +66,9 @@ public class DataQueryMcpService extends BaseMcpService {
             Map<String, Object> data = new HashMap<>();
             data.put("security", Security.of(code, market));
             data.put("expDates", expDates);
+            if (isJson(format)) {
+                return jsonString(data);
+            }
             // 渲染模板
             return TemplateRenderer.render("mcp_options_exp_date.ftl", data);
         } catch (Exception e) {
@@ -79,7 +83,8 @@ public class DataQueryMcpService extends BaseMcpService {
             @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market,
             @ToolParam(required = true, description = "期权到期日，格式为YYYY-MM-DD，如2025-06-27。请先使用queryOptionsExpDate工具获取有效日期") String strikeDate,
             @ToolParam(required = true, description = "期权类型过滤：ALL(全部期权)、PUT(看跌期权)或CALL(看涨期权)") String filterType,
-            @ToolParam(required = true, description = "交易类型：SELL(卖出)或BUY(买入)。") String tradeType) {
+            @ToolParam(required = true, description = "交易类型：SELL(卖出)或BUY(买入)。") String tradeType,
+            @ToolParam(required = false, description = "数据格式：json、markdown") String format) {
         String owner = getOwner();
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
@@ -101,6 +106,9 @@ public class DataQueryMcpService extends BaseMcpService {
             data.put("security", optionsChain.getSecurity());
             data.put("strikeTime", optionsChain.getStrikeTime());
             data.put("optionsList", optionsChain.getOptionsList());
+            if (isJson(format)) {
+                return jsonString(data);
+            }
 
             // 渲染模板
             return TemplateRenderer.render("mcp_options_chain.ftl", data);
@@ -115,7 +123,8 @@ public class DataQueryMcpService extends BaseMcpService {
     public String queryStockCandlesticks(@ToolParam(required = true, description = "股票代码，如AAPL、TSLA等") String code,
             @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market,
             @ToolParam(required = true, description = "K线类型：1000表示日K线，2000表示周K线") Integer periodCode,
-            @ToolParam(required = true, description = "K线数量，最多可查询90条数据") Integer count) {
+            @ToolParam(required = true, description = "K线数量，最多可查询90条数据") Integer count,
+            @ToolParam(required = false, description = "数据格式：json、markdown") String format) {
         String owner = getOwner();
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
@@ -130,6 +139,9 @@ public class DataQueryMcpService extends BaseMcpService {
             data.put("periodName", period.getName());
             data.put("count", count);
             data.put("candlesticks", candlesticks.getCandlesticks());
+            if (isJson(format)) {
+                return jsonString(data);
+            }
             // 渲染模板
             return TemplateRenderer.render("mcp_stock_candlesticks.ftl", data);
         } catch (Exception e) {
@@ -143,7 +155,8 @@ public class DataQueryMcpService extends BaseMcpService {
     public String queryStockIndicator(@ToolParam(required = true, description = "股票代码，如AAPL、TSLA等") String code,
             @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market,
             @ToolParam(required = true, description = "指标周期：1000表示日线指标，2000表示周线指标") Integer periodCode,
-            @ToolParam(required = true, description = "指标数量，最多可查询90条数据") Integer count) {
+            @ToolParam(required = true, description = "指标数量，最多可查询90条数据") Integer count,
+            @ToolParam(required = false, description = "数据格式：json、markdown") String format) {
         String owner = getOwner();
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
@@ -161,6 +174,9 @@ public class DataQueryMcpService extends BaseMcpService {
             data.put("count", count);
             data.put("stockIndicator", stockIndicator);
             data.put("stockIndicatorDataFrame", stockIndicatorDataFrame);
+            if (isJson(format)) {
+                return jsonString(data);
+            }
             // 渲染模板
             return TemplateRenderer.render("mcp_stock_indicator.ftl", data);
         } catch (Exception e) {
@@ -171,7 +187,7 @@ public class DataQueryMcpService extends BaseMcpService {
 
     @Tool(description = "查询VIX恐慌指数指标。返回结果包括当前VIX值、日期、日变动百分比，以及标普500指数的当前值和日期，帮助投资者评估市场情绪和风险水平。")
     @PreAuthorize("isAuthenticated()")
-    public String queryVixIndicator() {
+    public String queryVixIndicator(@ToolParam(required = false, description = "数据格式：json、markdown") String format) {
         VixIndicator vixIndicator = indicatorManager.queryCurrentVix();
         if (null == vixIndicator) {
             log.error("查询VIX恐慌指数指标失败");
@@ -179,6 +195,9 @@ public class DataQueryMcpService extends BaseMcpService {
         }
         Map<String, Object> data = new HashMap<>();
         data.put("vixIndicator", vixIndicator);
+        if (isJson(format)) {
+            return jsonString(data);
+        }
         // 渲染模板
         String result = TemplateRenderer.render("mcp_vix_indicator.ftl", data);
         return result;
@@ -187,7 +206,8 @@ public class DataQueryMcpService extends BaseMcpService {
     @Tool(description = "查询期权买卖盘报价数据。根据期权代码和市场代码查询当前期权的买卖盘详细信息，包括不同价位的买卖挂单数量和价格。")
     @PreAuthorize("isAuthenticated()")
     public String queryOrderBook(@ToolParam(required = true, description = "期权代码，如AAPL250620C150等") String code,
-            @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market) {
+            @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market,
+            @ToolParam(required = false, description = "数据格式：json、markdown") String format) {
 
         String owner = getOwner();
         if (null == owner) {
@@ -199,6 +219,9 @@ public class DataQueryMcpService extends BaseMcpService {
             Map<String, Object> data = new HashMap<>();
             data.put("security", Security.of(code, market));
             data.put("orderBook", orderBook);
+            if (isJson(format)) {
+                return jsonString(data);
+            }
             // 渲染模板
             return TemplateRenderer.render("mcp_order_book.ftl", data);
         } catch (Exception e) {
@@ -210,7 +233,8 @@ public class DataQueryMcpService extends BaseMcpService {
     @Tool(description = "查询股票实时价格。根据股票代码和市场代码查询股票的当前最新价格。")
     @PreAuthorize("isAuthenticated()")
     public String queryStockRealPrice(@ToolParam(required = true, description = "股票代码，如AAPL、TSLA等") String code,
-            @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market) {
+            @ToolParam(required = true, description = "市场代码：1表示港股，11表示美股") Integer market,
+            @ToolParam(required = false, description = "数据格式：json、markdown") String format) {
         String owner = getOwner();
         if (null == owner) {
             return "用户编码信息不正确或已经过期";
@@ -227,7 +251,8 @@ public class DataQueryMcpService extends BaseMcpService {
     @Tool(description = "查询股票财报日历信息。根据股票代码查询该公司过去和未来的财报发布计划，包括财报日期、预期每股收益、实际每股收益(如已发布)等关键财务数据。")
     @PreAuthorize("isAuthenticated()")
     public String queryEarningsCalendar(
-            @ToolParam(required = true, description = "股票代码，如AAPL、TSLA、BABA等，不区分大小写") String code) {
+            @ToolParam(required = true, description = "股票代码，如AAPL、TSLA、BABA等，不区分大小写") String code,
+            @ToolParam(required = false, description = "数据格式：json、markdown") String format) {
         if (StringUtils.isBlank(code)) {
             return "股票代码不能为空";
         }
@@ -239,6 +264,9 @@ public class DataQueryMcpService extends BaseMcpService {
             Map<String, Object> data = new HashMap<>();
             data.put("symbol", code);
             data.put("earningsCalendars", earningsCalendars);
+            if (isJson(format)) {
+                return jsonString(data);
+            }
             // 渲染模板
             return TemplateRenderer.render("mcp_earnings_calendar.ftl", data);
         } catch (Exception e) {

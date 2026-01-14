@@ -4,6 +4,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.alibaba.fastjson.JSON;
+
 /**
  * BaseMcpService
  */
@@ -25,6 +27,26 @@ public abstract class BaseMcpService {
             return null;
         }
         return authentication.getName();
+    }
+
+    /**
+     * 是否是json格式
+     * 
+     * @param format 数据格式：json、markdown
+     * @return 是否是json格式
+     */
+    public boolean isJson(String format) {
+        return null == format || "json".equalsIgnoreCase(format);
+    }
+
+    /**
+     * 转JSON格式
+     * 
+     * @param data 原始数据
+     * @return JSON String
+     */
+    public String jsonString(Object data) {
+        return JSON.toJSONString(data);
     }
 
 }

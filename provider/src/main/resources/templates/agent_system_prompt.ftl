@@ -60,6 +60,7 @@
 以上是使用`common.summary`工具的例子。
 
 工具结果会通过`<tool_result></tool_result>`XML标签返回。
+注意：工具优先使用`markdown`格式。
 
 ## 每轮对话步骤
 
