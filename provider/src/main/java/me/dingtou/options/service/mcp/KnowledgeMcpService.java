@@ -22,7 +22,7 @@ public class KnowledgeMcpService extends BaseMcpService {
 
     @Tool(description = "查询期权交易策略规则。策略规则包含具体的交易规则、delta要求、行权日期选择要求、技术指标要求等详细信息。")
     @PreAuthorize("isAuthenticated()")
-    public String queryStrategyRule(
+    public Object queryStrategyRule(
             @ToolParam(required = false, description = "期权策略编码，可选值：cc_strategy(备兑看涨策略)、wheel_strategy(车轮策略)、default(默认卖期权策略)，不指定时返回所有策略。") String strategyCode,
             @ToolParam(required = false, description = "数据格式：json、markdown") String format) {
         String owner = getOwner();
@@ -38,7 +38,7 @@ public class KnowledgeMcpService extends BaseMcpService {
         Map<String, Object> data = new HashMap<>();
         data.put("strategies", knowledges);
         if (isJson(format)) {
-            return jsonString(data);
+            return json(data);
         }
         // 渲染模板
         return TemplateRenderer.render("mcp_strategy_rule.ftl", data);

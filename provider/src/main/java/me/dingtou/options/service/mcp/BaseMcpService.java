@@ -45,7 +45,7 @@ public abstract class BaseMcpService {
      * @param data 原始数据
      * @return JSON String
      */
-    public String jsonString(Object data) {
+    public Object json(Object data) {
         return JSON.toJSONString(data);
     }
 
