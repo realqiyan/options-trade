@@ -413,14 +413,30 @@ function updateFilterCounts(data) {
     }
 }
 
-function showChart(label, data, type) {
+function showChart(label, data) {
     const ctx = document.getElementById('monthlyIncomeChart').getContext('2d');
     
-    // 计算最大值和最小值，用于设置Y轴范围
-    const maxValue = Math.max(...data) * 1.1; // 增加10%的空间
-    const minValue = Math.min(0, Math.min(...data) * 1.1); // 如果有负值，则扩展负方向
+    let labels = label.slice(-13);
+    let chartData = data.slice(-13);
     
-    // 生成渐变背景
+    if (chartData.length > 0) {
+        const totalIncome = chartData.reduce((sum, value) => sum + value, 0);
+        const avgIncome = totalIncome / chartData.length;
+        
+        const summaryEl = document.getElementById('monthlyIncomeSummary');
+        if (summaryEl) {
+            summaryEl.textContent = `总计:$${totalIncome.toFixed(2)} 平均:$${avgIncome.toFixed(2)}`;
+        }
+    } else {
+        const summaryEl = document.getElementById('monthlyIncomeSummary');
+        if (summaryEl) {
+            summaryEl.textContent = '暂无数据';
+        }
+    }
+    
+    const maxValue = chartData.length > 0 ? Math.max(...chartData) * 1.1 : 100;
+    const minValue = chartData.length > 0 ? Math.min(0, Math.min(...chartData) * 1.1) : -100;
+    
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, 'rgba(30, 159, 255, 0.5)');
     gradient.addColorStop(1, 'rgba(30, 159, 255, 0)');
@@ -428,10 +444,10 @@ function showChart(label, data, type) {
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: label,
+            labels: labels,
             datasets: [{
                 label: '月度收益',
-                data: data,
+                data: chartData,
                 fill: true,
                 backgroundColor: gradient,
                 borderColor: '#1E9FFF',
@@ -439,7 +455,7 @@ function showChart(label, data, type) {
                 pointBackgroundColor: '#1E9FFF',
                 pointBorderColor: '#fff',
                 pointRadius: 5,
-                tension: 0.3 // 使线条更平滑
+                tension: 0.3
             }]
         },
         options: {
@@ -545,8 +561,7 @@ function reloadData(){
         const labels = Object.keys(monthlyIncome);
         const data = Object.values(monthlyIncome);
 
-        // 调用 showChart 函数绘制折线图
-        showChart(labels, data, 'line');
+        showChart(labels, data);
         render();
         
         // 完成加载
