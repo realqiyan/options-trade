@@ -223,6 +223,29 @@ function loadOptionsExpDate(code, market, urlStrikeTime){
 
             // 渲染当前证券策略列表
             var currentStrategyList = filterStrategyByCode(currentOwnerData.strategyList,currentCode);
+            
+            // 统计每个策略的未平仓期权合约持仓数
+            var strategyOrderCount = {};
+            for(var i=0; i<currentOwnerData.securityList.length; i++) {
+                var security = currentOwnerData.securityList[i];
+                if(security.unexercisedOrders) {
+                    for(var j=0; j<security.unexercisedOrders.length; j++) {
+                        var order = security.unexercisedOrders[j];
+                        var strategyId = order.strategyId;
+                        if(strategyId && order.quantity) {
+                            strategyOrderCount[strategyId] = (strategyOrderCount[strategyId] || 0) + order.quantity;
+                        }
+                    }
+                }
+            }
+            
+            // 将统计结果添加到策略列表中
+            for(var i=0; i<currentStrategyList.length; i++) {
+                var strategy = currentStrategyList[i];
+                var orderCount = strategyOrderCount[strategy.strategyId] || 0;
+                strategy.orderCount = orderCount;
+            }
+            
             laytpl(currentStrategy.innerHTML).render({list:currentStrategyList,strategyId:currentStrategyId}, function(html){
                 document.getElementById('strategyIdZone').innerHTML = html;
                 var form = layui.form;

@@ -365,8 +365,10 @@
         } else {
             var selected = "";
         }
+        var orderCount = item.orderCount || 0;
+        var displayText = orderCount > 0 ? item.strategyName + '（开仓' + orderCount + '份）' : item.strategyName;
     }}
-    <option value="{{= item.strategyId }}" {{= selected}}>{{= item.strategyName }}</option>
+    <option value="{{= item.strategyId }}" {{= selected}}>{{= displayText }}</option>
     {{#  }); }}
     </select>
 </script>

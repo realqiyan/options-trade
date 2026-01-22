@@ -85,15 +85,16 @@ public class OwnerManager {
 
         // 过滤出到期未行权的订单
         List<OwnerOrder> unexercisedOrders = ownerOrderList.stream()
-            .filter(order -> OwnerOrder.isOptionsOrder(order)) // 是期权订单
-            .filter(order -> OwnerOrder.isOpen(order)) // 未平仓
-            .filter(order -> OwnerOrder.dte(order) > 0) // 已到期
-            .toList();
+                .filter(order -> OwnerOrder.isOptionsOrder(order)) // 是期权订单
+                .filter(order -> OwnerOrder.isOpen(order)) // 未平仓
+                .filter(order -> OwnerOrder.isTraded(order))
+                .filter(order -> OwnerOrder.dte(order) > 0) // 已到期
+                .toList();
 
         // 为未行权订单添加策略名称
         Map<String, OwnerStrategy> strategyMap = strategyList.stream()
-            .collect(Collectors.toMap(OwnerStrategy::getStrategyId, s -> s, (a, b) -> a));
-        
+                .collect(Collectors.toMap(OwnerStrategy::getStrategyId, s -> s, (a, b) -> a));
+
         for (OwnerOrder order : unexercisedOrders) {
             OwnerStrategy strategy = strategyMap.get(order.getStrategyId());
             if (strategy != null) {
@@ -106,7 +107,7 @@ public class OwnerManager {
 
         // 按标的股票代码分组
         Map<String, List<OwnerOrder>> groupedOrders = unexercisedOrders.stream()
-            .collect(Collectors.groupingBy(OwnerOrder::getUnderlyingCode));
+                .collect(Collectors.groupingBy(OwnerOrder::getUnderlyingCode));
 
         // 将分组后的订单设置到对应的OwnerSecurity中
         List<OwnerSecurity> securityList = ownerObj.getSecurityList();
@@ -223,7 +224,7 @@ public class OwnerManager {
      */
     public List<OwnerOrder> queryStrategyOrder(OwnerStrategy strategy) {
         List<OwnerOrder> ownerOrders = ownerOrderDAO.queryOwnerStrategyOrder(strategy.getOwner(),
-            strategy.getStrategyId());
+                strategy.getStrategyId());
         // 初始化订单扩展字段
         for (OwnerOrder ownerOrder : ownerOrders) {
             if (null == ownerOrder.getExt()) {
@@ -249,7 +250,7 @@ public class OwnerManager {
 
         // 计算提交的交易单是否已经平仓用
         Map<String, List<OwnerOrder>> codeOrdersMap = ownerOrders.stream()
-            .collect(Collectors.groupingBy(OwnerOrder::logicCode));
+                .collect(Collectors.groupingBy(OwnerOrder::logicCode));
         Map<String, Boolean> orderClose = new HashMap<>();
         for (Map.Entry<String, List<OwnerOrder>> codeOrders : codeOrdersMap.entrySet()) {
             String code = codeOrders.getKey();
@@ -260,9 +261,9 @@ public class OwnerManager {
                 continue;
             }
             BigDecimal totalQuantity = successOrders.stream()
-                .map(order -> new BigDecimal(order.getQuantity())
-                    .multiply(new BigDecimal(TradeSide.of(order.getSide()).getSign())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .map(order -> new BigDecimal(order.getQuantity())
+                            .multiply(new BigDecimal(TradeSide.of(order.getSide()).getSign())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
             if (BigDecimal.ZERO.equals(totalQuantity)) {
                 orderClose.put(code, true);
             }
@@ -341,7 +342,7 @@ public class OwnerManager {
         for (OwnerOrder ownerOrder : ownerOrders) {
             Security security = Security.of(ownerOrder.getCode(), ownerOrder.getMarket());
             Optional<OptionsRealtimeData> any = optionsBasicInfo.stream()
-                .filter(options -> options.getSecurity().equals(security)).findAny();
+                    .filter(options -> options.getSecurity().equals(security)).findAny();
             if (any.isEmpty()) {
                 continue;
             }
@@ -349,13 +350,12 @@ public class OwnerManager {
             ownerOrder.getExt().put(OrderExt.CUR_PRICE.getKey(), curPrice.toPlainString());
             if (OwnerOrder.isSell(ownerOrder)) {
                 BigDecimal profitRatio = ownerOrder.getPrice().subtract(curPrice)
-                    .divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
+                        .divide(ownerOrder.getPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
                 profitRatio = NumberUtils.scale(profitRatio);
                 ownerOrder.getExt().put(OrderExt.PROFIT_RATIO.getKey(), profitRatio.toPlainString());
             }
         }
     }
-
 
     /**
      * 查询用户的期权标的
@@ -406,7 +406,6 @@ public class OwnerManager {
         updateWrapper.set(OwnerSecurity::getStatus, status);
         return ownerSecurityDAO.update(null, updateWrapper) > 0;
     }
-
 
     /**
      * 保存用户的策略
