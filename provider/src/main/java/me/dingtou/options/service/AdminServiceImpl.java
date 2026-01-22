@@ -116,6 +116,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public boolean deleteStrategy(Long id) {
+        return ownerManager.deleteStrategy(id);
+    }
+
+    @Override
     public PageResult<OwnerAccount> listAccounts(String owner, Integer page, Integer size) {
         // 设置默认值
         if (page == null || page < 1) {

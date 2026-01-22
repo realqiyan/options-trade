@@ -118,7 +118,23 @@ public class WebAdminController {
         return WebResult.success(result);
     }
 
-     /**
+    /**
+     * 物理删除策略
+     *
+     * @param id 策略ID
+     * @return 是否删除成功
+     */
+    @RequestMapping(value = "/strategy/delete", method = RequestMethod.POST)
+    public WebResult<Boolean> deleteStrategy(@RequestParam("id") Long id) {
+        try {
+            boolean result = adminService.deleteStrategy(id);
+            return WebResult.success(result);
+        } catch (Exception e) {
+            return WebResult.failure(e.getMessage());
+        }
+    }
+
+    /**
      * 获取所有用户期权策略
      *
      * @return 用户期权策略列表

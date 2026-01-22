@@ -257,7 +257,7 @@ public class SummaryServiceImpl implements SummaryService {
     @Override
     public StrategySummary queryStrategySummary(String owner, String strategyId) {
         OwnerStrategy ownerStrategy = ownerStrategyDAO.queryStrategyByStrategyId(strategyId);
-        if (ownerStrategy.getStatus() == 0) {
+        if (ownerStrategy == null) {
             return null;
         }
         return calculateStrategySummary(owner, ownerStrategy);

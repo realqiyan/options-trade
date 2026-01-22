@@ -453,6 +453,16 @@ public class OwnerManager {
     }
 
     /**
+     * 物理删除策略
+     *
+     * @param id 策略ID
+     * @return 是否删除成功
+     */
+    public boolean deleteStrategy(Long id) {
+        return ownerStrategyDAO.deleteById(id) > 0;
+    }
+
+    /**
      * 查询用户的账户
      *
      * @param owner 用户

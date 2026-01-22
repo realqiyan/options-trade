@@ -66,7 +66,15 @@ public interface AdminService {
      * @return 是否更新成功
      */
     boolean updateStrategyStatus(Long id, Integer status);
-    
+
+    /**
+     * 物理删除策略
+     *
+     * @param id 策略ID
+     * @return 是否删除成功
+     */
+    boolean deleteStrategy(Long id);
+
     /**
      * 获取所有用户账户
      *
