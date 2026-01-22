@@ -847,7 +847,7 @@ function reloadData(){
                         laytpl(unexercisedOrders.innerHTML).render(orders, function(html){
                             layer.open({
                                 type: 1,
-                                title: '未行权期权信息',
+                                title: '未到期期权信息',
                                 shade: 0,
                                 offset: [e.pageY + 10, e.pageX + 10],
                                 area: ['400px'],

@@ -90,6 +90,20 @@ public class OwnerManager {
             .filter(order -> OwnerOrder.dte(order) > 0) // 已到期
             .toList();
 
+        // 为未行权订单添加策略名称
+        Map<String, OwnerStrategy> strategyMap = strategyList.stream()
+            .collect(Collectors.toMap(OwnerStrategy::getStrategyId, s -> s, (a, b) -> a));
+        
+        for (OwnerOrder order : unexercisedOrders) {
+            OwnerStrategy strategy = strategyMap.get(order.getStrategyId());
+            if (strategy != null) {
+                if (order.getExt() == null) {
+                    order.setExt(new HashMap<>());
+                }
+                order.getExt().put(OrderExt.STRATEGY_NAME.getKey(), strategy.getStrategyName());
+            }
+        }
+
         // 按标的股票代码分组
         Map<String, List<OwnerOrder>> groupedOrders = unexercisedOrders.stream()
             .collect(Collectors.groupingBy(OwnerOrder::getUnderlyingCode));
