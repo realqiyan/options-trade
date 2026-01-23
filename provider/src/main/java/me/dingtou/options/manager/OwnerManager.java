@@ -88,7 +88,6 @@ public class OwnerManager {
                 .filter(order -> OwnerOrder.isOptionsOrder(order)) // 是期权订单
                 .filter(order -> OwnerOrder.isOpen(order)) // 未平仓
                 .filter(order -> OwnerOrder.isTraded(order))
-                .filter(order -> OwnerOrder.dte(order) > 0) // 已到期
                 .toList();
 
         // 为未行权订单添加策略名称
