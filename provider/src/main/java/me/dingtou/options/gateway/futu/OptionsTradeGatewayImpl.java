@@ -24,6 +24,8 @@ import java.util.function.Function;
 @Slf4j
 public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
 
+    private static final int BATCH_SIZE = 300;
+
     @Override
     public OwnerOrder trade(OwnerAccount account, OwnerOrder order) {
         return TradeExecutor.submit(new FuncPlaceOrder(account, order));
@@ -44,7 +46,18 @@ public class OptionsTradeGatewayImpl implements OptionsTradeGateway {
         if (null == orders || orders.isEmpty()) {
             return Collections.emptyMap();
         }
-        return TradeExecutor.submit(new FuncGetOrderFee(account, orders));
+        
+        Map<String, BigDecimal> result = new java.util.HashMap<>();
+        int totalOrders = orders.size();
+        
+        for (int i = 0; i < totalOrders; i += BATCH_SIZE) {
+            int end = Math.min(i + BATCH_SIZE, totalOrders);
+            List<OwnerOrder> batch = orders.subList(i, end);
+            Map<String, BigDecimal> batchResult = TradeExecutor.submit(new FuncGetOrderFee(account, batch));
+            result.putAll(batchResult);
+        }
+        
+        return result;
     }
 
     @Override
